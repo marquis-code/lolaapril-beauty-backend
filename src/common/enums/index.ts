@@ -19,11 +19,11 @@ export enum ProgramStatus {
   ARCHIVED = "archived",
 }
 
-export enum BlogStatus {
-  DRAFT = "draft",
-  PUBLISHED = "published",
-  ARCHIVED = "archived",
-}
+// export enum BlogStatus {
+//   DRAFT = "draft",
+//   PUBLISHED = "published",
+//   ARCHIVED = "archived",
+// }
 
 export enum FormFieldType {
   TEXT = "text",
@@ -46,4 +46,33 @@ export enum AuditAction {
   RESTORE = "restore",
   LOGIN = "login",
   LOGOUT = "logout",
+}
+
+
+export enum ContentBlockType {
+  PARAGRAPH = "paragraph",
+  HEADING_1 = "heading1",
+  HEADING_2 = "heading2",
+  HEADING_3 = "heading3",
+  QUOTE = "quote",
+  CODE = "code",
+  IMAGE = "image",
+  VIDEO = "video",
+  AUDIO = "audio",
+  EMBED = "embed",
+  DIVIDER = "divider",
+  LIST_ORDERED = "orderedList",
+  LIST_UNORDERED = "unorderedList",
+  TABLE = "table",
+  CALLOUT = "callout",
+  TOGGLE = "toggle",
+  GALLERY = "gallery",
+}
+
+export enum BlogStatus {
+  DRAFT = "draft",
+  PUBLISHED = "published",
+  SCHEDULED = "scheduled",
+  ARCHIVED = "archived",
+  PRIVATE = "private",
 }

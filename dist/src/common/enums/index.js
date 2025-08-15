@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuditAction = exports.FormFieldType = exports.BlogStatus = exports.ProgramStatus = exports.PublicationStatus = exports.UserRole = void 0;
+exports.BlogStatus = exports.ContentBlockType = exports.AuditAction = exports.FormFieldType = exports.ProgramStatus = exports.PublicationStatus = exports.UserRole = void 0;
 var UserRole;
 (function (UserRole) {
     UserRole["SUPER_ADMIN"] = "super_admin";
@@ -22,12 +22,6 @@ var ProgramStatus;
     ProgramStatus["INACTIVE"] = "inactive";
     ProgramStatus["ARCHIVED"] = "archived";
 })(ProgramStatus = exports.ProgramStatus || (exports.ProgramStatus = {}));
-var BlogStatus;
-(function (BlogStatus) {
-    BlogStatus["DRAFT"] = "draft";
-    BlogStatus["PUBLISHED"] = "published";
-    BlogStatus["ARCHIVED"] = "archived";
-})(BlogStatus = exports.BlogStatus || (exports.BlogStatus = {}));
 var FormFieldType;
 (function (FormFieldType) {
     FormFieldType["TEXT"] = "text";
@@ -51,4 +45,32 @@ var AuditAction;
     AuditAction["LOGIN"] = "login";
     AuditAction["LOGOUT"] = "logout";
 })(AuditAction = exports.AuditAction || (exports.AuditAction = {}));
+var ContentBlockType;
+(function (ContentBlockType) {
+    ContentBlockType["PARAGRAPH"] = "paragraph";
+    ContentBlockType["HEADING_1"] = "heading1";
+    ContentBlockType["HEADING_2"] = "heading2";
+    ContentBlockType["HEADING_3"] = "heading3";
+    ContentBlockType["QUOTE"] = "quote";
+    ContentBlockType["CODE"] = "code";
+    ContentBlockType["IMAGE"] = "image";
+    ContentBlockType["VIDEO"] = "video";
+    ContentBlockType["AUDIO"] = "audio";
+    ContentBlockType["EMBED"] = "embed";
+    ContentBlockType["DIVIDER"] = "divider";
+    ContentBlockType["LIST_ORDERED"] = "orderedList";
+    ContentBlockType["LIST_UNORDERED"] = "unorderedList";
+    ContentBlockType["TABLE"] = "table";
+    ContentBlockType["CALLOUT"] = "callout";
+    ContentBlockType["TOGGLE"] = "toggle";
+    ContentBlockType["GALLERY"] = "gallery";
+})(ContentBlockType = exports.ContentBlockType || (exports.ContentBlockType = {}));
+var BlogStatus;
+(function (BlogStatus) {
+    BlogStatus["DRAFT"] = "draft";
+    BlogStatus["PUBLISHED"] = "published";
+    BlogStatus["SCHEDULED"] = "scheduled";
+    BlogStatus["ARCHIVED"] = "archived";
+    BlogStatus["PRIVATE"] = "private";
+})(BlogStatus = exports.BlogStatus || (exports.BlogStatus = {}));
 //# sourceMappingURL=index.js.map

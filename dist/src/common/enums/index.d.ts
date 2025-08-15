@@ -16,11 +16,6 @@ export declare enum ProgramStatus {
     INACTIVE = "inactive",
     ARCHIVED = "archived"
 }
-export declare enum BlogStatus {
-    DRAFT = "draft",
-    PUBLISHED = "published",
-    ARCHIVED = "archived"
-}
 export declare enum FormFieldType {
     TEXT = "text",
     EMAIL = "email",
@@ -41,4 +36,30 @@ export declare enum AuditAction {
     RESTORE = "restore",
     LOGIN = "login",
     LOGOUT = "logout"
+}
+export declare enum ContentBlockType {
+    PARAGRAPH = "paragraph",
+    HEADING_1 = "heading1",
+    HEADING_2 = "heading2",
+    HEADING_3 = "heading3",
+    QUOTE = "quote",
+    CODE = "code",
+    IMAGE = "image",
+    VIDEO = "video",
+    AUDIO = "audio",
+    EMBED = "embed",
+    DIVIDER = "divider",
+    LIST_ORDERED = "orderedList",
+    LIST_UNORDERED = "unorderedList",
+    TABLE = "table",
+    CALLOUT = "callout",
+    TOGGLE = "toggle",
+    GALLERY = "gallery"
+}
+export declare enum BlogStatus {
+    DRAFT = "draft",
+    PUBLISHED = "published",
+    SCHEDULED = "scheduled",
+    ARCHIVED = "archived",
+    PRIVATE = "private"
 }
