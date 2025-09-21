@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "prebuild": "rimraf dist",
+    "seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
+    "seed:dev": "npm run seed",
+    "seed:prod": "node dist/database/seed.js",
     "build": "NODE_OPTIONS=--max-old-space-size=2048 nest build && echo 'Build complete' && ls -la dist",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node --max-old-space-size=2048 dist/src/main.js",
@@ -43,6 +46,7 @@
     "helmet": "^8.1.0",
     "mongoose": "latest",
     "nest-commander": "^3.17.0",
+    "nestjs-command": "^3.1.5",
     "passport": "latest",
     "passport-jwt": "latest",
     "passport-local": "latest",

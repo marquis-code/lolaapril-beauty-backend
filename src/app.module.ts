@@ -5,15 +5,23 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from "@nestjs/core"
 import { AuthModule } from "./auth/auth.module"
 import { UsersModule } from "./users/users.module"
-import { EnquiriesModule } from "./enquiries/enquiries.module"
-import { SubscriptionsModule } from "./subscriptions/subscriptions.module"
-import { TeamsModule } from "./teams/teams.module"
-import { PublicationsModule } from "./publications/publications.module"
-import { ProgramsModule } from "./programs/programs.module"
-import { BlogsModule } from "./blogs/blogs.module"
-import { FormsModule } from "./forms/forms.module"
 import { AuditModule } from "./audit/audit.module"
+import { SeederModule } from './database/seeders/seeder.module';
 import { AuditInterceptor } from "./common/interceptors/audit.interceptor"
+
+
+import { ClientModule } from "./client/client.module"
+import { GiftCardModule } from "./gift-card/gift-card.module"
+import { MembershipModule } from "./membership/membership.module"
+import { VoucherModule } from "./voucher/voucher.module"
+
+import { ServiceModule } from "./modules/service/service.module"
+import { BookingModule } from "./modules/booking/booking.module"
+import { AppointmentModule } from "./modules/appointment/appointment.module"
+import { PaymentModule } from "./modules/payment/payment.module"
+import { SalesModule } from "./modules/sales/sales.module"
+import { TeamModule } from "./modules/team/team.module"
+import { SettingsModule } from "./modules/settings/settings.module"
 
 @Module({
   imports: [
@@ -39,14 +47,20 @@ import { AuditInterceptor } from "./common/interceptors/audit.interceptor"
     ]),
     AuthModule,
     UsersModule,
-    EnquiriesModule,
-    SubscriptionsModule,
-    TeamsModule,
-    PublicationsModule,
-    ProgramsModule,
-    BlogsModule,
-    FormsModule,
     AuditModule,
+    SeederModule,
+
+    ClientModule,
+    ServiceModule,
+    BookingModule,
+    AppointmentModule,
+    PaymentModule,
+    SalesModule,
+    TeamModule,
+    SettingsModule,
+    GiftCardModule,
+    MembershipModule,
+    VoucherModule,
   ],
   providers: [
     {

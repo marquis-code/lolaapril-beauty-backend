@@ -22,6 +22,7 @@ const programs_module_1 = require("./programs/programs.module");
 const blogs_module_1 = require("./blogs/blogs.module");
 const forms_module_1 = require("./forms/forms.module");
 const audit_module_1 = require("./audit/audit.module");
+const seeder_module_1 = require("./database/seeders/seeder.module");
 const audit_interceptor_1 = require("./common/interceptors/audit.interceptor");
 let AppModule = class AppModule {
 };
@@ -57,6 +58,7 @@ AppModule = __decorate([
             blogs_module_1.BlogsModule,
             forms_module_1.FormsModule,
             audit_module_1.AuditModule,
+            seeder_module_1.SeederModule,
         ],
         providers: [
             {
