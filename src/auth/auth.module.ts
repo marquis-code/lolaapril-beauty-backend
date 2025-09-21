@@ -1,27 +1,23 @@
 import { Module } from "@nestjs/common"
+import { MongooseModule } from "@nestjs/mongoose"
 import { JwtModule } from "@nestjs/jwt"
 import { PassportModule } from "@nestjs/passport"
-import { ConfigService } from "@nestjs/config"
-import { UsersModule } from "../users/users.module"
 import { AuthService } from "./auth.service"
 import { AuthController } from "./auth.controller"
+import { User, UserSchema } from "./schemas/user.schema"
 import { JwtStrategy } from "./strategies/jwt.strategy"
-import { LocalStrategy } from "./strategies/local.strategy"
 
 @Module({
   imports: [
-    UsersModule,
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     PassportModule,
-    JwtModule.registerAsync({
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>("JWT_SECRET") || "olgnova-secret-key",
-        signOptions: { expiresIn: "24h" },
-      }),
-      inject: [ConfigService],
+    JwtModule.register({
+      secret: process.env.JWT_ACCESS_SECRET || "access-secret",
+      signOptions: { expiresIn: "15m" },
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

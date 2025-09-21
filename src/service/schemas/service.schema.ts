@@ -4,6 +4,21 @@ import type { Document } from "mongoose"
 export type ServiceDocument = Service & Document
 
 @Schema()
+export class BasicDetails {
+  @Prop({ required: true })
+  serviceName: string
+
+  @Prop({ required: true })
+  serviceType: string
+
+  @Prop({ required: true })
+  category: string
+
+  @Prop({ required: true })
+  description: string
+}
+
+@Schema()
 export class TeamMember {
   @Prop({ required: true })
   id: string
@@ -14,38 +29,80 @@ export class TeamMember {
   @Prop({ required: true })
   role: string
 
-  @Prop({ default: true })
+  @Prop({ default: false })
   selected: boolean
 }
 
 @Schema()
-export class Currency {
-  @Prop({ required: true, default: "NGN" })
+export class TeamMembers {
+  @Prop({ default: false })
+  allTeamMembers: boolean
+
+  @Prop({ type: [TeamMember], default: [] })
+  selectedMembers: TeamMember[]
+}
+
+@Schema()
+export class Resources {
+  @Prop({ default: false })
+  required: boolean
+
+  @Prop({ type: [String], default: [] })
+  resourceList: string[]
+}
+
+@Schema()
+export class Price {
+  @Prop({ required: true })
   currency: string
 
   @Prop({ required: true })
   amount: number
-}
 
-@Schema()
-export class Duration {
-  @Prop({ required: true })
-  value: number
-
-  @Prop({ required: true, enum: ["min", "h"] })
-  unit: string
+  @Prop()
+  minimumAmount?: number
 }
 
 @Schema()
 export class ServiceDuration {
-  @Prop({ type: Duration, required: true })
-  servicingTime: Duration
+  @Prop({
+    type: {
+      value: { type: Number, required: true },
+      unit: { type: String, required: true, enum: ["min", "h"] },
+    },
+    required: true,
+  })
+  servicingTime: {
+    value: number
+    unit: "min" | "h"
+  }
 
-  @Prop({ type: Duration, required: true })
-  processingTime: Duration
+  @Prop({
+    type: {
+      value: { type: Number, required: true },
+      unit: { type: String, required: true, enum: ["min", "h"] },
+    },
+    required: true,
+  })
+  processingTime: {
+    value: number
+    unit: "min" | "h"
+  }
 
   @Prop({ required: true })
   totalDuration: string
+}
+
+@Schema()
+export class ExtraTimeOptions {
+  @Prop()
+  processingTime: string
+
+  @Prop()
+  blockedTime: string
+
+  @Prop()
+  extraServicingTime: string
 }
 
 @Schema()
@@ -53,14 +110,14 @@ export class PricingAndDuration {
   @Prop({ required: true, enum: ["Fixed", "Free", "From"] })
   priceType: string
 
-  @Prop({ type: Currency, required: true })
-  price: Currency
+  @Prop({ type: Price, required: true })
+  price: Price
 
   @Prop({ type: ServiceDuration, required: true })
   duration: ServiceDuration
 
-  @Prop({ type: Object })
-  extraTimeOptions?: any
+  @Prop({ type: ExtraTimeOptions })
+  extraTimeOptions: ExtraTimeOptions
 }
 
 @Schema()
@@ -74,17 +131,17 @@ export class OnlineBooking {
 
 @Schema()
 export class ServiceSettings {
-  @Prop({ type: OnlineBooking, default: () => ({}) })
+  @Prop({ type: OnlineBooking, default: {} })
   onlineBooking: OnlineBooking
 
-  @Prop({ type: [Object], default: [] })
-  forms: any[]
+  @Prop({ type: [String], default: [] })
+  forms: string[]
 
-  @Prop({ type: [Object], default: [] })
-  commissions: any[]
+  @Prop({ type: [String], default: [] })
+  commissions: string[]
 
   @Prop({ type: Object, default: {} })
-  generalSettings: any
+  generalSettings: Record<string, any>
 }
 
 @Schema()
@@ -95,46 +152,58 @@ export class ServiceVariant {
   @Prop({ required: true })
   variantDescription: string
 
-  @Prop({ type: Object, required: true })
-  pricing: any
+  @Prop({
+    type: {
+      priceType: { type: String, required: true },
+      price: { type: Price, required: true },
+      duration: {
+        type: {
+          value: { type: Number, required: true },
+          unit: { type: String, required: true },
+        },
+        required: true,
+      },
+    },
+    required: true,
+  })
+  pricing: {
+    priceType: string
+    price: Price
+    duration: {
+      value: number
+      unit: string
+    }
+  }
 
-  @Prop({ type: Object })
-  settings?: any
+  @Prop({
+    type: {
+      sku: { type: String },
+    },
+    default: {},
+  })
+  settings: {
+    sku?: string
+  }
 }
 
 @Schema({ timestamps: true })
 export class Service {
-  @Prop({ required: true })
-  serviceName: string
+  @Prop({ type: BasicDetails, required: true })
+  basicDetails: BasicDetails
 
-  @Prop({ required: true })
-  serviceType: string
+  @Prop({ type: TeamMembers, required: true })
+  teamMembers: TeamMembers
 
-  @Prop({ required: true })
-  category: string
-
-  @Prop({ required: true })
-  description: string
-
-  @Prop({ type: Object, required: true })
-  teamMembers: {
-    allTeamMembers: boolean
-    selectedMembers: TeamMember[]
-  }
-
-  @Prop({ type: Object, default: { required: false, resourceList: [] } })
-  resources: {
-    required: boolean
-    resourceList: any[]
-  }
+  @Prop({ type: Resources, default: {} })
+  resources: Resources
 
   @Prop({ type: PricingAndDuration, required: true })
   pricingAndDuration: PricingAndDuration
 
-  @Prop({ type: [Object], default: [] })
-  serviceAddOns: any[]
+  @Prop({ type: [String], default: [] })
+  serviceAddOns: string[]
 
-  @Prop({ type: ServiceSettings, default: () => ({}) })
+  @Prop({ type: ServiceSettings, default: {} })
   settings: ServiceSettings
 
   @Prop({ type: [ServiceVariant], default: [] })
@@ -143,17 +212,18 @@ export class Service {
   @Prop({ default: true })
   isActive: boolean
 
-  @Prop({ default: 0 })
-  bookingCount: number
+  @Prop({ default: Date.now })
+  createdAt: Date
 
-  @Prop({ default: 0 })
-  revenue: number
+  @Prop({ default: Date.now })
+  updatedAt: Date
 }
 
 export const ServiceSchema = SchemaFactory.createForClass(Service)
 
-// Create indexes
-ServiceSchema.index({ serviceName: 1 })
-ServiceSchema.index({ category: 1 })
+// Add indexes
+ServiceSchema.index({ "basicDetails.serviceName": 1 })
+ServiceSchema.index({ "basicDetails.category": 1 })
+ServiceSchema.index({ "basicDetails.serviceType": 1 })
 ServiceSchema.index({ isActive: 1 })
-ServiceSchema.index({ serviceType: 1 })
+ServiceSchema.index({ createdAt: -1 })

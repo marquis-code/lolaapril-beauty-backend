@@ -1,69 +1,143 @@
-import { IsString, IsNumber, IsArray, IsOptional, IsBoolean, IsObject } from "class-validator"
-import { ApiProperty } from "@nestjs/swagger"
-import type { Types } from "mongoose"
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  ValidateNested,
+  IsArray,
+  IsNumber,
+  IsEnum,
+  IsBoolean,
+  Min,
+} from "class-validator"
+import { Type } from "class-transformer"
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 
-export class CreateMembershipDto {
-  @ApiProperty({ description: "Membership name" })
-  @IsString()
-  name: string
+export class MembershipBenefitDto {
+  @ApiProperty({
+    example: "discount",
+    enum: ["discount", "free_service", "priority_booking", "exclusive_access"],
+  })
+  @IsEnum(["discount", "free_service", "priority_booking", "exclusive_access"])
+  benefitType: string
 
-  @ApiProperty({ description: "Membership description" })
+  @ApiProperty({ example: "10% discount on all services" })
   @IsString()
+  @IsNotEmpty()
   description: string
 
-  @ApiProperty({ description: "Membership price" })
-  @IsNumber()
-  price: number
-
-  @ApiProperty({ description: "Currency code", default: "USD" })
-  @IsString()
-  currency: string
-
-  @ApiProperty({ description: "Duration in days" })
-  @IsNumber()
-  duration: number
-
-  @ApiProperty({ description: "Included service IDs", type: [String] })
-  @IsArray()
-  includedServices: Types.ObjectId[]
-
-  @ApiProperty({ description: "Discount percentage", required: false })
+  @ApiPropertyOptional({ example: 10 })
   @IsOptional()
   @IsNumber()
+  @Min(0)
   discountPercentage?: number
 
-  @ApiProperty({ description: "Maximum bookings allowed", required: false })
+  @ApiPropertyOptional({ example: "service_001" })
   @IsOptional()
-  @IsNumber()
-  maxBookings?: number
+  @IsString()
+  freeServiceId?: string
 
-  @ApiProperty({ description: "Auto renewal enabled", required: false })
+  @ApiPropertyOptional({ example: "Free Hair Wash" })
   @IsOptional()
-  @IsBoolean()
-  autoRenewal?: boolean
-
-  @ApiProperty({ description: "Membership benefits", required: false })
-  @IsOptional()
-  @IsObject()
-  benefits?: {
-    priorityBooking: boolean
-    discountOnProducts: number
-    freeServices: string[]
-    additionalPerks: string[]
-  }
+  @IsString()
+  freeServiceName?: string
 }
 
-export class PurchaseMembershipDto {
-  @ApiProperty({ description: "Client ID" })
+export class MembershipTierDto {
+  @ApiProperty({ example: "Silver" })
   @IsString()
-  clientId: Types.ObjectId
+  @IsNotEmpty()
+  tierName: string
 
-  @ApiProperty({ description: "Membership ID" })
+  @ApiProperty({ example: 1 })
+  @IsNumber()
+  @Min(1)
+  tierLevel: number
+
+  @ApiProperty({ example: 10000 })
+  @IsNumber()
+  @Min(0)
+  minimumSpend: number
+
+  @ApiProperty({ example: 1.5 })
+  @IsNumber()
+  @Min(1)
+  pointsMultiplier: number
+
+  @ApiProperty({ type: [MembershipBenefitDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MembershipBenefitDto)
+  benefits: MembershipBenefitDto[]
+
+  @ApiProperty({ example: "#C0C0C0" })
   @IsString()
-  membershipId: Types.ObjectId
+  @IsNotEmpty()
+  tierColor: string
+}
 
-  @ApiProperty({ description: "Auto renewal preference", required: false })
+export class CreateMembershipDto {
+  @ApiProperty({ example: "VIP Membership" })
+  @IsString()
+  @IsNotEmpty()
+  membershipName: string
+
+  @ApiProperty({ example: "Exclusive membership program with amazing benefits" })
+  @IsString()
+  @IsNotEmpty()
+  description: string
+
+  @ApiProperty({
+    example: "tier_based",
+    enum: ["points_based", "tier_based", "subscription", "prepaid"],
+  })
+  @IsEnum(["points_based", "tier_based", "subscription", "prepaid"])
+  membershipType: string
+
+  @ApiPropertyOptional({ type: [MembershipTierDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MembershipTierDto)
+  tiers?: MembershipTierDto[]
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  pointsPerDollar?: number
+
+  @ApiPropertyOptional({ example: 100 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  pointsRedemptionValue?: number
+
+  @ApiPropertyOptional({ example: 5000 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  subscriptionPrice?: number
+
+  @ApiPropertyOptional({ example: 12 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  subscriptionDuration?: number
+
+  @ApiPropertyOptional({ type: [MembershipBenefitDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MembershipBenefitDto)
+  generalBenefits?: MembershipBenefitDto[]
+
+  @ApiPropertyOptional({ example: true })
   @IsOptional()
   @IsBoolean()
-  autoRenewal?: boolean
+  isActive?: boolean
+
+  @ApiProperty({ example: "507f1f77bcf86cd799439011" })
+  @IsString()
+  @IsNotEmpty()
+  createdBy: string
 }

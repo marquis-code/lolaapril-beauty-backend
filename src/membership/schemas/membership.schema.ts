@@ -3,84 +3,93 @@ import { type Document, Types } from "mongoose"
 
 export type MembershipDocument = Membership & Document
 
-@Schema({ timestamps: true })
-export class Membership {
+@Schema()
+export class MembershipBenefit {
   @Prop({ required: true })
-  name: string
+  benefitType: string // 'discount', 'free_service', 'priority_booking', 'exclusive_access'
 
   @Prop({ required: true })
   description: string
 
-  @Prop({ required: true })
-  price: number
-
-  @Prop({ required: true })
-  currency: string
-
-  @Prop({ required: true })
-  duration: number // in days
-
-  @Prop({ type: [Types.ObjectId], ref: "Service" })
-  includedServices: Types.ObjectId[]
-
-  @Prop({ default: 0 })
+  @Prop()
   discountPercentage: number
 
-  @Prop({ default: "active", enum: ["active", "inactive"] })
-  status: string
+  @Prop()
+  freeServiceId: string
 
   @Prop()
-  maxBookings: number
+  freeServiceName: string
+}
 
-  @Prop({ default: false })
-  autoRenewal: boolean
+@Schema()
+export class MembershipTier {
+  @Prop({ required: true })
+  tierName: string
 
-  @Prop({ type: Object })
-  benefits: {
-    priorityBooking: boolean
-    discountOnProducts: number
-    freeServices: string[]
-    additionalPerks: string[]
-  }
+  @Prop({ required: true })
+  tierLevel: number
+
+  @Prop({ required: true })
+  minimumSpend: number
+
+  @Prop({ required: true })
+  pointsMultiplier: number
+
+  @Prop({ type: [MembershipBenefit], default: [] })
+  benefits: MembershipBenefit[]
+
+  @Prop({ required: true })
+  tierColor: string
+}
+
+@Schema({ timestamps: true })
+export class Membership {
+  @Prop({ required: true })
+  membershipName: string
+
+  @Prop({ required: true })
+  description: string
+
+  @Prop({
+    required: true,
+    enum: ["points_based", "tier_based", "subscription", "prepaid"],
+  })
+  membershipType: string
+
+  @Prop({ type: [MembershipTier], default: [] })
+  tiers: MembershipTier[]
+
+  @Prop({ default: 1 })
+  pointsPerDollar: number
+
+  @Prop({ default: 100 })
+  pointsRedemptionValue: number // How many points = $1
+
+  @Prop()
+  subscriptionPrice: number
+
+  @Prop()
+  subscriptionDuration: number // in months
+
+  @Prop({ type: [MembershipBenefit], default: [] })
+  generalBenefits: MembershipBenefit[]
+
+  @Prop({ default: true })
+  isActive: boolean
+
+  @Prop({ type: Types.ObjectId, ref: "User", required: true })
+  createdBy: Types.ObjectId
+
+  @Prop({ default: Date.now })
+  createdAt: Date
+
+  @Prop({ default: Date.now })
+  updatedAt: Date
 }
 
 export const MembershipSchema = SchemaFactory.createForClass(Membership)
 
-@Schema({ timestamps: true })
-export class ClientMembership {
-  @Prop({ type: Types.ObjectId, ref: "Client", required: true })
-  clientId: Types.ObjectId
-
-  @Prop({ type: Types.ObjectId, ref: "Membership", required: true })
-  membershipId: Types.ObjectId
-
-  @Prop({ required: true })
-  startDate: Date
-
-  @Prop({ required: true })
-  endDate: Date
-
-  @Prop({ default: "active", enum: ["active", "expired", "cancelled", "suspended"] })
-  status: string
-
-  @Prop({ default: 0 })
-  usedBookings: number
-
-  @Prop({ type: [{ date: Date, serviceId: Types.ObjectId, bookingId: Types.ObjectId }] })
-  usageHistory: Array<{
-    date: Date
-    serviceId: Types.ObjectId
-    bookingId: Types.ObjectId
-  }>
-
-  @Prop()
-  paymentId: Types.ObjectId
-
-  @Prop({ default: false })
-  autoRenewal: boolean
-}
-
-export const ClientMembershipSchema = SchemaFactory.createForClass(ClientMembership)
-
-ClientMembershipSchema.index({ clientId: 1, status: 1 })
-ClientMembershipSchema.index({ endDate: 1 })
+// Add indexes
+MembershipSchema.index({ membershipName: 1 })
+MembershipSchema.index({ membershipType: 1 })
+MembershipSchema.index({ isActive: 1 })

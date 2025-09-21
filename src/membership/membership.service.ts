@@ -1,123 +1,314 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
+import { InjectModel } from "@nestjs/mongoose"
 import type { Model } from "mongoose"
-import type {
-  Membership,
-  MembershipDocument,
-  ClientMembership,
-  ClientMembershipDocument,
-} from "./schemas/membership.schema"
-import type { CreateMembershipDto, PurchaseMembershipDto } from "./dto/create-membership.dto"
+import { Membership, type MembershipDocument } from "./schemas/membership.schema"
+import { ClientMembership, type ClientMembershipDocument } from "./schemas/client-membership.schema"
+import type { CreateMembershipDto } from "./dto/create-membership.dto"
+import type { UpdateMembershipDto } from "./dto/update-membership.dto"
+import type { CreateClientMembershipDto } from "./dto/create-client-membership.dto"
+import type { MembershipQueryDto } from "./dto/membership-query.dto"
 
 @Injectable()
 export class MembershipService {
-  private membershipModel: Model<MembershipDocument>
-  private clientMembershipModel: Model<ClientMembershipDocument>
+  constructor(
+    @InjectModel(Membership.name) private membershipModel: Model<MembershipDocument>,
+    @InjectModel(ClientMembership.name) private clientMembershipModel: Model<ClientMembershipDocument>,
+  ) {}
 
-  constructor(model1: Model<MembershipDocument>, model2: Model<ClientMembershipDocument>) {
-    this.membershipModel = model1
-    this.clientMembershipModel = model2
-  }
-
-  async create(createMembershipDto: CreateMembershipDto): Promise<Membership> {
+  // Membership Program Management
+  async createMembership(createMembershipDto: CreateMembershipDto): Promise<Membership> {
     const membership = new this.membershipModel(createMembershipDto)
     return membership.save()
   }
 
-  async findAll(): Promise<Membership[]> {
-    return this.membershipModel.find({ status: "active" }).populate("includedServices").exec()
-  }
+  async findAllMemberships(query: MembershipQueryDto) {
+    const { page = 1, limit = 10, membershipType, isActive, search, sortBy = "createdAt", sortOrder = "desc" } = query
 
-  async findOne(id: string): Promise<Membership> {
-    const membership = await this.membershipModel.findById(id).populate("includedServices").exec()
-    if (!membership) {
-      throw new NotFoundException("Membership not found")
-    }
-    return membership
-  }
+    const filter: any = {}
 
-  async update(id: string, updateData: Partial<CreateMembershipDto>): Promise<Membership> {
-    const membership = await this.membershipModel.findByIdAndUpdate(id, updateData, { new: true })
-    if (!membership) {
-      throw new NotFoundException("Membership not found")
-    }
-    return membership
-  }
+    if (membershipType) filter.membershipType = membershipType
+    if (isActive !== undefined) filter.isActive = isActive
 
-  async purchaseMembership(purchaseDto: PurchaseMembershipDto): Promise<ClientMembership> {
-    const membership = await this.findOne(purchaseDto.membershipId.toString())
-
-    // Check if client already has an active membership
-    const existingMembership = await this.clientMembershipModel.findOne({
-      clientId: purchaseDto.clientId,
-      status: "active",
-    })
-
-    if (existingMembership) {
-      throw new BadRequestException("Client already has an active membership")
+    // Search functionality
+    if (search) {
+      filter.$or = [
+        { membershipName: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ]
     }
 
-    const startDate = new Date()
-    const endDate = new Date()
-    endDate.setDate(startDate.getDate() + membership.duration)
+    const skip = (page - 1) * limit
+    const sortOptions: any = {}
+    sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1
 
-    const clientMembership = new this.clientMembershipModel({
-      clientId: purchaseDto.clientId,
-      membershipId: purchaseDto.membershipId,
-      startDate,
-      endDate,
-      status: "active",
-      autoRenewal: purchaseDto.autoRenewal || false,
-    })
+    const [memberships, total] = await Promise.all([
+      this.membershipModel
+        .find(filter)
+        .populate("createdBy", "firstName lastName email")
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.membershipModel.countDocuments(filter),
+    ])
 
-    return clientMembership.save()
-  }
-
-  async getClientMemberships(clientId: string): Promise<ClientMembership[]> {
-    return this.clientMembershipModel.find({ clientId }).populate("membershipId").sort({ createdAt: -1 }).exec()
-  }
-
-  async getActiveMembership(clientId: string): Promise<ClientMembership | null> {
-    return this.clientMembershipModel.findOne({ clientId, status: "active" }).populate("membershipId").exec()
-  }
-
-  async useMembershipService(clientId: string, serviceId: string, bookingId: string): Promise<boolean> {
-    const membership = await this.getActiveMembership(clientId)
-    if (!membership) {
-      return false
-    }
-
-    // Check if membership includes this service
-    const membershipData = membership.membershipId as any
-    const isServiceIncluded = membershipData.includedServices.some((id: any) => id.toString() === serviceId)
-
-    if (!isServiceIncluded) {
-      return false
-    }
-
-    // Check usage limits
-    if (membershipData.maxBookings && membership.usedBookings >= membershipData.maxBookings) {
-      return false
-    }
-
-    // Update usage
-    await this.clientMembershipModel.findByIdAndUpdate(membership._id, {
-      $inc: { usedBookings: 1 },
-      $push: {
-        usageHistory: {
-          date: new Date(),
-          serviceId,
-          bookingId,
-        },
+    return {
+      memberships,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
       },
-    })
-
-    return true
+    }
   }
 
-  async remove(id: string): Promise<void> {
+  async findMembershipById(id: string): Promise<Membership> {
+    const membership = await this.membershipModel.findById(id).populate("createdBy", "firstName lastName email").exec()
+
+    if (!membership) {
+      throw new NotFoundException("Membership not found")
+    }
+    return membership
+  }
+
+  async updateMembership(id: string, updateMembershipDto: UpdateMembershipDto): Promise<Membership> {
+    const membership = await this.membershipModel
+      .findByIdAndUpdate(id, { ...updateMembershipDto, updatedAt: new Date() }, { new: true })
+      .populate("createdBy", "firstName lastName email")
+      .exec()
+
+    if (!membership) {
+      throw new NotFoundException("Membership not found")
+    }
+    return membership
+  }
+
+  async removeMembership(id: string): Promise<void> {
     const result = await this.membershipModel.findByIdAndDelete(id)
     if (!result) {
       throw new NotFoundException("Membership not found")
     }
+  }
+
+  // Client Membership Management
+  async enrollClient(createClientMembershipDto: CreateClientMembershipDto): Promise<ClientMembership> {
+    // Check if client already has this membership
+    const existingMembership = await this.clientMembershipModel.findOne({
+      clientId: createClientMembershipDto.clientId,
+      membershipId: createClientMembershipDto.membershipId,
+      status: "active",
+    })
+
+    if (existingMembership) {
+      throw new BadRequestException("Client already has an active membership of this type")
+    }
+
+    const clientMembership = new this.clientMembershipModel(createClientMembershipDto)
+    return clientMembership.save()
+  }
+
+  async findClientMemberships(clientId: string) {
+    return this.clientMembershipModel
+      .find({ clientId })
+      .populate("membershipId")
+      .populate("clientId", "firstName lastName email")
+      .sort({ joinDate: -1 })
+      .exec()
+  }
+
+  async findClientMembershipById(id: string): Promise<ClientMembership> {
+    const clientMembership = await this.clientMembershipModel
+      .findById(id)
+      .populate("membershipId")
+      .populate("clientId", "firstName lastName email")
+      .exec()
+
+    if (!clientMembership) {
+      throw new NotFoundException("Client membership not found")
+    }
+    return clientMembership
+  }
+
+  async addPoints(
+    clientMembershipId: string,
+    points: number,
+    description: string,
+    saleId?: string,
+  ): Promise<ClientMembership> {
+    const clientMembership = await this.clientMembershipModel.findById(clientMembershipId)
+
+    if (!clientMembership) {
+      throw new NotFoundException("Client membership not found")
+    }
+
+    const pointsTransaction = {
+      transactionType: "earned",
+      points,
+      description,
+      saleId,
+      transactionDate: new Date(),
+    }
+
+    clientMembership.totalPoints += points
+    clientMembership.pointsHistory.push(pointsTransaction)
+    clientMembership.lastActivity = new Date()
+    clientMembership.updatedAt = new Date()
+
+    // Check for tier upgrade
+    await this.checkTierUpgrade(clientMembership)
+
+    return clientMembership.save()
+  }
+
+  async redeemPoints(clientMembershipId: string, points: number, description: string): Promise<ClientMembership> {
+    const clientMembership = await this.clientMembershipModel.findById(clientMembershipId)
+
+    if (!clientMembership) {
+      throw new NotFoundException("Client membership not found")
+    }
+
+    if (clientMembership.totalPoints < points) {
+      throw new BadRequestException("Insufficient points")
+    }
+
+    const pointsTransaction = {
+      transactionType: "redeemed",
+      points: -points,
+      description,
+      transactionDate: new Date(),
+    }
+
+    clientMembership.totalPoints -= points
+    clientMembership.pointsHistory.push(pointsTransaction)
+    clientMembership.lastActivity = new Date()
+    clientMembership.updatedAt = new Date()
+
+    return clientMembership.save()
+  }
+
+  async updateSpending(clientMembershipId: string, amount: number): Promise<ClientMembership> {
+    const clientMembership = await this.clientMembershipModel.findById(clientMembershipId)
+
+    if (!clientMembership) {
+      throw new NotFoundException("Client membership not found")
+    }
+
+    clientMembership.totalSpent += amount
+    clientMembership.lastActivity = new Date()
+    clientMembership.updatedAt = new Date()
+
+    // Check for tier upgrade
+    await this.checkTierUpgrade(clientMembership)
+
+    return clientMembership.save()
+  }
+
+  private async checkTierUpgrade(clientMembership: ClientMembership): Promise<void> {
+    const membership = await this.membershipModel.findById(clientMembership.membershipId)
+
+    if (!membership || membership.membershipType !== "tier_based") {
+      return
+    }
+
+    // Find the highest tier the client qualifies for
+    const qualifyingTiers = membership.tiers
+      .filter((tier) => clientMembership.totalSpent >= tier.minimumSpend)
+      .sort((a, b) => b.tierLevel - a.tierLevel)
+
+    if (qualifyingTiers.length > 0) {
+      const newTier = qualifyingTiers[0]
+      if (newTier.tierName !== clientMembership.currentTier) {
+        clientMembership.currentTier = newTier.tierName
+
+        // Calculate progress to next tier
+        const nextTier = membership.tiers.find((tier) => tier.tierLevel > newTier.tierLevel)
+        if (nextTier) {
+          const progressAmount = clientMembership.totalSpent - newTier.minimumSpend
+          const tierRange = nextTier.minimumSpend - newTier.minimumSpend
+          clientMembership.tierProgress = Math.min(100, (progressAmount / tierRange) * 100)
+        } else {
+          clientMembership.tierProgress = 100 // Max tier reached
+        }
+      }
+    }
+  }
+
+  async getMembershipStats() {
+    const [membershipStats, clientMembershipStats] = await Promise.all([
+      this.membershipModel.aggregate([
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            active: { $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] } },
+            byType: {
+              $push: {
+                type: "$membershipType",
+                count: 1,
+              },
+            },
+          },
+        },
+      ]),
+      this.clientMembershipModel.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalMembers: { $sum: 1 },
+            activeMembers: { $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] } },
+            totalPointsIssued: { $sum: "$totalPoints" },
+            totalSpending: { $sum: "$totalSpent" },
+          },
+        },
+      ]),
+    ])
+
+    const tierDistribution = await this.clientMembershipModel.aggregate([
+      { $match: { status: "active" } },
+      {
+        $group: {
+          _id: "$currentTier",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+
+    return {
+      programs: membershipStats[0] || { total: 0, active: 0, byType: [] },
+      members: clientMembershipStats[0] || {
+        totalMembers: 0,
+        activeMembers: 0,
+        totalPointsIssued: 0,
+        totalSpending: 0,
+      },
+      tierDistribution,
+    }
+  }
+
+  async getClientMembershipBenefits(clientId: string): Promise<any[]> {
+    const clientMemberships = await this.clientMembershipModel
+      .find({ clientId, status: "active" })
+      .populate("membershipId")
+      .exec()
+
+    const benefits = []
+
+    for (const clientMembership of clientMemberships) {
+      const membership = clientMembership.membershipId as any
+
+      // Add general benefits
+      benefits.push(...membership.generalBenefits)
+
+      // Add tier-specific benefits
+      if (clientMembership.currentTier) {
+        const currentTier = membership.tiers.find((tier) => tier.tierName === clientMembership.currentTier)
+        if (currentTier) {
+          benefits.push(...currentTier.benefits)
+        }
+      }
+    }
+
+    return benefits
   }
 }

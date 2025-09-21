@@ -1,218 +1,334 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
+import { Injectable, NotFoundException, ConflictException } from "@nestjs/common"
 import type { Model } from "mongoose"
 import type { Client, ClientDocument } from "./schemas/client.schema"
 import type { CreateClientDto } from "./dto/create-client.dto"
 import type { UpdateClientDto } from "./dto/update-client.dto"
 import type { ClientQueryDto } from "./dto/client-query.dto"
-import type { PaginatedResult } from "../../common/dto/pagination.dto"
-import * as csvWriter from "csv-writer"
+import type { ApiResponse } from "../../common/interfaces/common.interface"
+import * as csv from "csv-writer"
 import * as PDFDocument from "pdfkit"
+import { createReadStream } from "fs"
+import csvParser from "csv-parser"
 
 @Injectable()
 export class ClientService {
-  private clientModel: Model<ClientDocument>
+  constructor(private clientModel: Model<ClientDocument>) {}
 
-  constructor(clientModel: Model<ClientDocument>) {
-    this.clientModel = clientModel
-  }
-
-  async create(createClientDto: CreateClientDto): Promise<Client> {
+  async create(createClientDto: CreateClientDto): Promise<ApiResponse<Client>> {
     try {
-      const client = new this.clientModel(createClientDto)
-      return await client.save()
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new BadRequestException("Client with this email already exists")
+      // Check if client with email already exists
+      const existingClient = await this.clientModel.findOne({
+        "profile.email": createClientDto.profile.email,
+      })
+
+      if (existingClient) {
+        throw new ConflictException("Client with this email already exists")
       }
-      throw error
+
+      const client = new this.clientModel(createClientDto)
+      const savedClient = await client.save()
+
+      return {
+        success: true,
+        data: savedClient,
+        message: "Client created successfully",
+      }
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error
+      }
+      throw new Error(`Failed to create client: ${error.message}`)
     }
   }
 
-  async findAll(query: ClientQueryDto): Promise<PaginatedResult<Client>> {
-    const {
-      page = 1,
-      limit = 10,
-      search,
-      gender,
-      clientSource,
-      isActive,
-      sortBy = "createdAt",
-      sortOrder = "desc",
-    } = query
-
-    const filter: any = {}
-
-    if (search) {
-      filter.$or = [
-        { firstName: { $regex: search, $options: "i" } },
-        { lastName: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { "phone.number": { $regex: search, $options: "i" } },
-      ]
-    }
-
-    if (gender) filter.gender = gender
-    if (clientSource) filter.clientSource = clientSource
-    if (isActive !== undefined) filter.isActive = isActive
-
-    const sort = { [sortBy]: sortOrder === "asc" ? 1 : -1 }
-    const skip = (page - 1) * limit
-
-    const [data, total] = await Promise.all([
-      this.clientModel.find(filter).sort(sort).skip(skip).limit(limit).exec(),
-      this.clientModel.countDocuments(filter).exec(),
-    ])
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    }
-  }
-
-  async findOne(id: string): Promise<Client> {
-    const client = await this.clientModel.findById(id).exec()
-    if (!client) {
-      throw new NotFoundException("Client not found")
-    }
-    return client
-  }
-
-  async update(id: string, updateClientDto: UpdateClientDto): Promise<Client> {
+  async findAll(query: ClientQueryDto): Promise<ApiResponse<Client[]>> {
     try {
-      const client = await this.clientModel
-        .findByIdAndUpdate(id, updateClientDto, { new: true, runValidators: true })
-        .exec()
+      const {
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        sortOrder = "desc",
+        search,
+        clientSource,
+        gender,
+        isActive,
+        country,
+      } = query
+
+      const filter: any = {}
+
+      // Build search filter
+      if (search) {
+        filter.$or = [
+          { "profile.firstName": { $regex: search, $options: "i" } },
+          { "profile.lastName": { $regex: search, $options: "i" } },
+          { "profile.email": { $regex: search, $options: "i" } },
+          { "profile.phone.number": { $regex: search, $options: "i" } },
+        ]
+      }
+
+      // Apply filters
+      if (clientSource) filter["additionalInfo.clientSource"] = clientSource
+      if (gender) filter["profile.gender"] = gender
+      if (isActive !== undefined) filter.isActive = isActive
+      if (country) filter["additionalInfo.country"] = country
+
+      const skip = (page - 1) * limit
+      const sortOptions = { [sortBy]: sortOrder === "asc" ? 1 : -1 }
+
+      const [clients, total] = await Promise.all([
+        this.clientModel.find(filter).sort(sortOptions).skip(skip).limit(limit).exec(),
+        this.clientModel.countDocuments(filter),
+      ])
+
+      return {
+        success: true,
+        data: clients,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      }
+    } catch (error) {
+      throw new Error(`Failed to fetch clients: ${error.message}`)
+    }
+  }
+
+  async findOne(id: string): Promise<ApiResponse<Client>> {
+    try {
+      const client = await this.clientModel.findById(id)
+      if (!client) {
+        throw new NotFoundException("Client not found")
+      }
+
+      return {
+        success: true,
+        data: client,
+      }
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error
+      }
+      throw new Error(`Failed to fetch client: ${error.message}`)
+    }
+  }
+
+  async update(id: string, updateClientDto: UpdateClientDto): Promise<ApiResponse<Client>> {
+    try {
+      // Check if email is being updated and if it conflicts
+      if (updateClientDto.profile?.email) {
+        const existingClient = await this.clientModel.findOne({
+          "profile.email": updateClientDto.profile.email,
+          _id: { $ne: id },
+        })
+
+        if (existingClient) {
+          throw new ConflictException("Client with this email already exists")
+        }
+      }
+
+      const client = await this.clientModel.findByIdAndUpdate(
+        id,
+        { ...updateClientDto, updatedAt: new Date() },
+        { new: true, runValidators: true },
+      )
 
       if (!client) {
         throw new NotFoundException("Client not found")
       }
 
-      return client
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new BadRequestException("Client with this email already exists")
+      return {
+        success: true,
+        data: client,
+        message: "Client updated successfully",
       }
-      throw error
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ConflictException) {
+        throw error
+      }
+      throw new Error(`Failed to update client: ${error.message}`)
     }
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.clientModel.findByIdAndDelete(id).exec()
-    if (!result) {
-      throw new NotFoundException("Client not found")
+  async remove(id: string): Promise<ApiResponse<null>> {
+    try {
+      const client = await this.clientModel.findByIdAndUpdate(
+        id,
+        { isActive: false, updatedAt: new Date() },
+        { new: true },
+      )
+
+      if (!client) {
+        throw new NotFoundException("Client not found")
+      }
+
+      return {
+        success: true,
+        message: "Client deactivated successfully",
+      }
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error
+      }
+      throw new Error(`Failed to deactivate client: ${error.message}`)
     }
   }
 
-  async exportToCSV(): Promise<Buffer> {
-    const clients = await this.clientModel.find({ isActive: true }).exec()
+  async exportToCSV(): Promise<string> {
+    try {
+      const clients = await this.clientModel.find({ isActive: true })
+      const csvWriter = csv.createObjectCsvWriter({
+        path: "clients-export.csv",
+        header: [
+          { id: "firstName", title: "First Name" },
+          { id: "lastName", title: "Last Name" },
+          { id: "email", title: "Email" },
+          { id: "phone", title: "Phone" },
+          { id: "gender", title: "Gender" },
+          { id: "clientSource", title: "Source" },
+          { id: "totalVisits", title: "Total Visits" },
+          { id: "totalSpent", title: "Total Spent" },
+          { id: "createdAt", title: "Created At" },
+        ],
+      })
 
-    const csvWriterInstance = csvWriter.createObjectCsvStringifier({
-      header: [
-        { id: "firstName", title: "First Name" },
-        { id: "lastName", title: "Last Name" },
-        { id: "email", title: "Email" },
-        { id: "phone", title: "Phone" },
-        { id: "gender", title: "Gender" },
-        { id: "clientSource", title: "Source" },
-        { id: "totalVisits", title: "Total Visits" },
-        { id: "totalSpent", title: "Total Spent" },
-        { id: "lastVisit", title: "Last Visit" },
-        { id: "createdAt", title: "Created At" },
-      ],
-    })
+      const records = clients.map((client) => ({
+        firstName: client.profile.firstName,
+        lastName: client.profile.lastName,
+        email: client.profile.email,
+        phone: client.profile.phone.number,
+        gender: client.profile.gender || "",
+        clientSource: client.additionalInfo?.clientSource || "",
+        totalVisits: client.totalVisits,
+        totalSpent: client.totalSpent,
+        createdAt: client.createdAt.toISOString(),
+      }))
 
-    const records = clients.map((client) => ({
-      firstName: client.firstName,
-      lastName: client.lastName,
-      email: client.email,
-      phone: `${client.phone.countryCode} ${client.phone.number}`,
-      gender: client.gender || "",
-      clientSource: client.clientSource || "",
-      totalVisits: client.totalVisits,
-      totalSpent: client.totalSpent,
-      lastVisit: client.lastVisit ? client.lastVisit.toISOString().split("T")[0] : "",
-      createdAt: client.createdAt.toISOString().split("T")[0],
-    }))
-
-    const csvString = csvWriterInstance.getHeaderString() + csvWriterInstance.stringifyRecords(records)
-    return Buffer.from(csvString, "utf8")
+      await csvWriter.writeRecords(records)
+      return "clients-export.csv"
+    } catch (error) {
+      throw new Error(`Failed to export clients to CSV: ${error.message}`)
+    }
   }
 
   async exportToPDF(): Promise<Buffer> {
-    const clients = await this.clientModel.find({ isActive: true }).exec()
-
-    return new Promise((resolve, reject) => {
+    try {
+      const clients = await this.clientModel.find({ isActive: true })
       const doc = new PDFDocument()
       const buffers: Buffer[] = []
 
       doc.on("data", buffers.push.bind(buffers))
-      doc.on("end", () => {
-        const pdfData = Buffer.concat(buffers)
-        resolve(pdfData)
+
+      return new Promise((resolve, reject) => {
+        doc.on("end", () => {
+          const pdfData = Buffer.concat(buffers)
+          resolve(pdfData)
+        })
+
+        doc.on("error", reject)
+
+        // PDF content
+        doc.fontSize(20).text("Client List", 100, 100)
+        doc.moveDown()
+
+        clients.forEach((client, index) => {
+          const y = 150 + index * 60
+          doc
+            .fontSize(12)
+            .text(`${client.profile.firstName} ${client.profile.lastName}`, 100, y)
+            .text(`Email: ${client.profile.email}`, 100, y + 15)
+            .text(`Phone: ${client.profile.phone.number}`, 100, y + 30)
+            .text(`Visits: ${client.totalVisits} | Spent: ${client.totalSpent}`, 100, y + 45)
+        })
+
+        doc.end()
       })
-      doc.on("error", reject)
-
-      // PDF Header
-      doc.fontSize(20).text("Client Directory", 50, 50)
-      doc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`, 50, 80)
-
-      let yPosition = 120
-
-      clients.forEach((client, index) => {
-        if (yPosition > 700) {
-          doc.addPage()
-          yPosition = 50
-        }
-
-        doc.fontSize(14).text(`${index + 1}. ${client.firstName} ${client.lastName}`, 50, yPosition)
-        yPosition += 20
-
-        doc
-          .fontSize(10)
-          .text(`Email: ${client.email}`, 70, yPosition)
-          .text(`Phone: ${client.phone.countryCode} ${client.phone.number}`, 70, yPosition + 15)
-          .text(`Gender: ${client.gender || "N/A"}`, 70, yPosition + 30)
-          .text(`Total Visits: ${client.totalVisits}`, 70, yPosition + 45)
-          .text(`Total Spent: $${client.totalSpent}`, 70, yPosition + 60)
-
-        yPosition += 90
-      })
-
-      doc.end()
-    })
+    } catch (error) {
+      throw new Error(`Failed to export clients to PDF: ${error.message}`)
+    }
   }
 
-  async importFromCSV(csvData: Buffer): Promise<{ success: number; errors: string[] }> {
-    // Implementation for CSV import would go here
-    // This is a placeholder for the import functionality
-    return { success: 0, errors: ["Import functionality not yet implemented"] }
+  async importFromCSV(filePath: string): Promise<ApiResponse<{ imported: number; errors: string[] }>> {
+    try {
+      const results: any[] = []
+      const errors: string[] = []
+      let imported = 0
+
+      return new Promise((resolve, reject) => {
+        createReadStream(filePath)
+          .pipe(csvParser())
+          .on("data", (data) => results.push(data))
+          .on("end", async () => {
+            for (const row of results) {
+              try {
+                const clientData: CreateClientDto = {
+                  profile: {
+                    firstName: row["First Name"],
+                    lastName: row["Last Name"],
+                    email: row["Email"],
+                    phone: {
+                      countryCode: "+234", // Default country code
+                      number: row["Phone"],
+                    },
+                    gender: row["Gender"],
+                  },
+                  additionalInfo: {
+                    clientSource: row["Source"] || "Import",
+                  },
+                }
+
+                await this.create(clientData)
+                imported++
+              } catch (error) {
+                errors.push(`Row ${results.indexOf(row) + 1}: ${error.message}`)
+              }
+            }
+
+            resolve({
+              success: true,
+              data: { imported, errors },
+              message: `Import completed. ${imported} clients imported successfully.`,
+            })
+          })
+          .on("error", reject)
+      })
+    } catch (error) {
+      throw new Error(`Failed to import clients from CSV: ${error.message}`)
+    }
   }
 
-  async getClientStats(): Promise<any> {
-    const totalClients = await this.clientModel.countDocuments({ isActive: true })
-    const newClientsThisMonth = await this.clientModel.countDocuments({
-      isActive: true,
-      createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
-    })
+  async getClientStats(): Promise<ApiResponse<any>> {
+    try {
+      const [totalClients, activeClients, newThisMonth] = await Promise.all([
+        this.clientModel.countDocuments(),
+        this.clientModel.countDocuments({ isActive: true }),
+        this.clientModel.countDocuments({
+          createdAt: {
+            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        }),
+      ])
 
-    const genderStats = await this.clientModel.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: "$gender", count: { $sum: 1 } } },
-    ])
+      const topSources = await this.clientModel.aggregate([
+        { $match: { isActive: true } },
+        { $group: { _id: "$additionalInfo.clientSource", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ])
 
-    const sourceStats = await this.clientModel.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: "$clientSource", count: { $sum: 1 } } },
-    ])
-
-    return {
-      totalClients,
-      newClientsThisMonth,
-      genderStats,
-      sourceStats,
+      return {
+        success: true,
+        data: {
+          totalClients,
+          activeClients,
+          newThisMonth,
+          topSources,
+        },
+      }
+    } catch (error) {
+      throw new Error(`Failed to get client stats: ${error.message}`)
     }
   }
 }

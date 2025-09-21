@@ -1,39 +1,21 @@
-import { IsString, IsEmail, IsOptional, ValidateNested, IsArray, IsEnum } from "class-validator"
+import { IsString, IsEmail, IsOptional, ValidateNested } from "class-validator"
 import { Type } from "class-transformer"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-
-export class PhoneDto {
-  @ApiProperty()
-  @IsString()
-  countryCode: string
-
-  @ApiProperty()
-  @IsString()
-  number: string
-}
-
-export class BirthdayDto {
-  @ApiProperty()
-  @IsString()
-  dayAndMonth: string
-
-  @ApiProperty()
-  @IsString()
-  year: string
-}
+import { PhoneDto, AddressDto } from "../../../common/dto/common.dto"
 
 export class EmergencyContactDto {
-  @ApiProperty()
+  @ApiProperty({ example: "John Hancock Sr." })
   @IsString()
   fullName: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "Parent" })
   @IsString()
   relationship: string
 
-  @ApiProperty()
+  @ApiPropertyOptional({ example: "emergency1@domain.com" })
+  @IsOptional()
   @IsEmail()
-  email: string
+  email?: string
 
   @ApiProperty({ type: PhoneDto })
   @ValidateNested()
@@ -41,65 +23,16 @@ export class EmergencyContactDto {
   phone: PhoneDto
 }
 
-export class AddressDto {
-  @ApiProperty()
-  @IsString()
-  addressName: string
-
-  @ApiProperty()
-  @IsString()
-  addressType: string
-
-  @ApiProperty()
-  @IsString()
-  street: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  aptSuite?: string
-
-  @ApiProperty()
-  @IsString()
-  district: string
-
-  @ApiProperty()
-  @IsString()
-  city: string
-
-  @ApiProperty()
-  @IsString()
-  region: string
-
-  @ApiProperty()
-  @IsString()
-  postcode: string
-
-  @ApiProperty()
-  @IsString()
-  country: string
-}
-
-export class ClientSettingsDto {
-  @ApiPropertyOptional()
-  @IsOptional()
-  appointmentNotifications?: { emailNotifications: boolean }
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  marketingNotifications?: { clientAcceptsEmailMarketing: boolean }
-}
-
-export class CreateClientDto {
-  @ApiProperty()
+export class ClientProfileDto {
+  @ApiProperty({ example: "John" })
   @IsString()
   firstName: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "Hancock" })
   @IsString()
   lastName: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "example@domain.com" })
   @IsEmail()
   email: string
 
@@ -108,23 +41,32 @@ export class CreateClientDto {
   @Type(() => PhoneDto)
   phone: PhoneDto
 
-  @ApiPropertyOptional({ type: BirthdayDto })
+  @ApiPropertyOptional({
+    type: "object",
+    properties: {
+      dayAndMonth: { type: "string", example: "01-15" },
+      year: { type: "string", example: "1990" },
+    },
+  })
   @IsOptional()
   @ValidateNested()
-  @Type(() => BirthdayDto)
-  birthday?: BirthdayDto
+  @Type(() => Object)
+  birthday?: {
+    dayAndMonth: string
+    year: string
+  }
 
-  @ApiPropertyOptional({ enum: ["Male", "Female", "Other", "Prefer not to say"] })
+  @ApiPropertyOptional({ example: "Male" })
   @IsOptional()
-  @IsEnum(["Male", "Female", "Other", "Prefer not to say"])
+  @IsString()
   gender?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "He/Him" })
   @IsOptional()
   @IsString()
   pronouns?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "example+1@domain.com" })
   @IsOptional()
   @IsEmail()
   additionalEmail?: string
@@ -134,33 +76,95 @@ export class CreateClientDto {
   @ValidateNested()
   @Type(() => PhoneDto)
   additionalPhone?: PhoneDto
+}
 
-  @ApiPropertyOptional()
+export class AdditionalInfoDto {
+  @ApiPropertyOptional({ example: "Walk-In" })
   @IsOptional()
   @IsString()
   clientSource?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    type: "object",
+    properties: {
+      clientId: { type: "string", example: "12345" },
+      clientName: { type: "string", example: "Jane Smith" },
+    },
+  })
   @IsOptional()
-  referredBy?: { clientId: string; clientName: string }
+  @ValidateNested()
+  @Type(() => Object)
+  referredBy?: {
+    clientId: string
+    clientName: string
+  }
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "English" })
   @IsOptional()
   @IsString()
   preferredLanguage?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "Software Engineer" })
   @IsOptional()
   @IsString()
   occupation?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "Nigeria" })
   @IsOptional()
   @IsString()
   country?: string
+}
 
-  @ApiPropertyOptional()
+export class ClientSettingsDto {
+  @ApiPropertyOptional({
+    type: "object",
+    properties: {
+      emailNotifications: { type: "boolean", default: true },
+    },
+  })
   @IsOptional()
+  @ValidateNested()
+  @Type(() => Object)
+  appointmentNotifications?: {
+    emailNotifications: boolean
+  }
+
+  @ApiPropertyOptional({
+    type: "object",
+    properties: {
+      clientAcceptsEmailMarketing: { type: "boolean", default: false },
+    },
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Object)
+  marketingNotifications?: {
+    clientAcceptsEmailMarketing: boolean
+  }
+}
+
+export class CreateClientDto {
+  @ApiProperty({ type: ClientProfileDto })
+  @ValidateNested()
+  @Type(() => ClientProfileDto)
+  profile: ClientProfileDto
+
+  @ApiPropertyOptional({ type: AdditionalInfoDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AdditionalInfoDto)
+  additionalInfo?: AdditionalInfoDto
+
+  @ApiPropertyOptional({
+    type: "object",
+    properties: {
+      primary: { $ref: "#/components/schemas/EmergencyContactDto" },
+      secondary: { $ref: "#/components/schemas/EmergencyContactDto" },
+    },
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Object)
   emergencyContacts?: {
     primary?: EmergencyContactDto
     secondary?: EmergencyContactDto
@@ -177,15 +181,4 @@ export class CreateClientDto {
   @ValidateNested()
   @Type(() => ClientSettingsDto)
   settings?: ClientSettingsDto
-
-  @ApiPropertyOptional({ type: [String] })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  tags?: string[]
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  notes?: string
 }

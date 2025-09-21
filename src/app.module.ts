@@ -3,25 +3,20 @@ import { MongooseModule } from "@nestjs/mongoose"
 import { ThrottlerModule } from "@nestjs/throttler"
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from "@nestjs/core"
-import { AuthModule } from "./auth/auth.module"
-import { UsersModule } from "./users/users.module"
-import { AuditModule } from "./audit/audit.module"
-import { SeederModule } from './database/seeders/seeder.module';
-import { AuditInterceptor } from "./common/interceptors/audit.interceptor"
-
-
 import { ClientModule } from "./client/client.module"
-import { GiftCardModule } from "./gift-card/gift-card.module"
-import { MembershipModule } from "./membership/membership.module"
+import { ServiceModule } from "./service/service.module"
+import { AppointmentModule } from "./appointment/appointment.module"
+import { BookingModule } from "./booking/booking.module"
+import { PaymentModule } from "./payment/payment.module"
+import { SalesModule } from "./sales/sales.module"
+import { TeamModule } from "./team/team.module"
+import { SettingsModule } from "./settings/settings.module"
 import { VoucherModule } from "./voucher/voucher.module"
-
-import { ServiceModule } from "./modules/service/service.module"
-import { BookingModule } from "./modules/booking/booking.module"
-import { AppointmentModule } from "./modules/appointment/appointment.module"
-import { PaymentModule } from "./modules/payment/payment.module"
-import { SalesModule } from "./modules/sales/sales.module"
-import { TeamModule } from "./modules/team/team.module"
-import { SettingsModule } from "./modules/settings/settings.module"
+import { MembershipModule } from "./membership/membership.module"
+import { ReportsModule } from "./reports/reports.module"
+import { AuthModule } from "./auth/auth.module"
+import { AuditModule } from "./audit/audit.module"
+import { UploadModule } from "./upload/upload.module"
 
 @Module({
   imports: [
@@ -46,27 +41,20 @@ import { SettingsModule } from "./modules/settings/settings.module"
       },
     ]),
     AuthModule,
-    UsersModule,
     AuditModule,
-    SeederModule,
-
+    UploadModule,
     ClientModule,
     ServiceModule,
-    BookingModule,
     AppointmentModule,
+    BookingModule,
     PaymentModule,
     SalesModule,
     TeamModule,
     SettingsModule,
-    GiftCardModule,
-    MembershipModule,
     VoucherModule,
+    MembershipModule,
+    ReportsModule,
   ],
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: AuditInterceptor,
-    },
-  ],
+  providers: [],
 })
 export class AppModule {}

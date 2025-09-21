@@ -1,87 +1,125 @@
-import { IsString, IsNumber, IsDateString, IsOptional, IsEnum, IsArray, IsBoolean } from "class-validator"
-import { ApiProperty } from "@nestjs/swagger"
-import type { Types } from "mongoose"
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  ValidateNested,
+  IsArray,
+  IsNumber,
+  IsEnum,
+  IsBoolean,
+  IsDateString,
+  Min,
+} from "class-validator"
+import { Type } from "class-transformer"
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 
-export class CreateVoucherDto {
-  @ApiProperty({ description: "Voucher code" })
-  @IsString()
-  code: string
-
-  @ApiProperty({ description: "Voucher title" })
-  @IsString()
-  title: string
-
-  @ApiProperty({ description: "Voucher description", required: false })
-  @IsOptional()
-  @IsString()
-  description?: string
-
-  @ApiProperty({ description: "Discount type", enum: ["percentage", "fixed"] })
-  @IsEnum(["percentage", "fixed"])
-  discountType: string
-
-  @ApiProperty({ description: "Discount value" })
-  @IsNumber()
-  discountValue: number
-
-  @ApiProperty({ description: "Minimum order amount", required: false })
-  @IsOptional()
-  @IsNumber()
-  minOrderAmount?: number
-
-  @ApiProperty({ description: "Maximum discount amount", required: false })
-  @IsOptional()
-  @IsNumber()
-  maxDiscountAmount?: number
-
-  @ApiProperty({ description: "Valid from date" })
-  @IsDateString()
-  validFrom: string
-
-  @ApiProperty({ description: "Valid until date" })
-  @IsDateString()
-  validUntil: string
-
-  @ApiProperty({ description: "Usage limit", required: false })
-  @IsOptional()
-  @IsNumber()
-  usageLimit?: number
-
-  @ApiProperty({ description: "Usage per client", required: false })
-  @IsOptional()
-  @IsNumber()
-  usagePerClient?: number
-
-  @ApiProperty({ description: "Applicable service IDs", type: [String], required: false })
+export class VoucherRestrictionsDto {
+  @ApiPropertyOptional({ type: [String], example: ["service_001", "service_002"] })
   @IsOptional()
   @IsArray()
-  applicableServices?: Types.ObjectId[]
+  @IsString({ each: true })
+  applicableServices?: string[]
 
-  @ApiProperty({ description: "Applicable client IDs", type: [String], required: false })
+  @ApiPropertyOptional({ type: [String], example: ["Hair Services", "Spa Services"] })
   @IsOptional()
   @IsArray()
-  applicableClients?: Types.ObjectId[]
+  @IsString({ each: true })
+  applicableCategories?: string[]
 
-  @ApiProperty({ description: "First time clients only", required: false })
+  @ApiPropertyOptional({ example: 5000 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  minimumSpend?: number
+
+  @ApiPropertyOptional({ example: 10000 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  maximumDiscount?: number
+
+  @ApiPropertyOptional({ type: [String], example: ["service_003"] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  excludedServices?: string[]
+
+  @ApiPropertyOptional({ example: false })
   @IsOptional()
   @IsBoolean()
-  isFirstTimeOnly?: boolean
+  firstTimeClientsOnly?: boolean
+
+  @ApiPropertyOptional({ type: [String], example: ["Monday", "Tuesday"] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  applicableDays?: string[]
 }
 
-export class ApplyVoucherDto {
-  @ApiProperty({ description: "Voucher code" })
+export class CreateVoucherDto {
+  @ApiProperty({ example: "WELCOME20" })
   @IsString()
-  code: string
+  @IsNotEmpty()
+  voucherCode: string
 
-  @ApiProperty({ description: "Client ID" })
+  @ApiProperty({ example: "Welcome Discount" })
   @IsString()
-  clientId: Types.ObjectId
+  @IsNotEmpty()
+  voucherName: string
 
-  @ApiProperty({ description: "Order amount" })
+  @ApiProperty({ example: "20% discount for new clients" })
+  @IsString()
+  @IsNotEmpty()
+  description: string
+
+  @ApiProperty({
+    example: "percentage",
+    enum: ["percentage", "fixed_amount", "service_discount", "buy_one_get_one"],
+  })
+  @IsEnum(["percentage", "fixed_amount", "service_discount", "buy_one_get_one"])
+  discountType: string
+
+  @ApiProperty({ example: 20 })
   @IsNumber()
-  orderAmount: number
+  @Min(0)
+  discountValue: number
 
-  @ApiProperty({ description: "Service IDs", type: [String] })
-  @IsArray()
-  serviceIds: Types.ObjectId[]
+  @ApiProperty({ example: "2025-01-01T00:00:00.000Z" })
+  @IsDateString()
+  validFrom: Date
+
+  @ApiProperty({ example: "2025-12-31T23:59:59.999Z" })
+  @IsDateString()
+  validUntil: Date
+
+  @ApiPropertyOptional({ example: 100 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  usageLimit?: number
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  usagePerClient?: number
+
+  @ApiPropertyOptional({ type: VoucherRestrictionsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => VoucherRestrictionsDto)
+  restrictions?: VoucherRestrictionsDto
+
+  @ApiPropertyOptional({
+    example: "active",
+    enum: ["active", "inactive", "expired", "used_up"],
+  })
+  @IsOptional()
+  @IsEnum(["active", "inactive", "expired", "used_up"])
+  status?: string
+
+  @ApiProperty({ example: "507f1f77bcf86cd799439011" })
+  @IsString()
+  @IsNotEmpty()
+  createdBy: string
 }

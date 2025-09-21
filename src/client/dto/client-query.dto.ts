@@ -4,34 +4,29 @@ import { ApiPropertyOptional } from "@nestjs/swagger"
 import { PaginationDto } from "../../../common/dto/pagination.dto"
 
 export class ClientQueryDto extends PaginationDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: "Search by name, email, or phone" })
   @IsOptional()
   @IsString()
   search?: string
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  gender?: string
-
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: "Filter by client source" })
   @IsOptional()
   @IsString()
   clientSource?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: "Filter by gender" })
+  @IsOptional()
+  @IsString()
+  gender?: string
+
+  @ApiPropertyOptional({ description: "Filter by active status" })
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: "Filter by country" })
   @IsOptional()
   @IsString()
-  sortBy?: string
-
-  @ApiPropertyOptional({ enum: ["asc", "desc"] })
-  @IsOptional()
-  @IsString()
-  sortOrder?: "asc" | "desc"
+  country?: string
 }

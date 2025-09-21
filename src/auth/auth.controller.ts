@@ -1,17 +1,47 @@
-import { Controller, Post, Request } from "@nestjs/common"
-import { AuthService } from "./auth.service"
-import { LoginDto } from "./dto/login.dto"
-import { Audit } from "../common/decorators/audit.decorator"
-import { AuditAction } from "../common/enums"
+import { Controller, Post, UseGuards, Get, Req } from "@nestjs/common"
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
+import type { AuthService } from "./auth.service"
+import type { RegisterDto } from "./dto/register.dto"
+import type { LoginDto } from "./dto/login.dto"
+import { JwtAuthGuard } from "./guards/jwt-auth.guard"
+import type { Request } from "express"
 
+@ApiTags("Authentication")
 @Controller("auth")
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
+
+  @Post("register")
+  @ApiOperation({ summary: "Register a new user" })
+  @ApiResponse({ status: 201, description: "User registered successfully" })
+  @ApiResponse({ status: 409, description: "User already exists" })
+  async register(registerDto: RegisterDto) {
+    return this.authService.register(registerDto)
+  }
 
   @Post("login")
-  @Audit(AuditAction.LOGIN, "auth")
-  async login(@Request() req) {
-    const loginDto: LoginDto = req.body
+  @ApiOperation({ summary: "Login user" })
+  @ApiResponse({ status: 200, description: "User logged in successfully" })
+  @ApiResponse({ status: 401, description: "Invalid credentials" })
+  async login(loginDto: LoginDto) {
     return this.authService.login(loginDto)
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Logout user' })
+  @ApiResponse({ status: 200, description: 'User logged out successfully' })
+  async logout(@Req() req: Request) {
+    return this.authService.logout(req.user['sub'])
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
+  async getProfile(@Req() req: Request) {
+    return this.authService.validateUser(req.user['sub'])
   }
 }
