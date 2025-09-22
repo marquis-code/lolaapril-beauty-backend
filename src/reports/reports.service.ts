@@ -4,7 +4,7 @@ import type { DailySalesSummary, DailySalesSummaryDocument } from "./schemas/dai
 import type { SaleDocument } from "../sales/schemas/sale.schema"
 import type { AppointmentDocument } from "../appointment/schemas/appointment.schema"
 import type { ClientDocument } from "../client/schemas/client.schema"
-import type { ApiResponse } from "../../common/interfaces/common.interface"
+import type { ApiResponse } from "../common/interfaces/common.interface"
 import * as moment from "moment"
 
 @Injectable()
@@ -114,14 +114,33 @@ export class ReportsService {
     }
   }
 
-  async getDailySalesSummary(date: string): Promise<ApiResponse<DailySalesSummary>> {
+  // async getDailySalesSummary(date: string): Promise<ApiResponse<DailySalesSummary>> {
+  //   try {
+  //     let summary = await this.dailySalesSummaryModel.findOne({ date })
+
+  //     if (!summary) {
+  //       // Generate summary if it doesn't exist
+  //       const result = await this.generateDailySalesSummary(date)
+  //       summary = result.data
+  //     }
+
+  //     return {
+  //       success: true,
+  //       data: summary,
+  //     }
+  //   } catch (error) {
+  //     throw new Error(`Failed to get daily sales summary: ${error.message}`)
+  //   }
+  // }
+
+    async getDailySalesSummary(date: string): Promise<ApiResponse<DailySalesSummary>> {
     try {
       let summary = await this.dailySalesSummaryModel.findOne({ date })
 
       if (!summary) {
         // Generate summary if it doesn't exist
         const result = await this.generateDailySalesSummary(date)
-        summary = result.data
+        return result
       }
 
       return {

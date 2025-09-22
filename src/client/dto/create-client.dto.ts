@@ -1,7 +1,7 @@
 import { IsString, IsEmail, IsOptional, ValidateNested } from "class-validator"
 import { Type } from "class-transformer"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-import { PhoneDto, AddressDto } from "../../../common/dto/common.dto"
+import { PhoneDto, AddressDto } from "../../common/dto/common.dto"
 
 export class EmergencyContactDto {
   @ApiProperty({ example: "John Hancock Sr." })

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common"
 import type { Model } from "mongoose"
 import type { Payment, PaymentDocument } from "./schemas/payment.schema"
 import type { CreatePaymentDto } from "./dto/create-payment.dto"
-import type { ApiResponse } from "../../common/interfaces/common.interface"
+import type { ApiResponse } from "../common/interfaces/common.interface"
 import type { PaymentQueryDto } from "./dto/payment-query.dto"
 import type { UpdatePaymentDto } from "./dto/update-payment.dto"
 

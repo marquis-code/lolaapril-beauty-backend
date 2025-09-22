@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsDateString, IsEnum } from "class-validator"
 import { ApiPropertyOptional } from "@nestjs/swagger"
-import { PaginationDto } from "../../../common/dto/pagination.dto"
+import { PaginationDto } from "../../common/dto/pagination.dto"
 
 export class SalesQueryDto extends PaginationDto {
   @ApiPropertyOptional({ description: "Filter by client ID" })

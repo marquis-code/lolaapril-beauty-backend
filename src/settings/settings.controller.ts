@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Param, Delete, UseGuards, UseInterceptors
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import type { SettingsService } from "./settings.service"
 import type { CreateBusinessSettingsDto } from "./dto/create-business-settings.dto"
-import type { UpdateBusinessSettingsDto } from "./dto/update-business-settings.dto"
+import type { UpdateBusinessSettingsDto } from "./dto/update-business-settings.dto.ts"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 import { RolesGuard } from "../auth/guards/roles.guard"
 import { Roles } from "../auth/decorators/roles.decorator"

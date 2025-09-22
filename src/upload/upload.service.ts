@@ -1,7 +1,6 @@
 import { Injectable, BadRequestException } from "@nestjs/common"
 import { v2 as cloudinary } from "cloudinary"
 import { Readable } from "stream"
-import type * as Express from "express"
 
 @Injectable()
 export class UploadService {

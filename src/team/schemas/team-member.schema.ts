@@ -3,6 +3,38 @@ import type { Document } from "mongoose"
 
 export type TeamMemberDocument = TeamMember & Document
 
+// Export TeamRole enum
+export enum TeamRole {
+  ADMIN = "admin",
+  MANAGER = "manager",
+  STYLIST = "stylist",
+  THERAPIST = "therapist",
+  RECEPTIONIST = "receptionist",
+  CLEANER = "cleaner"
+}
+
+// Export TeamStatus enum (assuming you need active/inactive status)
+export enum TeamStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  SUSPENDED = "suspended",
+  ON_LEAVE = "on_leave"
+}
+
+// Export EmploymentType enum for consistency
+export enum EmploymentType {
+  FULL_TIME = "full_time",
+  PART_TIME = "part_time",
+  CONTRACT = "contract",
+  FREELANCE = "freelance"
+}
+
+// Export CommissionType enum for consistency
+export enum CommissionType {
+  PERCENTAGE = "percentage",
+  FIXED = "fixed"
+}
+
 @Schema()
 export class WorkingHours {
   @Prop({ required: true })

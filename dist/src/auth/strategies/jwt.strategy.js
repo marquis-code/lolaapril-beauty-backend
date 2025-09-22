@@ -8,28 +8,37 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JwtStrategy = void 0;
-const passport_jwt_1 = require("passport-jwt");
-const passport_1 = require("@nestjs/passport");
 const common_1 = require("@nestjs/common");
-const config_1 = require("@nestjs/config");
+const passport_1 = require("@nestjs/passport");
+const mongoose_1 = require("@nestjs/mongoose");
+const passport_jwt_1 = require("passport-jwt");
+const user_schema_1 = require("../schemas/user.schema");
 let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
-    constructor(configService) {
+    constructor(userModel) {
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: configService.get("JWT_SECRET") || "olgnova-secret-key",
+            secretOrKey: process.env.JWT_ACCESS_SECRET || 'access-secret',
         });
-        this.configService = configService;
+        this.userModel = userModel;
     }
     async validate(payload) {
-        return { id: payload.sub, email: payload.email, role: payload.role };
+        const user = await this.userModel.findById(payload.sub);
+        if (!user) {
+            throw new common_1.UnauthorizedException();
+        }
+        return { userId: payload.sub, email: payload.email, role: payload.role };
     }
 };
 JwtStrategy = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __metadata("design:paramtypes", [Function])
 ], JwtStrategy);
 exports.JwtStrategy = JwtStrategy;
 //# sourceMappingURL=jwt.strategy.js.map

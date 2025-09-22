@@ -1,0 +1,33 @@
+import type { Model } from "mongoose";
+import type { ServiceCategory, ServiceCategoryDocument } from "./schemas/service-category.schema";
+import type { Service, ServiceDocument } from "./schemas/service.schema";
+import type { ServiceBundle, ServiceBundleDocument } from "./schemas/service-bundle.schema";
+import type { CreateServiceCategoryDto } from "./dto/create-service-category.dto";
+import type { CreateServiceDto } from "./dto/create-service.dto";
+import type { CreateServiceBundleDto } from "./dto/create-service-bundle.dto";
+import type { CreateServiceVariantDto } from "./dto/service-variant.dto";
+import type { UpdateServiceCategoryDto } from "./dto/update-service-category.dto";
+import type { UpdateServiceDto } from "./dto/update-service.dto";
+import type { UpdateServiceBundleDto } from "./dto/update-service-bundle.dto";
+import type { ServiceQueryDto } from "./dto/service-query.dto";
+import type { ApiResponse } from "../common/interfaces/common.interface";
+export declare class ServiceService {
+    private serviceCategoryModel;
+    private serviceModel;
+    private serviceBundleModel;
+    constructor(serviceCategoryModel: Model<ServiceCategoryDocument>, serviceModel: Model<ServiceDocument>, serviceBundleModel: Model<ServiceBundleDocument>);
+    createCategory(createCategoryDto: CreateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>>;
+    findAllCategories(): Promise<ApiResponse<ServiceCategory[]>>;
+    updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>>;
+    createService(createServiceDto: CreateServiceDto): Promise<ApiResponse<Service>>;
+    findAllServices(query: ServiceQueryDto): Promise<ApiResponse<Service[]>>;
+    findOneService(id: string): Promise<ApiResponse<Service>>;
+    updateService(id: string, updateServiceDto: UpdateServiceDto): Promise<ApiResponse<Service>>;
+    addServiceVariant(serviceId: string, variantDto: CreateServiceVariantDto): Promise<ApiResponse<Service>>;
+    createBundle(createBundleDto: CreateServiceBundleDto): Promise<ApiResponse<ServiceBundle>>;
+    findAllBundles(): Promise<ApiResponse<ServiceBundle[]>>;
+    findOneBundle(id: string): Promise<ApiResponse<ServiceBundle>>;
+    updateBundle(id: string, updateBundleDto: UpdateServiceBundleDto): Promise<ApiResponse<ServiceBundle>>;
+    removeService(id: string): Promise<ApiResponse<null>>;
+    getServiceStats(): Promise<ApiResponse<any>>;
+}

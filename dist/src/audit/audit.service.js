@@ -8,41 +8,70 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuditService = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("mongoose");
-const audit_log_schema_1 = require("./schemas/audit-log.schema");
-const mongoose_2 = require("@nestjs/mongoose");
 let AuditService = class AuditService {
     constructor(auditLogModel) {
         this.auditLogModel = auditLogModel;
     }
-    async createAuditLog(createAuditLogDto) {
+    async createLog(createAuditLogDto) {
         const auditLog = new this.auditLogModel(createAuditLogDto);
         return auditLog.save();
     }
-    async findAll(limit = 100, skip = 0) {
-        return this.auditLogModel.find().sort({ createdAt: -1 }).limit(limit).skip(skip).exec();
-    }
-    async findByUser(userId, limit = 50) {
-        return this.auditLogModel.find({ userId }).sort({ createdAt: -1 }).limit(limit).exec();
-    }
-    async findByResource(resource, resourceId) {
-        const filter = { resource };
-        if (resourceId) {
-            filter.resourceId = resourceId;
+    async getAuditLogs(filters) {
+        const { userId, entity, entityId, action, startDate, endDate, page = 1, limit = 50 } = filters;
+        const query = {};
+        if (userId)
+            query.userId = userId;
+        if (entity)
+            query.entity = entity;
+        if (entityId)
+            query.entityId = entityId;
+        if (action)
+            query.action = action;
+        if (startDate || endDate) {
+            query.createdAt = {};
+            if (startDate)
+                query.createdAt.$gte = startDate;
+            if (endDate)
+                query.createdAt.$lte = endDate;
         }
-        return this.auditLogModel.find(filter).sort({ createdAt: -1 }).exec();
+        const skip = (page - 1) * limit;
+        const [logs, total] = await Promise.all([
+            this.auditLogModel
+                .find(query)
+                .populate("userId", "firstName lastName email")
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .exec(),
+            this.auditLogModel.countDocuments(query),
+        ]);
+        return {
+            logs,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit),
+            },
+        };
+    }
+    async getEntityHistory(entity, entityId) {
+        return this.auditLogModel
+            .find({ entity, entityId })
+            .populate("userId", "firstName lastName email")
+            .sort({ createdAt: -1 })
+            .exec();
+    }
+    async getUserActivity(userId, limit = 20) {
+        return this.auditLogModel.find({ userId }).sort({ createdAt: -1 }).limit(limit).exec();
     }
 };
 AuditService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_2.InjectModel)(audit_log_schema_1.AuditLog.name)),
-    __metadata("design:paramtypes", [mongoose_1.Model])
+    __metadata("design:paramtypes", [Function])
 ], AuditService);
 exports.AuditService = AuditService;
 //# sourceMappingURL=audit.service.js.map

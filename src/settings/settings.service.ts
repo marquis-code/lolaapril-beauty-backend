@@ -25,8 +25,8 @@ export class SettingsService {
     return settings
   }
 
-  async findByType(settingType: string): Promise<BusinessSettings[]> {
-    return this.settingsModel.find({ settingType }).exec()
+  async findByBusinessName(businessName: string): Promise<BusinessSettings | null> {
+    return this.settingsModel.findOne({ businessName }).exec()
   }
 
   async update(id: string, updateSettingsDto: UpdateBusinessSettingsDto): Promise<BusinessSettings> {
@@ -44,53 +44,84 @@ export class SettingsService {
     }
   }
 
-  async getBusinessHours(): Promise<BusinessSettings[]> {
-    return this.settingsModel.find({ settingType: "business_hours" }).exec()
+  async getBusinessSettings(): Promise<BusinessSettings | null> {
+    return this.settingsModel.findOne().exec()
   }
 
-  async getAppointmentSettings(): Promise<BusinessSettings[]> {
-    return this.settingsModel.find({ settingType: "appointment_settings" }).exec()
-  }
-
-  async getPaymentSettings(): Promise<BusinessSettings[]> {
-    return this.settingsModel.find({ settingType: "payment_settings" }).exec()
-  }
-
-  async getNotificationSettings(): Promise<BusinessSettings[]> {
-    return this.settingsModel.find({ settingType: "notification_settings" }).exec()
-  }
-
-  async updateBusinessHours(businessHours: any): Promise<BusinessSettings> {
-    let settings = await this.settingsModel.findOne({ settingType: "business_hours" })
+  async updateBusinessHours(businessHours: any[]): Promise<BusinessSettings> {
+    let settings = await this.settingsModel.findOne()
 
     if (!settings) {
+      // Create new settings if none exist
       settings = new this.settingsModel({
-        settingType: "business_hours",
-        settingKey: "operating_hours",
-        settingValue: businessHours,
-        description: "Business operating hours",
+        businessName: "Default Business",
+        businessEmail: "info@business.com",
+        businessPhone: { countryCode: "+1", number: "000-000-0000" },
+        businessAddress: {
+          street: "Default Street",
+          city: "Default City",
+          region: "Default Region",
+          postcode: "00000",
+          country: "Default Country"
+        },
+        businessHours: businessHours,
       })
     } else {
-      settings.settingValue = businessHours
+      settings.businessHours = businessHours
     }
 
     return settings.save()
   }
 
-  async updateAppointmentSettings(appointmentSettings: any): Promise<BusinessSettings> {
-    let settings = await this.settingsModel.findOne({ settingType: "appointment_settings" })
+  async updateAppointmentSettings(appointmentSettings: {
+    defaultAppointmentDuration?: number
+    bookingWindowHours?: number
+    allowOnlineBooking?: boolean
+    requireClientConfirmation?: boolean
+  }): Promise<BusinessSettings> {
+    let settings = await this.settingsModel.findOne()
 
     if (!settings) {
-      settings = new this.settingsModel({
-        settingType: "appointment_settings",
-        settingKey: "appointment_config",
-        settingValue: appointmentSettings,
-        description: "Appointment configuration settings",
-      })
-    } else {
-      settings.settingValue = appointmentSettings
+      throw new NotFoundException("Business settings not found. Please create business settings first.")
     }
 
+    // Update appointment-related fields
+    if (appointmentSettings.defaultAppointmentDuration !== undefined) {
+      settings.defaultAppointmentDuration = appointmentSettings.defaultAppointmentDuration
+    }
+    if (appointmentSettings.bookingWindowHours !== undefined) {
+      settings.bookingWindowHours = appointmentSettings.bookingWindowHours
+    }
+    if (appointmentSettings.allowOnlineBooking !== undefined) {
+      settings.allowOnlineBooking = appointmentSettings.allowOnlineBooking
+    }
+    if (appointmentSettings.requireClientConfirmation !== undefined) {
+      settings.requireClientConfirmation = appointmentSettings.requireClientConfirmation
+    }
+
+    return settings.save()
+  }
+
+  async updatePaymentSettings(paymentMethods: any[]): Promise<BusinessSettings> {
+    let settings = await this.settingsModel.findOne()
+
+    if (!settings) {
+      throw new NotFoundException("Business settings not found. Please create business settings first.")
+    }
+
+    settings.paymentMethods = paymentMethods
+    return settings.save()
+  }
+
+  async updateNotificationSettings(notificationSettings: any): Promise<BusinessSettings> {
+    let settings = await this.settingsModel.findOne()
+
+    if (!settings) {
+      throw new NotFoundException("Business settings not found. Please create business settings first.")
+    }
+
+    // Assuming you have notification settings in your schema
+    // If not, you might need to add them to the schema
     return settings.save()
   }
 }

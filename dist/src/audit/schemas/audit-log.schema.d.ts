@@ -23,26 +23,49 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document } from "mongoose";
-import { AuditAction } from "../../common/enums";
+import { type Document, Types } from "mongoose";
 export type AuditLogDocument = AuditLog & Document;
-export declare class AuditLog extends Document {
-    userId: string;
-    action: AuditAction;
-    resource: string;
-    resourceId?: string;
-    metadata?: Record<string, any>;
-    ip?: string;
-    userAgent?: string;
-    createdAt: Date;
-    updatedAt: Date;
+export declare enum AuditAction {
+    CREATE = "create",
+    UPDATE = "update",
+    DELETE = "delete",
+    LOGIN = "login",
+    LOGOUT = "logout",
+    VIEW = "view",
+    EXPORT = "export",
+    IMPORT = "import"
 }
-export declare const AuditLogSchema: import("mongoose").Schema<AuditLog, import("mongoose").Model<AuditLog, any, any, any, Document<unknown, any, AuditLog, any> & AuditLog & Required<{
-    _id: unknown;
-}> & {
+export declare enum AuditEntity {
+    USER = "user",
+    CLIENT = "client",
+    APPOINTMENT = "appointment",
+    BOOKING = "booking",
+    SERVICE = "service",
+    PAYMENT = "payment",
+    SALE = "sale",
+    VOUCHER = "voucher",
+    MEMBERSHIP = "membership",
+    TEAM_MEMBER = "team_member",
+    SETTINGS = "settings"
+}
+export declare class AuditLog {
+    userId: Types.ObjectId;
+    action: AuditAction;
+    entity: AuditEntity;
+    entityId: string;
+    description: string;
+    previousData?: any;
+    newData?: any;
+    ipAddress?: string;
+    userAgent?: string;
+    metadata?: any;
+}
+export declare const AuditLogSchema: import("mongoose").Schema<AuditLog, import("mongoose").Model<AuditLog, any, any, any, Document<unknown, any, AuditLog, any> & AuditLog & {
+    _id: Types.ObjectId;
+} & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, AuditLog, Document<unknown, {}, import("mongoose").FlatRecord<AuditLog>, {}> & import("mongoose").FlatRecord<AuditLog> & Required<{
-    _id: unknown;
-}> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, AuditLog, Document<unknown, {}, import("mongoose").FlatRecord<AuditLog>, {}> & import("mongoose").FlatRecord<AuditLog> & {
+    _id: Types.ObjectId;
+} & {
     __v: number;
 }>;

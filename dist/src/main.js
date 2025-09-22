@@ -41,8 +41,8 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
     }));
     const config = new swagger_1.DocumentBuilder()
-        .setTitle('Olgnova API')
-        .setDescription('Olgnova Research API')
+        .setTitle("Salon Booking Management API")
+        .setDescription("Comprehensive salon booking and management system")
         .setVersion('1.0')
         .addBearerAuth()
         .build();
@@ -51,6 +51,7 @@ async function bootstrap() {
     const port = configService.get('PORT') || 3000;
     await app.listen(port);
     console.log(`Application is running on: ${await app.getUrl()}`);
+    console.log(`Swagger documentation: http://localhost:${port}/api/docs`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

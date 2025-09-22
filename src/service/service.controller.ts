@@ -12,7 +12,7 @@ import type { ServiceQueryDto } from "./dto/service-query.dto"
 import { ServiceCategory } from "./schemas/service-category.schema"
 import { Service } from "./schemas/service.schema"
 import { ServiceBundle } from "./schemas/service-bundle.schema"
-import { ApiResponseWrapper, ApiPaginatedResponse } from "../../common/decorators/api-response.decorator"
+import { ApiResponseWrapper, ApiPaginatedResponse } from "../common/decorators/api-response.decorator"
 
 @ApiTags("Services")
 @Controller("services")

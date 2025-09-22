@@ -11,19 +11,20 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const throttler_1 = require("@nestjs/throttler");
 const config_1 = require("@nestjs/config");
-const core_1 = require("@nestjs/core");
+const client_module_1 = require("./client/client.module");
+const service_module_1 = require("./service/service.module");
+const appointment_module_1 = require("./appointment/appointment.module");
+const booking_module_1 = require("./booking/booking.module");
+const payment_module_1 = require("./payment/payment.module");
+const sales_module_1 = require("./sales/sales.module");
+const team_module_1 = require("./team/team.module");
+const settings_module_1 = require("./settings/settings.module");
+const voucher_module_1 = require("./voucher/voucher.module");
+const membership_module_1 = require("./membership/membership.module");
+const reports_module_1 = require("./reports/reports.module");
 const auth_module_1 = require("./auth/auth.module");
-const users_module_1 = require("./users/users.module");
-const enquiries_module_1 = require("./enquiries/enquiries.module");
-const subscriptions_module_1 = require("./subscriptions/subscriptions.module");
-const teams_module_1 = require("./teams/teams.module");
-const publications_module_1 = require("./publications/publications.module");
-const programs_module_1 = require("./programs/programs.module");
-const blogs_module_1 = require("./blogs/blogs.module");
-const forms_module_1 = require("./forms/forms.module");
 const audit_module_1 = require("./audit/audit.module");
-const seeder_module_1 = require("./database/seeders/seeder.module");
-const audit_interceptor_1 = require("./common/interceptors/audit.interceptor");
+const upload_module_1 = require("./upload/upload.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -49,23 +50,21 @@ AppModule = __decorate([
                 },
             ]),
             auth_module_1.AuthModule,
-            users_module_1.UsersModule,
-            enquiries_module_1.EnquiriesModule,
-            subscriptions_module_1.SubscriptionsModule,
-            teams_module_1.TeamsModule,
-            publications_module_1.PublicationsModule,
-            programs_module_1.ProgramsModule,
-            blogs_module_1.BlogsModule,
-            forms_module_1.FormsModule,
             audit_module_1.AuditModule,
-            seeder_module_1.SeederModule,
+            upload_module_1.UploadModule,
+            client_module_1.ClientModule,
+            service_module_1.ServiceModule,
+            appointment_module_1.AppointmentModule,
+            booking_module_1.BookingModule,
+            payment_module_1.PaymentModule,
+            sales_module_1.SalesModule,
+            team_module_1.TeamModule,
+            settings_module_1.SettingsModule,
+            voucher_module_1.VoucherModule,
+            membership_module_1.MembershipModule,
+            reports_module_1.ReportsModule,
         ],
-        providers: [
-            {
-                provide: core_1.APP_INTERCEPTOR,
-                useClass: audit_interceptor_1.AuditInterceptor,
-            },
-        ],
+        providers: [],
     })
 ], AppModule);
 exports.AppModule = AppModule;

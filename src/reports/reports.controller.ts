@@ -2,7 +2,7 @@ import { Controller, Get, Post } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from "@nestjs/swagger"
 import type { ReportsService } from "./reports.service"
 import { DailySalesSummary } from "./schemas/daily-sales-summary.schema"
-import { ApiResponseWrapper } from "../../common/decorators/api-response.decorator"
+import { ApiResponseWrapper } from "../common/decorators/api-response.decorator"
 
 @ApiTags("Reports")
 @Controller("reports")

@@ -1,10 +1,11 @@
-import { ConfigService } from "@nestjs/config";
+import type { Model } from "mongoose";
+import { type UserDocument } from "../schemas/user.schema";
 declare const JwtStrategy_base: new (...args: unknown[]) => any;
 export declare class JwtStrategy extends JwtStrategy_base {
-    private configService;
-    constructor(configService: ConfigService);
+    private userModel;
+    constructor(userModel: Model<UserDocument>);
     validate(payload: any): Promise<{
-        id: any;
+        userId: any;
         email: any;
         role: any;
     }>;

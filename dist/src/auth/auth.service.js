@@ -22,44 +22,106 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
-const jwt_1 = require("@nestjs/jwt");
-const users_service_1 = require("../users/users.service");
 const bcrypt = require("bcryptjs");
 let AuthService = class AuthService {
-    constructor(usersService, jwtService) {
-        this.usersService = usersService;
+    constructor(userModel, jwtService) {
+        this.userModel = userModel;
         this.jwtService = jwtService;
     }
-    async validateUser(email, password) {
-        const user = await this.usersService.findByEmail(email);
-        if (user && (await bcrypt.compare(password, user.password))) {
-            const _a = user.toObject(), { password } = _a, result = __rest(_a, ["password"]);
-            return result;
+    async register(registerDto) {
+        const { email, password } = registerDto, userData = __rest(registerDto, ["email", "password"]);
+        const existingUser = await this.userModel.findOne({ email });
+        if (existingUser) {
+            throw new common_1.ConflictException("User with this email already exists");
         }
-        return null;
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const user = new this.userModel(Object.assign(Object.assign({}, userData), { email, password: hashedPassword }));
+        await user.save();
+        const tokens = await this.generateTokens(user._id, user.email, user.role);
+        await this.userModel.findByIdAndUpdate(user._id, {
+            refreshToken: tokens.refreshToken,
+        });
+        return Object.assign({ user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+            } }, tokens);
     }
     async login(loginDto) {
-        const user = await this.validateUser(loginDto.email, loginDto.password);
+        const { email, password } = loginDto;
+        const user = await this.userModel.findOne({ email });
         if (!user) {
             throw new common_1.UnauthorizedException("Invalid credentials");
         }
-        const payload = { email: user.email, sub: user._id, role: user.role };
-        return {
-            access_token: this.jwtService.sign(payload),
-            user: {
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            throw new common_1.UnauthorizedException("Invalid credentials");
+        }
+        if (user.status !== "active") {
+            throw new common_1.UnauthorizedException("Account is not active");
+        }
+        const tokens = await this.generateTokens(user._id, user.email, user.role);
+        await this.userModel.findByIdAndUpdate(user._id, {
+            refreshToken: tokens.refreshToken,
+            lastLogin: new Date(),
+        });
+        return Object.assign({ user: {
                 id: user._id,
-                email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
+                email: user.email,
                 role: user.role,
-            },
+                status: user.status,
+            } }, tokens);
+    }
+    async refreshTokens(userId, refreshToken) {
+        const user = await this.userModel.findById(userId);
+        if (!user || !user.refreshToken) {
+            throw new common_1.UnauthorizedException("Access denied");
+        }
+        const refreshTokenMatches = await bcrypt.compare(refreshToken, user.refreshToken);
+        if (!refreshTokenMatches) {
+            throw new common_1.UnauthorizedException("Access denied");
+        }
+        const tokens = await this.generateTokens(user._id, user.email, user.role);
+        await this.userModel.findByIdAndUpdate(user._id, {
+            refreshToken: tokens.refreshToken,
+        });
+        return tokens;
+    }
+    async logout(userId) {
+        await this.userModel.findByIdAndUpdate(userId, {
+            refreshToken: null,
+        });
+        return { message: "Logged out successfully" };
+    }
+    async generateTokens(userId, email, role) {
+        const payload = { sub: userId, email, role };
+        const [accessToken, refreshToken] = await Promise.all([
+            this.jwtService.signAsync(payload, {
+                secret: process.env.JWT_ACCESS_SECRET || "access-secret",
+                expiresIn: "15m",
+            }),
+            this.jwtService.signAsync(payload, {
+                secret: process.env.JWT_REFRESH_SECRET || "refresh-secret",
+                expiresIn: "7d",
+            }),
+        ]);
+        return {
+            accessToken,
+            refreshToken,
         };
+    }
+    async validateUser(userId) {
+        return await this.userModel.findById(userId).select("-password -refreshToken");
     }
 };
 AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [users_service_1.UsersService,
-        jwt_1.JwtService])
+    __metadata("design:paramtypes", [Function, Function])
 ], AuthService);
 exports.AuthService = AuthService;
 //# sourceMappingURL=auth.service.js.map

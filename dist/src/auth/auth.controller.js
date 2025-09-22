@@ -14,29 +14,69 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
-const auth_service_1 = require("./auth.service");
-const audit_decorator_1 = require("../common/decorators/audit.decorator");
-const enums_1 = require("../common/enums");
+const swagger_1 = require("@nestjs/swagger");
+const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
-    async login(req) {
-        const loginDto = req.body;
+    async register(registerDto) {
+        return this.authService.register(registerDto);
+    }
+    async login(loginDto) {
         return this.authService.login(loginDto);
+    }
+    async logout(req) {
+        return this.authService.logout(req.user['sub']);
+    }
+    async getProfile(req) {
+        return this.authService.validateUser(req.user['sub']);
     }
 };
 __decorate([
+    (0, common_1.Post)("register"),
+    (0, swagger_1.ApiOperation)({ summary: "Register a new user" }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "User registered successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: "User already exists" }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Function]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "register", null);
+__decorate([
     (0, common_1.Post)("login"),
-    (0, audit_decorator_1.Audit)(enums_1.AuditAction.LOGIN, "auth"),
-    __param(0, (0, common_1.Request)()),
+    (0, swagger_1.ApiOperation)({ summary: "Login user" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "User logged in successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: "Invalid credentials" }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Function]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('logout'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Logout user' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'User logged out successfully' }),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "login", null);
+], AuthController.prototype, "logout", null);
+__decorate([
+    (0, common_1.Get)('profile'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get user profile' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'User profile retrieved successfully' }),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getProfile", null);
 AuthController = __decorate([
+    (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
+    __metadata("design:paramtypes", [Function])
 ], AuthController);
 exports.AuthController = AuthController;
 //# sourceMappingURL=auth.controller.js.map

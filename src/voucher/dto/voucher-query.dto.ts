@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsDateString, IsEnum } from "class-validator"
 import { ApiPropertyOptional } from "@nestjs/swagger"
-import { PaginationDto } from "../../../common/dto/pagination.dto"
+import { PaginationDto } from "../../common/dto/pagination.dto"
 
 export class VoucherQueryDto extends PaginationDto {
   @ApiPropertyOptional({ description: "Filter by voucher status" })
