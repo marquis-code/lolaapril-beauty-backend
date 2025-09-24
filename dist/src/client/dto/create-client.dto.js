@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateClientDto = exports.ClientSettingsDto = exports.AdditionalInfoDto = exports.ClientProfileDto = exports.EmergencyContactDto = void 0;
+exports.CreateClientDto = exports.EmergencyContactsDto = exports.ClientSettingsDto = exports.AdditionalInfoDto = exports.ClientProfileDto = exports.EmergencyContactDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
@@ -168,6 +168,23 @@ __decorate([
     __metadata("design:type", Object)
 ], ClientSettingsDto.prototype, "marketingNotifications", void 0);
 exports.ClientSettingsDto = ClientSettingsDto;
+class EmergencyContactsDto {
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: EmergencyContactDto }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => EmergencyContactDto),
+    __metadata("design:type", EmergencyContactDto)
+], EmergencyContactsDto.prototype, "primary", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: EmergencyContactDto }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => EmergencyContactDto),
+    __metadata("design:type", EmergencyContactDto)
+], EmergencyContactsDto.prototype, "secondary", void 0);
+exports.EmergencyContactsDto = EmergencyContactsDto;
 class CreateClientDto {
 }
 __decorate([
@@ -184,17 +201,11 @@ __decorate([
     __metadata("design:type", AdditionalInfoDto)
 ], CreateClientDto.prototype, "additionalInfo", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        type: "object",
-        properties: {
-            primary: { $ref: "#/components/schemas/EmergencyContactDto" },
-            secondary: { $ref: "#/components/schemas/EmergencyContactDto" },
-        },
-    }),
+    (0, swagger_1.ApiPropertyOptional)({ type: EmergencyContactsDto }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => EmergencyContactsDto),
+    __metadata("design:type", EmergencyContactsDto)
 ], CreateClientDto.prototype, "emergencyContacts", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ type: common_dto_1.AddressDto }),

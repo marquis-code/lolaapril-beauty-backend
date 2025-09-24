@@ -1,17 +1,16 @@
 import { Injectable, NotFoundException, ConflictException } from "@nestjs/common"
-import type { Model } from "mongoose"
-import type { Booking, BookingDocument } from "./schemas/booking.schema"
-import type { CreateBookingDto } from "./dto/create-booking.dto"
-import type { UpdateBookingDto } from "./dto/update-booking.dto"
-import type { BookingQueryDto } from "./dto/booking-query.dto"
+import { Model } from "mongoose"
+import { Booking, BookingDocument } from "./schemas/booking.schema"
+import { CreateBookingDto } from "./dto/create-booking.dto"
+import { UpdateBookingDto } from "./dto/update-booking.dto"
+import { BookingQueryDto } from "./dto/booking-query.dto"
+import { InjectModel } from "@nestjs/mongoose"
 
 @Injectable()
 export class BookingService {
-  private bookingModel: Model<BookingDocument>
 
-  constructor(bookingModel: Model<BookingDocument>) {
-    this.bookingModel = bookingModel
-  }
+  constructor(
+  @InjectModel(Booking.name) private bookingModel: Model<BookingDocument>) {}
 
   async create(createBookingDto: CreateBookingDto): Promise<Booking> {
     // Check for time slot conflicts

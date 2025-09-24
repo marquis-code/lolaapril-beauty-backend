@@ -15,6 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoucherController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const voucher_service_1 = require("./voucher.service");
+const create_voucher_dto_1 = require("./dto/create-voucher.dto");
+const update_voucher_dto_1 = require("./dto/update-voucher.dto");
+const voucher_query_dto_1 = require("./dto/voucher-query.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
@@ -62,7 +66,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Voucher created successfully' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_voucher_dto_1.CreateVoucherDto]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "create", null);
 __decorate([
@@ -72,7 +76,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Vouchers retrieved successfully' }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [voucher_query_dto_1.VoucherQueryDto]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "findAll", null);
 __decorate([
@@ -138,7 +142,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_voucher_dto_1.UpdateVoucherDto]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "update", null);
 __decorate([
@@ -159,7 +163,7 @@ VoucherController = __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [voucher_service_1.VoucherService])
 ], VoucherController);
 exports.VoucherController = VoucherController;
 //# sourceMappingURL=voucher.controller.js.map

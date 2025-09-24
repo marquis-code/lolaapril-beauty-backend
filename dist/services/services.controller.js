@@ -15,10 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServicesController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
-const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const user_schema_1 = require("../schemas/user.schema");
+const jwt_auth_guard_1 = require("../src/auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../src/auth/guards/roles.guard");
+const roles_decorator_1 = require("../src/auth/decorators/roles.decorator");
+const user_schema_1 = require("../src/auth/schemas/user.schema");
 const service_schema_1 = require("../schemas/service.schema");
 let ServicesController = class ServicesController {
     constructor(servicesService) {

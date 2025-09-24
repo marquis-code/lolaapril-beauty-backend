@@ -12,6 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SalesController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const sales_service_1 = require("./sales.service");
+const create_sale_dto_1 = require("./dto/create-sale.dto");
+const update_sale_dto_1 = require("./dto/update-sale.dto");
+const sales_query_dto_1 = require("./dto/sales-query.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
@@ -64,7 +68,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new sale" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Sale created successfully" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_sale_dto_1.CreateSaleDto]),
     __metadata("design:returntype", void 0)
 ], SalesController.prototype, "create", null);
 __decorate([
@@ -73,7 +77,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all sales" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sales retrieved successfully" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [sales_query_dto_1.SalesQueryDto]),
     __metadata("design:returntype", void 0)
 ], SalesController.prototype, "findAll", null);
 __decorate([
@@ -122,7 +126,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sale updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Sale not found" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_sale_dto_1.UpdateSaleDto]),
     __metadata("design:returntype", void 0)
 ], SalesController.prototype, "update", null);
 __decorate([
@@ -175,7 +179,7 @@ SalesController = __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [sales_service_1.SalesService])
 ], SalesController);
 exports.SalesController = SalesController;
 //# sourceMappingURL=sales.controller.js.map

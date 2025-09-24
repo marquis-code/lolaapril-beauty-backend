@@ -15,6 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const payment_service_1 = require("./payment.service");
+const create_payment_dto_1 = require("./dto/create-payment.dto");
+const update_payment_dto_1 = require("./dto/update-payment.dto");
+const payment_query_dto_1 = require("./dto/payment-query.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
@@ -58,7 +62,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new payment" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Payment created successfully" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_payment_dto_1.CreatePaymentDto]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "create", null);
 __decorate([
@@ -67,7 +71,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all payments" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payments retrieved successfully" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [payment_query_dto_1.PaymentQueryDto]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "findAll", null);
 __decorate([
@@ -100,7 +104,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 404, description: "Payment not found" }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_payment_dto_1.UpdatePaymentDto]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "update", null);
 __decorate([
@@ -145,7 +149,7 @@ PaymentController = __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [payment_service_1.PaymentService])
 ], PaymentController);
 exports.PaymentController = PaymentController;
 //# sourceMappingURL=payment.controller.js.map

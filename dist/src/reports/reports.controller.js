@@ -12,8 +12,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const reports_service_1 = require("./reports.service");
 const daily_sales_summary_schema_1 = require("./schemas/daily-sales-summary.schema");
-const api_response_decorator_1 = require("../../common/decorators/api-response.decorator");
+const api_response_decorator_1 = require("../common/decorators/api-response.decorator");
 let ReportsController = class ReportsController {
     constructor(reportsService) {
         this.reportsService = reportsService;
@@ -70,7 +71,7 @@ __decorate([
 ReportsController = __decorate([
     (0, swagger_1.ApiTags)("Reports"),
     (0, common_1.Controller)("reports"),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [reports_service_1.ReportsService])
 ], ReportsController);
 exports.ReportsController = ReportsController;
 //# sourceMappingURL=reports.controller.js.map

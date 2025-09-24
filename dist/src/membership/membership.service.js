@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MembershipService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const mongoose_3 = require("mongoose");
 const membership_schema_1 = require("./schemas/membership.schema");
 const client_membership_schema_1 = require("./schemas/client-membership.schema");
 let MembershipService = class MembershipService {
@@ -116,7 +118,7 @@ let MembershipService = class MembershipService {
         }
         return clientMembership;
     }
-    async addPoints(clientMembershipId, points, description, saleId) {
+    async addPoints(clientMembershipId, points, description, saleId, appointmentId) {
         const clientMembership = await this.clientMembershipModel.findById(clientMembershipId);
         if (!clientMembership) {
             throw new common_1.NotFoundException("Client membership not found");
@@ -125,9 +127,14 @@ let MembershipService = class MembershipService {
             transactionType: "earned",
             points,
             description,
-            saleId,
             transactionDate: new Date(),
         };
+        if (saleId) {
+            pointsTransaction.saleId = new mongoose_3.Types.ObjectId(saleId);
+        }
+        if (appointmentId) {
+            pointsTransaction.appointmentId = new mongoose_3.Types.ObjectId(appointmentId);
+        }
         clientMembership.totalPoints += points;
         clientMembership.pointsHistory.push(pointsTransaction);
         clientMembership.lastActivity = new Date();
@@ -135,7 +142,7 @@ let MembershipService = class MembershipService {
         await this.checkTierUpgrade(clientMembership);
         return clientMembership.save();
     }
-    async redeemPoints(clientMembershipId, points, description) {
+    async redeemPoints(clientMembershipId, points, description, appointmentId) {
         const clientMembership = await this.clientMembershipModel.findById(clientMembershipId);
         if (!clientMembership) {
             throw new common_1.NotFoundException("Client membership not found");
@@ -149,6 +156,9 @@ let MembershipService = class MembershipService {
             description,
             transactionDate: new Date(),
         };
+        if (appointmentId) {
+            pointsTransaction.appointmentId = new mongoose_3.Types.ObjectId(appointmentId);
+        }
         clientMembership.totalPoints -= points;
         clientMembership.pointsHistory.push(pointsTransaction);
         clientMembership.lastActivity = new Date();
@@ -262,7 +272,8 @@ MembershipService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(membership_schema_1.Membership.name)),
     __param(1, (0, mongoose_1.InjectModel)(client_membership_schema_1.ClientMembership.name)),
-    __metadata("design:paramtypes", [Function, Function])
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model])
 ], MembershipService);
 exports.MembershipService = MembershipService;
 //# sourceMappingURL=membership.service.js.map

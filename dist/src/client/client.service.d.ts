@@ -1,11 +1,11 @@
 /// <reference types="node" />
 /// <reference types="node" />
-import type { Model } from "mongoose";
-import type { Client, ClientDocument } from "./schemas/client.schema";
-import type { CreateClientDto } from "./dto/create-client.dto";
-import type { UpdateClientDto } from "./dto/update-client.dto";
-import type { ClientQueryDto } from "./dto/client-query.dto";
-import type { ApiResponse } from "../../common/interfaces/common.interface";
+import { Model } from "mongoose";
+import { Client, type ClientDocument } from "./schemas/client.schema";
+import { CreateClientDto } from "./dto/create-client.dto";
+import { UpdateClientDto } from "./dto/update-client.dto";
+import { ClientQueryDto } from "./dto/client-query.dto";
+import { ApiResponse } from "../common/interfaces/common.interface";
 export declare class ClientService {
     private clientModel;
     constructor(clientModel: Model<ClientDocument>);

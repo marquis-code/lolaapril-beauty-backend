@@ -1,9 +1,9 @@
-import type { Model } from "mongoose";
-import type { Sale, SaleDocument } from "./schemas/sale.schema";
-import type { CreateSaleDto } from "./dto/create-sale.dto";
-import type { ApiResponse } from "../../common/interfaces/common.interface";
-import type { SalesQueryDto } from "./dto/sales-query.dto";
-import type { UpdateSaleDto } from "./dto/update-sale.dto";
+import { Model } from "mongoose";
+import { Sale, SaleDocument } from "./schemas/sale.schema";
+import { CreateSaleDto } from "./dto/create-sale.dto";
+import { ApiResponse } from "../common/interfaces/common.interface";
+import { SalesQueryDto } from "./dto/sales-query.dto";
+import { UpdateSaleDto } from "./dto/update-sale.dto";
 export declare class SalesService {
     private saleModel;
     constructor(saleModel: Model<SaleDocument>);

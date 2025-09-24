@@ -23,11 +23,11 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import type { Model } from "mongoose";
-import type { JwtService } from "@nestjs/jwt";
-import type { UserDocument } from "./schemas/user.schema";
-import type { RegisterDto } from "./dto/register.dto";
-import type { LoginDto } from "./dto/login.dto";
+import { Model } from "mongoose";
+import { JwtService } from "@nestjs/jwt";
+import { User, UserDocument } from "./schemas/user.schema";
+import { RegisterDto } from "./dto/register.dto";
+import { LoginDto } from "./dto/login.dto";
 export declare class AuthService {
     private userModel;
     private jwtService;
@@ -64,7 +64,7 @@ export declare class AuthService {
         message: string;
     }>;
     private generateTokens;
-    validateUser(userId: string): Promise<import("mongoose").Document<unknown, {}, UserDocument, {}> & import("./schemas/user.schema").User & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+    validateUser(userId: string): Promise<import("mongoose").Document<unknown, {}, UserDocument, {}> & User & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;

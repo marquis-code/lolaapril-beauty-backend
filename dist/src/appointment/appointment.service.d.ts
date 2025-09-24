@@ -1,8 +1,8 @@
-import type { Model } from "mongoose";
-import type { Appointment, AppointmentDocument } from "./schemas/appointment.schema";
-import type { CreateAppointmentDto } from "./dto/create-appointment.dto";
-import type { UpdateAppointmentDto } from "./dto/update-appointment.dto";
-import type { AppointmentQueryDto } from "./dto/appointment-query.dto";
+import { Model } from "mongoose";
+import { Appointment, AppointmentDocument } from "./schemas/appointment.schema";
+import { CreateAppointmentDto } from "./dto/create-appointment.dto";
+import { UpdateAppointmentDto } from "./dto/update-appointment.dto";
+import { AppointmentQueryDto } from "./dto/appointment-query.dto";
 export declare class AppointmentService {
     private appointmentModel;
     constructor(appointmentModel: Model<AppointmentDocument>);

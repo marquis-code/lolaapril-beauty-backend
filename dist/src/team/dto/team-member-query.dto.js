@@ -8,7 +8,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeamMemberQueryDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
@@ -49,13 +48,13 @@ __decorate([
     (0, swagger_1.ApiProperty)({ description: "Filter by role", enum: team_member_schema_1.TeamRole, required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEnum)(team_member_schema_1.TeamRole),
-    __metadata("design:type", typeof (_a = typeof team_member_schema_1.TeamRole !== "undefined" && team_member_schema_1.TeamRole) === "function" ? _a : Object)
+    __metadata("design:type", String)
 ], TeamMemberQueryDto.prototype, "role", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: "Filter by status", enum: team_member_schema_1.TeamStatus, required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEnum)(team_member_schema_1.TeamStatus),
-    __metadata("design:type", typeof (_b = typeof team_member_schema_1.TeamStatus !== "undefined" && team_member_schema_1.TeamStatus) === "function" ? _b : Object)
+    __metadata("design:type", String)
 ], TeamMemberQueryDto.prototype, "status", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: "Filter by department", required: false }),

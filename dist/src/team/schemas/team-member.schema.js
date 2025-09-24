@@ -9,8 +9,36 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TeamMemberSchema = exports.TeamMember = exports.Commission = exports.Skills = exports.WorkingHours = void 0;
+exports.TeamMemberSchema = exports.TeamMember = exports.CommissionSchema = exports.Commission = exports.SkillsSchema = exports.Skills = exports.WorkingHoursSchema = exports.WorkingHours = exports.CommissionType = exports.EmploymentType = exports.TeamStatus = exports.TeamRole = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+var TeamRole;
+(function (TeamRole) {
+    TeamRole["ADMIN"] = "admin";
+    TeamRole["MANAGER"] = "manager";
+    TeamRole["STYLIST"] = "stylist";
+    TeamRole["THERAPIST"] = "therapist";
+    TeamRole["RECEPTIONIST"] = "receptionist";
+    TeamRole["CLEANER"] = "cleaner";
+})(TeamRole = exports.TeamRole || (exports.TeamRole = {}));
+var TeamStatus;
+(function (TeamStatus) {
+    TeamStatus["ACTIVE"] = "active";
+    TeamStatus["INACTIVE"] = "inactive";
+    TeamStatus["SUSPENDED"] = "suspended";
+    TeamStatus["ON_LEAVE"] = "on_leave";
+})(TeamStatus = exports.TeamStatus || (exports.TeamStatus = {}));
+var EmploymentType;
+(function (EmploymentType) {
+    EmploymentType["FULL_TIME"] = "full_time";
+    EmploymentType["PART_TIME"] = "part_time";
+    EmploymentType["CONTRACT"] = "contract";
+    EmploymentType["FREELANCE"] = "freelance";
+})(EmploymentType = exports.EmploymentType || (exports.EmploymentType = {}));
+var CommissionType;
+(function (CommissionType) {
+    CommissionType["PERCENTAGE"] = "percentage";
+    CommissionType["FIXED"] = "fixed";
+})(CommissionType = exports.CommissionType || (exports.CommissionType = {}));
 let WorkingHours = class WorkingHours {
 };
 __decorate([
@@ -33,6 +61,7 @@ WorkingHours = __decorate([
     (0, mongoose_1.Schema)()
 ], WorkingHours);
 exports.WorkingHours = WorkingHours;
+exports.WorkingHoursSchema = mongoose_1.SchemaFactory.createForClass(WorkingHours);
 let Skills = class Skills {
 };
 __decorate([
@@ -51,6 +80,7 @@ Skills = __decorate([
     (0, mongoose_1.Schema)()
 ], Skills);
 exports.Skills = Skills;
+exports.SkillsSchema = mongoose_1.SchemaFactory.createForClass(Skills);
 let Commission = class Commission {
 };
 __decorate([
@@ -73,6 +103,7 @@ Commission = __decorate([
     (0, mongoose_1.Schema)()
 ], Commission);
 exports.Commission = Commission;
+exports.CommissionSchema = mongoose_1.SchemaFactory.createForClass(Commission);
 let TeamMember = class TeamMember {
 };
 __decorate([
@@ -120,15 +151,15 @@ __decorate([
     __metadata("design:type", Number)
 ], TeamMember.prototype, "salary", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [WorkingHours], default: [] }),
+    (0, mongoose_1.Prop)({ type: [exports.WorkingHoursSchema], default: [] }),
     __metadata("design:type", Array)
 ], TeamMember.prototype, "workingHours", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Skills, default: {} }),
+    (0, mongoose_1.Prop)({ type: exports.SkillsSchema, default: {} }),
     __metadata("design:type", Skills)
 ], TeamMember.prototype, "skills", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [Commission], default: [] }),
+    (0, mongoose_1.Prop)({ type: [exports.CommissionSchema], default: [] }),
     __metadata("design:type", Array)
 ], TeamMember.prototype, "commissions", void 0);
 __decorate([
@@ -148,7 +179,13 @@ __decorate([
     __metadata("design:type", Boolean)
 ], TeamMember.prototype, "canBookOnline", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({
+        type: {
+            name: { type: String, required: true },
+            relationship: { type: String, required: true },
+            phone: { type: String, required: true },
+        }
+    }),
     __metadata("design:type", Object)
 ], TeamMember.prototype, "emergencyContact", void 0);
 __decorate([

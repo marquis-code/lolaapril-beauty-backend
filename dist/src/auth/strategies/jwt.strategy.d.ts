@@ -1,4 +1,4 @@
-import type { Model } from "mongoose";
+import { Model } from "mongoose";
 import { type UserDocument } from "../schemas/user.schema";
 declare const JwtStrategy_base: new (...args: unknown[]) => any;
 export declare class JwtStrategy extends JwtStrategy_base {

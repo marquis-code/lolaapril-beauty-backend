@@ -11,7 +11,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuditInterceptor = void 0;
 const common_1 = require("@nestjs/common");
+const core_1 = require("@nestjs/core");
 const operators_1 = require("rxjs/operators");
+const audit_service_1 = require("../audit.service");
 const audit_decorator_1 = require("../decorators/audit.decorator");
 let AuditInterceptor = class AuditInterceptor {
     constructor(auditService, reflector) {
@@ -53,7 +55,8 @@ let AuditInterceptor = class AuditInterceptor {
 };
 AuditInterceptor = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [Function, Function])
+    __metadata("design:paramtypes", [audit_service_1.AuditService,
+        core_1.Reflector])
 ], AuditInterceptor);
 exports.AuditInterceptor = AuditInterceptor;
 //# sourceMappingURL=audit.interceptor.js.map

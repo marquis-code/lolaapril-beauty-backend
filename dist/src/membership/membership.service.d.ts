@@ -23,13 +23,13 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import type { Model } from "mongoose";
+import { Model } from "mongoose";
 import { Membership, type MembershipDocument } from "./schemas/membership.schema";
 import { ClientMembership, type ClientMembershipDocument } from "./schemas/client-membership.schema";
-import type { CreateMembershipDto } from "./dto/create-membership.dto";
-import type { UpdateMembershipDto } from "./dto/update-membership.dto";
-import type { CreateClientMembershipDto } from "./dto/create-client-membership.dto";
-import type { MembershipQueryDto } from "./dto/membership-query.dto";
+import { CreateMembershipDto } from "./dto/create-membership.dto";
+import { UpdateMembershipDto } from "./dto/update-membership.dto";
+import { CreateClientMembershipDto } from "./dto/create-client-membership.dto";
+import { MembershipQueryDto } from "./dto/membership-query.dto";
 export declare class MembershipService {
     private membershipModel;
     private clientMembershipModel;
@@ -58,8 +58,8 @@ export declare class MembershipService {
         __v: number;
     })[]>;
     findClientMembershipById(id: string): Promise<ClientMembership>;
-    addPoints(clientMembershipId: string, points: number, description: string, saleId?: string): Promise<ClientMembership>;
-    redeemPoints(clientMembershipId: string, points: number, description: string): Promise<ClientMembership>;
+    addPoints(clientMembershipId: string, points: number, description: string, saleId?: string, appointmentId?: string): Promise<ClientMembership>;
+    redeemPoints(clientMembershipId: string, points: number, description: string, appointmentId?: string): Promise<ClientMembership>;
     updateSpending(clientMembershipId: string, amount: number): Promise<ClientMembership>;
     private checkTierUpgrade;
     getMembershipStats(): Promise<{

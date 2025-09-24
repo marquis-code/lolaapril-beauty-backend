@@ -1,10 +1,10 @@
-import type { ReportsService } from "./reports.service";
+import { ReportsService } from "./reports.service";
 import { DailySalesSummary } from "./schemas/daily-sales-summary.schema";
 export declare class ReportsController {
     private readonly reportsService;
     constructor(reportsService: ReportsService);
-    generateDailySalesSummary(date: string): Promise<ApiResponse<DailySalesSummary>>;
-    getDailySalesSummary(date: string): Promise<ApiResponse<DailySalesSummary>>;
-    getWeeklySalesReport(startDate: string, endDate: string): Promise<ApiResponse<any>>;
-    getMonthlySalesReport(year: number, month: number): Promise<ApiResponse<any>>;
+    generateDailySalesSummary(date: string): Promise<import("../common/interfaces/common.interface").ApiResponse<DailySalesSummary>>;
+    getDailySalesSummary(date: string): Promise<import("../common/interfaces/common.interface").ApiResponse<DailySalesSummary>>;
+    getWeeklySalesReport(startDate: string, endDate: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    getMonthlySalesReport(year: number, month: number): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
 }

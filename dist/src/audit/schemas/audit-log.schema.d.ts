@@ -45,6 +45,7 @@ export declare enum AuditEntity {
     SALE = "sale",
     VOUCHER = "voucher",
     MEMBERSHIP = "membership",
+    CLIENT_MEMBERSHIP = "client_membership",
     TEAM_MEMBER = "team_member",
     SETTINGS = "settings"
 }

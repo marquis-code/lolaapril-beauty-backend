@@ -12,6 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeamController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const team_service_1 = require("./team.service");
+const create_team_member_dto_1 = require("./dto/create-team-member.dto");
+const update_team_member_dto_1 = require("./dto/update-team-member.dto");
+const team_member_query_dto_1 = require("./dto/team-member-query.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
@@ -59,7 +63,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 201, description: "Team member created successfully" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "Team member with email already exists" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_team_member_dto_1.CreateTeamMemberDto]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "create", null);
 __decorate([
@@ -68,7 +72,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all team members" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team members retrieved successfully" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [team_member_query_dto_1.TeamMemberQueryDto]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "findAll", null);
 __decorate([
@@ -117,7 +121,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Team member not found" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_team_member_dto_1.UpdateTeamMemberDto]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "update", null);
 __decorate([
@@ -148,7 +152,7 @@ TeamController = __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [team_service_1.TeamService])
 ], TeamController);
 exports.TeamController = TeamController;
 //# sourceMappingURL=team.controller.js.map

@@ -34,6 +34,15 @@ export declare class EmergencyContact {
         number: string;
     };
 }
+export declare const EmergencyContactSchema: import("mongoose").Schema<EmergencyContact, import("mongoose").Model<EmergencyContact, any, any, any, Document<unknown, any, EmergencyContact, any> & EmergencyContact & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, EmergencyContact, Document<unknown, {}, import("mongoose").FlatRecord<EmergencyContact>, {}> & import("mongoose").FlatRecord<EmergencyContact> & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}>;
 export declare class ClientProfile {
     firstName: string;
     lastName: string;
@@ -54,6 +63,15 @@ export declare class ClientProfile {
         number: string;
     };
 }
+export declare const ClientProfileSchema: import("mongoose").Schema<ClientProfile, import("mongoose").Model<ClientProfile, any, any, any, Document<unknown, any, ClientProfile, any> & ClientProfile & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientProfile, Document<unknown, {}, import("mongoose").FlatRecord<ClientProfile>, {}> & import("mongoose").FlatRecord<ClientProfile> & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}>;
 export declare class AdditionalInfo {
     clientSource: string;
     referredBy: {
@@ -64,6 +82,15 @@ export declare class AdditionalInfo {
     occupation: string;
     country: string;
 }
+export declare const AdditionalInfoSchema: import("mongoose").Schema<AdditionalInfo, import("mongoose").Model<AdditionalInfo, any, any, any, Document<unknown, any, AdditionalInfo, any> & AdditionalInfo & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, AdditionalInfo, Document<unknown, {}, import("mongoose").FlatRecord<AdditionalInfo>, {}> & import("mongoose").FlatRecord<AdditionalInfo> & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}>;
 export declare class ClientAddress {
     addressName: string;
     addressType: string;
@@ -75,6 +102,15 @@ export declare class ClientAddress {
     postcode: string;
     country: string;
 }
+export declare const ClientAddressSchema: import("mongoose").Schema<ClientAddress, import("mongoose").Model<ClientAddress, any, any, any, Document<unknown, any, ClientAddress, any> & ClientAddress & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientAddress, Document<unknown, {}, import("mongoose").FlatRecord<ClientAddress>, {}> & import("mongoose").FlatRecord<ClientAddress> & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}>;
 export declare class ClientSettings {
     appointmentNotifications: {
         emailNotifications: boolean;
@@ -83,6 +119,15 @@ export declare class ClientSettings {
         clientAcceptsEmailMarketing: boolean;
     };
 }
+export declare const ClientSettingsSchema: import("mongoose").Schema<ClientSettings, import("mongoose").Model<ClientSettings, any, any, any, Document<unknown, any, ClientSettings, any> & ClientSettings & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientSettings, Document<unknown, {}, import("mongoose").FlatRecord<ClientSettings>, {}> & import("mongoose").FlatRecord<ClientSettings> & {
+    _id: import("mongoose").Types.ObjectId;
+} & {
+    __v: number;
+}>;
 export declare class Client {
     profile: ClientProfile;
     additionalInfo: AdditionalInfo;

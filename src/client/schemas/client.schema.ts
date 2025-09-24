@@ -27,6 +27,9 @@ export class EmergencyContact {
   }
 }
 
+// Create the schema for EmergencyContact
+export const EmergencyContactSchema = SchemaFactory.createForClass(EmergencyContact)
+
 @Schema()
 export class ClientProfile {
   @Prop({ required: true })
@@ -82,6 +85,9 @@ export class ClientProfile {
   }
 }
 
+// Create the schema for ClientProfile
+export const ClientProfileSchema = SchemaFactory.createForClass(ClientProfile)
+
 @Schema()
 export class AdditionalInfo {
   @Prop()
@@ -107,6 +113,9 @@ export class AdditionalInfo {
   @Prop()
   country: string
 }
+
+// Create the schema for AdditionalInfo
+export const AdditionalInfoSchema = SchemaFactory.createForClass(AdditionalInfo)
 
 @Schema()
 export class ClientAddress {
@@ -138,6 +147,9 @@ export class ClientAddress {
   country: string
 }
 
+// Create the schema for ClientAddress
+export const ClientAddressSchema = SchemaFactory.createForClass(ClientAddress)
+
 @Schema()
 export class ClientSettings {
   @Prop({
@@ -161,18 +173,21 @@ export class ClientSettings {
   }
 }
 
+// Create the schema for ClientSettings
+export const ClientSettingsSchema = SchemaFactory.createForClass(ClientSettings)
+
 @Schema({ timestamps: true })
 export class Client {
-  @Prop({ type: ClientProfile, required: true })
+  @Prop({ type: ClientProfileSchema, required: true })
   profile: ClientProfile
 
-  @Prop({ type: AdditionalInfo })
+  @Prop({ type: AdditionalInfoSchema })
   additionalInfo: AdditionalInfo
 
   @Prop({
     type: {
-      primary: { type: EmergencyContact },
-      secondary: { type: EmergencyContact },
+      primary: { type: EmergencyContactSchema },
+      secondary: { type: EmergencyContactSchema },
     },
   })
   emergencyContacts: {
@@ -180,10 +195,10 @@ export class Client {
     secondary: EmergencyContact
   }
 
-  @Prop({ type: ClientAddress })
+  @Prop({ type: ClientAddressSchema })
   address: ClientAddress
 
-  @Prop({ type: ClientSettings, default: {} })
+  @Prop({ type: ClientSettingsSchema, default: {} })
   settings: ClientSettings
 
   @Prop({ default: true })

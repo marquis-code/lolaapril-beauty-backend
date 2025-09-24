@@ -15,7 +15,7 @@ export declare class TeamMembersDto {
     selectedMembers: TeamMemberDto[];
 }
 export declare class ResourcesDto {
-    required: boolean;
+    isRequired: boolean;
     resourceList: string[];
 }
 export declare class PriceDto {

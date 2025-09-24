@@ -8,10 +8,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportsService = void 0;
 const common_1 = require("@nestjs/common");
+const mongoose_1 = require("mongoose");
+const daily_sales_summary_schema_1 = require("./schemas/daily-sales-summary.schema");
+const sale_schema_1 = require("../sales/schemas/sale.schema");
+const appointment_schema_1 = require("../appointment/schemas/appointment.schema");
+const client_schema_1 = require("../client/schemas/client.schema");
 const moment = require("moment");
+const mongoose_2 = require("@nestjs/mongoose");
 let ReportsService = class ReportsService {
     constructor(dailySalesSummaryModel, saleModel, appointmentModel, clientModel) {
         this.dailySalesSummaryModel = dailySalesSummaryModel;
@@ -90,7 +99,7 @@ let ReportsService = class ReportsService {
             let summary = await this.dailySalesSummaryModel.findOne({ date });
             if (!summary) {
                 const result = await this.generateDailySalesSummary(date);
-                summary = result.data;
+                return result;
             }
             return {
                 success: true,
@@ -258,7 +267,14 @@ let ReportsService = class ReportsService {
 };
 ReportsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [Function, Function, Function, Function])
+    __param(0, (0, mongoose_2.InjectModel)(daily_sales_summary_schema_1.DailySalesSummary.name)),
+    __param(1, (0, mongoose_2.InjectModel)(sale_schema_1.Sale.name)),
+    __param(2, (0, mongoose_2.InjectModel)(appointment_schema_1.Appointment.name)),
+    __param(3, (0, mongoose_2.InjectModel)(client_schema_1.Client.name)),
+    __metadata("design:paramtypes", [mongoose_1.Model,
+        mongoose_1.Model,
+        mongoose_1.Model,
+        mongoose_1.Model])
 ], ReportsService);
 exports.ReportsService = ReportsService;
 //# sourceMappingURL=reports.service.js.map

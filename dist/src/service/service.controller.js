@@ -15,10 +15,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServiceController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const service_service_1 = require("./service.service");
+const create_service_category_dto_1 = require("./dto/create-service-category.dto");
+const create_service_dto_1 = require("./dto/create-service.dto");
+const create_service_bundle_dto_1 = require("./dto/create-service-bundle.dto");
+const service_variant_dto_1 = require("./dto/service-variant.dto");
+const update_service_category_dto_1 = require("./dto/update-service-category.dto");
+const update_service_dto_1 = require("./dto/update-service.dto");
+const update_service_bundle_dto_1 = require("./dto/update-service-bundle.dto");
+const service_query_dto_1 = require("./dto/service-query.dto");
 const service_category_schema_1 = require("./schemas/service-category.schema");
 const service_schema_1 = require("./schemas/service.schema");
 const service_bundle_schema_1 = require("./schemas/service-bundle.schema");
-const api_response_decorator_1 = require("../../common/decorators/api-response.decorator");
+const api_response_decorator_1 = require("../common/decorators/api-response.decorator");
 let ServiceController = class ServiceController {
     constructor(serviceService) {
         this.serviceService = serviceService;
@@ -71,7 +80,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new service category" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory, 201, "Service category created successfully"),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_service_category_dto_1.CreateServiceCategoryDto]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "createCategory", null);
 __decorate([
@@ -88,7 +97,7 @@ __decorate([
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_service_category_dto_1.UpdateServiceCategoryDto]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "updateCategory", null);
 __decorate([
@@ -96,7 +105,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new service" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service, 201, "Service created successfully"),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_service_dto_1.CreateServiceDto]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "create", null);
 __decorate([
@@ -104,7 +113,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all services with filtering and pagination" }),
     (0, api_response_decorator_1.ApiPaginatedResponse)(service_schema_1.Service),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [service_query_dto_1.ServiceQueryDto]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "findAll", null);
 __decorate([
@@ -130,7 +139,7 @@ __decorate([
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_service_dto_1.UpdateServiceDto]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "update", null);
 __decorate([
@@ -139,7 +148,7 @@ __decorate([
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, service_variant_dto_1.CreateServiceVariantDto]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "addVariant", null);
 __decorate([
@@ -156,7 +165,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new service bundle" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle, 201, "Service bundle created successfully"),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_service_bundle_dto_1.CreateServiceBundleDto]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "createBundle", null);
 __decorate([
@@ -182,13 +191,13 @@ __decorate([
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_service_bundle_dto_1.UpdateServiceBundleDto]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "updateBundle", null);
 ServiceController = __decorate([
     (0, swagger_1.ApiTags)("Services"),
     (0, common_1.Controller)("services"),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [service_service_1.ServiceService])
 ], ServiceController);
 exports.ServiceController = ServiceController;
 //# sourceMappingURL=service.controller.js.map

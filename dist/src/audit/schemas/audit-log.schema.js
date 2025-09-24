@@ -35,6 +35,7 @@ var AuditEntity;
     AuditEntity["SALE"] = "sale";
     AuditEntity["VOUCHER"] = "voucher";
     AuditEntity["MEMBERSHIP"] = "membership";
+    AuditEntity["CLIENT_MEMBERSHIP"] = "client_membership";
     AuditEntity["TEAM_MEMBER"] = "team_member";
     AuditEntity["SETTINGS"] = "settings";
 })(AuditEntity = exports.AuditEntity || (exports.AuditEntity = {}));

@@ -1,7 +1,7 @@
-import type { BookingService } from "./booking.service";
-import type { CreateBookingDto } from "./dto/create-booking.dto";
-import type { UpdateBookingDto } from "./dto/update-booking.dto";
-import type { BookingQueryDto } from "./dto/booking-query.dto";
+import { BookingService } from "./booking.service";
+import { CreateBookingDto } from "./dto/create-booking.dto";
+import { UpdateBookingDto } from "./dto/update-booking.dto";
+import { BookingQueryDto } from "./dto/booking-query.dto";
 export declare class BookingController {
     private readonly bookingService;
     constructor(bookingService: BookingService);

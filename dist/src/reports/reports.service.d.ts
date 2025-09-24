@@ -1,9 +1,9 @@
-import type { Model } from "mongoose";
-import type { DailySalesSummary, DailySalesSummaryDocument } from "./schemas/daily-sales-summary.schema";
-import type { SaleDocument } from "../sales/schemas/sale.schema";
-import type { AppointmentDocument } from "../appointment/schemas/appointment.schema";
-import type { ClientDocument } from "../client/schemas/client.schema";
-import type { ApiResponse } from "../../common/interfaces/common.interface";
+import { Model } from "mongoose";
+import { DailySalesSummary, DailySalesSummaryDocument } from "./schemas/daily-sales-summary.schema";
+import { SaleDocument } from "../sales/schemas/sale.schema";
+import { AppointmentDocument } from "../appointment/schemas/appointment.schema";
+import { ClientDocument } from "../client/schemas/client.schema";
+import { ApiResponse } from "../common/interfaces/common.interface";
 export declare class ReportsService {
     private dailySalesSummaryModel;
     private saleModel;

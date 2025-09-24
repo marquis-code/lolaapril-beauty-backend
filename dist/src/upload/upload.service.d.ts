@@ -1,4 +1,4 @@
-import type * as Express from "express";
+/// <reference types="multer" />
 export declare class UploadService {
     constructor();
     uploadImage(file: Express.Multer.File, folder?: string): Promise<{

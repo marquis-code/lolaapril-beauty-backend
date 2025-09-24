@@ -1,5 +1,5 @@
 import { SetMetadata } from "@nestjs/common"
-import type { AuditAction, AuditEntity } from "../schemas/audit-log.schema"
+import { AuditAction, AuditEntity } from "../schemas/audit-log.schema"
 
 export interface AuditOptions {
   action: AuditAction

@@ -1,14 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
-import type { Response } from "express"
-import type { Express } from "express"
+import { Response } from "express"
+import { Express } from "express"
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from "@nestjs/swagger"
-import type { ClientService } from "./client.service"
-import type { CreateClientDto } from "./dto/create-client.dto"
-import type { UpdateClientDto } from "./dto/update-client.dto"
-import type { ClientQueryDto } from "./dto/client-query.dto"
+import { ClientService } from "./client.service"
+import { CreateClientDto } from "./dto/create-client.dto"
+import { UpdateClientDto } from "./dto/update-client.dto"
+import { ClientQueryDto } from "./dto/client-query.dto"
 import { Client } from "./schemas/client.schema"
-import { ApiResponseWrapper, ApiPaginatedResponse } from "../../common/decorators/api-response.decorator"
+import { ApiResponseWrapper, ApiPaginatedResponse } from "../common/decorators/api-response.decorator"
 
 @ApiTags("Clients")
 @Controller("clients")

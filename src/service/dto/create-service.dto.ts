@@ -62,7 +62,7 @@ export class TeamMembersDto {
 export class ResourcesDto {
   @ApiProperty({ example: false })
   @IsBoolean()
-  required: boolean
+  isRequired: boolean
 
   @ApiProperty({ type: [String], example: [] })
   @IsArray()
@@ -93,6 +93,7 @@ export class ServiceDurationDto {
       value: { type: "number", example: 1 },
       unit: { type: "string", example: "h" },
     },
+    additionalProperties: false,
   })
   @ValidateNested()
   @Type(() => Object)
@@ -107,6 +108,7 @@ export class ServiceDurationDto {
       value: { type: "number", example: 10 },
       unit: { type: "string", example: "min" },
     },
+    additionalProperties: false,
   })
   @ValidateNested()
   @Type(() => Object)
@@ -188,7 +190,11 @@ export class ServiceSettingsDto {
   @IsString({ each: true })
   commissions?: string[]
 
-  @ApiPropertyOptional({ type: "object", example: {} })
+  @ApiPropertyOptional({
+    type: "object",
+    additionalProperties: true,
+    example: {}
+  })
   @IsOptional()
   generalSettings?: Record<string, any>
 }

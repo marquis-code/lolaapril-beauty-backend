@@ -8,9 +8,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServiceService = void 0;
 const common_1 = require("@nestjs/common");
+const mongoose_1 = require("mongoose");
+const service_category_schema_1 = require("./schemas/service-category.schema");
+const service_schema_1 = require("./schemas/service.schema");
+const service_bundle_schema_1 = require("./schemas/service-bundle.schema");
+const mongoose_2 = require("@nestjs/mongoose");
 let ServiceService = class ServiceService {
     constructor(serviceCategoryModel, serviceModel, serviceBundleModel) {
         this.serviceCategoryModel = serviceCategoryModel;
@@ -124,7 +132,8 @@ let ServiceService = class ServiceService {
             if (onlineBookingEnabled !== undefined)
                 filter["settings.onlineBooking.enabled"] = onlineBookingEnabled;
             const skip = (page - 1) * limit;
-            const sortOptions = { [sortBy]: sortOrder === "asc" ? 1 : -1 };
+            const sortDirection = sortOrder === "asc" ? 1 : -1;
+            const sortOptions = { [sortBy]: sortDirection };
             const [services, total] = await Promise.all([
                 this.serviceModel.find(filter).sort(sortOptions).skip(skip).limit(limit).exec(),
                 this.serviceModel.countDocuments(filter),
@@ -348,7 +357,12 @@ let ServiceService = class ServiceService {
 };
 ServiceService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [Function, Function, Function])
+    __param(0, (0, mongoose_2.InjectModel)(service_category_schema_1.ServiceCategory.name)),
+    __param(1, (0, mongoose_2.InjectModel)(service_schema_1.Service.name)),
+    __param(2, (0, mongoose_2.InjectModel)(service_bundle_schema_1.ServiceBundle.name)),
+    __metadata("design:paramtypes", [mongoose_1.Model,
+        mongoose_1.Model,
+        mongoose_1.Model])
 ], ServiceService);
 exports.ServiceService = ServiceService;
 //# sourceMappingURL=service.service.js.map

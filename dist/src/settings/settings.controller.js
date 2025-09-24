@@ -15,6 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const settings_service_1 = require("./settings.service");
+const create_business_settings_dto_1 = require("./dto/create-business-settings.dto");
+const update_business_settings_dto_1 = require("./dto/update-business-settings.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
@@ -70,7 +73,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create new settings" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Settings created successfully" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_business_settings_dto_1.CreateBusinessSettingsDto]),
     __metadata("design:returntype", void 0)
 ], SettingsController.prototype, "create", null);
 __decorate([
@@ -149,7 +152,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 404, description: "Settings not found" }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, update_business_settings_dto_1.UpdateBusinessSettingsDto]),
     __metadata("design:returntype", void 0)
 ], SettingsController.prototype, "update", null);
 __decorate([
@@ -190,7 +193,7 @@ SettingsController = __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [settings_service_1.SettingsService])
 ], SettingsController);
 exports.SettingsController = SettingsController;
 //# sourceMappingURL=settings.controller.js.map

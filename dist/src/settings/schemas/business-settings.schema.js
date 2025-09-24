@@ -9,259 +9,99 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BusinessSettingsSchema = exports.BusinessSettings = exports.ClosedPeriod = exports.Tax = exports.ServiceCharge = exports.PaymentMethod = exports.BlockedTimeType = exports.Resource = exports.CancellationReason = exports.AppointmentStatus = exports.BusinessHours = void 0;
+exports.BusinessSettingsSchema = exports.BusinessSettings = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
-let BusinessHours = class BusinessHours {
+const BusinessHoursSchema = {
+    day: { type: String, required: true },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    isOpen: { type: Boolean, default: true }
 };
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], BusinessHours.prototype, "day", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], BusinessHours.prototype, "startTime", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], BusinessHours.prototype, "endTime", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], BusinessHours.prototype, "isOpen", void 0);
-BusinessHours = __decorate([
-    (0, mongoose_1.Schema)()
-], BusinessHours);
-exports.BusinessHours = BusinessHours;
-let AppointmentStatus = class AppointmentStatus {
+const AppointmentStatusSchema = {
+    statusName: { type: String, required: true, unique: true },
+    statusIcon: { type: String, required: true },
+    statusColor: { type: String, required: true },
+    characterLimit: { type: Number },
+    isActive: { type: Boolean, default: true }
 };
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, unique: true }),
-    __metadata("design:type", String)
-], AppointmentStatus.prototype, "statusName", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], AppointmentStatus.prototype, "statusIcon", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], AppointmentStatus.prototype, "statusColor", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], AppointmentStatus.prototype, "characterLimit", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], AppointmentStatus.prototype, "isActive", void 0);
-AppointmentStatus = __decorate([
-    (0, mongoose_1.Schema)()
-], AppointmentStatus);
-exports.AppointmentStatus = AppointmentStatus;
-let CancellationReason = class CancellationReason {
+const CancellationReasonSchema = {
+    name: { type: String, required: true },
+    reasonType: { type: String, required: true, enum: ["client_initiated", "business_initiated", "external_factors"] },
+    isActive: { type: Boolean, default: true }
 };
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], CancellationReason.prototype, "name", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, enum: ["client_initiated", "business_initiated", "external_factors"] }),
-    __metadata("design:type", String)
-], CancellationReason.prototype, "reasonType", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], CancellationReason.prototype, "isActive", void 0);
-CancellationReason = __decorate([
-    (0, mongoose_1.Schema)()
-], CancellationReason);
-exports.CancellationReason = CancellationReason;
-let Resource = class Resource {
+const ResourceSchema = {
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    isActive: { type: Boolean, default: true }
 };
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], Resource.prototype, "name", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], Resource.prototype, "description", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], Resource.prototype, "isActive", void 0);
-Resource = __decorate([
-    (0, mongoose_1.Schema)()
-], Resource);
-exports.Resource = Resource;
-let BlockedTimeType = class BlockedTimeType {
+const BlockedTimeTypeSchema = {
+    type: { type: String, required: true },
+    typeIcon: { type: String, required: true },
+    duration: { type: String, required: true },
+    compensation: { type: String, required: true, enum: ["Paid", "Unpaid"] },
+    isActive: { type: Boolean, default: true }
 };
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], BlockedTimeType.prototype, "type", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], BlockedTimeType.prototype, "typeIcon", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], BlockedTimeType.prototype, "duration", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, enum: ["Paid", "Unpaid"] }),
-    __metadata("design:type", String)
-], BlockedTimeType.prototype, "compensation", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], BlockedTimeType.prototype, "isActive", void 0);
-BlockedTimeType = __decorate([
-    (0, mongoose_1.Schema)()
-], BlockedTimeType);
-exports.BlockedTimeType = BlockedTimeType;
-let PaymentMethod = class PaymentMethod {
+const PaymentMethodSchema = {
+    name: { type: String, required: true },
+    paymentType: { type: String, required: true, enum: ["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet"] },
+    enabled: { type: Boolean, default: true }
 };
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], PaymentMethod.prototype, "name", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, enum: ["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet"] }),
-    __metadata("design:type", String)
-], PaymentMethod.prototype, "paymentType", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], PaymentMethod.prototype, "enabled", void 0);
-PaymentMethod = __decorate([
-    (0, mongoose_1.Schema)()
-], PaymentMethod);
-exports.PaymentMethod = PaymentMethod;
-let ServiceCharge = class ServiceCharge {
-};
-__decorate([
-    (0, mongoose_1.Prop)({
-        type: {
-            name: { type: String, required: true },
-            description: { type: String, required: true },
+const ServiceChargeSchema = {
+    basicInfo: {
+        name: { type: String, required: true },
+        description: { type: String, required: true }
+    },
+    settings: {
+        applyServiceChargeOn: { type: String, required: true },
+        automaticallyApplyDuringCheckout: { type: Boolean, default: false }
+    },
+    rateType: {
+        type: { type: String, required: true, enum: ["Flat rate", "Percentage", "Both"] },
+        amount: {
+            currency: { type: String },
+            value: { type: Number }
         },
-        required: true,
-    }),
-    __metadata("design:type", Object)
-], ServiceCharge.prototype, "basicInfo", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({
-        type: {
-            applyServiceChargeOn: { type: String, required: true },
-            automaticallyApplyDuringCheckout: { type: Boolean, default: false },
-        },
-        required: true,
-    }),
-    __metadata("design:type", Object)
-], ServiceCharge.prototype, "settings", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({
-        type: {
-            type: { type: String, required: true, enum: ["Flat rate", "Percentage", "Both"] },
-            amount: {
-                type: {
-                    currency: { type: String },
-                    value: { type: Number },
-                },
-            },
-            percentage: { type: Number },
-            flatRate: {
-                type: {
-                    currency: { type: String },
-                    value: { type: Number },
-                },
-            },
-        },
-        required: true,
-    }),
-    __metadata("design:type", Object)
-], ServiceCharge.prototype, "rateType", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({
-        type: {
-            tax: { type: String, required: true },
-            rate: { type: Number, required: true },
-        },
-        required: true,
-    }),
-    __metadata("design:type", Object)
-], ServiceCharge.prototype, "taxRate", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], ServiceCharge.prototype, "isActive", void 0);
-ServiceCharge = __decorate([
-    (0, mongoose_1.Schema)()
-], ServiceCharge);
-exports.ServiceCharge = ServiceCharge;
-let Tax = class Tax {
+        percentage: { type: Number },
+        flatRate: {
+            currency: { type: String },
+            value: { type: Number }
+        }
+    },
+    taxRate: {
+        tax: { type: String, required: true },
+        rate: { type: Number, required: true }
+    },
+    isActive: { type: Boolean, default: true }
 };
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], Tax.prototype, "taxName", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", Number)
-], Tax.prototype, "taxRate", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], Tax.prototype, "isActive", void 0);
-Tax = __decorate([
-    (0, mongoose_1.Schema)()
-], Tax);
-exports.Tax = Tax;
-let ClosedPeriod = class ClosedPeriod {
+const TaxSchema = {
+    taxName: { type: String, required: true },
+    taxRate: { type: Number, required: true },
+    isActive: { type: Boolean, default: true }
 };
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], ClosedPeriod.prototype, "startDate", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], ClosedPeriod.prototype, "endDate", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], ClosedPeriod.prototype, "description", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], ClosedPeriod.prototype, "businessClosed", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: true }),
-    __metadata("design:type", Boolean)
-], ClosedPeriod.prototype, "onlineBookingBlocked", void 0);
-ClosedPeriod = __decorate([
-    (0, mongoose_1.Schema)()
-], ClosedPeriod);
-exports.ClosedPeriod = ClosedPeriod;
+const ClosedPeriodSchema = {
+    startDate: { type: String, required: true },
+    endDate: { type: String, required: true },
+    description: { type: String, required: true },
+    businessClosed: { type: Boolean, default: true },
+    onlineBookingBlocked: { type: Boolean, default: true }
+};
 let BusinessSettings = class BusinessSettings {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], BusinessSettings.prototype, "businessName", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], BusinessSettings.prototype, "businessEmail", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
         type: {
             countryCode: { type: String, required: true },
-            number: { type: String, required: true },
+            number: { type: String, required: true }
         },
-        required: true,
+        required: true
     }),
     __metadata("design:type", Object)
 ], BusinessSettings.prototype, "businessPhone", void 0);
@@ -272,80 +112,72 @@ __decorate([
             city: { type: String, required: true },
             region: { type: String, required: true },
             postcode: { type: String, required: true },
-            country: { type: String, required: true },
+            country: { type: String, required: true }
         },
-        required: true,
+        required: true
     }),
     __metadata("design:type", Object)
 ], BusinessSettings.prototype, "businessAddress", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [BusinessHours], required: true }),
+    (0, mongoose_1.Prop)({ type: [BusinessHoursSchema], required: true }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "businessHours", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [AppointmentStatus], default: [] }),
+    (0, mongoose_1.Prop)({ type: [AppointmentStatusSchema], default: [] }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "appointmentStatuses", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [CancellationReason], default: [] }),
+    (0, mongoose_1.Prop)({ type: [CancellationReasonSchema], default: [] }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "cancellationReasons", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [Resource], default: [] }),
+    (0, mongoose_1.Prop)({ type: [ResourceSchema], default: [] }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "resources", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [BlockedTimeType], default: [] }),
+    (0, mongoose_1.Prop)({ type: [BlockedTimeTypeSchema], default: [] }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "blockedTimeTypes", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [PaymentMethod], default: [] }),
+    (0, mongoose_1.Prop)({ type: [PaymentMethodSchema], default: [] }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "paymentMethods", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [ServiceCharge], default: [] }),
+    (0, mongoose_1.Prop)({ type: [ServiceChargeSchema], default: [] }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "serviceCharges", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [Tax], default: [] }),
+    (0, mongoose_1.Prop)({ type: [TaxSchema], default: [] }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "taxes", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [ClosedPeriod], default: [] }),
+    (0, mongoose_1.Prop)({ type: [ClosedPeriodSchema], default: [] }),
     __metadata("design:type", Array)
 ], BusinessSettings.prototype, "closedPeriods", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: "NGN" }),
+    (0, mongoose_1.Prop)({ type: String, default: "NGN" }),
     __metadata("design:type", String)
 ], BusinessSettings.prototype, "defaultCurrency", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: "Africa/Lagos" }),
+    (0, mongoose_1.Prop)({ type: String, default: "Africa/Lagos" }),
     __metadata("design:type", String)
 ], BusinessSettings.prototype, "timezone", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: 15 }),
+    (0, mongoose_1.Prop)({ type: Number, default: 15 }),
     __metadata("design:type", Number)
 ], BusinessSettings.prototype, "defaultAppointmentDuration", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: 2 }),
+    (0, mongoose_1.Prop)({ type: Number, default: 2 }),
     __metadata("design:type", Number)
 ], BusinessSettings.prototype, "bookingWindowHours", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: true }),
+    (0, mongoose_1.Prop)({ type: Boolean, default: true }),
     __metadata("design:type", Boolean)
 ], BusinessSettings.prototype, "allowOnlineBooking", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: true }),
+    (0, mongoose_1.Prop)({ type: Boolean, default: true }),
     __metadata("design:type", Boolean)
 ], BusinessSettings.prototype, "requireClientConfirmation", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: Date.now }),
-    __metadata("design:type", Date)
-], BusinessSettings.prototype, "createdAt", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: Date.now }),
-    __metadata("design:type", Date)
-], BusinessSettings.prototype, "updatedAt", void 0);
 BusinessSettings = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], BusinessSettings);

@@ -1,17 +1,15 @@
 import { Injectable, NotFoundException, ConflictException } from "@nestjs/common"
-import type { Model } from "mongoose"
-import type { TeamMember, TeamMemberDocument } from "./schemas/team-member.schema"
-import type { CreateTeamMemberDto } from "./dto/create-team-member.dto"
-import type { UpdateTeamMemberDto } from "./dto/update-team-member.dto"
-import type { TeamMemberQueryDto } from "./dto/team-member-query.dto"
+import { Model } from "mongoose"
+import { TeamMember, TeamMemberDocument } from "./schemas/team-member.schema"
+import { CreateTeamMemberDto } from "./dto/create-team-member.dto"
+import { UpdateTeamMemberDto } from "./dto/update-team-member.dto"
+import { TeamMemberQueryDto } from "./dto/team-member-query.dto"
+import { InjectModel } from "@nestjs/mongoose"
 
 @Injectable()
 export class TeamService {
-  private teamMemberModel: Model<TeamMemberDocument>
 
-  constructor(teamMemberModel: Model<TeamMemberDocument>) {
-    this.teamMemberModel = teamMemberModel
-  }
+  constructor(@InjectModel(TeamMember.name) private teamMemberModel: Model<TeamMemberDocument>) {}
 
   async create(createTeamMemberDto: CreateTeamMemberDto): Promise<TeamMember> {
     // Check if email already exists

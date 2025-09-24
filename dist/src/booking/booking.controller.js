@@ -15,6 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const booking_service_1 = require("./booking.service");
+const create_booking_dto_1 = require("./dto/create-booking.dto");
+const update_booking_dto_1 = require("./dto/update-booking.dto");
+const booking_query_dto_1 = require("./dto/booking-query.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
@@ -60,7 +64,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 201, description: "Booking created successfully" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "Time slot conflict" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_booking_dto_1.CreateBookingDto]),
     __metadata("design:returntype", void 0)
 ], BookingController.prototype, "create", null);
 __decorate([
@@ -69,7 +73,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all bookings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Bookings retrieved successfully" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [booking_query_dto_1.BookingQueryDto]),
     __metadata("design:returntype", void 0)
 ], BookingController.prototype, "findAll", null);
 __decorate([
@@ -113,7 +117,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 409, description: "Time slot conflict" }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_booking_dto_1.UpdateBookingDto]),
     __metadata("design:returntype", void 0)
 ], BookingController.prototype, "update", null);
 __decorate([
@@ -146,7 +150,7 @@ BookingController = __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [booking_service_1.BookingService])
 ], BookingController);
 exports.BookingController = BookingController;
 //# sourceMappingURL=booking.controller.js.map

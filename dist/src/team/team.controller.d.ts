@@ -1,7 +1,7 @@
-import type { TeamService } from "./team.service";
-import type { CreateTeamMemberDto } from "./dto/create-team-member.dto";
-import type { UpdateTeamMemberDto } from "./dto/update-team-member.dto";
-import type { TeamMemberQueryDto } from "./dto/team-member-query.dto";
+import { TeamService } from "./team.service";
+import { CreateTeamMemberDto } from "./dto/create-team-member.dto";
+import { UpdateTeamMemberDto } from "./dto/update-team-member.dto";
+import { TeamMemberQueryDto } from "./dto/team-member-query.dto";
 export declare class TeamController {
     private readonly teamService;
     constructor(teamService: TeamService);

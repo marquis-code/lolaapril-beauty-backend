@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common"
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes } from "@nestjs/swagger"
-import type { UploadService } from "./upload.service"
+import { UploadService } from "./upload.service"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 
 @ApiTags("File Upload")

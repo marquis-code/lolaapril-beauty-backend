@@ -1,7 +1,7 @@
-import type { VoucherService } from "./voucher.service";
-import type { CreateVoucherDto } from "./dto/create-voucher.dto";
-import type { UpdateVoucherDto } from "./dto/update-voucher.dto";
-import type { VoucherQueryDto } from "./dto/voucher-query.dto";
+import { VoucherService } from "./voucher.service";
+import { CreateVoucherDto } from "./dto/create-voucher.dto";
+import { UpdateVoucherDto } from "./dto/update-voucher.dto";
+import { VoucherQueryDto } from "./dto/voucher-query.dto";
 export declare class VoucherController {
     private readonly voucherService;
     constructor(voucherService: VoucherService);

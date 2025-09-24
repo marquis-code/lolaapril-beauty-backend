@@ -1,7 +1,7 @@
 import { type NestInterceptor, type ExecutionContext, type CallHandler } from "@nestjs/common";
-import type { Reflector } from "@nestjs/core";
-import type { Observable } from "rxjs";
-import type { AuditService } from "../audit.service";
+import { Reflector } from "@nestjs/core";
+import { Observable } from "rxjs";
+import { AuditService } from "../audit.service";
 export declare class AuditInterceptor implements NestInterceptor {
     private readonly auditService;
     private readonly reflector;

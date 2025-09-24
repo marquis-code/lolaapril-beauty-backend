@@ -15,6 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const auth_service_1 = require("./auth.service");
+const register_dto_1 = require("./dto/register.dto");
+const login_dto_1 = require("./dto/login.dto");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 let AuthController = class AuthController {
     constructor(authService) {
@@ -27,10 +30,10 @@ let AuthController = class AuthController {
         return this.authService.login(loginDto);
     }
     async logout(req) {
-        return this.authService.logout(req.user['sub']);
+        return this.authService.logout(req.user.sub);
     }
     async getProfile(req) {
-        return this.authService.validateUser(req.user['sub']);
+        return this.authService.validateUser(req.user.sub);
     }
 };
 __decorate([
@@ -38,8 +41,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Register a new user" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "User registered successfully" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "User already exists" }),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [register_dto_1.RegisterDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
@@ -47,8 +51,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Login user" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "User logged in successfully" }),
     (0, swagger_1.ApiResponse)({ status: 401, description: "Invalid credentials" }),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [login_dto_1.LoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
@@ -76,7 +81,7 @@ __decorate([
 AuthController = __decorate([
     (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);
 exports.AuthController = AuthController;
 //# sourceMappingURL=auth.controller.js.map

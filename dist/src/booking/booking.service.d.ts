@@ -1,8 +1,8 @@
-import type { Model } from "mongoose";
-import type { Booking, BookingDocument } from "./schemas/booking.schema";
-import type { CreateBookingDto } from "./dto/create-booking.dto";
-import type { UpdateBookingDto } from "./dto/update-booking.dto";
-import type { BookingQueryDto } from "./dto/booking-query.dto";
+import { Model } from "mongoose";
+import { Booking, BookingDocument } from "./schemas/booking.schema";
+import { CreateBookingDto } from "./dto/create-booking.dto";
+import { UpdateBookingDto } from "./dto/update-booking.dto";
+import { BookingQueryDto } from "./dto/booking-query.dto";
 export declare class BookingService {
     private bookingModel;
     constructor(bookingModel: Model<BookingDocument>);

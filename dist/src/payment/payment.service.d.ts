@@ -1,9 +1,9 @@
-import type { Model } from "mongoose";
-import type { Payment, PaymentDocument } from "./schemas/payment.schema";
-import type { CreatePaymentDto } from "./dto/create-payment.dto";
-import type { ApiResponse } from "../../common/interfaces/common.interface";
-import type { PaymentQueryDto } from "./dto/payment-query.dto";
-import type { UpdatePaymentDto } from "./dto/update-payment.dto";
+import { Model } from "mongoose";
+import { Payment, PaymentDocument } from "./schemas/payment.schema";
+import { CreatePaymentDto } from "./dto/create-payment.dto";
+import { ApiResponse } from "../common/interfaces/common.interface";
+import { PaymentQueryDto } from "./dto/payment-query.dto";
+import { UpdatePaymentDto } from "./dto/update-payment.dto";
 export declare class PaymentService {
     private paymentModel;
     constructor(paymentModel: Model<PaymentDocument>);

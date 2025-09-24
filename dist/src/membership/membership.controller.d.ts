@@ -24,11 +24,11 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import type { MembershipService } from "./membership.service";
-import type { CreateMembershipDto } from "./dto/create-membership.dto";
-import type { UpdateMembershipDto } from "./dto/update-membership.dto";
-import type { CreateClientMembershipDto } from "./dto/create-client-membership.dto";
-import type { MembershipQueryDto } from "./dto/membership-query.dto";
+import { MembershipService } from "./membership.service";
+import { CreateMembershipDto } from "./dto/create-membership.dto";
+import { UpdateMembershipDto } from "./dto/update-membership.dto";
+import { CreateClientMembershipDto } from "./dto/create-client-membership.dto";
+import { MembershipQueryDto } from "./dto/membership-query.dto";
 export declare class MembershipController {
     private readonly membershipService;
     constructor(membershipService: MembershipService);

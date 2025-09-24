@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ClientSchema = exports.Client = exports.ClientSettings = exports.ClientAddress = exports.AdditionalInfo = exports.ClientProfile = exports.EmergencyContact = void 0;
+exports.ClientSchema = exports.Client = exports.ClientSettingsSchema = exports.ClientSettings = exports.ClientAddressSchema = exports.ClientAddress = exports.AdditionalInfoSchema = exports.AdditionalInfo = exports.ClientProfileSchema = exports.ClientProfile = exports.EmergencyContactSchema = exports.EmergencyContact = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 let EmergencyContact = class EmergencyContact {
 };
@@ -39,6 +39,7 @@ EmergencyContact = __decorate([
     (0, mongoose_1.Schema)()
 ], EmergencyContact);
 exports.EmergencyContact = EmergencyContact;
+exports.EmergencyContactSchema = mongoose_1.SchemaFactory.createForClass(EmergencyContact);
 let ClientProfile = class ClientProfile {
 };
 __decorate([
@@ -97,6 +98,7 @@ ClientProfile = __decorate([
     (0, mongoose_1.Schema)()
 ], ClientProfile);
 exports.ClientProfile = ClientProfile;
+exports.ClientProfileSchema = mongoose_1.SchemaFactory.createForClass(ClientProfile);
 let AdditionalInfo = class AdditionalInfo {
 };
 __decorate([
@@ -128,6 +130,7 @@ AdditionalInfo = __decorate([
     (0, mongoose_1.Schema)()
 ], AdditionalInfo);
 exports.AdditionalInfo = AdditionalInfo;
+exports.AdditionalInfoSchema = mongoose_1.SchemaFactory.createForClass(AdditionalInfo);
 let ClientAddress = class ClientAddress {
 };
 __decorate([
@@ -170,6 +173,7 @@ ClientAddress = __decorate([
     (0, mongoose_1.Schema)()
 ], ClientAddress);
 exports.ClientAddress = ClientAddress;
+exports.ClientAddressSchema = mongoose_1.SchemaFactory.createForClass(ClientAddress);
 let ClientSettings = class ClientSettings {
 };
 __decorate([
@@ -194,31 +198,32 @@ ClientSettings = __decorate([
     (0, mongoose_1.Schema)()
 ], ClientSettings);
 exports.ClientSettings = ClientSettings;
+exports.ClientSettingsSchema = mongoose_1.SchemaFactory.createForClass(ClientSettings);
 let Client = class Client {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: ClientProfile, required: true }),
+    (0, mongoose_1.Prop)({ type: exports.ClientProfileSchema, required: true }),
     __metadata("design:type", ClientProfile)
 ], Client.prototype, "profile", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: AdditionalInfo }),
+    (0, mongoose_1.Prop)({ type: exports.AdditionalInfoSchema }),
     __metadata("design:type", AdditionalInfo)
 ], Client.prototype, "additionalInfo", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
         type: {
-            primary: { type: EmergencyContact },
-            secondary: { type: EmergencyContact },
+            primary: { type: exports.EmergencyContactSchema },
+            secondary: { type: exports.EmergencyContactSchema },
         },
     }),
     __metadata("design:type", Object)
 ], Client.prototype, "emergencyContacts", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: ClientAddress }),
+    (0, mongoose_1.Prop)({ type: exports.ClientAddressSchema }),
     __metadata("design:type", ClientAddress)
 ], Client.prototype, "address", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: ClientSettings, default: {} }),
+    (0, mongoose_1.Prop)({ type: exports.ClientSettingsSchema, default: {} }),
     __metadata("design:type", ClientSettings)
 ], Client.prototype, "settings", void 0);
 __decorate([

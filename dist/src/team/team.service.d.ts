@@ -1,8 +1,8 @@
-import type { Model } from "mongoose";
-import type { TeamMember, TeamMemberDocument } from "./schemas/team-member.schema";
-import type { CreateTeamMemberDto } from "./dto/create-team-member.dto";
-import type { UpdateTeamMemberDto } from "./dto/update-team-member.dto";
-import type { TeamMemberQueryDto } from "./dto/team-member-query.dto";
+import { Model } from "mongoose";
+import { TeamMember, TeamMemberDocument } from "./schemas/team-member.schema";
+import { CreateTeamMemberDto } from "./dto/create-team-member.dto";
+import { UpdateTeamMemberDto } from "./dto/update-team-member.dto";
+import { TeamMemberQueryDto } from "./dto/team-member-query.dto";
 export declare class TeamService {
     private teamMemberModel;
     constructor(teamMemberModel: Model<TeamMemberDocument>);

@@ -1,18 +1,15 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
-import type { Model } from "mongoose"
-import type { Sale, SaleDocument } from "./schemas/sale.schema"
-import type { CreateSaleDto } from "./dto/create-sale.dto"
-import type { ApiResponse } from "../common/interfaces/common.interface"
-import type { SalesQueryDto } from "./dto/sales-query.dto"
-import type { UpdateSaleDto } from "./dto/update-sale.dto"
+import { Model } from "mongoose"
+import { Sale, SaleDocument } from "./schemas/sale.schema"
+import { CreateSaleDto } from "./dto/create-sale.dto"
+import { ApiResponse } from "../common/interfaces/common.interface"
+import { SalesQueryDto } from "./dto/sales-query.dto"
+import { UpdateSaleDto } from "./dto/update-sale.dto"
+import { InjectModel } from "@nestjs/mongoose"
 
 @Injectable()
 export class SalesService {
-  private saleModel: Model<SaleDocument>
-
-  constructor(saleModel: Model<SaleDocument>) {
-    this.saleModel = saleModel
-  }
+  constructor(@InjectModel(Sale.name) private saleModel: Model<SaleDocument>) {}
 
   async create(createSaleDto: CreateSaleDto): Promise<ApiResponse<Sale>> {
     try {

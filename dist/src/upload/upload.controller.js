@@ -11,12 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
+const upload_service_1 = require("./upload.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let UploadController = class UploadController {
     constructor(uploadService) {
@@ -44,7 +44,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Image uploaded successfully' }),
     __param(0, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof express_1.Express !== "undefined" && (_a = express_1.Express.Multer) !== void 0 && _a.File) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadImage", null);
 __decorate([
@@ -66,7 +66,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Document uploaded successfully' }),
     __param(0, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof express_1.Express !== "undefined" && (_c = express_1.Express.Multer) !== void 0 && _c.File) === "function" ? _d : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadDocument", null);
 __decorate([
@@ -83,7 +83,7 @@ UploadController = __decorate([
     (0, common_1.Controller)("upload"),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [upload_service_1.UploadService])
 ], UploadController);
 exports.UploadController = UploadController;
 //# sourceMappingURL=upload.controller.js.map

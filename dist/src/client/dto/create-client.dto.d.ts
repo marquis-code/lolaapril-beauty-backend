@@ -37,13 +37,14 @@ export declare class ClientSettingsDto {
         clientAcceptsEmailMarketing: boolean;
     };
 }
+export declare class EmergencyContactsDto {
+    primary?: EmergencyContactDto;
+    secondary?: EmergencyContactDto;
+}
 export declare class CreateClientDto {
     profile: ClientProfileDto;
     additionalInfo?: AdditionalInfoDto;
-    emergencyContacts?: {
-        primary?: EmergencyContactDto;
-        secondary?: EmergencyContactDto;
-    };
+    emergencyContacts?: EmergencyContactsDto;
     address?: AddressDto;
     settings?: ClientSettingsDto;
 }

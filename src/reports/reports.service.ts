@@ -1,29 +1,23 @@
 import { Injectable } from "@nestjs/common"
-import type { Model } from "mongoose"
-import type { DailySalesSummary, DailySalesSummaryDocument } from "./schemas/daily-sales-summary.schema"
-import type { SaleDocument } from "../sales/schemas/sale.schema"
-import type { AppointmentDocument } from "../appointment/schemas/appointment.schema"
-import type { ClientDocument } from "../client/schemas/client.schema"
-import type { ApiResponse } from "../common/interfaces/common.interface"
+import { Model } from "mongoose"
+import { DailySalesSummary, DailySalesSummaryDocument } from "./schemas/daily-sales-summary.schema"
+import { SaleDocument, Sale } from "../sales/schemas/sale.schema"
+import { AppointmentDocument, Appointment } from "../appointment/schemas/appointment.schema"
+import { ClientDocument, Client } from "../client/schemas/client.schema"
+import { ApiResponse } from "../common/interfaces/common.interface"
 import * as moment from "moment"
+import { InjectModel } from "@nestjs/mongoose"
 
 @Injectable()
 export class ReportsService {
-  private dailySalesSummaryModel: Model<DailySalesSummaryDocument>
-  private saleModel: Model<SaleDocument>
-  private appointmentModel: Model<AppointmentDocument>
-  private clientModel: Model<ClientDocument>
 
   constructor(
-    dailySalesSummaryModel: Model<DailySalesSummaryDocument>,
-    saleModel: Model<SaleDocument>,
-    appointmentModel: Model<AppointmentDocument>,
-    clientModel: Model<ClientDocument>,
+    @InjectModel(DailySalesSummary.name) private dailySalesSummaryModel: Model<DailySalesSummaryDocument>,
+    @InjectModel(Sale.name) private saleModel: Model<SaleDocument>,
+    @InjectModel(Appointment.name) private appointmentModel: Model<AppointmentDocument>,
+    @InjectModel(Client.name)  private clientModel: Model<ClientDocument>
   ) {
-    this.dailySalesSummaryModel = dailySalesSummaryModel
-    this.saleModel = saleModel
-    this.appointmentModel = appointmentModel
-    this.clientModel = clientModel
+
   }
 
   async generateDailySalesSummary(date: string): Promise<ApiResponse<DailySalesSummary>> {

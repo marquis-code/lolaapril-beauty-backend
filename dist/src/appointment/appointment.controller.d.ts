@@ -1,7 +1,7 @@
-import type { AppointmentService } from "./appointment.service";
-import type { CreateAppointmentDto } from "./dto/create-appointment.dto";
-import type { UpdateAppointmentDto } from "./dto/update-appointment.dto";
-import type { AppointmentQueryDto } from "./dto/appointment-query.dto";
+import { AppointmentService } from "./appointment.service";
+import { CreateAppointmentDto } from "./dto/create-appointment.dto";
+import { UpdateAppointmentDto } from "./dto/update-appointment.dto";
+import { AppointmentQueryDto } from "./dto/appointment-query.dto";
 export declare class AppointmentController {
     private readonly appointmentService;
     constructor(appointmentService: AppointmentService);

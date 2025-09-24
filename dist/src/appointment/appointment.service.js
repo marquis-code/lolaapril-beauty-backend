@@ -8,9 +8,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppointmentService = void 0;
 const common_1 = require("@nestjs/common");
+const mongoose_1 = require("mongoose");
+const appointment_schema_1 = require("./schemas/appointment.schema");
+const mongoose_2 = require("@nestjs/mongoose");
 let AppointmentService = class AppointmentService {
     constructor(appointmentModel) {
         this.appointmentModel = appointmentModel;
@@ -207,7 +213,8 @@ let AppointmentService = class AppointmentService {
 };
 AppointmentService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [Function])
+    __param(0, (0, mongoose_2.InjectModel)(appointment_schema_1.Appointment.name)),
+    __metadata("design:paramtypes", [mongoose_1.Model])
 ], AppointmentService);
 exports.AppointmentService = AppointmentService;
 //# sourceMappingURL=appointment.service.js.map

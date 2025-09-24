@@ -12,6 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppointmentController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const appointment_service_1 = require("./appointment.service");
+const create_appointment_dto_1 = require("./dto/create-appointment.dto");
+const update_appointment_dto_1 = require("./dto/update-appointment.dto");
+const appointment_query_dto_1 = require("./dto/appointment-query.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
@@ -65,7 +69,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 201, description: "Appointment created successfully" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "Time slot conflict" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_appointment_dto_1.CreateAppointmentDto]),
     __metadata("design:returntype", void 0)
 ], AppointmentController.prototype, "create", null);
 __decorate([
@@ -74,7 +78,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all appointments" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointments retrieved successfully" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [appointment_query_dto_1.AppointmentQueryDto]),
     __metadata("design:returntype", void 0)
 ], AppointmentController.prototype, "findAll", null);
 __decorate([
@@ -133,7 +137,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 404, description: "Appointment not found" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "Time slot conflict" }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_appointment_dto_1.UpdateAppointmentDto]),
     __metadata("design:returntype", void 0)
 ], AppointmentController.prototype, "update", null);
 __decorate([
@@ -175,7 +179,7 @@ AppointmentController = __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [appointment_service_1.AppointmentService])
 ], AppointmentController);
 exports.AppointmentController = AppointmentController;
 //# sourceMappingURL=appointment.controller.js.map

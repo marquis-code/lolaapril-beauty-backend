@@ -23,44 +23,44 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import type { Document } from "mongoose";
+import { Document } from "mongoose";
 export type BusinessSettingsDocument = BusinessSettings & Document;
-export declare class BusinessHours {
+export interface BusinessHours {
     day: string;
     startTime: string;
     endTime: string;
     isOpen: boolean;
 }
-export declare class AppointmentStatus {
+export interface AppointmentStatus {
     statusName: string;
     statusIcon: string;
     statusColor: string;
-    characterLimit: number;
+    characterLimit?: number;
     isActive: boolean;
 }
-export declare class CancellationReason {
+export interface CancellationReason {
     name: string;
-    reasonType: string;
+    reasonType: "client_initiated" | "business_initiated" | "external_factors";
     isActive: boolean;
 }
-export declare class Resource {
+export interface Resource {
     name: string;
     description: string;
     isActive: boolean;
 }
-export declare class BlockedTimeType {
+export interface BlockedTimeType {
     type: string;
     typeIcon: string;
     duration: string;
-    compensation: string;
+    compensation: "Paid" | "Unpaid";
     isActive: boolean;
 }
-export declare class PaymentMethod {
+export interface PaymentMethod {
     name: string;
-    paymentType: string;
+    paymentType: "cash" | "credit_card" | "debit_card" | "bank_transfer" | "digital_wallet";
     enabled: boolean;
 }
-export declare class ServiceCharge {
+export interface ServiceCharge {
     basicInfo: {
         name: string;
         description: string;
@@ -70,7 +70,7 @@ export declare class ServiceCharge {
         automaticallyApplyDuringCheckout: boolean;
     };
     rateType: {
-        type: string;
+        type: "Flat rate" | "Percentage" | "Both";
         amount?: {
             currency: string;
             value: number;
@@ -87,12 +87,12 @@ export declare class ServiceCharge {
     };
     isActive: boolean;
 }
-export declare class Tax {
+export interface Tax {
     taxName: string;
     taxRate: number;
     isActive: boolean;
 }
-export declare class ClosedPeriod {
+export interface ClosedPeriod {
     startDate: string;
     endDate: string;
     description: string;
@@ -128,8 +128,6 @@ export declare class BusinessSettings {
     bookingWindowHours: number;
     allowOnlineBooking: boolean;
     requireClientConfirmation: boolean;
-    createdAt: Date;
-    updatedAt: Date;
 }
 export declare const BusinessSettingsSchema: import("mongoose").Schema<BusinessSettings, import("mongoose").Model<BusinessSettings, any, any, any, Document<unknown, any, BusinessSettings, any> & BusinessSettings & {
     _id: import("mongoose").Types.ObjectId;

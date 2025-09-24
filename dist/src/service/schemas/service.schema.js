@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServiceSchema = exports.Service = exports.ServiceVariant = exports.ServiceSettings = exports.OnlineBooking = exports.PricingAndDuration = exports.ExtraTimeOptions = exports.ServiceDuration = exports.Price = exports.Resources = exports.TeamMembers = exports.TeamMember = exports.BasicDetails = void 0;
+exports.ServiceSchema = exports.Service = exports.ServiceVariantSchema = exports.ServiceVariant = exports.ServiceSettingsSchema = exports.ServiceSettings = exports.OnlineBookingSchema = exports.OnlineBooking = exports.PricingAndDurationSchema = exports.PricingAndDuration = exports.ExtraTimeOptionsSchema = exports.ExtraTimeOptions = exports.ServiceDurationSchema = exports.ServiceDuration = exports.PriceSchema = exports.Price = exports.ResourcesSchema = exports.Resources = exports.TeamMembersSchema = exports.TeamMembers = exports.TeamMemberSchema = exports.TeamMember = exports.BasicDetailsSchema = exports.BasicDetails = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 let BasicDetails = class BasicDetails {
 };
@@ -33,6 +33,7 @@ BasicDetails = __decorate([
     (0, mongoose_1.Schema)()
 ], BasicDetails);
 exports.BasicDetails = BasicDetails;
+exports.BasicDetailsSchema = mongoose_1.SchemaFactory.createForClass(BasicDetails);
 let TeamMember = class TeamMember {
 };
 __decorate([
@@ -55,6 +56,7 @@ TeamMember = __decorate([
     (0, mongoose_1.Schema)()
 ], TeamMember);
 exports.TeamMember = TeamMember;
+exports.TeamMemberSchema = mongoose_1.SchemaFactory.createForClass(TeamMember);
 let TeamMembers = class TeamMembers {
 };
 __decorate([
@@ -62,19 +64,20 @@ __decorate([
     __metadata("design:type", Boolean)
 ], TeamMembers.prototype, "allTeamMembers", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [TeamMember], default: [] }),
+    (0, mongoose_1.Prop)({ type: [exports.TeamMemberSchema], default: [] }),
     __metadata("design:type", Array)
 ], TeamMembers.prototype, "selectedMembers", void 0);
 TeamMembers = __decorate([
     (0, mongoose_1.Schema)()
 ], TeamMembers);
 exports.TeamMembers = TeamMembers;
+exports.TeamMembersSchema = mongoose_1.SchemaFactory.createForClass(TeamMembers);
 let Resources = class Resources {
 };
 __decorate([
     (0, mongoose_1.Prop)({ default: false }),
     __metadata("design:type", Boolean)
-], Resources.prototype, "required", void 0);
+], Resources.prototype, "isRequired", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: [String], default: [] }),
     __metadata("design:type", Array)
@@ -83,6 +86,7 @@ Resources = __decorate([
     (0, mongoose_1.Schema)()
 ], Resources);
 exports.Resources = Resources;
+exports.ResourcesSchema = mongoose_1.SchemaFactory.createForClass(Resources);
 let Price = class Price {
 };
 __decorate([
@@ -101,6 +105,7 @@ Price = __decorate([
     (0, mongoose_1.Schema)()
 ], Price);
 exports.Price = Price;
+exports.PriceSchema = mongoose_1.SchemaFactory.createForClass(Price);
 let ServiceDuration = class ServiceDuration {
 };
 __decorate([
@@ -131,6 +136,7 @@ ServiceDuration = __decorate([
     (0, mongoose_1.Schema)()
 ], ServiceDuration);
 exports.ServiceDuration = ServiceDuration;
+exports.ServiceDurationSchema = mongoose_1.SchemaFactory.createForClass(ServiceDuration);
 let ExtraTimeOptions = class ExtraTimeOptions {
 };
 __decorate([
@@ -149,6 +155,7 @@ ExtraTimeOptions = __decorate([
     (0, mongoose_1.Schema)()
 ], ExtraTimeOptions);
 exports.ExtraTimeOptions = ExtraTimeOptions;
+exports.ExtraTimeOptionsSchema = mongoose_1.SchemaFactory.createForClass(ExtraTimeOptions);
 let PricingAndDuration = class PricingAndDuration {
 };
 __decorate([
@@ -156,21 +163,22 @@ __decorate([
     __metadata("design:type", String)
 ], PricingAndDuration.prototype, "priceType", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Price, required: true }),
+    (0, mongoose_1.Prop)({ type: exports.PriceSchema, required: true }),
     __metadata("design:type", Price)
 ], PricingAndDuration.prototype, "price", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: ServiceDuration, required: true }),
+    (0, mongoose_1.Prop)({ type: exports.ServiceDurationSchema, required: true }),
     __metadata("design:type", ServiceDuration)
 ], PricingAndDuration.prototype, "duration", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: ExtraTimeOptions }),
+    (0, mongoose_1.Prop)({ type: exports.ExtraTimeOptionsSchema }),
     __metadata("design:type", ExtraTimeOptions)
 ], PricingAndDuration.prototype, "extraTimeOptions", void 0);
 PricingAndDuration = __decorate([
     (0, mongoose_1.Schema)()
 ], PricingAndDuration);
 exports.PricingAndDuration = PricingAndDuration;
+exports.PricingAndDurationSchema = mongoose_1.SchemaFactory.createForClass(PricingAndDuration);
 let OnlineBooking = class OnlineBooking {
 };
 __decorate([
@@ -185,10 +193,11 @@ OnlineBooking = __decorate([
     (0, mongoose_1.Schema)()
 ], OnlineBooking);
 exports.OnlineBooking = OnlineBooking;
+exports.OnlineBookingSchema = mongoose_1.SchemaFactory.createForClass(OnlineBooking);
 let ServiceSettings = class ServiceSettings {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: OnlineBooking, default: {} }),
+    (0, mongoose_1.Prop)({ type: exports.OnlineBookingSchema, default: {} }),
     __metadata("design:type", OnlineBooking)
 ], ServiceSettings.prototype, "onlineBooking", void 0);
 __decorate([
@@ -207,6 +216,7 @@ ServiceSettings = __decorate([
     (0, mongoose_1.Schema)()
 ], ServiceSettings);
 exports.ServiceSettings = ServiceSettings;
+exports.ServiceSettingsSchema = mongoose_1.SchemaFactory.createForClass(ServiceSettings);
 let ServiceVariant = class ServiceVariant {
 };
 __decorate([
@@ -221,7 +231,7 @@ __decorate([
     (0, mongoose_1.Prop)({
         type: {
             priceType: { type: String, required: true },
-            price: { type: Price, required: true },
+            price: { type: exports.PriceSchema, required: true },
             duration: {
                 type: {
                     value: { type: Number, required: true },
@@ -247,22 +257,23 @@ ServiceVariant = __decorate([
     (0, mongoose_1.Schema)()
 ], ServiceVariant);
 exports.ServiceVariant = ServiceVariant;
+exports.ServiceVariantSchema = mongoose_1.SchemaFactory.createForClass(ServiceVariant);
 let Service = class Service {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: BasicDetails, required: true }),
+    (0, mongoose_1.Prop)({ type: exports.BasicDetailsSchema, required: true }),
     __metadata("design:type", BasicDetails)
 ], Service.prototype, "basicDetails", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: TeamMembers, required: true }),
+    (0, mongoose_1.Prop)({ type: exports.TeamMembersSchema, required: true }),
     __metadata("design:type", TeamMembers)
 ], Service.prototype, "teamMembers", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Resources, default: {} }),
+    (0, mongoose_1.Prop)({ type: exports.ResourcesSchema, default: {} }),
     __metadata("design:type", Resources)
 ], Service.prototype, "resources", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: PricingAndDuration, required: true }),
+    (0, mongoose_1.Prop)({ type: exports.PricingAndDurationSchema, required: true }),
     __metadata("design:type", PricingAndDuration)
 ], Service.prototype, "pricingAndDuration", void 0);
 __decorate([
@@ -270,11 +281,11 @@ __decorate([
     __metadata("design:type", Array)
 ], Service.prototype, "serviceAddOns", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: ServiceSettings, default: {} }),
+    (0, mongoose_1.Prop)({ type: exports.ServiceSettingsSchema, default: {} }),
     __metadata("design:type", ServiceSettings)
 ], Service.prototype, "settings", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [ServiceVariant], default: [] }),
+    (0, mongoose_1.Prop)({ type: [exports.ServiceVariantSchema], default: [] }),
     __metadata("design:type", Array)
 ], Service.prototype, "variants", void 0);
 __decorate([

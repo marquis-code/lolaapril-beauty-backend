@@ -23,8 +23,8 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import type { Model } from "mongoose";
-import type { AuditLog, AuditLogDocument, AuditAction, AuditEntity } from "./schemas/audit-log.schema";
+import { Model } from "mongoose";
+import { AuditLog, AuditLogDocument, AuditAction, AuditEntity } from "./schemas/audit-log.schema";
 export interface CreateAuditLogDto {
     userId: string;
     action: AuditAction;

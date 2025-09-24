@@ -8,9 +8,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeamService = void 0;
 const common_1 = require("@nestjs/common");
+const mongoose_1 = require("mongoose");
+const team_member_schema_1 = require("./schemas/team-member.schema");
+const mongoose_2 = require("@nestjs/mongoose");
 let TeamService = class TeamService {
     constructor(teamMemberModel) {
         this.teamMemberModel = teamMemberModel;
@@ -137,7 +143,8 @@ let TeamService = class TeamService {
 };
 TeamService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [Function])
+    __param(0, (0, mongoose_2.InjectModel)(team_member_schema_1.TeamMember.name)),
+    __metadata("design:paramtypes", [mongoose_1.Model])
 ], TeamService);
 exports.TeamService = TeamService;
 //# sourceMappingURL=team.service.js.map

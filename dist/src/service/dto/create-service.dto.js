@@ -89,7 +89,7 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: false }),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
-], ResourcesDto.prototype, "required", void 0);
+], ResourcesDto.prototype, "isRequired", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ type: [String], example: [] }),
     (0, class_validator_1.IsArray)(),
@@ -126,6 +126,7 @@ __decorate([
             value: { type: "number", example: 1 },
             unit: { type: "string", example: "h" },
         },
+        additionalProperties: false,
     }),
     (0, class_validator_1.ValidateNested)(),
     (0, class_transformer_1.Type)(() => Object),
@@ -138,6 +139,7 @@ __decorate([
             value: { type: "number", example: 10 },
             unit: { type: "string", example: "min" },
         },
+        additionalProperties: false,
     }),
     (0, class_validator_1.ValidateNested)(),
     (0, class_transformer_1.Type)(() => Object),
@@ -234,7 +236,11 @@ __decorate([
     __metadata("design:type", Array)
 ], ServiceSettingsDto.prototype, "commissions", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: "object", example: {} }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: "object",
+        additionalProperties: true,
+        example: {}
+    }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
 ], ServiceSettingsDto.prototype, "generalSettings", void 0);

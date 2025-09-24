@@ -24,10 +24,17 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import type { AuthService } from "./auth.service";
-import type { RegisterDto } from "./dto/register.dto";
-import type { LoginDto } from "./dto/login.dto";
-import type { Request } from "express";
+import { AuthService } from "./auth.service";
+import { RegisterDto } from "./dto/register.dto";
+import { LoginDto } from "./dto/login.dto";
+interface RequestWithUser extends Request {
+    user: {
+        sub: string;
+        email: string;
+        role: string;
+        [key: string]: any;
+    };
+}
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -55,12 +62,13 @@ export declare class AuthController {
             status: import("./schemas/user.schema").UserStatus.ACTIVE;
         };
     }>;
-    logout(req: Request): Promise<{
+    logout(req: RequestWithUser): Promise<{
         message: string;
     }>;
-    getProfile(req: Request): Promise<import("mongoose").Document<unknown, {}, import("./schemas/user.schema").UserDocument, {}> & import("./schemas/user.schema").User & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+    getProfile(req: RequestWithUser): Promise<import("mongoose").Document<unknown, {}, import("./schemas/user.schema").UserDocument, {}> & import("./schemas/user.schema").User & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }>;
 }
+export {};

@@ -1,8 +1,8 @@
-import type { Model } from "mongoose";
+import { Model } from "mongoose";
 import { Voucher, type VoucherDocument } from "./schemas/voucher.schema";
-import type { CreateVoucherDto } from "./dto/create-voucher.dto";
-import type { UpdateVoucherDto } from "./dto/update-voucher.dto";
-import type { VoucherQueryDto } from "./dto/voucher-query.dto";
+import { CreateVoucherDto } from "./dto/create-voucher.dto";
+import { UpdateVoucherDto } from "./dto/update-voucher.dto";
+import { VoucherQueryDto } from "./dto/voucher-query.dto";
 export declare class VoucherService {
     private voucherModel;
     constructor(voucherModel: Model<VoucherDocument>);

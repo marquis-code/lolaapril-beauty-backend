@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common"
-import type { Model } from "mongoose"
-import type { AuditLog, AuditLogDocument, AuditAction, AuditEntity } from "./schemas/audit-log.schema"
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { AuditLog, AuditLogDocument, AuditAction, AuditEntity } from "./schemas/audit-log.schema"
 
 export interface CreateAuditLogDto {
   userId: string
@@ -17,11 +18,9 @@ export interface CreateAuditLogDto {
 
 @Injectable()
 export class AuditService {
-  private auditLogModel: Model<AuditLogDocument>
-
-  constructor(auditLogModel: Model<AuditLogDocument>) {
-    this.auditLogModel = auditLogModel
-  }
+  constructor(
+    @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>
+  ) {}
 
   async createLog(createAuditLogDto: CreateAuditLogDto): Promise<AuditLog> {
     const auditLog = new this.auditLogModel(createAuditLogDto)

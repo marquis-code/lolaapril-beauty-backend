@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoucherService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
 const voucher_schema_1 = require("./schemas/voucher.schema");
 let VoucherService = class VoucherService {
     constructor(voucherModel) {
@@ -200,7 +201,7 @@ let VoucherService = class VoucherService {
 VoucherService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(voucher_schema_1.Voucher.name)),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [mongoose_2.Model])
 ], VoucherService);
 exports.VoucherService = VoucherService;
 //# sourceMappingURL=voucher.service.js.map

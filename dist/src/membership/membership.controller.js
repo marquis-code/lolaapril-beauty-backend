@@ -15,6 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MembershipController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const membership_service_1 = require("./membership.service");
+const create_membership_dto_1 = require("./dto/create-membership.dto");
+const update_membership_dto_1 = require("./dto/update-membership.dto");
+const create_client_membership_dto_1 = require("./dto/create-client-membership.dto");
+const membership_query_dto_1 = require("./dto/membership-query.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
@@ -71,7 +76,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Membership program created successfully' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_membership_dto_1.CreateMembershipDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "createMembership", null);
 __decorate([
@@ -81,7 +86,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Membership programs retrieved successfully' }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [membership_query_dto_1.MembershipQueryDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "findAllMemberships", null);
 __decorate([
@@ -115,7 +120,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_membership_dto_1.UpdateMembershipDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "updateMembership", null);
 __decorate([
@@ -138,7 +143,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Client enrolled successfully' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_client_membership_dto_1.CreateClientMembershipDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "enrollClient", null);
 __decorate([
@@ -203,7 +208,7 @@ MembershipController = __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [membership_service_1.MembershipService])
 ], MembershipController);
 exports.MembershipController = MembershipController;
 //# sourceMappingURL=membership.controller.js.map

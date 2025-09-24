@@ -1,142 +1,145 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
-import type { Document } from "mongoose"
+import { Document } from "mongoose"
 
 export type BusinessSettingsDocument = BusinessSettings & Document
 
-@Schema()
-export class BusinessHours {
-  @Prop({ required: true })
+// Subdocument schemas
+const BusinessHoursSchema = {
+  day: { type: String, required: true },
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: true },
+  isOpen: { type: Boolean, default: true }
+}
+
+const AppointmentStatusSchema = {
+  statusName: { type: String, required: true, unique: true },
+  statusIcon: { type: String, required: true },
+  statusColor: { type: String, required: true },
+  characterLimit: { type: Number },
+  isActive: { type: Boolean, default: true }
+}
+
+const CancellationReasonSchema = {
+  name: { type: String, required: true },
+  reasonType: { type: String, required: true, enum: ["client_initiated", "business_initiated", "external_factors"] },
+  isActive: { type: Boolean, default: true }
+}
+
+const ResourceSchema = {
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  isActive: { type: Boolean, default: true }
+}
+
+const BlockedTimeTypeSchema = {
+  type: { type: String, required: true },
+  typeIcon: { type: String, required: true },
+  duration: { type: String, required: true },
+  compensation: { type: String, required: true, enum: ["Paid", "Unpaid"] },
+  isActive: { type: Boolean, default: true }
+}
+
+const PaymentMethodSchema = {
+  name: { type: String, required: true },
+  paymentType: { type: String, required: true, enum: ["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet"] },
+  enabled: { type: Boolean, default: true }
+}
+
+const ServiceChargeSchema = {
+  basicInfo: {
+    name: { type: String, required: true },
+    description: { type: String, required: true }
+  },
+  settings: {
+    applyServiceChargeOn: { type: String, required: true },
+    automaticallyApplyDuringCheckout: { type: Boolean, default: false }
+  },
+  rateType: {
+    type: { type: String, required: true, enum: ["Flat rate", "Percentage", "Both"] },
+    amount: {
+      currency: { type: String },
+      value: { type: Number }
+    },
+    percentage: { type: Number },
+    flatRate: {
+      currency: { type: String },
+      value: { type: Number }
+    }
+  },
+  taxRate: {
+    tax: { type: String, required: true },
+    rate: { type: Number, required: true }
+  },
+  isActive: { type: Boolean, default: true }
+}
+
+const TaxSchema = {
+  taxName: { type: String, required: true },
+  taxRate: { type: Number, required: true },
+  isActive: { type: Boolean, default: true }
+}
+
+const ClosedPeriodSchema = {
+  startDate: { type: String, required: true },
+  endDate: { type: String, required: true },
+  description: { type: String, required: true },
+  businessClosed: { type: Boolean, default: true },
+  onlineBookingBlocked: { type: Boolean, default: true }
+}
+
+// Type definitions for TypeScript
+export interface BusinessHours {
   day: string
-
-  @Prop({ required: true })
   startTime: string
-
-  @Prop({ required: true })
   endTime: string
-
-  @Prop({ default: true })
   isOpen: boolean
 }
 
-@Schema()
-export class AppointmentStatus {
-  @Prop({ required: true, unique: true })
+export interface AppointmentStatus {
   statusName: string
-
-  @Prop({ required: true })
   statusIcon: string
-
-  @Prop({ required: true })
   statusColor: string
-
-  @Prop()
-  characterLimit: number
-
-  @Prop({ default: true })
+  characterLimit?: number
   isActive: boolean
 }
 
-@Schema()
-export class CancellationReason {
-  @Prop({ required: true })
+export interface CancellationReason {
   name: string
-
-  @Prop({ required: true, enum: ["client_initiated", "business_initiated", "external_factors"] })
-  reasonType: string
-
-  @Prop({ default: true })
+  reasonType: "client_initiated" | "business_initiated" | "external_factors"
   isActive: boolean
 }
 
-@Schema()
-export class Resource {
-  @Prop({ required: true })
+export interface Resource {
   name: string
-
-  @Prop({ required: true })
   description: string
-
-  @Prop({ default: true })
   isActive: boolean
 }
 
-@Schema()
-export class BlockedTimeType {
-  @Prop({ required: true })
+export interface BlockedTimeType {
   type: string
-
-  @Prop({ required: true })
   typeIcon: string
-
-  @Prop({ required: true })
   duration: string
-
-  @Prop({ required: true, enum: ["Paid", "Unpaid"] })
-  compensation: string
-
-  @Prop({ default: true })
+  compensation: "Paid" | "Unpaid"
   isActive: boolean
 }
 
-@Schema()
-export class PaymentMethod {
-  @Prop({ required: true })
+export interface PaymentMethod {
   name: string
-
-  @Prop({ required: true, enum: ["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet"] })
-  paymentType: string
-
-  @Prop({ default: true })
+  paymentType: "cash" | "credit_card" | "debit_card" | "bank_transfer" | "digital_wallet"
   enabled: boolean
 }
 
-@Schema()
-export class ServiceCharge {
-  @Prop({
-    type: {
-      name: { type: String, required: true },
-      description: { type: String, required: true },
-    },
-    required: true,
-  })
+export interface ServiceCharge {
   basicInfo: {
     name: string
     description: string
   }
-
-  @Prop({
-    type: {
-      applyServiceChargeOn: { type: String, required: true },
-      automaticallyApplyDuringCheckout: { type: Boolean, default: false },
-    },
-    required: true,
-  })
   settings: {
     applyServiceChargeOn: string
     automaticallyApplyDuringCheckout: boolean
   }
-
-  @Prop({
-    type: {
-      type: { type: String, required: true, enum: ["Flat rate", "Percentage", "Both"] },
-      amount: {
-        type: {
-          currency: { type: String },
-          value: { type: Number },
-        },
-      },
-      percentage: { type: Number },
-      flatRate: {
-        type: {
-          currency: { type: String },
-          value: { type: Number },
-        },
-      },
-    },
-    required: true,
-  })
   rateType: {
-    type: string
+    type: "Flat rate" | "Percentage" | "Both"
     amount?: {
       currency: string
       value: number
@@ -147,67 +150,41 @@ export class ServiceCharge {
       value: number
     }
   }
-
-  @Prop({
-    type: {
-      tax: { type: String, required: true },
-      rate: { type: Number, required: true },
-    },
-    required: true,
-  })
   taxRate: {
     tax: string
     rate: number
   }
-
-  @Prop({ default: true })
   isActive: boolean
 }
 
-@Schema()
-export class Tax {
-  @Prop({ required: true })
+export interface Tax {
   taxName: string
-
-  @Prop({ required: true })
   taxRate: number
-
-  @Prop({ default: true })
   isActive: boolean
 }
 
-@Schema()
-export class ClosedPeriod {
-  @Prop({ required: true })
+export interface ClosedPeriod {
   startDate: string
-
-  @Prop({ required: true })
   endDate: string
-
-  @Prop({ required: true })
   description: string
-
-  @Prop({ default: true })
   businessClosed: boolean
-
-  @Prop({ default: true })
   onlineBookingBlocked: boolean
 }
 
 @Schema({ timestamps: true })
 export class BusinessSettings {
-  @Prop({ required: true })
+  @Prop({ type: String, required: true })
   businessName: string
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: true })
   businessEmail: string
 
   @Prop({
     type: {
       countryCode: { type: String, required: true },
-      number: { type: String, required: true },
+      number: { type: String, required: true }
     },
-    required: true,
+    required: true
   })
   businessPhone: {
     countryCode: string
@@ -220,9 +197,9 @@ export class BusinessSettings {
       city: { type: String, required: true },
       region: { type: String, required: true },
       postcode: { type: String, required: true },
-      country: { type: String, required: true },
+      country: { type: String, required: true }
     },
-    required: true,
+    required: true
   })
   businessAddress: {
     street: string
@@ -232,56 +209,50 @@ export class BusinessSettings {
     country: string
   }
 
-  @Prop({ type: [BusinessHours], required: true })
+  @Prop({ type: [BusinessHoursSchema], required: true })
   businessHours: BusinessHours[]
 
-  @Prop({ type: [AppointmentStatus], default: [] })
+  @Prop({ type: [AppointmentStatusSchema], default: [] })
   appointmentStatuses: AppointmentStatus[]
 
-  @Prop({ type: [CancellationReason], default: [] })
+  @Prop({ type: [CancellationReasonSchema], default: [] })
   cancellationReasons: CancellationReason[]
 
-  @Prop({ type: [Resource], default: [] })
+  @Prop({ type: [ResourceSchema], default: [] })
   resources: Resource[]
 
-  @Prop({ type: [BlockedTimeType], default: [] })
+  @Prop({ type: [BlockedTimeTypeSchema], default: [] })
   blockedTimeTypes: BlockedTimeType[]
 
-  @Prop({ type: [PaymentMethod], default: [] })
+  @Prop({ type: [PaymentMethodSchema], default: [] })
   paymentMethods: PaymentMethod[]
 
-  @Prop({ type: [ServiceCharge], default: [] })
+  @Prop({ type: [ServiceChargeSchema], default: [] })
   serviceCharges: ServiceCharge[]
 
-  @Prop({ type: [Tax], default: [] })
+  @Prop({ type: [TaxSchema], default: [] })
   taxes: Tax[]
 
-  @Prop({ type: [ClosedPeriod], default: [] })
+  @Prop({ type: [ClosedPeriodSchema], default: [] })
   closedPeriods: ClosedPeriod[]
 
-  @Prop({ default: "NGN" })
+  @Prop({ type: String, default: "NGN" })
   defaultCurrency: string
 
-  @Prop({ default: "Africa/Lagos" })
+  @Prop({ type: String, default: "Africa/Lagos" })
   timezone: string
 
-  @Prop({ default: 15 })
+  @Prop({ type: Number, default: 15 })
   defaultAppointmentDuration: number
 
-  @Prop({ default: 2 })
+  @Prop({ type: Number, default: 2 })
   bookingWindowHours: number
 
-  @Prop({ default: true })
+  @Prop({ type: Boolean, default: true })
   allowOnlineBooking: boolean
 
-  @Prop({ default: true })
+  @Prop({ type: Boolean, default: true })
   requireClientConfirmation: boolean
-
-  @Prop({ default: Date.now })
-  createdAt: Date
-
-  @Prop({ default: Date.now })
-  updatedAt: Date
 }
 
 export const BusinessSettingsSchema = SchemaFactory.createForClass(BusinessSettings)

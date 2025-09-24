@@ -11,14 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClientController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
+const client_service_1 = require("./client.service");
+const create_client_dto_1 = require("./dto/create-client.dto");
+const update_client_dto_1 = require("./dto/update-client.dto");
+const client_query_dto_1 = require("./dto/client-query.dto");
 const client_schema_1 = require("./schemas/client.schema");
-const api_response_decorator_1 = require("../../common/decorators/api-response.decorator");
+const api_response_decorator_1 = require("../common/decorators/api-response.decorator");
 let ClientController = class ClientController {
     constructor(clientService) {
         this.clientService = clientService;
@@ -76,7 +79,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new client" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(client_schema_1.Client, 201, "Client created successfully"),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [create_client_dto_1.CreateClientDto]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "create", null);
 __decorate([
@@ -84,7 +87,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all clients with filtering and pagination" }),
     (0, api_response_decorator_1.ApiPaginatedResponse)(client_schema_1.Client),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [client_query_dto_1.ClientQueryDto]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "findAll", null);
 __decorate([
@@ -131,7 +134,7 @@ __decorate([
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
     __param(0, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof express_1.Express !== "undefined" && (_a = express_1.Express.Multer) !== void 0 && _a.File) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ClientController.prototype, "importCSV", null);
 __decorate([
@@ -150,7 +153,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Function]),
+    __metadata("design:paramtypes", [String, update_client_dto_1.UpdateClientDto]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "update", null);
 __decorate([
@@ -165,7 +168,7 @@ __decorate([
 ClientController = __decorate([
     (0, swagger_1.ApiTags)("Clients"),
     (0, common_1.Controller)("clients"),
-    __metadata("design:paramtypes", [Function])
+    __metadata("design:paramtypes", [client_service_1.ClientService])
 ], ClientController);
 exports.ClientController = ClientController;
 //# sourceMappingURL=client.controller.js.map
