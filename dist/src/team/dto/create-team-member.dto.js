@@ -9,10 +9,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateTeamMemberDto = exports.EmergencyContactDto = exports.CommissionDto = exports.SkillsDto = exports.WorkingHoursDto = void 0;
+exports.CreateTeamMemberDto = exports.EmergencyContactDto = exports.CommissionDto = exports.SkillsDto = exports.WorkingHoursDto = exports.PhoneDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+class PhoneDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '+234' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], PhoneDto.prototype, "countryCode", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '1234567890' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], PhoneDto.prototype, "number", void 0);
+exports.PhoneDto = PhoneDto;
 class WorkingHoursDto {
 }
 __decorate([
@@ -42,10 +57,14 @@ exports.WorkingHoursDto = WorkingHoursDto;
 class SkillsDto {
 }
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [String], example: ["Hair Cut", "Hair Color"] }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"],
+        description: "Array of service ObjectIds"
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsMongoId)({ each: true }),
     __metadata("design:type", Array)
 ], SkillsDto.prototype, "services", void 0);
 __decorate([
@@ -65,10 +84,12 @@ exports.SkillsDto = SkillsDto;
 class CommissionDto {
 }
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "service_001" }),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
+    (0, swagger_1.ApiProperty)({
+        example: "507f1f77bcf86cd799439011",
+        description: "Service ObjectId"
+    }),
+    (0, class_validator_1.IsMongoId)(),
+    __metadata("design:type", Object)
 ], CommissionDto.prototype, "serviceId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: "Hair Cut" }),
@@ -128,16 +149,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateTeamMemberDto.prototype, "email", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: "object",
-        properties: {
-            countryCode: { type: "string", example: "+234" },
-            number: { type: "string", example: "+234 123 456 7890" },
-        },
-    }),
+    (0, swagger_1.ApiProperty)({ type: PhoneDto }),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => PhoneDto),
+    __metadata("design:type", PhoneDto)
 ], CreateTeamMemberDto.prototype, "phone", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({

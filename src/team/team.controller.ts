@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Controller, Query, Body,  Get, Post, Patch, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { TeamService } from "./team.service"
 import { CreateTeamMemberDto } from "./dto/create-team-member.dto"
@@ -26,7 +26,7 @@ export class TeamController {
   @ApiOperation({ summary: "Create a new team member" })
   @ApiResponse({ status: 201, description: "Team member created successfully" })
   @ApiResponse({ status: 409, description: "Team member with email already exists" })
-  create(createTeamMemberDto: CreateTeamMemberDto) {
+  create(@Body() createTeamMemberDto: CreateTeamMemberDto) {
     return this.teamService.create(createTeamMemberDto)
   }
 
@@ -34,7 +34,7 @@ export class TeamController {
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all team members" })
   @ApiResponse({ status: 200, description: "Team members retrieved successfully" })
-  findAll(query: TeamMemberQueryDto) {
+  findAll(@Query() query: TeamMemberQueryDto) {
     return this.teamService.findAll(query)
   }
 
@@ -78,7 +78,7 @@ export class TeamController {
   @ApiOperation({ summary: "Update team member" })
   @ApiResponse({ status: 200, description: "Team member updated successfully" })
   @ApiResponse({ status: 404, description: "Team member not found" })
-  update(id: string, updateTeamMemberDto: UpdateTeamMemberDto) {
+  update(id: string, @Body() updateTeamMemberDto: UpdateTeamMemberDto) {
     return this.teamService.update(id, updateTeamMemberDto)
   }
 

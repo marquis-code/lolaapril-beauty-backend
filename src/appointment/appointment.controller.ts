@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Controller, Query, Body, Get, Post, Patch, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { AppointmentService } from "./appointment.service"
 import { CreateAppointmentDto } from "./dto/create-appointment.dto"
@@ -26,7 +26,7 @@ export class AppointmentController {
   @ApiOperation({ summary: "Create a new appointment" })
   @ApiResponse({ status: 201, description: "Appointment created successfully" })
   @ApiResponse({ status: 409, description: "Time slot conflict" })
-  create(createAppointmentDto: CreateAppointmentDto) {
+  create(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentService.create(createAppointmentDto)
   }
 
@@ -34,7 +34,7 @@ export class AppointmentController {
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all appointments" })
   @ApiResponse({ status: 200, description: "Appointments retrieved successfully" })
-  findAll(query: AppointmentQueryDto) {
+  findAll(@Query() query: AppointmentQueryDto) {
     return this.appointmentService.findAll(query)
   }
 
@@ -87,7 +87,7 @@ export class AppointmentController {
   @ApiResponse({ status: 200, description: "Appointment updated successfully" })
   @ApiResponse({ status: 404, description: "Appointment not found" })
   @ApiResponse({ status: 409, description: "Time slot conflict" })
-  update(id: string, updateAppointmentDto: UpdateAppointmentDto) {
+  update(id: string, @Body() updateAppointmentDto: UpdateAppointmentDto) {
     return this.appointmentService.update(id, updateAppointmentDto)
   }
 

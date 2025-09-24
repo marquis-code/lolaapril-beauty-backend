@@ -78,6 +78,7 @@ __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: "Create a new client" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(client_schema_1.Client, 201, "Client created successfully"),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_client_dto_1.CreateClientDto]),
     __metadata("design:returntype", void 0)
@@ -86,6 +87,7 @@ __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: "Get all clients with filtering and pagination" }),
     (0, api_response_decorator_1.ApiPaginatedResponse)(client_schema_1.Client),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [client_query_dto_1.ClientQueryDto]),
     __metadata("design:returntype", void 0)

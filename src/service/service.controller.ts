@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Delete } from "@nestjs/common"
+import { Controller, Query, Get, Post, Patch, Param, Delete, Body } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger"
 import { ServiceService } from "./service.service"
 import { CreateServiceCategoryDto } from "./dto/create-service-category.dto"
@@ -23,7 +23,7 @@ export class ServiceController {
   @Post("categories")
   @ApiOperation({ summary: "Create a new service category" })
   @ApiResponseWrapper(ServiceCategory, 201, "Service category created successfully")
-  createCategory(createCategoryDto: CreateServiceCategoryDto) {
+  createCategory(@Body() createCategoryDto: CreateServiceCategoryDto) {
     return this.serviceService.createCategory(createCategoryDto)
   }
 
@@ -37,7 +37,7 @@ export class ServiceController {
   @Patch("categories/:id")
   @ApiOperation({ summary: "Update a service category" })
   @ApiResponseWrapper(ServiceCategory)
-  updateCategory(@Param('id') id: string, updateCategoryDto: UpdateServiceCategoryDto) {
+  updateCategory(@Param('id') id: string, @Body() updateCategoryDto: UpdateServiceCategoryDto) {
     return this.serviceService.updateCategory(id, updateCategoryDto)
   }
 
@@ -45,14 +45,14 @@ export class ServiceController {
   @Post()
   @ApiOperation({ summary: "Create a new service" })
   @ApiResponseWrapper(Service, 201, "Service created successfully")
-  create(createServiceDto: CreateServiceDto) {
+  create(@Body() createServiceDto: CreateServiceDto) {
     return this.serviceService.createService(createServiceDto)
   }
 
   @Get()
   @ApiOperation({ summary: "Get all services with filtering and pagination" })
   @ApiPaginatedResponse(Service)
-  findAll(query: ServiceQueryDto) {
+  findAll(@Query() query: ServiceQueryDto) {
     return this.serviceService.findAllServices(query)
   }
 
@@ -73,14 +73,14 @@ export class ServiceController {
   @Patch(":id")
   @ApiOperation({ summary: "Update a service" })
   @ApiResponseWrapper(Service)
-  update(@Param('id') id: string, updateServiceDto: UpdateServiceDto) {
+  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
     return this.serviceService.updateService(id, updateServiceDto)
   }
 
   @Post(":id/variants")
   @ApiOperation({ summary: "Add a variant to a service" })
   @ApiResponseWrapper(Service)
-  addVariant(@Param('id') id: string, variantDto: CreateServiceVariantDto) {
+  addVariant(@Param('id') id: string, @Body() variantDto: CreateServiceVariantDto) {
     return this.serviceService.addServiceVariant(id, variantDto)
   }
 
@@ -95,7 +95,7 @@ export class ServiceController {
   @Post("bundles")
   @ApiOperation({ summary: "Create a new service bundle" })
   @ApiResponseWrapper(ServiceBundle, 201, "Service bundle created successfully")
-  createBundle(createBundleDto: CreateServiceBundleDto) {
+  createBundle(@Body()createBundleDto: CreateServiceBundleDto) {
     return this.serviceService.createBundle(createBundleDto)
   }
 
@@ -116,7 +116,7 @@ export class ServiceController {
   @Patch("bundles/:id")
   @ApiOperation({ summary: "Update a service bundle" })
   @ApiResponseWrapper(ServiceBundle)
-  updateBundle(@Param('id') id: string, updateBundleDto: UpdateServiceBundleDto) {
+  updateBundle(@Param('id') id: string, @Body() updateBundleDto: UpdateServiceBundleDto) {
     return this.serviceService.updateBundle(id, updateBundleDto)
   }
 }

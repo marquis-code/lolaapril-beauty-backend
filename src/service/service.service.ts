@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ConflictException } from "@nestjs/common"
-import { Model, SortOrder } from "mongoose"
+import { Model, SortOrder, Types } from "mongoose"
 import { ServiceCategory, ServiceCategoryDocument } from "./schemas/service-category.schema"
 import { Service, ServiceDocument } from "./schemas/service.schema"
 import { ServiceBundle, ServiceBundleDocument } from "./schemas/service-bundle.schema"
@@ -16,11 +16,18 @@ import { InjectModel } from "@nestjs/mongoose"
 
 @Injectable()
 export class ServiceService {
-    constructor(
+  constructor(
     @InjectModel(ServiceCategory.name) private serviceCategoryModel: Model<ServiceCategoryDocument>,
     @InjectModel(Service.name) private serviceModel: Model<ServiceDocument>,
     @InjectModel(ServiceBundle.name) private serviceBundleModel: Model<ServiceBundleDocument>,
   ) {}
+
+  // Utility method to validate ObjectId
+  private validateObjectId(id: string, entityName: string = "Entity"): void {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(`${entityName} not found`)
+    }
+  }
 
   // Service Categories
   async createCategory(createCategoryDto: CreateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>> {
@@ -63,10 +70,12 @@ export class ServiceService {
 
   async updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>> {
     try {
+      this.validateObjectId(id, "Service category")
+
       if (updateCategoryDto.categoryName) {
         const existingCategory = await this.serviceCategoryModel.findOne({
           categoryName: updateCategoryDto.categoryName,
-          _id: { $ne: id },
+          _id: { $ne: new Types.ObjectId(id) },
         })
 
         if (existingCategory) {
@@ -75,7 +84,7 @@ export class ServiceService {
       }
 
       const category = await this.serviceCategoryModel.findByIdAndUpdate(
-        id,
+        new Types.ObjectId(id),
         { ...updateCategoryDto, updatedAt: new Date() },
         { new: true, runValidators: true },
       )
@@ -100,6 +109,17 @@ export class ServiceService {
   // Services
   async createService(createServiceDto: CreateServiceDto): Promise<ApiResponse<Service>> {
     try {
+      // Validate category ObjectId if provided
+      if (createServiceDto.basicDetails?.category) {
+        this.validateObjectId(createServiceDto.basicDetails.category.toString(), "Service category")
+        
+        // Check if category exists
+        const categoryExists = await this.serviceCategoryModel.findById(createServiceDto.basicDetails.category)
+        if (!categoryExists) {
+          throw new NotFoundException("Service category not found")
+        }
+      }
+
       const existingService = await this.serviceModel.findOne({
         "basicDetails.serviceName": createServiceDto.basicDetails.serviceName,
       })
@@ -117,7 +137,7 @@ export class ServiceService {
         message: "Service created successfully",
       }
     } catch (error) {
-      if (error instanceof ConflictException) {
+      if (error instanceof ConflictException || error instanceof NotFoundException) {
         throw error
       }
       throw new Error(`Failed to create service: ${error.message}`)
@@ -148,7 +168,10 @@ export class ServiceService {
         ]
       }
 
-      if (category) filter["basicDetails.category"] = category
+      if (category) {
+        this.validateObjectId(category, "Category")
+        filter["basicDetails.category"] = new Types.ObjectId(category)
+      }
       if (serviceType) filter["basicDetails.serviceType"] = serviceType
       if (priceType) filter["pricingAndDuration.priceType"] = priceType
       if (isActive !== undefined) filter.isActive = isActive
@@ -159,7 +182,13 @@ export class ServiceService {
       const sortOptions: Record<string, SortOrder> = { [sortBy]: sortDirection }
 
       const [services, total] = await Promise.all([
-        this.serviceModel.find(filter).sort(sortOptions).skip(skip).limit(limit).exec(),
+        this.serviceModel
+          .find(filter)
+          .populate('basicDetails.category', 'categoryName appointmentColor')
+          .sort(sortOptions)
+          .skip(skip)
+          .limit(limit)
+          .exec(),
         this.serviceModel.countDocuments(filter),
       ])
 
@@ -180,7 +209,12 @@ export class ServiceService {
 
   async findOneService(id: string): Promise<ApiResponse<Service>> {
     try {
-      const service = await this.serviceModel.findById(id)
+      this.validateObjectId(id, "Service")
+
+      const service = await this.serviceModel
+        .findById(new Types.ObjectId(id))
+        .populate('basicDetails.category', 'categoryName appointmentColor')
+
       if (!service) {
         throw new NotFoundException("Service not found")
       }
@@ -199,10 +233,23 @@ export class ServiceService {
 
   async updateService(id: string, updateServiceDto: UpdateServiceDto): Promise<ApiResponse<Service>> {
     try {
+      this.validateObjectId(id, "Service")
+
+      // Validate category ObjectId if being updated
+      if (updateServiceDto.basicDetails?.category) {
+        this.validateObjectId(updateServiceDto.basicDetails.category.toString(), "Service category")
+        
+        // Check if category exists
+        const categoryExists = await this.serviceCategoryModel.findById(updateServiceDto.basicDetails.category)
+        if (!categoryExists) {
+          throw new NotFoundException("Service category not found")
+        }
+      }
+
       if (updateServiceDto.basicDetails?.serviceName) {
         const existingService = await this.serviceModel.findOne({
           "basicDetails.serviceName": updateServiceDto.basicDetails.serviceName,
-          _id: { $ne: id },
+          _id: { $ne: new Types.ObjectId(id) },
         })
 
         if (existingService) {
@@ -211,10 +258,10 @@ export class ServiceService {
       }
 
       const service = await this.serviceModel.findByIdAndUpdate(
-        id,
+        new Types.ObjectId(id),
         { ...updateServiceDto, updatedAt: new Date() },
         { new: true, runValidators: true },
-      )
+      ).populate('basicDetails.category', 'categoryName appointmentColor')
 
       if (!service) {
         throw new NotFoundException("Service not found")
@@ -235,7 +282,9 @@ export class ServiceService {
 
   async addServiceVariant(serviceId: string, variantDto: CreateServiceVariantDto): Promise<ApiResponse<Service>> {
     try {
-      const service = await this.serviceModel.findById(serviceId)
+      this.validateObjectId(serviceId, "Service")
+
+      const service = await this.serviceModel.findById(new Types.ObjectId(serviceId))
       if (!service) {
         throw new NotFoundException("Service not found")
       }
@@ -266,6 +315,30 @@ export class ServiceService {
   // Service Bundles
   async createBundle(createBundleDto: CreateServiceBundleDto): Promise<ApiResponse<ServiceBundle>> {
     try {
+      // Validate category ObjectId
+      if (createBundleDto.basicInfo?.category) {
+        this.validateObjectId(createBundleDto.basicInfo.category.toString(), "Service category")
+        
+        // Check if category exists
+        const categoryExists = await this.serviceCategoryModel.findById(createBundleDto.basicInfo.category)
+        if (!categoryExists) {
+          throw new NotFoundException("Service category not found")
+        }
+      }
+
+      // Validate service ObjectIds in the bundle
+      if (createBundleDto.services && createBundleDto.services.length > 0) {
+        for (const service of createBundleDto.services) {
+          this.validateObjectId(service.serviceId.toString(), "Service")
+          
+          // Check if service exists
+          const serviceExists = await this.serviceModel.findById(service.serviceId)
+          if (!serviceExists) {
+            throw new NotFoundException(`Service with ID ${service.serviceId} not found`)
+          }
+        }
+      }
+
       const existingBundle = await this.serviceBundleModel.findOne({
         "basicInfo.bundleName": createBundleDto.basicInfo.bundleName,
       })
@@ -283,7 +356,7 @@ export class ServiceService {
         message: "Service bundle created successfully",
       }
     } catch (error) {
-      if (error instanceof ConflictException) {
+      if (error instanceof ConflictException || error instanceof NotFoundException) {
         throw error
       }
       throw new Error(`Failed to create service bundle: ${error.message}`)
@@ -292,7 +365,12 @@ export class ServiceService {
 
   async findAllBundles(): Promise<ApiResponse<ServiceBundle[]>> {
     try {
-      const bundles = await this.serviceBundleModel.find({ isActive: true }).sort({ createdAt: -1 })
+      const bundles = await this.serviceBundleModel
+        .find({ isActive: true })
+        .populate('basicInfo.category', 'categoryName appointmentColor')
+        .populate('services.serviceId', 'basicDetails.serviceName')
+        .sort({ createdAt: -1 })
+
       return {
         success: true,
         data: bundles,
@@ -304,7 +382,13 @@ export class ServiceService {
 
   async findOneBundle(id: string): Promise<ApiResponse<ServiceBundle>> {
     try {
-      const bundle = await this.serviceBundleModel.findById(id)
+      this.validateObjectId(id, "Service bundle")
+
+      const bundle = await this.serviceBundleModel
+        .findById(new Types.ObjectId(id))
+        .populate('basicInfo.category', 'categoryName appointmentColor')
+        .populate('services.serviceId', 'basicDetails.serviceName')
+
       if (!bundle) {
         throw new NotFoundException("Service bundle not found")
       }
@@ -323,10 +407,36 @@ export class ServiceService {
 
   async updateBundle(id: string, updateBundleDto: UpdateServiceBundleDto): Promise<ApiResponse<ServiceBundle>> {
     try {
+      this.validateObjectId(id, "Service bundle")
+
+      // Validate category ObjectId if being updated
+      if (updateBundleDto.basicInfo?.category) {
+        this.validateObjectId(updateBundleDto.basicInfo.category.toString(), "Service category")
+        
+        // Check if category exists
+        const categoryExists = await this.serviceCategoryModel.findById(updateBundleDto.basicInfo.category)
+        if (!categoryExists) {
+          throw new NotFoundException("Service category not found")
+        }
+      }
+
+      // Validate service ObjectIds if services are being updated
+      if (updateBundleDto.services && updateBundleDto.services.length > 0) {
+        for (const service of updateBundleDto.services) {
+          this.validateObjectId(service.serviceId.toString(), "Service")
+          
+          // Check if service exists
+          const serviceExists = await this.serviceModel.findById(service.serviceId)
+          if (!serviceExists) {
+            throw new NotFoundException(`Service with ID ${service.serviceId} not found`)
+          }
+        }
+      }
+
       if (updateBundleDto.basicInfo?.bundleName) {
         const existingBundle = await this.serviceBundleModel.findOne({
           "basicInfo.bundleName": updateBundleDto.basicInfo.bundleName,
-          _id: { $ne: id },
+          _id: { $ne: new Types.ObjectId(id) },
         })
 
         if (existingBundle) {
@@ -335,10 +445,12 @@ export class ServiceService {
       }
 
       const bundle = await this.serviceBundleModel.findByIdAndUpdate(
-        id,
+        new Types.ObjectId(id),
         { ...updateBundleDto, updatedAt: new Date() },
         { new: true, runValidators: true },
       )
+        .populate('basicInfo.category', 'categoryName appointmentColor')
+        .populate('services.serviceId', 'basicDetails.serviceName')
 
       if (!bundle) {
         throw new NotFoundException("Service bundle not found")
@@ -359,8 +471,10 @@ export class ServiceService {
 
   async removeService(id: string): Promise<ApiResponse<null>> {
     try {
+      this.validateObjectId(id, "Service")
+
       const service = await this.serviceModel.findByIdAndUpdate(
-        id,
+        new Types.ObjectId(id),
         { isActive: false, updatedAt: new Date() },
         { new: true },
       )
@@ -392,7 +506,22 @@ export class ServiceService {
 
       const servicesByCategory = await this.serviceModel.aggregate([
         { $match: { isActive: true } },
-        { $group: { _id: "$basicDetails.category", count: { $sum: 1 } } },
+        { 
+          $lookup: {
+            from: 'servicecategories',
+            localField: 'basicDetails.category',
+            foreignField: '_id',
+            as: 'categoryInfo'
+          }
+        },
+        { $unwind: '$categoryInfo' },
+        { 
+          $group: { 
+            _id: '$categoryInfo.categoryName',
+            categoryId: { $first: '$categoryInfo._id' },
+            count: { $sum: 1 } 
+          } 
+        },
         { $sort: { count: -1 } },
       ])
 

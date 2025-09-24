@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res } from "@nestjs/common"
+import { Controller, Query, Body, Get, Post, Patch, Param, Delete, UseInterceptors, UploadedFile, Res } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { Response } from "express"
 import { Express } from "express"
@@ -18,14 +18,14 @@ export class ClientController {
   @Post()
   @ApiOperation({ summary: "Create a new client" })
   @ApiResponseWrapper(Client, 201, "Client created successfully")
-  create(createClientDto: CreateClientDto) {
+  create(@Body() createClientDto: CreateClientDto) {
     return this.clientService.create(createClientDto)
   }
 
   @Get()
   @ApiOperation({ summary: "Get all clients with filtering and pagination" })
   @ApiPaginatedResponse(Client)
-  findAll(query: ClientQueryDto) {
+  findAll(@Query() query: ClientQueryDto) {
     return this.clientService.findAll(query)
   }
 

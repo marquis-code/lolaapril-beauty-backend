@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeamMemberSchema = exports.TeamMember = exports.CommissionSchema = exports.Commission = exports.SkillsSchema = exports.Skills = exports.WorkingHoursSchema = exports.WorkingHours = exports.CommissionType = exports.EmploymentType = exports.TeamStatus = exports.TeamRole = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
 var TeamRole;
 (function (TeamRole) {
     TeamRole["ADMIN"] = "admin";
@@ -65,7 +66,7 @@ exports.WorkingHoursSchema = mongoose_1.SchemaFactory.createForClass(WorkingHour
 let Skills = class Skills {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ type: [mongoose_2.Types.ObjectId], ref: 'Service', default: [] }),
     __metadata("design:type", Array)
 ], Skills.prototype, "services", void 0);
 __decorate([
@@ -84,15 +85,15 @@ exports.SkillsSchema = mongoose_1.SchemaFactory.createForClass(Skills);
 let Commission = class Commission {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Service', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Commission.prototype, "serviceId", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Commission.prototype, "serviceName", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ required: true, enum: ['percentage', 'fixed'] }),
     __metadata("design:type", String)
 ], Commission.prototype, "commissionType", void 0);
 __decorate([
@@ -205,4 +206,6 @@ exports.TeamMemberSchema.index({ email: 1 });
 exports.TeamMemberSchema.index({ role: 1 });
 exports.TeamMemberSchema.index({ isActive: 1 });
 exports.TeamMemberSchema.index({ employmentType: 1 });
+exports.TeamMemberSchema.index({ "skills.services": 1 });
+exports.TeamMemberSchema.index({ "commissions.serviceId": 1 });
 //# sourceMappingURL=team-member.schema.js.map

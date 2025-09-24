@@ -1,3 +1,7 @@
+export declare class RetailPriceDto {
+    currency: string;
+    amount: number;
+}
 export declare class BasicInfoDto {
     bundleName: string;
     category: string;
@@ -11,10 +15,7 @@ export declare class BundleServiceDto {
 }
 export declare class BundlePricingDto {
     priceType: string;
-    retailPrice: {
-        currency: string;
-        amount: number;
-    };
+    retailPrice: RetailPriceDto;
 }
 export declare class BundleOnlineBookingDto {
     enabled: boolean;

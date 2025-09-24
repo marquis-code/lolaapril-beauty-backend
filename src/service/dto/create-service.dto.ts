@@ -1,6 +1,19 @@
-import { IsString, IsNotEmpty, IsOptional, ValidateNested, IsBoolean, IsArray, IsNumber, IsEnum } from "class-validator"
+import { IsString, IsNotEmpty, IsOptional, ValidateNested, IsBoolean, IsArray, IsNumber, IsEnum, IsMongoId } from "class-validator"
 import { Type } from "class-transformer"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
+import { Types } from "mongoose"
+
+// Add this DTO
+export class TimeValueDto {
+  @ApiProperty({ example: 1 })
+  @IsNumber()
+  value: number;
+
+  @ApiProperty({ example: "h", enum: ["min", "h"] })
+  @IsEnum(["min", "h"])
+  unit: "min" | "h";
+}
+
 
 export class BasicDetailsDto {
   @ApiProperty({ example: "Men's Haircut" })
@@ -13,8 +26,8 @@ export class BasicDetailsDto {
   @IsNotEmpty()
   serviceType: string
 
-  @ApiProperty({ example: "Hair Services" })
-  @IsString()
+  @ApiProperty({ example: "64a1b2c3d4e5f6789012345a", description: "ServiceCategory ObjectId" })
+  @IsMongoId()
   @IsNotEmpty()
   category: string
 
@@ -27,20 +40,20 @@ export class BasicDetailsDto {
 }
 
 export class TeamMemberDto {
-  @ApiProperty({ example: "tm_001" })
-  @IsString()
+  @ApiProperty({ example: "64a1b2c3d4e5f6789012345b", description: "User ObjectId" })
+  @IsMongoId()
   @IsNotEmpty()
   id: string
 
-  @ApiProperty({ example: "Morning Shift" })
+  @ApiProperty({ example: "John Doe" })
   @IsString()
-  @IsNotEmpty()
-  name: string
+ @IsOptional()
+  name?: string
 
-  @ApiProperty({ example: "Admin" })
+  @ApiProperty({ example: "Hair Stylist" })
   @IsString()
-  @IsNotEmpty()
-  role: string
+  @IsOptional()
+  role?: string
 
   @ApiProperty({ example: true })
   @IsBoolean()
@@ -64,9 +77,13 @@ export class ResourcesDto {
   @IsBoolean()
   isRequired: boolean
 
-  @ApiProperty({ type: [String], example: [] })
+  @ApiProperty({ 
+    type: [String], 
+    example: ["64a1b2c3d4e5f6789012345c", "64a1b2c3d4e5f6789012345d"],
+    description: "Array of Resource ObjectIds"
+  })
   @IsArray()
-  @IsString({ each: true })
+  @IsMongoId({ each: true })
   resourceList: string[]
 }
 
@@ -86,41 +103,58 @@ export class PriceDto {
   minimumAmount?: number
 }
 
-export class ServiceDurationDto {
-  @ApiProperty({
-    type: "object",
-    properties: {
-      value: { type: "number", example: 1 },
-      unit: { type: "string", example: "h" },
-    },
-    additionalProperties: false,
-  })
-  @ValidateNested()
-  @Type(() => Object)
-  servicingTime: {
-    value: number
-    unit: "min" | "h"
-  }
+// export class ServiceDurationDto {
+//   @ApiProperty({
+//     type: "object",
+//     properties: {
+//       value: { type: "number", example: 1 },
+//       unit: { type: "string", example: "h" },
+//     },
+//     additionalProperties: false,
+//   })
+//   @ValidateNested()
+//   @Type(() => Object)
+//   servicingTime: {
+//     value: number
+//     unit: "min" | "h"
+//   }
 
-  @ApiProperty({
-    type: "object",
-    properties: {
-      value: { type: "number", example: 10 },
-      unit: { type: "string", example: "min" },
-    },
-    additionalProperties: false,
-  })
+//   @ApiProperty({
+//     type: "object",
+//     properties: {
+//       value: { type: "number", example: 10 },
+//       unit: { type: "string", example: "min" },
+//     },
+//     additionalProperties: false,
+//   })
+//   @ValidateNested()
+//   @Type(() => Object)
+//   processingTime: {
+//     value: number
+//     unit: "min" | "h"
+//   }
+
+//   @ApiProperty({ example: "1h 10min" })
+//   @IsString()
+//   @IsNotEmpty()
+//   totalDuration: string
+// }
+
+export class ServiceDurationDto {
+  @ApiProperty({ type: TimeValueDto })
   @ValidateNested()
-  @Type(() => Object)
-  processingTime: {
-    value: number
-    unit: "min" | "h"
-  }
+  @Type(() => TimeValueDto)
+  servicingTime: TimeValueDto;
+
+  @ApiProperty({ type: TimeValueDto })
+  @ValidateNested()
+  @Type(() => TimeValueDto)
+  processingTime: TimeValueDto;
 
   @ApiProperty({ example: "1h 10min" })
   @IsString()
   @IsNotEmpty()
-  totalDuration: string
+  totalDuration: string;
 }
 
 export class ExtraTimeOptionsDto {
@@ -178,16 +212,24 @@ export class ServiceSettingsDto {
   @Type(() => OnlineBookingDto)
   onlineBooking: OnlineBookingDto
 
-  @ApiPropertyOptional({ type: [String], example: [] })
+  @ApiPropertyOptional({ 
+    type: [String], 
+    example: ["64a1b2c3d4e5f6789012345e", "64a1b2c3d4e5f6789012345f"],
+    description: "Array of Form ObjectIds"
+  })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsMongoId({ each: true })
   forms?: string[]
 
-  @ApiPropertyOptional({ type: [String], example: [] })
+  @ApiPropertyOptional({ 
+    type: [String], 
+    example: ["64a1b2c3d4e5f6789012345g", "64a1b2c3d4e5f6789012345h"],
+    description: "Array of Commission ObjectIds"
+  })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsMongoId({ each: true })
   commissions?: string[]
 
   @ApiPropertyOptional({
@@ -221,10 +263,14 @@ export class CreateServiceDto {
   @Type(() => PricingAndDurationDto)
   pricingAndDuration: PricingAndDurationDto
 
-  @ApiPropertyOptional({ type: [String], example: [] })
+  @ApiPropertyOptional({ 
+    type: [String], 
+    example: ["64a1b2c3d4e5f6789012345i", "64a1b2c3d4e5f6789012345j"],
+    description: "Array of ServiceAddOn ObjectIds"
+  })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsMongoId({ each: true })
   serviceAddOns?: string[]
 
   @ApiPropertyOptional({ type: ServiceSettingsDto })

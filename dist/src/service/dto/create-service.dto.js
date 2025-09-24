@@ -9,10 +9,23 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateServiceDto = exports.ServiceSettingsDto = exports.OnlineBookingDto = exports.PricingAndDurationDto = exports.ExtraTimeOptionsDto = exports.ServiceDurationDto = exports.PriceDto = exports.ResourcesDto = exports.TeamMembersDto = exports.TeamMemberDto = exports.BasicDetailsDto = void 0;
+exports.CreateServiceDto = exports.ServiceSettingsDto = exports.OnlineBookingDto = exports.PricingAndDurationDto = exports.ExtraTimeOptionsDto = exports.ServiceDurationDto = exports.PriceDto = exports.ResourcesDto = exports.TeamMembersDto = exports.TeamMemberDto = exports.BasicDetailsDto = exports.TimeValueDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+class TimeValueDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], TimeValueDto.prototype, "value", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "h", enum: ["min", "h"] }),
+    (0, class_validator_1.IsEnum)(["min", "h"]),
+    __metadata("design:type", String)
+], TimeValueDto.prototype, "unit", void 0);
+exports.TimeValueDto = TimeValueDto;
 class BasicDetailsDto {
 }
 __decorate([
@@ -28,8 +41,8 @@ __decorate([
     __metadata("design:type", String)
 ], BasicDetailsDto.prototype, "serviceType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "Hair Services" }),
-    (0, class_validator_1.IsString)(),
+    (0, swagger_1.ApiProperty)({ example: "64a1b2c3d4e5f6789012345a", description: "ServiceCategory ObjectId" }),
+    (0, class_validator_1.IsMongoId)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], BasicDetailsDto.prototype, "category", void 0);
@@ -45,21 +58,21 @@ exports.BasicDetailsDto = BasicDetailsDto;
 class TeamMemberDto {
 }
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "tm_001" }),
-    (0, class_validator_1.IsString)(),
+    (0, swagger_1.ApiProperty)({ example: "64a1b2c3d4e5f6789012345b", description: "User ObjectId" }),
+    (0, class_validator_1.IsMongoId)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], TeamMemberDto.prototype, "id", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "Morning Shift" }),
+    (0, swagger_1.ApiProperty)({ example: "John Doe" }),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], TeamMemberDto.prototype, "name", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "Admin" }),
+    (0, swagger_1.ApiProperty)({ example: "Hair Stylist" }),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], TeamMemberDto.prototype, "role", void 0);
 __decorate([
@@ -91,9 +104,13 @@ __decorate([
     __metadata("design:type", Boolean)
 ], ResourcesDto.prototype, "isRequired", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: [String], example: [] }),
+    (0, swagger_1.ApiProperty)({
+        type: [String],
+        example: ["64a1b2c3d4e5f6789012345c", "64a1b2c3d4e5f6789012345d"],
+        description: "Array of Resource ObjectIds"
+    }),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsMongoId)({ each: true }),
     __metadata("design:type", Array)
 ], ResourcesDto.prototype, "resourceList", void 0);
 exports.ResourcesDto = ResourcesDto;
@@ -120,30 +137,16 @@ exports.PriceDto = PriceDto;
 class ServiceDurationDto {
 }
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: "object",
-        properties: {
-            value: { type: "number", example: 1 },
-            unit: { type: "string", example: "h" },
-        },
-        additionalProperties: false,
-    }),
+    (0, swagger_1.ApiProperty)({ type: TimeValueDto }),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => TimeValueDto),
+    __metadata("design:type", TimeValueDto)
 ], ServiceDurationDto.prototype, "servicingTime", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: "object",
-        properties: {
-            value: { type: "number", example: 10 },
-            unit: { type: "string", example: "min" },
-        },
-        additionalProperties: false,
-    }),
+    (0, swagger_1.ApiProperty)({ type: TimeValueDto }),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => TimeValueDto),
+    __metadata("design:type", TimeValueDto)
 ], ServiceDurationDto.prototype, "processingTime", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: "1h 10min" }),
@@ -222,17 +225,25 @@ __decorate([
     __metadata("design:type", OnlineBookingDto)
 ], ServiceSettingsDto.prototype, "onlineBooking", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [String], example: [] }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        example: ["64a1b2c3d4e5f6789012345e", "64a1b2c3d4e5f6789012345f"],
+        description: "Array of Form ObjectIds"
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsMongoId)({ each: true }),
     __metadata("design:type", Array)
 ], ServiceSettingsDto.prototype, "forms", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [String], example: [] }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        example: ["64a1b2c3d4e5f6789012345g", "64a1b2c3d4e5f6789012345h"],
+        description: "Array of Commission ObjectIds"
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsMongoId)({ each: true }),
     __metadata("design:type", Array)
 ], ServiceSettingsDto.prototype, "commissions", void 0);
 __decorate([
@@ -273,10 +284,14 @@ __decorate([
     __metadata("design:type", PricingAndDurationDto)
 ], CreateServiceDto.prototype, "pricingAndDuration", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [String], example: [] }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        example: ["64a1b2c3d4e5f6789012345i", "64a1b2c3d4e5f6789012345j"],
+        description: "Array of ServiceAddOn ObjectIds"
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsMongoId)({ each: true }),
     __metadata("design:type", Array)
 ], CreateServiceDto.prototype, "serviceAddOns", void 0);
 __decorate([

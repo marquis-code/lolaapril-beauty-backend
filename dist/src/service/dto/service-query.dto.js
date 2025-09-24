@@ -23,9 +23,12 @@ __decorate([
     __metadata("design:type", String)
 ], ServiceQueryDto.prototype, "search", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: "Filter by category" }),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: "Filter by category ObjectId",
+        example: "64a1b2c3d4e5f6789012345a"
+    }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsMongoId)(),
     __metadata("design:type", String)
 ], ServiceQueryDto.prototype, "category", void 0);
 __decorate([

@@ -79,6 +79,7 @@ __decorate([
     (0, common_1.Post)("categories"),
     (0, swagger_1.ApiOperation)({ summary: "Create a new service category" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory, 201, "Service category created successfully"),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_service_category_dto_1.CreateServiceCategoryDto]),
     __metadata("design:returntype", void 0)
@@ -96,6 +97,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update a service category" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_service_category_dto_1.UpdateServiceCategoryDto]),
     __metadata("design:returntype", void 0)
@@ -104,6 +106,7 @@ __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: "Create a new service" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service, 201, "Service created successfully"),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_service_dto_1.CreateServiceDto]),
     __metadata("design:returntype", void 0)
@@ -112,6 +115,7 @@ __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: "Get all services with filtering and pagination" }),
     (0, api_response_decorator_1.ApiPaginatedResponse)(service_schema_1.Service),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [service_query_dto_1.ServiceQueryDto]),
     __metadata("design:returntype", void 0)
@@ -138,6 +142,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update a service" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_service_dto_1.UpdateServiceDto]),
     __metadata("design:returntype", void 0)
@@ -147,6 +152,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Add a variant to a service" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, service_variant_dto_1.CreateServiceVariantDto]),
     __metadata("design:returntype", void 0)
@@ -164,6 +170,7 @@ __decorate([
     (0, common_1.Post)("bundles"),
     (0, swagger_1.ApiOperation)({ summary: "Create a new service bundle" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle, 201, "Service bundle created successfully"),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_service_bundle_dto_1.CreateServiceBundleDto]),
     __metadata("design:returntype", void 0)
@@ -190,6 +197,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update a service bundle" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_service_bundle_dto_1.UpdateServiceBundleDto]),
     __metadata("design:returntype", void 0)

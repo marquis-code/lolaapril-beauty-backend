@@ -9,10 +9,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateServiceBundleDto = exports.BundleOnlineBookingDto = exports.BundlePricingDto = exports.BundleServiceDto = exports.BasicInfoDto = void 0;
+exports.CreateServiceBundleDto = exports.BundleOnlineBookingDto = exports.BundlePricingDto = exports.BundleServiceDto = exports.BasicInfoDto = exports.RetailPriceDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+class RetailPriceDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "NGN" }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], RetailPriceDto.prototype, "currency", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 15000 }),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], RetailPriceDto.prototype, "amount", void 0);
+exports.RetailPriceDto = RetailPriceDto;
 class BasicInfoDto {
 }
 __decorate([
@@ -62,22 +77,16 @@ exports.BundleServiceDto = BundleServiceDto;
 class BundlePricingDto {
 }
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "Service pricing" }),
+    (0, swagger_1.ApiProperty)({ example: "Fixed" }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], BundlePricingDto.prototype, "priceType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: "object",
-        properties: {
-            currency: { type: "string", example: "NGN" },
-            amount: { type: "number", example: 15000 },
-        },
-    }),
+    (0, swagger_1.ApiProperty)({ type: RetailPriceDto }),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => RetailPriceDto),
+    __metadata("design:type", RetailPriceDto)
 ], BundlePricingDto.prototype, "retailPrice", void 0);
 exports.BundlePricingDto = BundlePricingDto;
 class BundleOnlineBookingDto {

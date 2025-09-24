@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Controller,  Query, Body, Get, Post, Patch, Param, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { PaymentService } from "./payment.service"
 import { CreatePaymentDto } from "./dto/create-payment.dto"
@@ -25,7 +25,7 @@ export class PaymentController {
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
   @ApiOperation({ summary: "Create a new payment" })
   @ApiResponse({ status: 201, description: "Payment created successfully" })
-  create(createPaymentDto: CreatePaymentDto) {
+  create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentService.create(createPaymentDto)
   }
 
@@ -33,7 +33,7 @@ export class PaymentController {
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all payments" })
   @ApiResponse({ status: 200, description: "Payments retrieved successfully" })
-  findAll(query: PaymentQueryDto) {
+  findAll(@Query() query: PaymentQueryDto) {
     return this.paymentService.findAllWithQuery(query)
   }
 
@@ -61,7 +61,7 @@ export class PaymentController {
   @ApiOperation({ summary: "Update payment" })
   @ApiResponse({ status: 200, description: "Payment updated successfully" })
   @ApiResponse({ status: 404, description: "Payment not found" })
-  update(@Param('id') id: string, updatePaymentDto: UpdatePaymentDto) {
+  update(@Param('id') id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
     return this.paymentService.update(id, updatePaymentDto)
   }
 

@@ -61,6 +61,7 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new payment" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Payment created successfully" }),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_payment_dto_1.CreatePaymentDto]),
     __metadata("design:returntype", void 0)
@@ -70,6 +71,7 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get all payments" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payments retrieved successfully" }),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [payment_query_dto_1.PaymentQueryDto]),
     __metadata("design:returntype", void 0)
@@ -103,6 +105,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payment updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Payment not found" }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_payment_dto_1.UpdatePaymentDto]),
     __metadata("design:returntype", void 0)

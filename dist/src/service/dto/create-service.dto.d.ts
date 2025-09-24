@@ -1,3 +1,7 @@
+export declare class TimeValueDto {
+    value: number;
+    unit: "min" | "h";
+}
 export declare class BasicDetailsDto {
     serviceName: string;
     serviceType: string;
@@ -6,8 +10,8 @@ export declare class BasicDetailsDto {
 }
 export declare class TeamMemberDto {
     id: string;
-    name: string;
-    role: string;
+    name?: string;
+    role?: string;
     selected: boolean;
 }
 export declare class TeamMembersDto {
@@ -24,14 +28,8 @@ export declare class PriceDto {
     minimumAmount?: number;
 }
 export declare class ServiceDurationDto {
-    servicingTime: {
-        value: number;
-        unit: "min" | "h";
-    };
-    processingTime: {
-        value: number;
-        unit: "min" | "h";
-    };
+    servicingTime: TimeValueDto;
+    processingTime: TimeValueDto;
     totalDuration: string;
 }
 export declare class ExtraTimeOptionsDto {

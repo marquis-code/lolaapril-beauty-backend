@@ -58,27 +58,29 @@ let BookingController = class BookingController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.BOOKING }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new booking" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Booking created successfully" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "Time slot conflict" }),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_booking_dto_1.CreateBookingDto]),
     __metadata("design:returntype", void 0)
 ], BookingController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: "Get all bookings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Bookings retrieved successfully" }),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [booking_query_dto_1.BookingQueryDto]),
     __metadata("design:returntype", void 0)
 ], BookingController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("stats"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: "Get booking statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Statistics retrieved successfully" }),
     __metadata("design:type", Function),
@@ -87,7 +89,7 @@ __decorate([
 ], BookingController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)('by-date/:date'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: 'Get bookings by date' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Bookings retrieved successfully' }),
     __param(0, (0, common_1.Param)('date')),
@@ -97,7 +99,7 @@ __decorate([
 ], BookingController.prototype, "getByDate", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.BOOKING }),
     (0, swagger_1.ApiOperation)({ summary: 'Get booking by ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Booking retrieved successfully' }),
@@ -109,20 +111,21 @@ __decorate([
 ], BookingController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.BOOKING }),
     (0, swagger_1.ApiOperation)({ summary: "Update booking" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Booking updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Booking not found" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "Time slot conflict" }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_booking_dto_1.UpdateBookingDto]),
     __metadata("design:returntype", void 0)
 ], BookingController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(":id/status"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.BOOKING }),
     (0, swagger_1.ApiOperation)({ summary: "Update booking status" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Status updated successfully" }),
@@ -134,7 +137,7 @@ __decorate([
 ], BookingController.prototype, "updateStatus", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.DELETE, entity: audit_log_schema_1.AuditEntity.BOOKING }),
     (0, swagger_1.ApiOperation)({ summary: 'Delete booking' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Booking deleted successfully' }),

@@ -1,3 +1,8 @@
+import { Types } from "mongoose";
+export declare class PhoneDto {
+    countryCode: string;
+    number: string;
+}
 export declare class WorkingHoursDto {
     day: string;
     startTime: string;
@@ -5,12 +10,12 @@ export declare class WorkingHoursDto {
     isWorking: boolean;
 }
 export declare class SkillsDto {
-    services?: string[];
+    services?: string[] | Types.ObjectId[];
     specializations?: string[];
     experienceLevel?: string;
 }
 export declare class CommissionDto {
-    serviceId: string;
+    serviceId: string | Types.ObjectId;
     serviceName: string;
     commissionType: string;
     commissionValue: number;
@@ -24,10 +29,7 @@ export declare class CreateTeamMemberDto {
     firstName: string;
     lastName: string;
     email: string;
-    phone: {
-        countryCode: string;
-        number: string;
-    };
+    phone: PhoneDto;
     role: string;
     employmentType: string;
     hireDate?: Date;

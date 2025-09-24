@@ -2,6 +2,18 @@ import { IsString, IsNotEmpty, IsOptional, ValidateNested, IsBoolean, IsArray, I
 import { Type } from "class-transformer"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 
+export class RetailPriceDto {
+  @ApiProperty({ example: "NGN" })
+  @IsString()
+  @IsNotEmpty()
+  currency: string
+
+  @ApiProperty({ example: 15000 })
+  @IsNumber()
+  @IsNotEmpty()
+  amount: number
+}
+
 export class BasicInfoDto {
   @ApiProperty({ example: "Cut and Blow-dry" })
   @IsString()
@@ -40,24 +52,15 @@ export class BundleServiceDto {
 }
 
 export class BundlePricingDto {
-  @ApiProperty({ example: "Service pricing" })
+  @ApiProperty({ example: "Fixed" })
   @IsString()
   @IsNotEmpty()
   priceType: string
 
-  @ApiProperty({
-    type: "object",
-    properties: {
-      currency: { type: "string", example: "NGN" },
-      amount: { type: "number", example: 15000 },
-    },
-  })
+  @ApiProperty({ type: RetailPriceDto })
   @ValidateNested()
-  @Type(() => Object)
-  retailPrice: {
-    currency: string
-    amount: number
-  }
+  @Type(() => RetailPriceDto)   // ✅ use the class here
+  retailPrice: RetailPriceDto
 }
 
 export class BundleOnlineBookingDto {

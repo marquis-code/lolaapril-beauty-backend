@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from "@nestjs/common"
+import { Controller, Body, Get, Post } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from "@nestjs/swagger"
 import { ReportsService } from "./reports.service"
 import { DailySalesSummary } from "./schemas/daily-sales-summary.schema"
@@ -12,7 +12,7 @@ export class ReportsController {
   @Post("daily-sales/:date")
   @ApiOperation({ summary: "Generate daily sales summary for a specific date" })
   @ApiResponseWrapper(DailySalesSummary, 201, "Daily sales summary generated successfully")
-  generateDailySalesSummary(date: string) {
+  generateDailySalesSummary(@Body() date: string) {
     return this.reportsService.generateDailySalesSummary(date)
   }
 

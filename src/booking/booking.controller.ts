@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Controller, Query, Body, Get, Post, Patch, Param, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { BookingService } from "./booking.service"
 import { CreateBookingDto } from "./dto/create-booking.dto"
@@ -21,25 +21,25 @@ export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.BOOKING })
   @ApiOperation({ summary: "Create a new booking" })
   @ApiResponse({ status: 201, description: "Booking created successfully" })
   @ApiResponse({ status: 409, description: "Time slot conflict" })
-  create(createBookingDto: CreateBookingDto) {
+  create(@Body() createBookingDto: CreateBookingDto) {
     return this.bookingService.create(createBookingDto)
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.ADMIN, UserRole.STAFF,UserRole.CLIENT)
   @ApiOperation({ summary: "Get all bookings" })
   @ApiResponse({ status: 200, description: "Bookings retrieved successfully" })
-  findAll(query: BookingQueryDto) {
+  findAll(@Query() query: BookingQueryDto) {
     return this.bookingService.findAll(query)
   }
 
   @Get("stats")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: "Get booking statistics" })
   @ApiResponse({ status: 200, description: "Statistics retrieved successfully" })
   getStats() {
@@ -47,7 +47,7 @@ export class BookingController {
   }
 
   @Get('by-date/:date')
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: 'Get bookings by date' })
   @ApiResponse({ status: 200, description: 'Bookings retrieved successfully' })
   getByDate(@Param('date') date: string) {
@@ -56,7 +56,7 @@ export class BookingController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT,UserRole.CLIENT)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.BOOKING })
   @ApiOperation({ summary: 'Get booking by ID' })
   @ApiResponse({ status: 200, description: 'Booking retrieved successfully' })
@@ -66,18 +66,18 @@ export class BookingController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.ADMIN, UserRole.STAFF,UserRole.CLIENT)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.BOOKING })
   @ApiOperation({ summary: "Update booking" })
   @ApiResponse({ status: 200, description: "Booking updated successfully" })
   @ApiResponse({ status: 404, description: "Booking not found" })
   @ApiResponse({ status: 409, description: "Time slot conflict" })
-  update(@Param('id') id: string, updateBookingDto: UpdateBookingDto) {
+  update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
     return this.bookingService.update(id, updateBookingDto)
   }
 
   @Patch(":id/status")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.ADMIN, UserRole.STAFF,UserRole.CLIENT)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.BOOKING })
   @ApiOperation({ summary: "Update booking status" })
   @ApiResponse({ status: 200, description: "Status updated successfully" })
@@ -87,7 +87,7 @@ export class BookingController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.CLIENT)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.BOOKING })
   @ApiOperation({ summary: 'Delete booking' })
   @ApiResponse({ status: 200, description: 'Booking deleted successfully' })

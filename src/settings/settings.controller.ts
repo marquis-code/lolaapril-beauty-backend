@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Controller, Body, Get, Post, Patch, Param, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { SettingsService } from "./settings.service"
 import { CreateBusinessSettingsDto } from "./dto/create-business-settings.dto"
@@ -24,7 +24,7 @@ export class SettingsController {
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: "Create new settings" })
   @ApiResponse({ status: 201, description: "Settings created successfully" })
-  create(createSettingsDto: CreateBusinessSettingsDto) {
+  create(@Body() createSettingsDto: CreateBusinessSettingsDto) {
     return this.settingsService.create(createSettingsDto)
   }
 
@@ -92,7 +92,7 @@ export class SettingsController {
   @ApiOperation({ summary: "Update settings" })
   @ApiResponse({ status: 200, description: "Settings updated successfully" })
   @ApiResponse({ status: 404, description: "Settings not found" })
-  update(@Param('id') id: string, updateSettingsDto: UpdateBusinessSettingsDto) {
+  update(@Param('id') id: string, @Body() updateSettingsDto: UpdateBusinessSettingsDto) {
     return this.settingsService.update(id, updateSettingsDto)
   }
 
@@ -101,7 +101,7 @@ export class SettingsController {
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: "Update business hours" })
   @ApiResponse({ status: 200, description: "Business hours updated successfully" })
-  updateBusinessHours(businessHours: any) {
+  updateBusinessHours(@Body() businessHours: any) {
     return this.settingsService.updateBusinessHours(businessHours)
   }
 
@@ -110,7 +110,7 @@ export class SettingsController {
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: "Update appointment settings" })
   @ApiResponse({ status: 200, description: "Appointment settings updated successfully" })
-  updateAppointmentSettings(appointmentSettings: any) {
+  updateAppointmentSettings(@Body() appointmentSettings: any) {
     return this.settingsService.updateAppointmentSettings(appointmentSettings)
   }
 

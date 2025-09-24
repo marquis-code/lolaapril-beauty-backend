@@ -16,6 +16,7 @@ export declare class ServiceService {
     private serviceModel;
     private serviceBundleModel;
     constructor(serviceCategoryModel: Model<ServiceCategoryDocument>, serviceModel: Model<ServiceDocument>, serviceBundleModel: Model<ServiceBundleDocument>);
+    private validateObjectId;
     createCategory(createCategoryDto: CreateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>>;
     findAllCategories(): Promise<ApiResponse<ServiceCategory[]>>;
     updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>>;

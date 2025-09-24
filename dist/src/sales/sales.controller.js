@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SalesController = void 0;
 const common_1 = require("@nestjs/common");
@@ -67,6 +70,7 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.SALE }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new sale" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Sale created successfully" }),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_sale_dto_1.CreateSaleDto]),
     __metadata("design:returntype", void 0)
@@ -76,6 +80,7 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get all sales" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sales retrieved successfully" }),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [sales_query_dto_1.SalesQueryDto]),
     __metadata("design:returntype", void 0)
@@ -125,6 +130,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update sale" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sale updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Sale not found" }),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_sale_dto_1.UpdateSaleDto]),
     __metadata("design:returntype", void 0)

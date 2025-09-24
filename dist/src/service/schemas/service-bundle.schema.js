@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServiceBundleSchema = exports.ServiceBundle = exports.BundleOnlineBooking = exports.BundlePricing = exports.BundleService = exports.BasicInfo = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
 let BasicInfo = class BasicInfo {
 };
 __decorate([
@@ -18,8 +19,8 @@ __decorate([
     __metadata("design:type", String)
 ], BasicInfo.prototype, "bundleName", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'ServiceCategory', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], BasicInfo.prototype, "category", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
@@ -32,8 +33,8 @@ exports.BasicInfo = BasicInfo;
 let BundleService = class BundleService {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Service', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], BundleService.prototype, "serviceId", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),

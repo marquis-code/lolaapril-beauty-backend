@@ -23,15 +23,15 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import type { Document } from "mongoose";
+import { Types, Document } from "mongoose";
 export type ServiceBundleDocument = ServiceBundle & Document;
 export declare class BasicInfo {
     bundleName: string;
-    category: string;
+    category: Types.ObjectId;
     description: string;
 }
 export declare class BundleService {
-    serviceId: string;
+    serviceId: Types.ObjectId;
     serviceName: string;
     duration: number;
     sequence: number;
@@ -58,11 +58,11 @@ export declare class ServiceBundle {
     updatedAt: Date;
 }
 export declare const ServiceBundleSchema: import("mongoose").Schema<ServiceBundle, import("mongoose").Model<ServiceBundle, any, any, any, Document<unknown, any, ServiceBundle, any> & ServiceBundle & {
-    _id: import("mongoose").Types.ObjectId;
+    _id: Types.ObjectId;
 } & {
     __v: number;
 }, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ServiceBundle, Document<unknown, {}, import("mongoose").FlatRecord<ServiceBundle>, {}> & import("mongoose").FlatRecord<ServiceBundle> & {
-    _id: import("mongoose").Types.ObjectId;
+    _id: Types.ObjectId;
 } & {
     __v: number;
 }>;

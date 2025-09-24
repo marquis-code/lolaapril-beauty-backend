@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsBoolean } from "class-validator"
+import { IsOptional, IsString, IsBoolean, IsMongoId } from "class-validator"
 import { Type } from "class-transformer"
 import { ApiPropertyOptional } from "@nestjs/swagger"
 import { PaginationDto } from "../../common/dto/pagination.dto"
@@ -9,9 +9,12 @@ export class ServiceQueryDto extends PaginationDto {
   @IsString()
   search?: string
 
-  @ApiPropertyOptional({ description: "Filter by category" })
+  @ApiPropertyOptional({ 
+    description: "Filter by category ObjectId",
+    example: "64a1b2c3d4e5f6789012345a"
+  })
   @IsOptional()
-  @IsString()
+  @IsMongoId()
   category?: string
 
   @ApiPropertyOptional({ description: "Filter by service type" })

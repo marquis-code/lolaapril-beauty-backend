@@ -9,9 +9,23 @@ import {
   IsBoolean,
   IsEmail,
   IsDateString,
+  IsMongoId,
 } from "class-validator"
 import { Type } from "class-transformer"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
+import { Types } from "mongoose"
+
+export class PhoneDto {
+  @ApiProperty({ example: '+234' })
+  @IsString()
+  @IsNotEmpty()
+  countryCode: string;
+
+  @ApiProperty({ example: '1234567890' })
+  @IsString()
+  @IsNotEmpty()
+  number: string;
+}
 
 export class WorkingHoursDto {
   @ApiProperty({ example: "Monday" })
@@ -35,11 +49,15 @@ export class WorkingHoursDto {
 }
 
 export class SkillsDto {
-  @ApiPropertyOptional({ type: [String], example: ["Hair Cut", "Hair Color"] })
+  @ApiPropertyOptional({ 
+    type: [String], 
+    example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"],
+    description: "Array of service ObjectIds"
+  })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  services?: string[]
+  @IsMongoId({ each: true })
+  services?: string[] | Types.ObjectId[]
 
   @ApiPropertyOptional({ type: [String], example: ["Bridal Hair", "Color Correction"] })
   @IsOptional()
@@ -54,10 +72,12 @@ export class SkillsDto {
 }
 
 export class CommissionDto {
-  @ApiProperty({ example: "service_001" })
-  @IsString()
-  @IsNotEmpty()
-  serviceId: string
+  @ApiProperty({ 
+    example: "507f1f77bcf86cd799439011",
+    description: "Service ObjectId"
+  })
+  @IsMongoId()
+  serviceId: string | Types.ObjectId
 
   @ApiProperty({ example: "Hair Cut" })
   @IsString()
@@ -105,19 +125,10 @@ export class CreateTeamMemberDto {
   @IsEmail()
   email: string
 
-  @ApiProperty({
-    type: "object",
-    properties: {
-      countryCode: { type: "string", example: "+234" },
-      number: { type: "string", example: "+234 123 456 7890" },
-    },
-  })
+  @ApiProperty({ type: PhoneDto })
   @ValidateNested()
-  @Type(() => Object)
-  phone: {
-    countryCode: string
-    number: string
-  }
+  @Type(() => PhoneDto)
+  phone: PhoneDto;
 
   @ApiProperty({
     example: "stylist",

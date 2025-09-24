@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServiceSchema = exports.Service = exports.ServiceVariantSchema = exports.ServiceVariant = exports.ServiceSettingsSchema = exports.ServiceSettings = exports.OnlineBookingSchema = exports.OnlineBooking = exports.PricingAndDurationSchema = exports.PricingAndDuration = exports.ExtraTimeOptionsSchema = exports.ExtraTimeOptions = exports.ServiceDurationSchema = exports.ServiceDuration = exports.PriceSchema = exports.Price = exports.ResourcesSchema = exports.Resources = exports.TeamMembersSchema = exports.TeamMembers = exports.TeamMemberSchema = exports.TeamMember = exports.BasicDetailsSchema = exports.BasicDetails = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
 let BasicDetails = class BasicDetails {
 };
 __decorate([
@@ -22,8 +23,8 @@ __decorate([
     __metadata("design:type", String)
 ], BasicDetails.prototype, "serviceType", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'ServiceCategory', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], BasicDetails.prototype, "category", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
@@ -37,8 +38,8 @@ exports.BasicDetailsSchema = mongoose_1.SchemaFactory.createForClass(BasicDetail
 let TeamMember = class TeamMember {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], TeamMember.prototype, "id", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
@@ -79,7 +80,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Resources.prototype, "isRequired", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Resource' }], default: [] }),
     __metadata("design:type", Array)
 ], Resources.prototype, "resourceList", void 0);
 Resources = __decorate([
@@ -201,11 +202,11 @@ __decorate([
     __metadata("design:type", OnlineBooking)
 ], ServiceSettings.prototype, "onlineBooking", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Form' }], default: [] }),
     __metadata("design:type", Array)
 ], ServiceSettings.prototype, "forms", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Commission' }], default: [] }),
     __metadata("design:type", Array)
 ], ServiceSettings.prototype, "commissions", void 0);
 __decorate([
@@ -277,7 +278,7 @@ __decorate([
     __metadata("design:type", PricingAndDuration)
 ], Service.prototype, "pricingAndDuration", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'ServiceAddOn' }], default: [] }),
     __metadata("design:type", Array)
 ], Service.prototype, "serviceAddOns", void 0);
 __decorate([

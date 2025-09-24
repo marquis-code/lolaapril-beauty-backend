@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
-import type { Document } from "mongoose"
+import { Types, Document } from "mongoose"
 
 export type ServiceBundleDocument = ServiceBundle & Document
 
@@ -8,8 +8,8 @@ export class BasicInfo {
   @Prop({ required: true })
   bundleName: string
 
-  @Prop({ required: true })
-  category: string
+  @Prop({ type: Types.ObjectId, ref: 'ServiceCategory', required: true })
+  category: Types.ObjectId
 
   @Prop({ required: true })
   description: string
@@ -17,8 +17,8 @@ export class BasicInfo {
 
 @Schema()
 export class BundleService {
-  @Prop({ required: true })
-  serviceId: string
+  @Prop({ type: Types.ObjectId, ref: 'Service', required: true })
+  serviceId: Types.ObjectId
 
   @Prop({ required: true })
   serviceName: string

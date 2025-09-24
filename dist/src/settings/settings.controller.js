@@ -72,6 +72,7 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: "Create new settings" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Settings created successfully" }),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_business_settings_dto_1.CreateBusinessSettingsDto]),
     __metadata("design:returntype", void 0)
@@ -151,6 +152,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: "Settings updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Settings not found" }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_business_settings_dto_1.UpdateBusinessSettingsDto]),
     __metadata("design:returntype", void 0)
@@ -161,6 +163,7 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: "Update business hours" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Business hours updated successfully" }),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
@@ -171,6 +174,7 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: "Update appointment settings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointment settings updated successfully" }),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
