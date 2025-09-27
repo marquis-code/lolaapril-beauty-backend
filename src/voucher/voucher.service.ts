@@ -12,19 +12,38 @@ export class VoucherService {
     @InjectModel(Voucher.name) private voucherModel: Model<VoucherDocument>,
   ) {}
 
-  async create(createVoucherDto: CreateVoucherDto): Promise<Voucher> {
-    // Check if voucher code already exists
-    const existingVoucher = await this.voucherModel.findOne({
-      voucherCode: createVoucherDto.voucherCode,
-    })
 
-    if (existingVoucher) {
-      throw new BadRequestException("Voucher code already exists")
-    }
-
-    const voucher = new this.voucherModel(createVoucherDto)
-    return voucher.save()
+   async create(createVoucherDto: CreateVoucherDto, userId: string): Promise<Voucher> {
+  const existingVoucher = await this.voucherModel.findOne({
+    voucherCode: createVoucherDto.voucherCode,
+  });
+  if (existingVoucher) {
+    throw new BadRequestException("Voucher code already exists");
   }
+
+  const voucher = new this.voucherModel({
+    ...createVoucherDto,
+    createdBy: userId,   // ✅ automatically set from token
+  });
+
+  return voucher.save();
+}
+
+
+
+  // async create(createVoucherDto: CreateVoucherDto): Promise<Voucher> {
+  //   // Check if voucher code already exists
+  //   const existingVoucher = await this.voucherModel.findOne({
+  //     voucherCode: createVoucherDto.voucherCode,
+  //   })
+
+  //   if (existingVoucher) {
+  //     throw new BadRequestException("Voucher code already exists")
+  //   }
+
+  //   const voucher = new this.voucherModel(createVoucherDto)
+  //   return voucher.save()
+  // }
 
   async findAll(query: VoucherQueryDto) {
     const {
@@ -158,20 +177,41 @@ export class VoucherService {
     }
 
     // Check applicable services
-    if (voucher.restrictions.applicableServices?.length > 0) {
-      const hasApplicableService = serviceIds.some((id) => voucher.restrictions.applicableServices.includes(id))
-      if (!hasApplicableService) {
-        return { isValid: false, message: "Voucher not applicable to selected services" }
-      }
-    }
+if (voucher.restrictions.applicableServices?.length > 0) {
+  const hasApplicableService = serviceIds.some((id) =>
+    voucher.restrictions.applicableServices.some((svc) => svc.toString() === id),
+  )
+  if (!hasApplicableService) {
+    return { isValid: false, message: "Voucher not applicable to selected services" }
+  }
+}
 
-    // Check excluded services
-    if (voucher.restrictions.excludedServices?.length > 0) {
-      const hasExcludedService = serviceIds.some((id) => voucher.restrictions.excludedServices.includes(id))
-      if (hasExcludedService) {
-        return { isValid: false, message: "Voucher cannot be used with selected services" }
-      }
-    }
+// Check excluded services
+if (voucher.restrictions.excludedServices?.length > 0) {
+  const hasExcludedService = serviceIds.some((id) =>
+    voucher.restrictions.excludedServices.some((svc) => svc.toString() === id),
+  )
+  if (hasExcludedService) {
+    return { isValid: false, message: "Voucher cannot be used with selected services" }
+  }
+}
+
+
+    // // Check applicable services
+    // if (voucher.restrictions.applicableServices?.length > 0) {
+    //   const hasApplicableService = serviceIds.some((id) => voucher.restrictions.applicableServices.includes(id))
+    //   if (!hasApplicableService) {
+    //     return { isValid: false, message: "Voucher not applicable to selected services" }
+    //   }
+    // }
+
+    // // Check excluded services
+    // if (voucher.restrictions.excludedServices?.length > 0) {
+    //   const hasExcludedService = serviceIds.some((id) => voucher.restrictions.excludedServices.includes(id))
+    //   if (hasExcludedService) {
+    //     return { isValid: false, message: "Voucher cannot be used with selected services" }
+    //   }
+    // }
 
     // Calculate discount amount
     let discountAmount = 0

@@ -129,11 +129,11 @@ export declare class BusinessSettings {
     allowOnlineBooking: boolean;
     requireClientConfirmation: boolean;
 }
-export declare const BusinessSettingsSchema: import("mongoose").Schema<BusinessSettings, import("mongoose").Model<BusinessSettings, any, any, any, Document<unknown, any, BusinessSettings, any> & BusinessSettings & {
+export declare const BusinessSettingsSchema: import("mongoose").Schema<BusinessSettings, import("mongoose").Model<BusinessSettings, any, any, any, Document<unknown, any, BusinessSettings, any, {}> & BusinessSettings & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, BusinessSettings, Document<unknown, {}, import("mongoose").FlatRecord<BusinessSettings>, {}> & import("mongoose").FlatRecord<BusinessSettings> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, BusinessSettings, Document<unknown, {}, import("mongoose").FlatRecord<BusinessSettings>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<BusinessSettings> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

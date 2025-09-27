@@ -9,61 +9,87 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BookingSchema = exports.Booking = exports.BookingService = void 0;
+exports.BookingSchema = exports.Booking = exports.BookingMetadata = exports.BookedService = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-let BookingService = class BookingService {
+let BookedService = class BookedService {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], BookingService.prototype, "serviceId", void 0);
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Service', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], BookedService.prototype, "serviceId", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], BookingService.prototype, "serviceName", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", Number)
-], BookingService.prototype, "duration", void 0);
+], BookedService.prototype, "serviceName", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Number)
-], BookingService.prototype, "price", void 0);
+], BookedService.prototype, "duration", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], BookingService.prototype, "staffId", void 0);
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Number)
+], BookedService.prototype, "price", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], BookingService.prototype, "staffName", void 0);
-BookingService = __decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], BookedService.prototype, "preferredStaffId", void 0);
+BookedService = __decorate([
     (0, mongoose_1.Schema)()
-], BookingService);
-exports.BookingService = BookingService;
+], BookedService);
+exports.BookedService = BookedService;
+let BookingMetadata = class BookingMetadata {
+};
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], BookingMetadata.prototype, "userAgent", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], BookingMetadata.prototype, "ipAddress", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], BookingMetadata.prototype, "referrer", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 'web' }),
+    __metadata("design:type", String)
+], BookingMetadata.prototype, "platform", void 0);
+BookingMetadata = __decorate([
+    (0, mongoose_1.Schema)()
+], BookingMetadata);
+exports.BookingMetadata = BookingMetadata;
 let Booking = class Booking {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "Client", required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Booking.prototype, "clientId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [BookingService], required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Booking.prototype, "businessId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, unique: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "bookingNumber", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [BookedService], required: true }),
     __metadata("design:type", Array)
 ], Booking.prototype, "services", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Date)
-], Booking.prototype, "bookingDate", void 0);
+], Booking.prototype, "preferredDate", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Booking.prototype, "startTime", void 0);
+], Booking.prototype, "preferredStartTime", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Booking.prototype, "endTime", void 0);
+], Booking.prototype, "estimatedEndTime", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Number)
@@ -71,43 +97,91 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Number)
-], Booking.prototype, "totalAmount", void 0);
+], Booking.prototype, "estimatedTotal", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "clientName", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "clientEmail", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "clientPhone", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Booking.prototype, "businessName", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Booking.prototype, "businessPhone", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Booking.prototype, "specialRequests", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
         required: true,
-        enum: ["pending", "confirmed", "in_progress", "completed", "cancelled", "no_show"],
-        default: "pending",
+        enum: [
+            'pending',
+            'confirmed',
+            'cancelled',
+            'expired',
+            'payment_failed',
+            'slot_unavailable',
+            'rejected'
+        ],
+        default: 'pending',
     }),
     __metadata("design:type", String)
 ], Booking.prototype, "status", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
         required: true,
-        enum: ["online", "phone", "walk_in", "admin"],
-        default: "online",
+        enum: ['online', 'phone', 'walk_in', 'admin'],
+        default: 'online',
     }),
     __metadata("design:type", String)
 ], Booking.prototype, "bookingSource", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
-], Booking.prototype, "specialRequests", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], Booking.prototype, "internalNotes", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
 ], Booking.prototype, "cancellationReason", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Booking.prototype, "rejectionReason", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", Date)
 ], Booking.prototype, "cancellationDate", void 0);
 __decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Date)
+], Booking.prototype, "expiresAt", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "User" }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], Booking.prototype, "createdBy", void 0);
+], Booking.prototype, "processedBy", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "Appointment" }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Booking.prototype, "appointmentId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: BookingMetadata, default: {} }),
+    __metadata("design:type", BookingMetadata)
+], Booking.prototype, "metadata", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 0 }),
+    __metadata("design:type", Number)
+], Booking.prototype, "remindersSent", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Date)
+], Booking.prototype, "lastReminderAt", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)
@@ -122,8 +196,29 @@ Booking = __decorate([
 exports.Booking = Booking;
 exports.BookingSchema = mongoose_1.SchemaFactory.createForClass(Booking);
 exports.BookingSchema.index({ clientId: 1 });
-exports.BookingSchema.index({ bookingDate: 1, startTime: 1 });
+exports.BookingSchema.index({ businessId: 1 });
+exports.BookingSchema.index({ bookingNumber: 1 });
+exports.BookingSchema.index({ preferredDate: 1, preferredStartTime: 1 });
 exports.BookingSchema.index({ status: 1 });
 exports.BookingSchema.index({ bookingSource: 1 });
 exports.BookingSchema.index({ createdAt: -1 });
+exports.BookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+exports.BookingSchema.index({ clientEmail: 1 });
+exports.BookingSchema.index({ clientPhone: 1 });
+exports.BookingSchema.pre('save', async function (next) {
+    if (this.isNew && !this.bookingNumber) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const count = await this.model('Booking').countDocuments({
+            createdAt: {
+                $gte: new Date(year, today.getMonth(), today.getDate()),
+                $lt: new Date(year, today.getMonth(), today.getDate() + 1)
+            }
+        });
+        this.bookingNumber = `BK-${year}${month}${day}-${String(count + 1).padStart(3, '0')}`;
+    }
+    next();
+});
 //# sourceMappingURL=booking.schema.js.map

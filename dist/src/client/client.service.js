@@ -70,10 +70,13 @@ let ClientService = class ClientService {
                 filter["additionalInfo.country"] = country;
             const skip = (page - 1) * limit;
             const sortOptions = { [sortBy]: sortOrder === "asc" ? 1 : -1 };
-            const [clients, total] = await Promise.all([
-                this.clientModel.find(filter).sort(sortOptions).skip(skip).limit(limit).exec(),
-                this.clientModel.countDocuments(filter),
-            ]);
+            const clients = await this.clientModel
+                .find(filter)
+                .sort(sortOptions)
+                .skip(skip)
+                .limit(limit)
+                .exec();
+            const total = await this.clientModel.countDocuments(filter).exec();
             return {
                 success: true,
                 data: clients,
@@ -271,15 +274,13 @@ let ClientService = class ClientService {
     }
     async getClientStats() {
         try {
-            const [totalClients, activeClients, newThisMonth] = await Promise.all([
-                this.clientModel.countDocuments(),
-                this.clientModel.countDocuments({ isActive: true }),
-                this.clientModel.countDocuments({
-                    createdAt: {
-                        $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-                    },
-                }),
-            ]);
+            const totalClients = await this.clientModel.countDocuments().exec();
+            const activeClients = await this.clientModel.countDocuments({ isActive: true }).exec();
+            const newThisMonth = await this.clientModel.countDocuments({
+                createdAt: {
+                    $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                },
+            }).exec();
             const topSources = await this.clientModel.aggregate([
                 { $match: { isActive: true } },
                 { $group: { _id: "$additionalInfo.clientSource", count: { $sum: 1 } } },

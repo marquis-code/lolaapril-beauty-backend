@@ -34,7 +34,7 @@ export declare class MembershipController {
     constructor(membershipService: MembershipService);
     createMembership(createMembershipDto: CreateMembershipDto): Promise<import("./schemas/membership.schema").Membership>;
     findAllMemberships(query: MembershipQueryDto): Promise<{
-        memberships: (import("mongoose").Document<unknown, {}, import("./schemas/membership.schema").MembershipDocument, {}> & import("./schemas/membership.schema").Membership & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+        memberships: (import("mongoose").Document<unknown, {}, import("./schemas/membership.schema").MembershipDocument, {}, {}> & import("./schemas/membership.schema").Membership & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
             _id: unknown;
         }> & {
             __v: number;
@@ -55,7 +55,7 @@ export declare class MembershipController {
     updateMembership(id: string, updateMembershipDto: UpdateMembershipDto): Promise<import("./schemas/membership.schema").Membership>;
     removeMembership(id: string): Promise<void>;
     enrollClient(createClientMembershipDto: CreateClientMembershipDto): Promise<import("./schemas/client-membership.schema").ClientMembership>;
-    findClientMemberships(clientId: string): Promise<(import("mongoose").Document<unknown, {}, import("./schemas/client-membership.schema").ClientMembershipDocument, {}> & import("./schemas/client-membership.schema").ClientMembership & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+    findClientMemberships(clientId: string): Promise<(import("mongoose").Document<unknown, {}, import("./schemas/client-membership.schema").ClientMembershipDocument, {}, {}> & import("./schemas/client-membership.schema").ClientMembership & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
         _id: unknown;
     }> & {
         __v: number;

@@ -1,12 +1,16 @@
-import { Module } from "@nestjs/common"
+import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule } from "@nestjs/mongoose"
 import { PaymentService } from "./payment.service"
 import { PaymentController } from "./payment.controller"
 import { Payment, PaymentSchema } from "./schemas/payment.schema"
 import { AuditModule } from "../audit/audit.module"
+import { NotificationModule } from '../notification/notification.module'
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]), AuditModule],
+  imports: [MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]), 
+  forwardRef(() => NotificationModule),
+  AuditModule
+],
   controllers: [PaymentController],
   providers: [PaymentService],
   exports: [PaymentService],

@@ -1,108 +1,43 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  ValidateNested,
-  IsArray,
-  IsNumber,
-  IsEnum,
-  IsDateString,
-} from "class-validator"
-import { Type } from "class-transformer"
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-
-export class BookingServiceDto {
-  @ApiProperty({ example: "service_001" })
-  @IsString()
-  @IsNotEmpty()
-  serviceId: string
-
-  @ApiProperty({ example: "Hair Cut" })
-  @IsString()
-  @IsNotEmpty()
-  serviceName: string
-
-  @ApiProperty({ example: 60 })
-  @IsNumber()
-  duration: number
-
-  @ApiProperty({ example: 5000 })
-  @IsNumber()
-  price: number
-
-  @ApiPropertyOptional({ example: "staff_001" })
-  @IsOptional()
-  @IsString()
-  staffId?: string
-
-  @ApiPropertyOptional({ example: "John Doe" })
-  @IsOptional()
-  @IsString()
-  staffName?: string
-}
+import { IsNotEmpty, IsDateString, IsString, IsArray, IsOptional, IsBoolean, IsEmail, IsPhoneNumber } from 'class-validator'
 
 export class CreateBookingDto {
-  @ApiProperty({ example: "507f1f77bcf86cd799439011" })
-  @IsString()
   @IsNotEmpty()
+  @IsString()
+  businessId: string
+
+  @IsNotEmpty()
+  @IsString()
   clientId: string
 
-  @ApiProperty({ type: [BookingServiceDto] })
+  @IsNotEmpty()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => BookingServiceDto)
-  services: BookingServiceDto[]
+  serviceIds: string[]
 
-  @ApiProperty({ example: "2025-09-21T00:00:00.000Z" })
+  @IsNotEmpty()
   @IsDateString()
-  bookingDate: Date
+  preferredDate: Date
 
-  @ApiProperty({ example: "09:00" })
-  @IsString()
   @IsNotEmpty()
-  startTime: string
-
-  @ApiProperty({ example: "11:00" })
   @IsString()
+  preferredStartTime: string
+
   @IsNotEmpty()
-  endTime: string
+  @IsString()
+  clientName: string
 
-  @ApiProperty({ example: 120 })
-  @IsNumber()
-  totalDuration: number
+  @IsNotEmpty()
+  @IsEmail()
+  clientEmail: string
 
-  @ApiProperty({ example: 15000 })
-  @IsNumber()
-  totalAmount: number
+  @IsNotEmpty()
+  @IsPhoneNumber('NG') // Nigerian phone numbers
+  clientPhone: string
 
-  @ApiPropertyOptional({
-    example: "pending",
-    enum: ["pending", "confirmed", "in_progress", "completed", "cancelled", "no_show"],
-  })
-  @IsOptional()
-  @IsEnum(["pending", "confirmed", "in_progress", "completed", "cancelled", "no_show"])
-  status?: string
-
-  @ApiPropertyOptional({
-    example: "online",
-    enum: ["online", "phone", "walk_in", "admin"],
-  })
-  @IsOptional()
-  @IsEnum(["online", "phone", "walk_in", "admin"])
-  bookingSource?: string
-
-  @ApiPropertyOptional({ example: "Please use organic products only" })
   @IsOptional()
   @IsString()
   specialRequests?: string
 
-  @ApiPropertyOptional({ example: "Client is a regular customer" })
   @IsOptional()
-  @IsString()
-  internalNotes?: string
-
-  @ApiPropertyOptional({ example: "507f1f77bcf86cd799439012" })
-  @IsOptional()
-  @IsString()
-  createdBy?: string
+  @IsBoolean()
+  autoConfirm?: boolean
 }

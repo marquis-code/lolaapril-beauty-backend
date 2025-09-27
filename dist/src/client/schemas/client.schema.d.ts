@@ -34,11 +34,11 @@ export declare class EmergencyContact {
         number: string;
     };
 }
-export declare const EmergencyContactSchema: import("mongoose").Schema<EmergencyContact, import("mongoose").Model<EmergencyContact, any, any, any, Document<unknown, any, EmergencyContact, any> & EmergencyContact & {
+export declare const EmergencyContactSchema: import("mongoose").Schema<EmergencyContact, import("mongoose").Model<EmergencyContact, any, any, any, Document<unknown, any, EmergencyContact, any, {}> & EmergencyContact & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, EmergencyContact, Document<unknown, {}, import("mongoose").FlatRecord<EmergencyContact>, {}> & import("mongoose").FlatRecord<EmergencyContact> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, EmergencyContact, Document<unknown, {}, import("mongoose").FlatRecord<EmergencyContact>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<EmergencyContact> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
@@ -63,11 +63,11 @@ export declare class ClientProfile {
         number: string;
     };
 }
-export declare const ClientProfileSchema: import("mongoose").Schema<ClientProfile, import("mongoose").Model<ClientProfile, any, any, any, Document<unknown, any, ClientProfile, any> & ClientProfile & {
+export declare const ClientProfileSchema: import("mongoose").Schema<ClientProfile, import("mongoose").Model<ClientProfile, any, any, any, Document<unknown, any, ClientProfile, any, {}> & ClientProfile & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientProfile, Document<unknown, {}, import("mongoose").FlatRecord<ClientProfile>, {}> & import("mongoose").FlatRecord<ClientProfile> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientProfile, Document<unknown, {}, import("mongoose").FlatRecord<ClientProfile>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ClientProfile> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
@@ -82,11 +82,11 @@ export declare class AdditionalInfo {
     occupation: string;
     country: string;
 }
-export declare const AdditionalInfoSchema: import("mongoose").Schema<AdditionalInfo, import("mongoose").Model<AdditionalInfo, any, any, any, Document<unknown, any, AdditionalInfo, any> & AdditionalInfo & {
+export declare const AdditionalInfoSchema: import("mongoose").Schema<AdditionalInfo, import("mongoose").Model<AdditionalInfo, any, any, any, Document<unknown, any, AdditionalInfo, any, {}> & AdditionalInfo & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, AdditionalInfo, Document<unknown, {}, import("mongoose").FlatRecord<AdditionalInfo>, {}> & import("mongoose").FlatRecord<AdditionalInfo> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, AdditionalInfo, Document<unknown, {}, import("mongoose").FlatRecord<AdditionalInfo>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<AdditionalInfo> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
@@ -102,11 +102,11 @@ export declare class ClientAddress {
     postcode: string;
     country: string;
 }
-export declare const ClientAddressSchema: import("mongoose").Schema<ClientAddress, import("mongoose").Model<ClientAddress, any, any, any, Document<unknown, any, ClientAddress, any> & ClientAddress & {
+export declare const ClientAddressSchema: import("mongoose").Schema<ClientAddress, import("mongoose").Model<ClientAddress, any, any, any, Document<unknown, any, ClientAddress, any, {}> & ClientAddress & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientAddress, Document<unknown, {}, import("mongoose").FlatRecord<ClientAddress>, {}> & import("mongoose").FlatRecord<ClientAddress> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientAddress, Document<unknown, {}, import("mongoose").FlatRecord<ClientAddress>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ClientAddress> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
@@ -119,11 +119,11 @@ export declare class ClientSettings {
         clientAcceptsEmailMarketing: boolean;
     };
 }
-export declare const ClientSettingsSchema: import("mongoose").Schema<ClientSettings, import("mongoose").Model<ClientSettings, any, any, any, Document<unknown, any, ClientSettings, any> & ClientSettings & {
+export declare const ClientSettingsSchema: import("mongoose").Schema<ClientSettings, import("mongoose").Model<ClientSettings, any, any, any, Document<unknown, any, ClientSettings, any, {}> & ClientSettings & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientSettings, Document<unknown, {}, import("mongoose").FlatRecord<ClientSettings>, {}> & import("mongoose").FlatRecord<ClientSettings> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientSettings, Document<unknown, {}, import("mongoose").FlatRecord<ClientSettings>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ClientSettings> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
@@ -144,11 +144,11 @@ export declare class Client {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const ClientSchema: import("mongoose").Schema<Client, import("mongoose").Model<Client, any, any, any, Document<unknown, any, Client, any> & Client & {
+export declare const ClientSchema: import("mongoose").Schema<Client, import("mongoose").Model<Client, any, any, any, Document<unknown, any, Client, any, {}> & Client & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Client, Document<unknown, {}, import("mongoose").FlatRecord<Client>, {}> & import("mongoose").FlatRecord<Client> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Client, Document<unknown, {}, import("mongoose").FlatRecord<Client>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Client> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

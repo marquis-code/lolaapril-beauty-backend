@@ -17,9 +17,15 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("mongoose");
 const appointment_schema_1 = require("./schemas/appointment.schema");
 const mongoose_2 = require("@nestjs/mongoose");
+const payment_service_1 = require("../payment/payment.service");
+const notification_service_1 = require("../notification/notification.service");
+const staff_service_1 = require("../staff/staff.service");
 let AppointmentService = class AppointmentService {
-    constructor(appointmentModel) {
+    constructor(appointmentModel, paymentService, notificationService, staffService) {
         this.appointmentModel = appointmentModel;
+        this.paymentService = paymentService;
+        this.notificationService = notificationService;
+        this.staffService = staffService;
     }
     async create(createAppointmentDto) {
         const conflictingAppointment = await this.appointmentModel.findOne(Object.assign({ selectedDate: createAppointmentDto.selectedDate, selectedTime: createAppointmentDto.selectedTime, status: { $nin: ["cancelled", "no_show"] } }, (createAppointmentDto.assignedStaff && { assignedStaff: createAppointmentDto.assignedStaff })));
@@ -58,17 +64,15 @@ let AppointmentService = class AppointmentService {
         const skip = (page - 1) * limit;
         const sortOptions = {};
         sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
-        const [appointments, total] = await Promise.all([
-            this.appointmentModel
-                .find(filter)
-                .populate("clientId", "firstName lastName email phone")
-                .populate("assignedStaff", "firstName lastName email")
-                .sort(sortOptions)
-                .skip(skip)
-                .limit(limit)
-                .exec(),
-            this.appointmentModel.countDocuments(filter),
-        ]);
+        const appointments = await this.appointmentModel
+            .find(filter)
+            .populate("clientId", "firstName lastName email phone")
+            .populate("assignedStaff", "firstName lastName email")
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .exec();
+        const total = await this.appointmentModel.countDocuments(filter);
         return {
             appointments,
             pagination: {
@@ -210,11 +214,92 @@ let AppointmentService = class AppointmentService {
         }
         return allSlots.filter((slot) => !bookedTimes.includes(slot));
     }
+    async createFromBooking(booking) {
+        const appointmentData = {
+            bookingId: booking._id,
+            clientId: booking.clientId,
+            businessId: booking.businessId,
+            appointmentNumber: await this.generateAppointmentNumber(),
+            clientName: booking.clientName,
+            clientEmail: booking.clientEmail,
+            clientPhone: booking.clientPhone,
+            services: booking.services.map(service => ({
+                serviceId: service.serviceId,
+                serviceName: service.serviceName,
+                duration: service.duration,
+                price: service.price,
+            })),
+            scheduledDate: booking.preferredDate,
+            scheduledStartTime: booking.preferredStartTime,
+            scheduledEndTime: booking.estimatedEndTime,
+            totalDuration: booking.totalDuration,
+            totalAmount: booking.estimatedTotal,
+            status: 'scheduled'
+        };
+        const appointment = new this.appointmentModel(appointmentData);
+        return await appointment.save();
+    }
+    async generateAppointmentNumber() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const count = await this.appointmentModel.countDocuments({
+            createdAt: {
+                $gte: new Date(year, today.getMonth(), today.getDate()),
+                $lt: new Date(year, today.getMonth(), today.getDate() + 1)
+            }
+        });
+        return `APT-${year}${month}${day}-${String(count + 1).padStart(3, '0')}`;
+    }
+    async completeAppointment(appointmentId) {
+        const appointment = await this.appointmentModel.findById(appointmentId);
+        if (!appointment) {
+            throw new common_1.NotFoundException('Appointment not found');
+        }
+        appointment.status = 'completed';
+        appointment.checkOutTime = new Date();
+        appointment.actualEndTime = new Date();
+        if (!appointment.actualStartTime) {
+            appointment.actualStartTime = appointment.checkInTime || new Date();
+        }
+        await appointment.save();
+        const assignments = await this.staffService.getStaffAssignments(appointment._id.toString(), appointment.selectedDate, appointment.selectedDate);
+        for (const assignment of assignments) {
+            if (assignment.status !== 'completed') {
+                await this.staffService.completeStaffAssignment(assignment._id.toString(), {
+                    actualStartTime: appointment.actualStartTime || new Date(appointment.selectedDate + 'T' + appointment.selectedTime),
+                    actualEndTime: appointment.actualEndTime || new Date(),
+                    completionNotes: 'Service completed successfully'
+                });
+            }
+        }
+        const existingPayment = await this.paymentService.getPaymentByAppointment(appointmentId);
+        if (!existingPayment) {
+            await this.paymentService.createPaymentForAppointment(appointment);
+        }
+        try {
+            await this.notificationService.notifyAppointmentCompletion(appointmentId, appointment.clientId.toString(), appointment.businessInfo.businessId, {
+                clientName: appointment.clientId,
+                serviceName: appointment.serviceDetails.serviceName,
+                appointmentDate: appointment.selectedDate,
+                appointmentTime: appointment.selectedTime,
+                businessName: appointment.businessInfo.businessName,
+                appointmentNumber: appointment.appointmentNumber || appointmentId,
+            });
+        }
+        catch (error) {
+            console.error('Failed to send completion notification:', error);
+        }
+    }
 };
 AppointmentService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(appointment_schema_1.Appointment.name)),
-    __metadata("design:paramtypes", [mongoose_1.Model])
+    __metadata("design:paramtypes", [mongoose_1.Model,
+        payment_service_1.PaymentService,
+        notification_service_1.NotificationService,
+        staff_service_1.StaffService])
 ], AppointmentService);
 exports.AppointmentService = AppointmentService;
 //# sourceMappingURL=appointment.service.js.map

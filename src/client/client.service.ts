@@ -77,10 +77,15 @@ export class ClientService {
       const skip = (page - 1) * limit
       const sortOptions: Record<string, SortOrder> = { [sortBy]: sortOrder === "asc" ? 1 : -1 }
 
-      const [clients, total] = await Promise.all([
-        this.clientModel.find(filter).sort(sortOptions).skip(skip).limit(limit).exec(),
-        this.clientModel.countDocuments(filter),
-      ])
+      // Handle queries sequentially to avoid TypeScript complex union type error
+      const clients = await this.clientModel
+        .find(filter)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .exec()
+      
+      const total = await this.clientModel.countDocuments(filter).exec()
 
       return {
         success: true,
@@ -179,7 +184,7 @@ export class ClientService {
 
   async exportToCSV(): Promise<string> {
     try {
-      const clients = await this.clientModel.find({ isActive: true })
+      const clients = await this.clientModel.find({ isActive: true }) as any
       const csvWriter = csv.createObjectCsvWriter({
         path: "clients-export.csv",
         header: [
@@ -302,15 +307,14 @@ export class ClientService {
 
   async getClientStats(): Promise<ApiResponse<any>> {
     try {
-      const [totalClients, activeClients, newThisMonth] = await Promise.all([
-        this.clientModel.countDocuments(),
-        this.clientModel.countDocuments({ isActive: true }),
-        this.clientModel.countDocuments({
-          createdAt: {
-            $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-          },
-        }),
-      ])
+      // Handle queries sequentially to avoid TypeScript complex union type error
+      const totalClients = await this.clientModel.countDocuments().exec()
+      const activeClients = await this.clientModel.countDocuments({ isActive: true }).exec()
+      const newThisMonth = await this.clientModel.countDocuments({
+        createdAt: {
+          $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        },
+      }).exec()
 
       const topSources = await this.clientModel.aggregate([
         { $match: { isActive: true } },

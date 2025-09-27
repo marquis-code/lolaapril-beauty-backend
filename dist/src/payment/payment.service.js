@@ -16,10 +16,12 @@ exports.PaymentService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("mongoose");
 const payment_schema_1 = require("./schemas/payment.schema");
+const notification_service_1 = require("../notification/notification.service");
 const mongoose_2 = require("@nestjs/mongoose");
 let PaymentService = class PaymentService {
-    constructor(paymentModel) {
+    constructor(paymentModel, notificationService) {
         this.paymentModel = paymentModel;
+        this.notificationService = notificationService;
     }
     async create(createPaymentDto) {
         try {
@@ -259,11 +261,173 @@ let PaymentService = class PaymentService {
             throw new Error(`Failed to delete payment: ${error.message}`);
         }
     }
+    async createPaymentFromBooking(booking, transactionReference, paymentData) {
+        const paymentItems = booking.services.map(service => ({
+            itemType: 'service',
+            itemId: service.serviceId.toString(),
+            itemName: service.serviceName,
+            quantity: 1,
+            unitPrice: service.price,
+            totalPrice: service.price,
+            discount: 0,
+            tax: service.price * 0.1
+        }));
+        const subtotal = booking.estimatedTotal;
+        const totalTax = paymentItems.reduce((sum, item) => sum + item.tax, 0);
+        const payment = new this.paymentModel({
+            clientId: booking.clientId,
+            bookingId: booking._id,
+            businessId: booking.businessId,
+            paymentReference: await this.generatePaymentReference(),
+            transactionId: transactionReference,
+            items: paymentItems,
+            subtotal,
+            totalTax,
+            totalAmount: subtotal,
+            paymentMethod: paymentData.paymentMethod || 'card',
+            gatewayResponse: paymentData.gateway || 'unknown',
+            status: paymentData.status || 'completed',
+            paidAt: new Date()
+        });
+        return await payment.save();
+    }
+    async createFailedPayment(data) {
+        const payment = new this.paymentModel({
+            clientId: new mongoose_1.Types.ObjectId(data.clientId),
+            bookingId: new mongoose_1.Types.ObjectId(data.bookingId),
+            businessId: new mongoose_1.Types.ObjectId(data.businessId),
+            paymentReference: data.transactionReference,
+            transactionId: data.transactionReference,
+            items: [],
+            subtotal: data.amount,
+            totalAmount: data.amount,
+            paymentMethod: 'unknown',
+            status: 'failed',
+            gatewayResponse: data.errorMessage
+        });
+        return await payment.save();
+    }
+    async initiateRefund(transactionReference, amount) {
+        console.log(`Refund initiated for ${transactionReference}: ${amount}`);
+    }
+    async generatePaymentReference() {
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 1000);
+        return `PAY-${timestamp}-${random}`;
+    }
+    async getPaymentByAppointment(appointmentId) {
+        try {
+            const payment = await this.paymentModel.findOne({
+                appointmentId: new mongoose_1.Types.ObjectId(appointmentId)
+            }).exec();
+            return payment;
+        }
+        catch (error) {
+            console.error('Error getting payment by appointment:', error);
+            return null;
+        }
+    }
+    async createPaymentForAppointment(appointment) {
+        try {
+            const paymentData = {
+                appointmentId: appointment._id,
+                clientId: appointment.clientId,
+                businessId: appointment.businessInfo.businessId,
+                amount: appointment.paymentDetails.total.amount,
+                currency: appointment.paymentDetails.total.currency,
+                paymentMethod: appointment.paymentDetails.paymentMethod,
+                status: 'completed',
+                transactionDate: new Date(),
+                description: `Payment for ${appointment.serviceDetails.serviceName}`,
+                serviceDetails: {
+                    serviceName: appointment.serviceDetails.serviceName,
+                    serviceDescription: appointment.serviceDetails.serviceDescription,
+                },
+                metadata: {
+                    appointmentNumber: appointment.appointmentNumber,
+                    appointmentDate: appointment.selectedDate,
+                    appointmentTime: appointment.selectedTime,
+                }
+            };
+            const payment = new this.paymentModel(paymentData);
+            const savedPayment = await payment.save();
+            try {
+                await this.notificationService.notifyPaymentConfirmation(savedPayment._id.toString(), appointment.clientId.toString(), appointment.businessInfo.businessId, {
+                    clientName: appointment.clientId,
+                    amount: paymentData.amount,
+                    method: paymentData.paymentMethod,
+                    transactionId: savedPayment._id.toString(),
+                    serviceName: appointment.serviceDetails.serviceName,
+                    appointmentDate: appointment.selectedDate,
+                    businessName: appointment.businessInfo.businessName,
+                    receiptUrl: `${process.env.FRONTEND_URL}/receipts/${savedPayment._id}`,
+                    clientEmail: appointment.clientEmail,
+                    clientPhone: appointment.clientPhone,
+                });
+            }
+            catch (notificationError) {
+                console.error('Failed to send payment confirmation notification:', notificationError);
+            }
+            return savedPayment;
+        }
+        catch (error) {
+            console.error('Error creating payment for appointment:', error);
+            throw error;
+        }
+    }
+    async updatePaymentStatus(paymentId, status, metadata) {
+        try {
+            const updateData = {
+                status,
+                updatedAt: new Date()
+            };
+            if (metadata) {
+                updateData.metadata = Object.assign(Object.assign({}, updateData.metadata), metadata);
+            }
+            const payment = await this.paymentModel.findByIdAndUpdate(paymentId, updateData, { new: true }).exec();
+            if (!payment) {
+                throw new common_1.NotFoundException('Payment not found');
+            }
+            return payment;
+        }
+        catch (error) {
+            console.error('Error updating payment status:', error);
+            throw error;
+        }
+    }
+    async getPaymentsByClient(clientId, limit = 10, offset = 0) {
+        try {
+            const payments = await this.paymentModel
+                .find({ clientId: new mongoose_1.Types.ObjectId(clientId) })
+                .sort({ transactionDate: -1 })
+                .limit(limit)
+                .skip(offset)
+                .populate('appointmentId', 'selectedDate selectedTime serviceDetails')
+                .exec();
+            const total = await this.paymentModel.countDocuments({
+                clientId: new mongoose_1.Types.ObjectId(clientId)
+            });
+            return {
+                payments,
+                pagination: {
+                    total,
+                    limit,
+                    offset,
+                    hasMore: total > (offset + limit)
+                }
+            };
+        }
+        catch (error) {
+            console.error('Error getting payments by client:', error);
+            throw error;
+        }
+    }
 };
 PaymentService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(payment_schema_1.Payment.name)),
-    __metadata("design:paramtypes", [mongoose_1.Model])
+    __metadata("design:paramtypes", [mongoose_1.Model,
+        notification_service_1.NotificationService])
 ], PaymentService);
 exports.PaymentService = PaymentService;
 //# sourceMappingURL=payment.service.js.map

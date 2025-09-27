@@ -144,68 +144,149 @@ export class ServiceService {
     }
   }
 
+  // async findAllServices(query: ServiceQueryDto): Promise<ApiResponse<Service[]>> {
+  //   try {
+  //     const {
+  //       page = 1,
+  //       limit = 10,
+  //       sortBy = "createdAt",
+  //       sortOrder = "desc",
+  //       search,
+  //       category,
+  //       serviceType,
+  //       priceType,
+  //       isActive,
+  //       onlineBookingEnabled,
+  //     } = query
+
+  //     const filter: any = {}
+
+  //     if (search) {
+  //       filter.$or = [
+  //         { "basicDetails.serviceName": { $regex: search, $options: "i" } },
+  //         { "basicDetails.description": { $regex: search, $options: "i" } },
+  //       ]
+  //     }
+
+  //     if (category) {
+  //       this.validateObjectId(category, "Category")
+  //       filter["basicDetails.category"] = new Types.ObjectId(category)
+  //     }
+  //     if (serviceType) filter["basicDetails.serviceType"] = serviceType
+  //     if (priceType) filter["pricingAndDuration.priceType"] = priceType
+  //     if (isActive !== undefined) filter.isActive = isActive
+  //     if (onlineBookingEnabled !== undefined) filter["settings.onlineBooking.enabled"] = onlineBookingEnabled
+
+  //     const skip = (page - 1) * limit
+  //     const sortDirection: SortOrder = sortOrder === "asc" ? 1 : -1
+  //     const sortOptions: Record<string, SortOrder> = { [sortBy]: sortDirection }
+
+  //     const [services, total] = await Promise.all([
+  //       this.serviceModel
+  //         .find(filter)
+  //         .populate('basicDetails.category', 'categoryName appointmentColor')
+  //         .sort(sortOptions)
+  //         .skip(skip)
+  //         .limit(limit)
+  //         .exec(),
+  //       this.serviceModel.countDocuments(filter),
+  //     ])
+
+  //     return {
+  //       success: true,
+  //       data: services,
+  //       pagination: {
+  //         page,
+  //         limit,
+  //         total,
+  //         totalPages: Math.ceil(total / limit),
+  //       },
+  //     }
+  //   } catch (error) {
+  //     throw new Error(`Failed to fetch services: ${error.message}`)
+  //   }
+  // }
+
   async findAllServices(query: ServiceQueryDto): Promise<ApiResponse<Service[]>> {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        sortBy = "createdAt",
-        sortOrder = "desc",
-        search,
-        category,
-        serviceType,
-        priceType,
-        isActive,
-        onlineBookingEnabled,
-      } = query
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      search,
+      category,
+      serviceType,
+      priceType,
+      isActive,
+      onlineBookingEnabled,
+    } = query
 
-      const filter: any = {}
+    const filter: any = {}
 
-      if (search) {
-        filter.$or = [
-          { "basicDetails.serviceName": { $regex: search, $options: "i" } },
-          { "basicDetails.description": { $regex: search, $options: "i" } },
-        ]
-      }
-
-      if (category) {
-        this.validateObjectId(category, "Category")
-        filter["basicDetails.category"] = new Types.ObjectId(category)
-      }
-      if (serviceType) filter["basicDetails.serviceType"] = serviceType
-      if (priceType) filter["pricingAndDuration.priceType"] = priceType
-      if (isActive !== undefined) filter.isActive = isActive
-      if (onlineBookingEnabled !== undefined) filter["settings.onlineBooking.enabled"] = onlineBookingEnabled
-
-      const skip = (page - 1) * limit
-      const sortDirection: SortOrder = sortOrder === "asc" ? 1 : -1
-      const sortOptions: Record<string, SortOrder> = { [sortBy]: sortDirection }
-
-      const [services, total] = await Promise.all([
-        this.serviceModel
-          .find(filter)
-          .populate('basicDetails.category', 'categoryName appointmentColor')
-          .sort(sortOptions)
-          .skip(skip)
-          .limit(limit)
-          .exec(),
-        this.serviceModel.countDocuments(filter),
-      ])
-
-      return {
-        success: true,
-        data: services,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      }
-    } catch (error) {
-      throw new Error(`Failed to fetch services: ${error.message}`)
+    if (search) {
+      filter.$or = [
+        { "basicDetails.serviceName": { $regex: search, $options: "i" } },
+        { "basicDetails.description": { $regex: search, $options: "i" } },
+      ]
     }
+
+    if (category) {
+      this.validateObjectId(category, "Category")
+      filter["basicDetails.category"] = new Types.ObjectId(category)
+    }
+    if (serviceType) filter["basicDetails.serviceType"] = serviceType
+    if (priceType) filter["pricingAndDuration.priceType"] = priceType
+    if (isActive !== undefined) filter.isActive = isActive
+    if (onlineBookingEnabled !== undefined) filter["settings.onlineBooking.enabled"] = onlineBookingEnabled
+
+    const skip = (page - 1) * limit
+    const sortDirection: SortOrder = sortOrder === "asc" ? 1 : -1
+    const sortOptions: Record<string, SortOrder> = { [sortBy]: sortDirection }
+
+    // Execute queries separately to avoid complex union type inference issues
+    const services = await this.serviceModel
+      .find(filter)
+      .populate('basicDetails.category', 'categoryName appointmentColor')
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .exec()
+
+    const total = await this.serviceModel.countDocuments(filter)
+
+    return {
+      success: true,
+      data: services,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    }
+  } catch (error) {
+    throw new Error(`Failed to fetch services: ${error.message}`)
   }
+}
+
+  //  async getServicesByIds(serviceIds: string[]): Promise<ServiceDocument[]> {
+  //   return await this.serviceModel
+  //     .find({
+  //       _id: { $in: serviceIds.map(id => new Types.ObjectId(id)) }
+  //     })
+  //     .populate('teamMembers.selectedMembers.id', 'firstName lastName')
+  // }
+
+async getServicesByIds(serviceIds: string[]): Promise<ServiceDocument[]> {
+  const objectIds = serviceIds.map(id => new Types.ObjectId(id))
+  
+  const services = await this.serviceModel
+    .find({ _id: { $in: objectIds } })
+    .populate('teamMembers.selectedMembers.id', 'firstName lastName') as any
+  
+  return services
+}
 
   async findOneService(id: string): Promise<ApiResponse<Service>> {
     try {

@@ -55,11 +55,11 @@ export declare class WorkingHours {
     endTime: string;
     isWorking: boolean;
 }
-export declare const WorkingHoursSchema: import("mongoose").Schema<WorkingHours, import("mongoose").Model<WorkingHours, any, any, any, Document<unknown, any, WorkingHours, any> & WorkingHours & {
+export declare const WorkingHoursSchema: import("mongoose").Schema<WorkingHours, import("mongoose").Model<WorkingHours, any, any, any, Document<unknown, any, WorkingHours, any, {}> & WorkingHours & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, WorkingHours, Document<unknown, {}, import("mongoose").FlatRecord<WorkingHours>, {}> & import("mongoose").FlatRecord<WorkingHours> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, WorkingHours, Document<unknown, {}, import("mongoose").FlatRecord<WorkingHours>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<WorkingHours> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -69,11 +69,11 @@ export declare class Skills {
     specializations: string[];
     experienceLevel: string;
 }
-export declare const SkillsSchema: import("mongoose").Schema<Skills, import("mongoose").Model<Skills, any, any, any, Document<unknown, any, Skills, any> & Skills & {
+export declare const SkillsSchema: import("mongoose").Schema<Skills, import("mongoose").Model<Skills, any, any, any, Document<unknown, any, Skills, any, {}> & Skills & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Skills, Document<unknown, {}, import("mongoose").FlatRecord<Skills>, {}> & import("mongoose").FlatRecord<Skills> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Skills, Document<unknown, {}, import("mongoose").FlatRecord<Skills>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Skills> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -84,11 +84,11 @@ export declare class Commission {
     commissionType: string;
     commissionValue: number;
 }
-export declare const CommissionSchema: import("mongoose").Schema<Commission, import("mongoose").Model<Commission, any, any, any, Document<unknown, any, Commission, any> & Commission & {
+export declare const CommissionSchema: import("mongoose").Schema<Commission, import("mongoose").Model<Commission, any, any, any, Document<unknown, any, Commission, any, {}> & Commission & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Commission, Document<unknown, {}, import("mongoose").FlatRecord<Commission>, {}> & import("mongoose").FlatRecord<Commission> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Commission, Document<unknown, {}, import("mongoose").FlatRecord<Commission>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Commission> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -120,11 +120,11 @@ export declare class TeamMember {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const TeamMemberSchema: import("mongoose").Schema<TeamMember, import("mongoose").Model<TeamMember, any, any, any, Document<unknown, any, TeamMember, any> & TeamMember & {
+export declare const TeamMemberSchema: import("mongoose").Schema<TeamMember, import("mongoose").Model<TeamMember, any, any, any, Document<unknown, any, TeamMember, any, {}> & TeamMember & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, TeamMember, Document<unknown, {}, import("mongoose").FlatRecord<TeamMember>, {}> & import("mongoose").FlatRecord<TeamMember> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, TeamMember, Document<unknown, {}, import("mongoose").FlatRecord<TeamMember>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<TeamMember> & {
     _id: Types.ObjectId;
 } & {
     __v: number;

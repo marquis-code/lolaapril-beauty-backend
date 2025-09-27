@@ -62,11 +62,11 @@ export declare class DailySalesSummary {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const DailySalesSummarySchema: import("mongoose").Schema<DailySalesSummary, import("mongoose").Model<DailySalesSummary, any, any, any, Document<unknown, any, DailySalesSummary, any> & DailySalesSummary & {
+export declare const DailySalesSummarySchema: import("mongoose").Schema<DailySalesSummary, import("mongoose").Model<DailySalesSummary, any, any, any, Document<unknown, any, DailySalesSummary, any, {}> & DailySalesSummary & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, DailySalesSummary, Document<unknown, {}, import("mongoose").FlatRecord<DailySalesSummary>, {}> & import("mongoose").FlatRecord<DailySalesSummary> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, DailySalesSummary, Document<unknown, {}, import("mongoose").FlatRecord<DailySalesSummary>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<DailySalesSummary> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

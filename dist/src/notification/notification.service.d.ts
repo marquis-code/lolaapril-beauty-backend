@@ -1,0 +1,33 @@
+import { Model } from 'mongoose';
+import { NotificationTemplateDocument, NotificationLogDocument, NotificationPreferenceDocument } from '../notification/schemas/notification.schema';
+import { EmailService } from './email.service';
+import { SMSService } from './sms.service';
+export declare class NotificationService {
+    private notificationTemplateModel;
+    private notificationLogModel;
+    private notificationPreferenceModel;
+    private emailService;
+    private smsService;
+    constructor(notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>, emailService: EmailService, smsService: SMSService);
+    notifyBookingConfirmation(bookingId: string, clientId: string, businessId: string, bookingDetails: any): Promise<void>;
+    notifyBookingRejection(bookingId: string, clientId: string, businessId: string, bookingDetails: any, rejectionReason: string): Promise<void>;
+    notifyAppointmentReminder(appointmentId: string, clientId: string, businessId: string, appointmentDetails: any): Promise<void>;
+    notifyStaffNewBooking(booking: any): Promise<void>;
+    notifySlotUnavailableRefund(bookingId: string, clientId: string, businessId: string, details: any): Promise<void>;
+    notifyPaymentReminder(bookingId: string, clientId: string, businessId: string, details: any): Promise<void>;
+    notifyAppointmentCancellation(appointmentId: string, clientId: string, businessId: string, appointmentDetails: any, cancellationReason: string): Promise<void>;
+    notifyPaymentConfirmation(paymentId: string, clientId: string, businessId: string, paymentDetails: any): Promise<void>;
+    notifyPaymentFailed(paymentId: string, clientId: string, businessId: string, paymentDetails: any): Promise<void>;
+    notifyStaffAssignment(appointmentId: string, staffId: string, businessId: string, appointmentDetails: any): Promise<void>;
+    sendAppointmentReminders(): Promise<void>;
+    private sendNotification;
+    private logNotification;
+    private getTemplate;
+    private getUserPreferences;
+    private replaceTemplateVariables;
+    private stripHtml;
+    private getAppointmentsForReminder;
+    private markAppointmentReminded;
+    notifyAppointmentCompletion(appointmentId: string, clientId: string, businessId: string, appointmentDetails: any): Promise<void>;
+    notifyAppointmentConfirmation(appointmentId: string, clientId: string, businessId: string, appointmentDetails: any): Promise<void>;
+}

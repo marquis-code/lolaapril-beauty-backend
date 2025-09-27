@@ -16,17 +16,25 @@ const swagger_1 = require("@nestjs/swagger");
 class VoucherRestrictionsDto {
 }
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [String], example: ["service_001", "service_002"] }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        description: "Mongo ObjectIds of services",
+        example: ["64b1234abc1234567890abcd", "64b1234abc1234567890abce"],
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsMongoId)({ each: true }),
     __metadata("design:type", Array)
 ], VoucherRestrictionsDto.prototype, "applicableServices", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [String], example: ["Hair Services", "Spa Services"] }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        description: "Mongo ObjectIds of categories",
+        example: ["64c1234abc1234567890cdef"],
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsMongoId)({ each: true }),
     __metadata("design:type", Array)
 ], VoucherRestrictionsDto.prototype, "applicableCategories", void 0);
 __decorate([
@@ -44,10 +52,14 @@ __decorate([
     __metadata("design:type", Number)
 ], VoucherRestrictionsDto.prototype, "maximumDiscount", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [String], example: ["service_003"] }),
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        description: "Mongo ObjectIds of services to exclude",
+        example: ["64d1234abc1234567890abcd"],
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsMongoId)({ each: true }),
     __metadata("design:type", Array)
 ], VoucherRestrictionsDto.prototype, "excludedServices", void 0);
 __decorate([
@@ -138,11 +150,5 @@ __decorate([
     (0, class_validator_1.IsEnum)(["active", "inactive", "expired", "used_up"]),
     __metadata("design:type", String)
 ], CreateVoucherDto.prototype, "status", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: "507f1f77bcf86cd799439011" }),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateVoucherDto.prototype, "createdBy", void 0);
 exports.CreateVoucherDto = CreateVoucherDto;
 //# sourceMappingURL=create-voucher.dto.js.map

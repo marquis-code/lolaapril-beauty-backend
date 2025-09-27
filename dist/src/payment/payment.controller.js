@@ -57,7 +57,7 @@ let PaymentController = class PaymentController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new payment" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Payment created successfully" }),

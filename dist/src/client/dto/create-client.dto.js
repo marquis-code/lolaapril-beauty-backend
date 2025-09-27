@@ -9,11 +9,37 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateClientDto = exports.EmergencyContactsDto = exports.ClientSettingsDto = exports.AdditionalInfoDto = exports.ClientProfileDto = exports.EmergencyContactDto = void 0;
+exports.CreateClientDto = exports.EmergencyContactsDto = exports.ClientSettingsDto = exports.MarketingNotificationsDto = exports.AppointmentNotificationsDto = exports.AdditionalInfoDto = exports.ClientProfileDto = exports.EmergencyContactDto = exports.ReferredByDto = exports.BirthdayDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
 const common_dto_1 = require("../../common/dto/common.dto");
+class BirthdayDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "01-15" }),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BirthdayDto.prototype, "dayAndMonth", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "1990" }),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BirthdayDto.prototype, "year", void 0);
+exports.BirthdayDto = BirthdayDto;
+class ReferredByDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "12345" }),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ReferredByDto.prototype, "clientId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "Jane Smith" }),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ReferredByDto.prototype, "clientName", void 0);
+exports.ReferredByDto = ReferredByDto;
 class EmergencyContactDto {
 }
 __decorate([
@@ -63,17 +89,11 @@ __decorate([
     __metadata("design:type", common_dto_1.PhoneDto)
 ], ClientProfileDto.prototype, "phone", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        type: "object",
-        properties: {
-            dayAndMonth: { type: "string", example: "01-15" },
-            year: { type: "string", example: "1990" },
-        },
-    }),
+    (0, swagger_1.ApiPropertyOptional)({ type: BirthdayDto }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => BirthdayDto),
+    __metadata("design:type", BirthdayDto)
 ], ClientProfileDto.prototype, "birthday", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: "Male" }),
@@ -110,17 +130,11 @@ __decorate([
     __metadata("design:type", String)
 ], AdditionalInfoDto.prototype, "clientSource", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        type: "object",
-        properties: {
-            clientId: { type: "string", example: "12345" },
-            clientName: { type: "string", example: "Jane Smith" },
-        },
-    }),
+    (0, swagger_1.ApiPropertyOptional)({ type: ReferredByDto }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => ReferredByDto),
+    __metadata("design:type", ReferredByDto)
 ], AdditionalInfoDto.prototype, "referredBy", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: "English" }),
@@ -141,31 +155,39 @@ __decorate([
     __metadata("design:type", String)
 ], AdditionalInfoDto.prototype, "country", void 0);
 exports.AdditionalInfoDto = AdditionalInfoDto;
+class AppointmentNotificationsDto {
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], AppointmentNotificationsDto.prototype, "emailNotifications", void 0);
+exports.AppointmentNotificationsDto = AppointmentNotificationsDto;
+class MarketingNotificationsDto {
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], MarketingNotificationsDto.prototype, "clientAcceptsEmailMarketing", void 0);
+exports.MarketingNotificationsDto = MarketingNotificationsDto;
 class ClientSettingsDto {
 }
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        type: "object",
-        properties: {
-            emailNotifications: { type: "boolean", default: true },
-        },
-    }),
+    (0, swagger_1.ApiPropertyOptional)({ type: AppointmentNotificationsDto }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => AppointmentNotificationsDto),
+    __metadata("design:type", AppointmentNotificationsDto)
 ], ClientSettingsDto.prototype, "appointmentNotifications", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        type: "object",
-        properties: {
-            clientAcceptsEmailMarketing: { type: "boolean", default: false },
-        },
-    }),
+    (0, swagger_1.ApiPropertyOptional)({ type: MarketingNotificationsDto }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => Object),
-    __metadata("design:type", Object)
+    (0, class_transformer_1.Type)(() => MarketingNotificationsDto),
+    __metadata("design:type", MarketingNotificationsDto)
 ], ClientSettingsDto.prototype, "marketingNotifications", void 0);
 exports.ClientSettingsDto = ClientSettingsDto;
 class EmergencyContactsDto {

@@ -47,11 +47,11 @@ export declare class SalonSettings {
     requireEmailVerification: boolean;
     sendReminders: boolean;
     reminderHours: number;
-    socialMedia?: {
+    socialMedia: {
         facebook?: string;
         instagram?: string;
         twitter?: string;
-        linkedin?: string;
+        tiktok?: string;
     };
     paymentSettings?: {
         stripePublishableKey?: string;
@@ -62,11 +62,11 @@ export declare class SalonSettings {
         depositPercentage?: number;
     };
 }
-export declare const SalonSettingsSchema: import("mongoose").Schema<SalonSettings, import("mongoose").Model<SalonSettings, any, any, any, Document<unknown, any, SalonSettings, any> & SalonSettings & {
+export declare const SalonSettingsSchema: import("mongoose").Schema<SalonSettings, import("mongoose").Model<SalonSettings, any, any, any, Document<unknown, any, SalonSettings, any, {}> & SalonSettings & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, SalonSettings, Document<unknown, {}, import("mongoose").FlatRecord<SalonSettings>, {}> & import("mongoose").FlatRecord<SalonSettings> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, SalonSettings, Document<unknown, {}, import("mongoose").FlatRecord<SalonSettings>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<SalonSettings> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

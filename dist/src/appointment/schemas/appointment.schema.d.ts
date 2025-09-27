@@ -118,7 +118,7 @@ export declare class Appointment {
         hours: number;
         minutes: number;
     };
-    selectedDate: string;
+    selectedDate: Date;
     selectedTime: string;
     appointmentDetails: AppointmentDetails;
     serviceDetails: ServiceDetails;
@@ -129,14 +129,20 @@ export declare class Appointment {
     assignedStaff: Types.ObjectId;
     cancellationReason: string;
     cancellationDate: Date;
+    checkInTime: Date;
+    checkOutTime: Date;
+    actualStartTime: Date;
+    actualEndTime: Date;
+    appointmentNumber: string;
+    reminderSent: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const AppointmentSchema: import("mongoose").Schema<Appointment, import("mongoose").Model<Appointment, any, any, any, Document<unknown, any, Appointment, any> & Appointment & {
+export declare const AppointmentSchema: import("mongoose").Schema<Appointment, import("mongoose").Model<Appointment, any, any, any, Document<unknown, any, Appointment, any, {}> & Appointment & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Appointment, Document<unknown, {}, import("mongoose").FlatRecord<Appointment>, {}> & import("mongoose").FlatRecord<Appointment> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Appointment, Document<unknown, {}, import("mongoose").FlatRecord<Appointment>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Appointment> & {
     _id: Types.ObjectId;
 } & {
     __v: number;

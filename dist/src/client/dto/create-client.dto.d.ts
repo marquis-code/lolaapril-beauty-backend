@@ -1,4 +1,12 @@
 import { PhoneDto, AddressDto } from "../../common/dto/common.dto";
+export declare class BirthdayDto {
+    dayAndMonth: string;
+    year: string;
+}
+export declare class ReferredByDto {
+    clientId: string;
+    clientName: string;
+}
 export declare class EmergencyContactDto {
     fullName: string;
     relationship: string;
@@ -10,10 +18,7 @@ export declare class ClientProfileDto {
     lastName: string;
     email: string;
     phone: PhoneDto;
-    birthday?: {
-        dayAndMonth: string;
-        year: string;
-    };
+    birthday?: BirthdayDto;
     gender?: string;
     pronouns?: string;
     additionalEmail?: string;
@@ -21,21 +26,20 @@ export declare class ClientProfileDto {
 }
 export declare class AdditionalInfoDto {
     clientSource?: string;
-    referredBy?: {
-        clientId: string;
-        clientName: string;
-    };
+    referredBy?: ReferredByDto;
     preferredLanguage?: string;
     occupation?: string;
     country?: string;
 }
+export declare class AppointmentNotificationsDto {
+    emailNotifications?: boolean;
+}
+export declare class MarketingNotificationsDto {
+    clientAcceptsEmailMarketing?: boolean;
+}
 export declare class ClientSettingsDto {
-    appointmentNotifications?: {
-        emailNotifications: boolean;
-    };
-    marketingNotifications?: {
-        clientAcceptsEmailMarketing: boolean;
-    };
+    appointmentNotifications?: AppointmentNotificationsDto;
+    marketingNotifications?: MarketingNotificationsDto;
 }
 export declare class EmergencyContactsDto {
     primary?: EmergencyContactDto;

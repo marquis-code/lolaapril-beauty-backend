@@ -11,6 +11,8 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const throttler_1 = require("@nestjs/throttler");
 const config_1 = require("@nestjs/config");
+const schedule_1 = require("@nestjs/schedule");
+const event_emitter_1 = require("@nestjs/event-emitter");
 const client_module_1 = require("./client/client.module");
 const service_module_1 = require("./service/service.module");
 const appointment_module_1 = require("./appointment/appointment.module");
@@ -25,7 +27,22 @@ const reports_module_1 = require("./reports/reports.module");
 const auth_module_1 = require("./auth/auth.module");
 const audit_module_1 = require("./audit/audit.module");
 const upload_module_1 = require("./upload/upload.module");
+const availability_module_1 = require("./availability/availability.module");
+const notification_module_1 = require("./notification/notification.module");
+const tenant_module_1 = require("./tenant/tenant.module");
+const staff_module_1 = require("./staff/staff.module");
+const tenant_middleware_1 = require("./tenant/middleware/tenant.middleware");
+const subdomain_redirect_middleware_1 = require("./tenant/middleware/subdomain-redirect.middleware");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer
+            .apply(subdomain_redirect_middleware_1.SubdomainRedirectMiddleware)
+            .forRoutes({ path: '*', method: common_1.RequestMethod.ALL });
+        consumer
+            .apply(tenant_middleware_1.TenantMiddleware)
+            .exclude({ path: 'health', method: common_1.RequestMethod.GET }, { path: 'docs', method: common_1.RequestMethod.GET }, { path: 'api/auth/login', method: common_1.RequestMethod.POST }, { path: 'api/auth/register', method: common_1.RequestMethod.POST }, { path: 'api/webhooks/(.*)', method: common_1.RequestMethod.ALL })
+            .forRoutes({ path: '*', method: common_1.RequestMethod.ALL });
+    }
 };
 AppModule = __decorate([
     (0, common_1.Module)({
@@ -43,12 +60,23 @@ AppModule = __decorate([
                     useUnifiedTopology: true,
                 }),
             }),
+            schedule_1.ScheduleModule.forRoot(),
+            event_emitter_1.EventEmitterModule.forRoot({
+                wildcard: false,
+                delimiter: '.',
+                newListener: false,
+                removeListener: false,
+                maxListeners: 10,
+                verboseMemoryLeak: false,
+                ignoreErrors: false,
+            }),
             throttler_1.ThrottlerModule.forRoot([
                 {
                     ttl: 60000,
                     limit: 10,
                 },
             ]),
+            tenant_module_1.TenantModule,
             auth_module_1.AuthModule,
             audit_module_1.AuditModule,
             upload_module_1.UploadModule,
@@ -63,6 +91,9 @@ AppModule = __decorate([
             voucher_module_1.VoucherModule,
             membership_module_1.MembershipModule,
             reports_module_1.ReportsModule,
+            availability_module_1.AvailabilityModule,
+            notification_module_1.NotificationModule,
+            staff_module_1.StaffModule,
         ],
         providers: [],
     })

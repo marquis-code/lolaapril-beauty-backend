@@ -47,11 +47,11 @@ export declare class Staff {
     rating: number;
     totalReviews: number;
 }
-export declare const StaffSchema: import("mongoose").Schema<Staff, import("mongoose").Model<Staff, any, any, any, Document<unknown, any, Staff, any> & Staff & {
+export declare const StaffSchema: import("mongoose").Schema<Staff, import("mongoose").Model<Staff, any, any, any, Document<unknown, any, Staff, any, {}> & Staff & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Staff, Document<unknown, {}, import("mongoose").FlatRecord<Staff>, {}> & import("mongoose").FlatRecord<Staff> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Staff, Document<unknown, {}, import("mongoose").FlatRecord<Staff>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Staff> & {
     _id: Types.ObjectId;
 } & {
     __v: number;

@@ -65,7 +65,7 @@ export declare class AuthController {
     logout(req: RequestWithUser): Promise<{
         message: string;
     }>;
-    getProfile(req: RequestWithUser): Promise<import("mongoose").Document<unknown, {}, import("./schemas/user.schema").UserDocument, {}> & import("./schemas/user.schema").User & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+    getProfile(req: RequestWithUser): Promise<import("mongoose").Document<unknown, {}, import("./schemas/user.schema").UserDocument, {}, {}> & import("./schemas/user.schema").User & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
         _id: unknown;
     }> & {
         __v: number;

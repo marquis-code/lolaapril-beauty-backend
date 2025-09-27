@@ -98,7 +98,15 @@ __decorate([
     __metadata("design:type", Number)
 ], SalonSettings.prototype, "reminderHours", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Object }),
+    (0, mongoose_1.Prop)({
+        type: {
+            facebook: { type: String, required: false },
+            instagram: { type: String, required: false },
+            twitter: { type: String, required: false },
+            tiktok: { type: String, required: false }
+        },
+        default: {}
+    }),
     __metadata("design:type", Object)
 ], SalonSettings.prototype, "socialMedia", void 0);
 __decorate([

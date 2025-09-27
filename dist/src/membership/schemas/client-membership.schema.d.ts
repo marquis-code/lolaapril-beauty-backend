@@ -49,11 +49,11 @@ export declare class ClientMembership {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const ClientMembershipSchema: import("mongoose").Schema<ClientMembership, import("mongoose").Model<ClientMembership, any, any, any, Document<unknown, any, ClientMembership, any> & ClientMembership & {
+export declare const ClientMembershipSchema: import("mongoose").Schema<ClientMembership, import("mongoose").Model<ClientMembership, any, any, any, Document<unknown, any, ClientMembership, any, {}> & ClientMembership & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientMembership, Document<unknown, {}, import("mongoose").FlatRecord<ClientMembership>, {}> & import("mongoose").FlatRecord<ClientMembership> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ClientMembership, Document<unknown, {}, import("mongoose").FlatRecord<ClientMembership>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ClientMembership> & {
     _id: Types.ObjectId;
 } & {
     __v: number;

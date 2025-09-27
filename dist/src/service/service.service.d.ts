@@ -22,6 +22,7 @@ export declare class ServiceService {
     updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>>;
     createService(createServiceDto: CreateServiceDto): Promise<ApiResponse<Service>>;
     findAllServices(query: ServiceQueryDto): Promise<ApiResponse<Service[]>>;
+    getServicesByIds(serviceIds: string[]): Promise<ServiceDocument[]>;
     findOneService(id: string): Promise<ApiResponse<Service>>;
     updateService(id: string, updateServiceDto: UpdateServiceDto): Promise<ApiResponse<Service>>;
     addServiceVariant(serviceId: string, variantDto: CreateServiceVariantDto): Promise<ApiResponse<Service>>;

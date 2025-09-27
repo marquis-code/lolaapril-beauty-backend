@@ -150,16 +150,14 @@ let ServiceService = class ServiceService {
             const skip = (page - 1) * limit;
             const sortDirection = sortOrder === "asc" ? 1 : -1;
             const sortOptions = { [sortBy]: sortDirection };
-            const [services, total] = await Promise.all([
-                this.serviceModel
-                    .find(filter)
-                    .populate('basicDetails.category', 'categoryName appointmentColor')
-                    .sort(sortOptions)
-                    .skip(skip)
-                    .limit(limit)
-                    .exec(),
-                this.serviceModel.countDocuments(filter),
-            ]);
+            const services = await this.serviceModel
+                .find(filter)
+                .populate('basicDetails.category', 'categoryName appointmentColor')
+                .sort(sortOptions)
+                .skip(skip)
+                .limit(limit)
+                .exec();
+            const total = await this.serviceModel.countDocuments(filter);
             return {
                 success: true,
                 data: services,
@@ -174,6 +172,13 @@ let ServiceService = class ServiceService {
         catch (error) {
             throw new Error(`Failed to fetch services: ${error.message}`);
         }
+    }
+    async getServicesByIds(serviceIds) {
+        const objectIds = serviceIds.map(id => new mongoose_1.Types.ObjectId(id));
+        const services = await this.serviceModel
+            .find({ _id: { $in: objectIds } })
+            .populate('teamMembers.selectedMembers.id', 'firstName lastName');
+        return services;
     }
     async findOneService(id) {
         try {

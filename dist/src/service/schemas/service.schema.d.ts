@@ -31,11 +31,11 @@ export declare class BasicDetails {
     category: Types.ObjectId;
     description: string;
 }
-export declare const BasicDetailsSchema: import("mongoose").Schema<BasicDetails, import("mongoose").Model<BasicDetails, any, any, any, Document<unknown, any, BasicDetails, any> & BasicDetails & {
+export declare const BasicDetailsSchema: import("mongoose").Schema<BasicDetails, import("mongoose").Model<BasicDetails, any, any, any, Document<unknown, any, BasicDetails, any, {}> & BasicDetails & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, BasicDetails, Document<unknown, {}, import("mongoose").FlatRecord<BasicDetails>, {}> & import("mongoose").FlatRecord<BasicDetails> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, BasicDetails, Document<unknown, {}, import("mongoose").FlatRecord<BasicDetails>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<BasicDetails> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -46,11 +46,11 @@ export declare class TeamMember {
     role: string;
     selected: boolean;
 }
-export declare const TeamMemberSchema: import("mongoose").Schema<TeamMember, import("mongoose").Model<TeamMember, any, any, any, Document<unknown, any, TeamMember, any> & TeamMember & {
+export declare const TeamMemberSchema: import("mongoose").Schema<TeamMember, import("mongoose").Model<TeamMember, any, any, any, Document<unknown, any, TeamMember, any, {}> & TeamMember & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, TeamMember, Document<unknown, {}, import("mongoose").FlatRecord<TeamMember>, {}> & import("mongoose").FlatRecord<TeamMember> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, TeamMember, Document<unknown, {}, import("mongoose").FlatRecord<TeamMember>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<TeamMember> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -59,11 +59,11 @@ export declare class TeamMembers {
     allTeamMembers: boolean;
     selectedMembers: TeamMember[];
 }
-export declare const TeamMembersSchema: import("mongoose").Schema<TeamMembers, import("mongoose").Model<TeamMembers, any, any, any, Document<unknown, any, TeamMembers, any> & TeamMembers & {
+export declare const TeamMembersSchema: import("mongoose").Schema<TeamMembers, import("mongoose").Model<TeamMembers, any, any, any, Document<unknown, any, TeamMembers, any, {}> & TeamMembers & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, TeamMembers, Document<unknown, {}, import("mongoose").FlatRecord<TeamMembers>, {}> & import("mongoose").FlatRecord<TeamMembers> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, TeamMembers, Document<unknown, {}, import("mongoose").FlatRecord<TeamMembers>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<TeamMembers> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -72,11 +72,11 @@ export declare class Resources {
     isRequired: boolean;
     resourceList: Types.ObjectId[];
 }
-export declare const ResourcesSchema: import("mongoose").Schema<Resources, import("mongoose").Model<Resources, any, any, any, Document<unknown, any, Resources, any> & Resources & {
+export declare const ResourcesSchema: import("mongoose").Schema<Resources, import("mongoose").Model<Resources, any, any, any, Document<unknown, any, Resources, any, {}> & Resources & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Resources, Document<unknown, {}, import("mongoose").FlatRecord<Resources>, {}> & import("mongoose").FlatRecord<Resources> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Resources, Document<unknown, {}, import("mongoose").FlatRecord<Resources>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Resources> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -86,11 +86,11 @@ export declare class Price {
     amount: number;
     minimumAmount?: number;
 }
-export declare const PriceSchema: import("mongoose").Schema<Price, import("mongoose").Model<Price, any, any, any, Document<unknown, any, Price, any> & Price & {
+export declare const PriceSchema: import("mongoose").Schema<Price, import("mongoose").Model<Price, any, any, any, Document<unknown, any, Price, any, {}> & Price & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Price, Document<unknown, {}, import("mongoose").FlatRecord<Price>, {}> & import("mongoose").FlatRecord<Price> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Price, Document<unknown, {}, import("mongoose").FlatRecord<Price>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Price> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -106,11 +106,11 @@ export declare class ServiceDuration {
     };
     totalDuration: string;
 }
-export declare const ServiceDurationSchema: import("mongoose").Schema<ServiceDuration, import("mongoose").Model<ServiceDuration, any, any, any, Document<unknown, any, ServiceDuration, any> & ServiceDuration & {
+export declare const ServiceDurationSchema: import("mongoose").Schema<ServiceDuration, import("mongoose").Model<ServiceDuration, any, any, any, Document<unknown, any, ServiceDuration, any, {}> & ServiceDuration & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ServiceDuration, Document<unknown, {}, import("mongoose").FlatRecord<ServiceDuration>, {}> & import("mongoose").FlatRecord<ServiceDuration> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ServiceDuration, Document<unknown, {}, import("mongoose").FlatRecord<ServiceDuration>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ServiceDuration> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -120,11 +120,11 @@ export declare class ExtraTimeOptions {
     blockedTime: string;
     extraServicingTime: string;
 }
-export declare const ExtraTimeOptionsSchema: import("mongoose").Schema<ExtraTimeOptions, import("mongoose").Model<ExtraTimeOptions, any, any, any, Document<unknown, any, ExtraTimeOptions, any> & ExtraTimeOptions & {
+export declare const ExtraTimeOptionsSchema: import("mongoose").Schema<ExtraTimeOptions, import("mongoose").Model<ExtraTimeOptions, any, any, any, Document<unknown, any, ExtraTimeOptions, any, {}> & ExtraTimeOptions & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ExtraTimeOptions, Document<unknown, {}, import("mongoose").FlatRecord<ExtraTimeOptions>, {}> & import("mongoose").FlatRecord<ExtraTimeOptions> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ExtraTimeOptions, Document<unknown, {}, import("mongoose").FlatRecord<ExtraTimeOptions>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ExtraTimeOptions> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -135,11 +135,11 @@ export declare class PricingAndDuration {
     duration: ServiceDuration;
     extraTimeOptions: ExtraTimeOptions;
 }
-export declare const PricingAndDurationSchema: import("mongoose").Schema<PricingAndDuration, import("mongoose").Model<PricingAndDuration, any, any, any, Document<unknown, any, PricingAndDuration, any> & PricingAndDuration & {
+export declare const PricingAndDurationSchema: import("mongoose").Schema<PricingAndDuration, import("mongoose").Model<PricingAndDuration, any, any, any, Document<unknown, any, PricingAndDuration, any, {}> & PricingAndDuration & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, PricingAndDuration, Document<unknown, {}, import("mongoose").FlatRecord<PricingAndDuration>, {}> & import("mongoose").FlatRecord<PricingAndDuration> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, PricingAndDuration, Document<unknown, {}, import("mongoose").FlatRecord<PricingAndDuration>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<PricingAndDuration> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -148,11 +148,11 @@ export declare class OnlineBooking {
     enabled: boolean;
     availableFor: string;
 }
-export declare const OnlineBookingSchema: import("mongoose").Schema<OnlineBooking, import("mongoose").Model<OnlineBooking, any, any, any, Document<unknown, any, OnlineBooking, any> & OnlineBooking & {
+export declare const OnlineBookingSchema: import("mongoose").Schema<OnlineBooking, import("mongoose").Model<OnlineBooking, any, any, any, Document<unknown, any, OnlineBooking, any, {}> & OnlineBooking & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, OnlineBooking, Document<unknown, {}, import("mongoose").FlatRecord<OnlineBooking>, {}> & import("mongoose").FlatRecord<OnlineBooking> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, OnlineBooking, Document<unknown, {}, import("mongoose").FlatRecord<OnlineBooking>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<OnlineBooking> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -163,11 +163,11 @@ export declare class ServiceSettings {
     commissions: Types.ObjectId[];
     generalSettings: Record<string, any>;
 }
-export declare const ServiceSettingsSchema: import("mongoose").Schema<ServiceSettings, import("mongoose").Model<ServiceSettings, any, any, any, Document<unknown, any, ServiceSettings, any> & ServiceSettings & {
+export declare const ServiceSettingsSchema: import("mongoose").Schema<ServiceSettings, import("mongoose").Model<ServiceSettings, any, any, any, Document<unknown, any, ServiceSettings, any, {}> & ServiceSettings & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ServiceSettings, Document<unknown, {}, import("mongoose").FlatRecord<ServiceSettings>, {}> & import("mongoose").FlatRecord<ServiceSettings> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ServiceSettings, Document<unknown, {}, import("mongoose").FlatRecord<ServiceSettings>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ServiceSettings> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -187,11 +187,11 @@ export declare class ServiceVariant {
         sku?: string;
     };
 }
-export declare const ServiceVariantSchema: import("mongoose").Schema<ServiceVariant, import("mongoose").Model<ServiceVariant, any, any, any, Document<unknown, any, ServiceVariant, any> & ServiceVariant & {
+export declare const ServiceVariantSchema: import("mongoose").Schema<ServiceVariant, import("mongoose").Model<ServiceVariant, any, any, any, Document<unknown, any, ServiceVariant, any, {}> & ServiceVariant & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ServiceVariant, Document<unknown, {}, import("mongoose").FlatRecord<ServiceVariant>, {}> & import("mongoose").FlatRecord<ServiceVariant> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ServiceVariant, Document<unknown, {}, import("mongoose").FlatRecord<ServiceVariant>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ServiceVariant> & {
     _id: Types.ObjectId;
 } & {
     __v: number;
@@ -208,11 +208,11 @@ export declare class Service {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const ServiceSchema: import("mongoose").Schema<Service, import("mongoose").Model<Service, any, any, any, Document<unknown, any, Service, any> & Service & {
+export declare const ServiceSchema: import("mongoose").Schema<Service, import("mongoose").Model<Service, any, any, any, Document<unknown, any, Service, any, {}> & Service & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Service, Document<unknown, {}, import("mongoose").FlatRecord<Service>, {}> & import("mongoose").FlatRecord<Service> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Service, Document<unknown, {}, import("mongoose").FlatRecord<Service>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Service> & {
     _id: Types.ObjectId;
 } & {
     __v: number;

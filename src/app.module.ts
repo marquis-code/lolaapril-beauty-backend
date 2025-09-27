@@ -1,7 +1,9 @@
-import { Module } from "@nestjs/common"
+import { Module, MiddlewareConsumer, RequestMethod } from "@nestjs/common"
 import { MongooseModule } from "@nestjs/mongoose"
 import { ThrottlerModule } from "@nestjs/throttler"
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule'
+import { EventEmitterModule } from '@nestjs/event-emitter'
 import { APP_INTERCEPTOR } from "@nestjs/core"
 import { ClientModule } from "./client/client.module"
 import { ServiceModule } from "./service/service.module"
@@ -17,6 +19,15 @@ import { ReportsModule } from "./reports/reports.module"
 import { AuthModule } from "./auth/auth.module"
 import { AuditModule } from "./audit/audit.module"
 import { UploadModule } from "./upload/upload.module"
+import { AvailabilityModule } from './availability/availability.module'
+import { NotificationModule } from './notification/notification.module'
+import { TenantModule } from './tenant/tenant.module'
+import { StaffModule } from './staff/staff.module'
+
+// Import middleware
+// Import middleware
+import { TenantMiddleware } from './tenant/middleware/tenant.middleware'
+import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redirect.middleware'
 
 @Module({
   imports: [
@@ -34,12 +45,31 @@ import { UploadModule } from "./upload/upload.module"
           useUnifiedTopology: true,
         }),
       }),
+
+          // Scheduling for automated tasks
+    ScheduleModule.forRoot(),
+
+    // Event emitter for decoupled communication
+    EventEmitterModule.forRoot({
+      wildcard: false,
+      delimiter: '.',
+      newListener: false,
+      removeListener: false,
+      maxListeners: 10,
+      verboseMemoryLeak: false,
+      ignoreErrors: false,
+    }),
+
+
+
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
         limit: 10,
       },
     ]),
+
+    TenantModule,
     AuthModule,
     AuditModule,
     UploadModule,
@@ -54,7 +84,30 @@ import { UploadModule } from "./upload/upload.module"
     VoucherModule,
     MembershipModule,
     ReportsModule,
+    AvailabilityModule,
+    NotificationModule,
+    StaffModule,
   ],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Apply subdomain redirect middleware first
+    consumer
+      .apply(SubdomainRedirectMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL })
+
+    // Apply tenant middleware to all routes except health check
+    consumer
+      .apply(TenantMiddleware)
+      .exclude(
+        { path: 'health', method: RequestMethod.GET },
+        { path: 'docs', method: RequestMethod.GET },
+        { path: 'api/auth/login', method: RequestMethod.POST },
+        { path: 'api/auth/register', method: RequestMethod.POST },
+        { path: 'api/webhooks/(.*)', method: RequestMethod.ALL },
+      )
+      .forRoutes({ path: '*', method: RequestMethod.ALL })
+  }
+}
+

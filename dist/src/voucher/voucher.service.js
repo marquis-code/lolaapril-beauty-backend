@@ -21,14 +21,14 @@ let VoucherService = class VoucherService {
     constructor(voucherModel) {
         this.voucherModel = voucherModel;
     }
-    async create(createVoucherDto) {
+    async create(createVoucherDto, userId) {
         const existingVoucher = await this.voucherModel.findOne({
             voucherCode: createVoucherDto.voucherCode,
         });
         if (existingVoucher) {
             throw new common_1.BadRequestException("Voucher code already exists");
         }
-        const voucher = new this.voucherModel(createVoucherDto);
+        const voucher = new this.voucherModel(Object.assign(Object.assign({}, createVoucherDto), { createdBy: userId }));
         return voucher.save();
     }
     async findAll(query) {
@@ -122,13 +122,13 @@ let VoucherService = class VoucherService {
             return { isValid: false, message: `Minimum spend of ${voucher.restrictions.minimumSpend} required` };
         }
         if (((_a = voucher.restrictions.applicableServices) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-            const hasApplicableService = serviceIds.some((id) => voucher.restrictions.applicableServices.includes(id));
+            const hasApplicableService = serviceIds.some((id) => voucher.restrictions.applicableServices.some((svc) => svc.toString() === id));
             if (!hasApplicableService) {
                 return { isValid: false, message: "Voucher not applicable to selected services" };
             }
         }
         if (((_b = voucher.restrictions.excludedServices) === null || _b === void 0 ? void 0 : _b.length) > 0) {
-            const hasExcludedService = serviceIds.some((id) => voucher.restrictions.excludedServices.includes(id));
+            const hasExcludedService = serviceIds.some((id) => voucher.restrictions.excludedServices.some((svc) => svc.toString() === id));
             if (hasExcludedService) {
                 return { isValid: false, message: "Voucher cannot be used with selected services" };
             }

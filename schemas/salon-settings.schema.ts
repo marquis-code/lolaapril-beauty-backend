@@ -68,13 +68,30 @@ export class SalonSettings {
   @Prop({ default: 24 })
   reminderHours: number
 
-  @Prop({ type: Object })
-  socialMedia?: {
-    facebook?: string
-    instagram?: string
-    twitter?: string
-    linkedin?: string
-  }
+  // @Prop({ type: Object })
+  // socialMedia?: {
+  //   facebook?: string
+  //   instagram?: string
+  //   twitter?: string
+  //   linkedin?: string
+  // }
+
+@Prop({
+  type: {
+    facebook: { type: String, required: false },
+    instagram: { type: String, required: false },
+    twitter: { type: String, required: false },
+    tiktok: { type: String, required: false }
+  },
+  default: {}
+})
+socialMedia: {
+  facebook?: string
+  instagram?: string
+  twitter?: string
+  tiktok?: string
+}
+
 
   @Prop({ type: Object })
   paymentSettings?: {

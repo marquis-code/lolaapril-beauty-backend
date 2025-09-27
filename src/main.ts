@@ -53,13 +53,30 @@ async function bootstrap() {
   
   // Swagger API documentation
   const config = new DocumentBuilder()
-    .setTitle("Salon Booking Management API")
-    .setDescription("Comprehensive salon booking and management system")
+     .setTitle('Salon Management API')
+    .setDescription('Multi-tenant salon management system API')
     .setVersion('1.0')
     .addBearerAuth()
-    .build();
+    .addTag('bookings', 'Booking management')
+    .addTag('appointments', 'Appointment management')
+    .addTag('payments', 'Payment processing')
+    .addTag('availability', 'Availability management')
+    .addTag('staff', 'Staff management')
+    .addTag('notifications', 'Notification system')
+    .addTag('tenant', 'Multi-tenant management')
+    .build()
+
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('docs', app, document);
+
+    // Health check endpoint
+  app.use('/health', (req, res) => {
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    })
+  })
   
   // Start the server
   const port = configService.get<number>('PORT') || 3000;

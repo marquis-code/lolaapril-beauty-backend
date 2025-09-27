@@ -257,7 +257,7 @@ export class Appointment {
   }
 
   @Prop({ required: true })
-  selectedDate: string
+  selectedDate: Date
 
   @Prop({ required: true })
   selectedTime: string
@@ -292,6 +292,25 @@ export class Appointment {
 
   @Prop()
   cancellationDate: Date
+
+   // Added missing fields for appointment tracking
+  @Prop()
+  checkInTime: Date
+
+  @Prop()
+  checkOutTime: Date
+
+  @Prop()
+  actualStartTime: Date
+
+  @Prop()
+  actualEndTime: Date
+
+  @Prop()
+  appointmentNumber: string
+
+  @Prop()
+  reminderSent: boolean
 
   @Prop({ default: Date.now })
   createdAt: Date

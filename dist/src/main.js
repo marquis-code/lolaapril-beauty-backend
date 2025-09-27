@@ -41,13 +41,27 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
     }));
     const config = new swagger_1.DocumentBuilder()
-        .setTitle("Salon Booking Management API")
-        .setDescription("Comprehensive salon booking and management system")
+        .setTitle('Salon Management API')
+        .setDescription('Multi-tenant salon management system API')
         .setVersion('1.0')
         .addBearerAuth()
+        .addTag('bookings', 'Booking management')
+        .addTag('appointments', 'Appointment management')
+        .addTag('payments', 'Payment processing')
+        .addTag('availability', 'Availability management')
+        .addTag('staff', 'Staff management')
+        .addTag('notifications', 'Notification system')
+        .addTag('tenant', 'Multi-tenant management')
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
-    swagger_1.SwaggerModule.setup('api/docs', app, document);
+    swagger_1.SwaggerModule.setup('docs', app, document);
+    app.use('/health', (req, res) => {
+        res.json({
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+        });
+    });
     const port = configService.get('PORT') || 3000;
     await app.listen(port);
     console.log(`Application is running on: ${await app.getUrl()}`);

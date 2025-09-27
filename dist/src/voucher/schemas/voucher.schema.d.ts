@@ -23,14 +23,14 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { type Document, Types } from "mongoose";
+import { Document, Types } from "mongoose";
 export type VoucherDocument = Voucher & Document;
 export declare class VoucherRestrictions {
-    applicableServices: string[];
-    applicableCategories: string[];
+    applicableServices: Types.ObjectId[];
+    applicableCategories: Types.ObjectId[];
     minimumSpend: number;
     maximumDiscount: number;
-    excludedServices: string[];
+    excludedServices: Types.ObjectId[];
     firstTimeClientsOnly: boolean;
     applicableDays: string[];
 }
@@ -48,14 +48,12 @@ export declare class Voucher {
     restrictions: VoucherRestrictions;
     status: string;
     createdBy: Types.ObjectId;
-    createdAt: Date;
-    updatedAt: Date;
 }
-export declare const VoucherSchema: import("mongoose").Schema<Voucher, import("mongoose").Model<Voucher, any, any, any, Document<unknown, any, Voucher, any> & Voucher & {
+export declare const VoucherSchema: import("mongoose").Schema<Voucher, import("mongoose").Model<Voucher, any, any, any, Document<unknown, any, Voucher, any, {}> & Voucher & {
     _id: Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Voucher, Document<unknown, {}, import("mongoose").FlatRecord<Voucher>, {}> & import("mongoose").FlatRecord<Voucher> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Voucher, Document<unknown, {}, import("mongoose").FlatRecord<Voucher>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<Voucher> & {
     _id: Types.ObjectId;
 } & {
     __v: number;

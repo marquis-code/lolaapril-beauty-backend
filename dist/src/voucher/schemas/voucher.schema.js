@@ -15,11 +15,11 @@ const mongoose_2 = require("mongoose");
 let VoucherRestrictions = class VoucherRestrictions {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: "Service" }], default: [] }),
     __metadata("design:type", Array)
 ], VoucherRestrictions.prototype, "applicableServices", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: "Category" }], default: [] }),
     __metadata("design:type", Array)
 ], VoucherRestrictions.prototype, "applicableCategories", void 0);
 __decorate([
@@ -31,7 +31,7 @@ __decorate([
     __metadata("design:type", Number)
 ], VoucherRestrictions.prototype, "maximumDiscount", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: "Service" }], default: [] }),
     __metadata("design:type", Array)
 ], VoucherRestrictions.prototype, "excludedServices", void 0);
 __decorate([
@@ -107,14 +107,6 @@ __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "User", required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Voucher.prototype, "createdBy", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: Date.now }),
-    __metadata("design:type", Date)
-], Voucher.prototype, "createdAt", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: Date.now }),
-    __metadata("design:type", Date)
-], Voucher.prototype, "updatedAt", void 0);
 Voucher = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Voucher);

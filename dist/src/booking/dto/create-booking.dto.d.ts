@@ -1,22 +1,12 @@
-export declare class BookingServiceDto {
-    serviceId: string;
-    serviceName: string;
-    duration: number;
-    price: number;
-    staffId?: string;
-    staffName?: string;
-}
 export declare class CreateBookingDto {
+    businessId: string;
     clientId: string;
-    services: BookingServiceDto[];
-    bookingDate: Date;
-    startTime: string;
-    endTime: string;
-    totalDuration: number;
-    totalAmount: number;
-    status?: string;
-    bookingSource?: string;
+    serviceIds: string[];
+    preferredDate: Date;
+    preferredStartTime: string;
+    clientName: string;
+    clientEmail: string;
+    clientPhone: string;
     specialRequests?: string;
-    internalNotes?: string;
-    createdBy?: string;
+    autoConfirm?: boolean;
 }

@@ -36,7 +36,7 @@ export declare class MembershipService {
     constructor(membershipModel: Model<MembershipDocument>, clientMembershipModel: Model<ClientMembershipDocument>);
     createMembership(createMembershipDto: CreateMembershipDto): Promise<Membership>;
     findAllMemberships(query: MembershipQueryDto): Promise<{
-        memberships: (import("mongoose").Document<unknown, {}, MembershipDocument, {}> & Membership & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+        memberships: (import("mongoose").Document<unknown, {}, MembershipDocument, {}, {}> & Membership & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
             _id: unknown;
         }> & {
             __v: number;
@@ -52,7 +52,7 @@ export declare class MembershipService {
     updateMembership(id: string, updateMembershipDto: UpdateMembershipDto): Promise<Membership>;
     removeMembership(id: string): Promise<void>;
     enrollClient(createClientMembershipDto: CreateClientMembershipDto): Promise<ClientMembership>;
-    findClientMemberships(clientId: string): Promise<(import("mongoose").Document<unknown, {}, ClientMembershipDocument, {}> & ClientMembership & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+    findClientMemberships(clientId: string): Promise<(import("mongoose").Document<unknown, {}, ClientMembershipDocument, {}, {}> & ClientMembership & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
         _id: unknown;
     }> & {
         __v: number;

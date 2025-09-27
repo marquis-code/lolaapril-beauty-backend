@@ -21,7 +21,7 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
   @ApiOperation({ summary: "Create a new payment" })
   @ApiResponse({ status: 201, description: "Payment created successfully" })

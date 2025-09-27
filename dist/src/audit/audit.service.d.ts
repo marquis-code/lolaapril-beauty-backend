@@ -51,7 +51,7 @@ export declare class AuditService {
         page?: number;
         limit?: number;
     }): Promise<{
-        logs: (import("mongoose").Document<unknown, {}, AuditLogDocument, {}> & AuditLog & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+        logs: (import("mongoose").Document<unknown, {}, AuditLogDocument, {}, {}> & AuditLog & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
             _id: unknown;
         }> & {
             __v: number;
@@ -63,12 +63,12 @@ export declare class AuditService {
             pages: number;
         };
     }>;
-    getEntityHistory(entity: AuditEntity, entityId: string): Promise<(import("mongoose").Document<unknown, {}, AuditLogDocument, {}> & AuditLog & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+    getEntityHistory(entity: AuditEntity, entityId: string): Promise<(import("mongoose").Document<unknown, {}, AuditLogDocument, {}, {}> & AuditLog & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     })[]>;
-    getUserActivity(userId: string, limit?: number): Promise<(import("mongoose").Document<unknown, {}, AuditLogDocument, {}> & AuditLog & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+    getUserActivity(userId: string, limit?: number): Promise<(import("mongoose").Document<unknown, {}, AuditLogDocument, {}, {}> & AuditLog & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
         _id: unknown;
     }> & {
         __v: number;

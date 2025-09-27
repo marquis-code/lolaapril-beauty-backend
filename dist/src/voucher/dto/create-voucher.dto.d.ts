@@ -19,5 +19,4 @@ export declare class CreateVoucherDto {
     usagePerClient?: number;
     restrictions?: VoucherRestrictionsDto;
     status?: string;
-    createdBy: string;
 }

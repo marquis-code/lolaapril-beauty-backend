@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Controller, Get, Post, Req, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { VoucherService } from "./voucher.service"
 import { CreateVoucherDto } from "./dto/create-voucher.dto"
@@ -11,6 +11,7 @@ import { UserRole } from "../auth/schemas/user.schema"
 import { AuditInterceptor } from "../audit/interceptors/audit.interceptor"
 import { Audit } from "../audit/decorators/audit.decorator"
 import { AuditAction, AuditEntity } from "../audit/schemas/audit-log.schema"
+import { RequestWithUser } from "../auth/types/request-with-user.interface";
 
 @ApiTags("Vouchers")
 @Controller("vouchers")
@@ -20,14 +21,15 @@ import { AuditAction, AuditEntity } from "../audit/schemas/audit-log.schema"
 export class VoucherController {
   constructor(private readonly voucherService: VoucherService) {}
 
-  @Post()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
-  @Audit({ action: AuditAction.CREATE, entity: AuditEntity.VOUCHER })
-  @ApiOperation({ summary: 'Create a new voucher' })
-  @ApiResponse({ status: 201, description: 'Voucher created successfully' })
-  create(@Body() createVoucherDto: CreateVoucherDto) {
-    return this.voucherService.create(createVoucherDto)
-  }
+@Post()
+@Roles(UserRole.ADMIN, UserRole.STAFF)
+@Audit({ action: AuditAction.CREATE, entity: AuditEntity.VOUCHER })
+@ApiOperation({ summary: "Create a new voucher" })
+@ApiResponse({ status: 201, description: "Voucher created successfully" })
+create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) {
+  const userId = req.user.userId;  // <-- comes from your JwtStrategy
+  return this.voucherService.create(createVoucherDto, userId);
+}
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.STAFF)

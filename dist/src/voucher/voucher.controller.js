@@ -30,8 +30,9 @@ let VoucherController = class VoucherController {
     constructor(voucherService) {
         this.voucherService = voucherService;
     }
-    create(createVoucherDto) {
-        return this.voucherService.create(createVoucherDto);
+    create(createVoucherDto, req) {
+        const userId = req.user.userId;
+        return this.voucherService.create(createVoucherDto, userId);
     }
     findAll(query) {
         return this.voucherService.findAll(query);
@@ -62,11 +63,12 @@ __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.VOUCHER }),
-    (0, swagger_1.ApiOperation)({ summary: 'Create a new voucher' }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Voucher created successfully' }),
+    (0, swagger_1.ApiOperation)({ summary: "Create a new voucher" }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "Voucher created successfully" }),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_voucher_dto_1.CreateVoucherDto]),
+    __metadata("design:paramtypes", [create_voucher_dto_1.CreateVoucherDto, Object]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "create", null);
 __decorate([

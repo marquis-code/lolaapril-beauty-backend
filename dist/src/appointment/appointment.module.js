@@ -13,11 +13,20 @@ const appointment_service_1 = require("./appointment.service");
 const appointment_controller_1 = require("./appointment.controller");
 const appointment_schema_1 = require("./schemas/appointment.schema");
 const audit_module_1 = require("../audit/audit.module");
+const payment_module_1 = require("../payment/payment.module");
+const staff_module_1 = require("../staff/staff.module");
+const notification_module_1 = require("../notification/notification.module");
 let AppointmentModule = class AppointmentModule {
 };
 AppointmentModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: appointment_schema_1.Appointment.name, schema: appointment_schema_1.AppointmentSchema }]), audit_module_1.AuditModule],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([{ name: appointment_schema_1.Appointment.name, schema: appointment_schema_1.AppointmentSchema }]),
+            audit_module_1.AuditModule,
+            (0, common_1.forwardRef)(() => payment_module_1.PaymentModule),
+            (0, common_1.forwardRef)(() => notification_module_1.NotificationModule),
+            (0, common_1.forwardRef)(() => staff_module_1.StaffModule),
+        ],
         controllers: [appointment_controller_1.AppointmentController],
         providers: [appointment_service_1.AppointmentService],
         exports: [appointment_service_1.AppointmentService],
