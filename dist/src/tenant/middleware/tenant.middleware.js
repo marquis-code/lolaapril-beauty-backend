@@ -20,36 +20,14 @@ let TenantMiddleware = TenantMiddleware_1 = class TenantMiddleware {
     }
     async use(req, res, next) {
         try {
+            if (this.shouldSkipTenantResolution(req)) {
+                this.logger.debug(`Skipping tenant resolution for route: ${req.path}`);
+                return next();
+            }
             const subdomain = this.extractSubdomain(req);
             if (!subdomain) {
                 return next();
             }
-            this.logger.debug(`Processing request for subdomain: ${subdomain}`);
-            const business = await this.tenantService.getBusinessBySubdomain(subdomain);
-            if (!business) {
-                return res.status(404).json({
-                    success: false,
-                    error: 'Business not found',
-                    code: 'BUSINESS_NOT_FOUND'
-                });
-            }
-            if (business.status === 'suspended') {
-                return res.status(403).json({
-                    success: false,
-                    error: 'Business account is suspended',
-                    code: 'BUSINESS_SUSPENDED'
-                });
-            }
-            const config = await this.tenantService.getTenantConfig(business._id.toString());
-            req.tenant = {
-                businessId: business._id.toString(),
-                subdomain: business.subdomain,
-                business,
-                config
-            };
-            this.setTenantHeaders(res, business, config);
-            this.logger.debug(`Tenant context set for business: ${business.businessName}`);
-            next();
         }
         catch (error) {
             this.logger.error(`Tenant middleware error: ${error.message}`);
@@ -112,6 +90,25 @@ let TenantMiddleware = TenantMiddleware_1 = class TenantMiddleware {
         if (business.activeSubscription) {
             res.setHeader('X-Subscription-Plan', business.activeSubscription.planType);
         }
+    }
+    shouldSkipTenantResolution(req) {
+        const skipRoutes = [
+            '/api/tenant',
+            '/api/tenant/register',
+            '/api/tenant/check-subdomain',
+            '/api/auth',
+            '/api/health',
+        ];
+        const skipPatterns = [
+            /^\/api\/tenant\/[^\/]+$/,
+        ];
+        if (skipRoutes.some(route => req.path.startsWith(route))) {
+            return true;
+        }
+        if (skipPatterns.some(pattern => pattern.test(req.path))) {
+            return true;
+        }
+        return false;
     }
 };
 TenantMiddleware = TenantMiddleware_1 = __decorate([

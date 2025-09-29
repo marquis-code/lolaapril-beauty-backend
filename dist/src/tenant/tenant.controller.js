@@ -14,55 +14,213 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TenantController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const tenant_service_1 = require("./tenant.service");
+const business_dto_1 = require("./dto/business.dto");
 let TenantController = class TenantController {
     constructor(tenantService) {
         this.tenantService = tenantService;
     }
-    async createBusiness(createDto) {
-        return await this.tenantService.createBusiness(createDto);
+    async createBusiness(createBusinessDto) {
+        try {
+            const business = await this.tenantService.createBusiness(createBusinessDto);
+            return {
+                success: true,
+                data: business,
+                message: 'Business created successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                code: error.name
+            };
+        }
     }
-    async getBusiness(businessId) {
-        return await this.tenantService.getBusinessById(businessId);
+    async registerBusiness(registrationData) {
+        try {
+            const result = await this.tenantService.registerBusinessWithOwner(registrationData);
+            return {
+                success: true,
+                data: result,
+                message: 'Business registered successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                code: error.name
+            };
+        }
     }
-    async updateBusiness(businessId, updateData) {
-        return await this.tenantService.updateBusiness(businessId, updateData);
+    async checkSubdomainAvailability(subdomain) {
+        try {
+            const isAvailable = await this.tenantService.isSubdomainAvailable(subdomain);
+            return {
+                success: true,
+                data: { available: isAvailable, subdomain },
+                message: isAvailable ? 'Subdomain is available' : 'Subdomain is already taken'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    async getBusinessesByOwner(req) {
+        try {
+            const userId = req.query.ownerId;
+            if (!userId) {
+                return {
+                    success: false,
+                    error: 'ownerId is required as query parameter'
+                };
+            }
+            const businesses = await this.tenantService.getBusinessesByOwner(userId);
+            return {
+                success: true,
+                data: businesses,
+                message: 'Businesses retrieved successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    async getBusinessById(businessId) {
+        try {
+            const business = await this.tenantService.getBusinessById(businessId);
+            return {
+                success: true,
+                data: business,
+                message: 'Business retrieved successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    async updateBusiness(businessId, updateBusinessDto) {
+        try {
+            const business = await this.tenantService.updateBusiness(businessId, updateBusinessDto);
+            return {
+                success: true,
+                data: business,
+                message: 'Business updated successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
     }
     async getTenantConfig(businessId) {
-        return await this.tenantService.getTenantConfig(businessId);
+        try {
+            const config = await this.tenantService.getTenantConfig(businessId);
+            return {
+                success: true,
+                data: config,
+                message: 'Tenant configuration retrieved successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
     }
     async updateTenantConfig(businessId, configData) {
-        return await this.tenantService.updateTenantConfig(businessId, configData);
+        try {
+            const config = await this.tenantService.updateTenantConfig(businessId, configData);
+            return {
+                success: true,
+                data: config,
+                message: 'Tenant configuration updated successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
     }
-    async checkLimits(businessId) {
-        return await this.tenantService.checkSubscriptionLimits(businessId);
-    }
-    async createSubscription(businessId, subscriptionData) {
-        return await this.tenantService.createSubscription(businessId, subscriptionData);
-    }
-    async cancelSubscription(subscriptionId, reason) {
-        return await this.tenantService.cancelSubscription(subscriptionId, reason);
-    }
-    async getBusinessesByOwner(ownerId) {
-        return await this.tenantService.getBusinessesByOwner(ownerId);
+    async checkSubscriptionLimits(businessId) {
+        try {
+            const limits = await this.tenantService.checkSubscriptionLimits(businessId);
+            return {
+                success: true,
+                data: limits,
+                message: 'Subscription limits retrieved successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
     }
 };
 __decorate([
-    (0, common_1.Post)('business'),
+    (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a new business' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Business created successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad request - validation failed' }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: 'Subdomain already exists' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [business_dto_1.CreateBusinessDto]),
+    __metadata("design:returntype", Promise)
+], TenantController.prototype, "createBusiness", null);
+__decorate([
+    (0, common_1.Post)('register'),
+    (0, swagger_1.ApiOperation)({ summary: 'Register a new business with owner' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], TenantController.prototype, "createBusiness", null);
+], TenantController.prototype, "registerBusiness", null);
 __decorate([
-    (0, common_1.Get)('business/:businessId'),
+    (0, common_1.Get)('check-subdomain'),
+    (0, swagger_1.ApiOperation)({ summary: 'Check if subdomain is available' }),
+    __param(0, (0, common_1.Query)('subdomain')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], TenantController.prototype, "checkSubdomainAvailability", null);
+__decorate([
+    (0, common_1.Get)('businesses'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get businesses owned by current user' }),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], TenantController.prototype, "getBusinessesByOwner", null);
+__decorate([
+    (0, common_1.Get)(':businessId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get business by ID' }),
     __param(0, (0, common_1.Param)('businessId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], TenantController.prototype, "getBusiness", null);
+], TenantController.prototype, "getBusinessById", null);
 __decorate([
-    (0, common_1.Put)('business/:businessId'),
+    (0, common_1.Put)(':businessId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update business' }),
     __param(0, (0, common_1.Param)('businessId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -70,14 +228,16 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], TenantController.prototype, "updateBusiness", null);
 __decorate([
-    (0, common_1.Get)('config/:businessId'),
+    (0, common_1.Get)(':businessId/config'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get tenant configuration' }),
     __param(0, (0, common_1.Param)('businessId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], TenantController.prototype, "getTenantConfig", null);
 __decorate([
-    (0, common_1.Put)('config/:businessId'),
+    (0, common_1.Put)(':businessId/config'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update tenant configuration' }),
     __param(0, (0, common_1.Param)('businessId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -85,37 +245,16 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], TenantController.prototype, "updateTenantConfig", null);
 __decorate([
-    (0, common_1.Get)('subscription/limits/:businessId'),
+    (0, common_1.Get)(':businessId/subscription/limits'),
+    (0, swagger_1.ApiOperation)({ summary: 'Check subscription limits' }),
     __param(0, (0, common_1.Param)('businessId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], TenantController.prototype, "checkLimits", null);
-__decorate([
-    (0, common_1.Post)('subscription/:businessId'),
-    __param(0, (0, common_1.Param)('businessId')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", Promise)
-], TenantController.prototype, "createSubscription", null);
-__decorate([
-    (0, common_1.Put)('subscription/:subscriptionId/cancel'),
-    __param(0, (0, common_1.Param)('subscriptionId')),
-    __param(1, (0, common_1.Body)('reason')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", Promise)
-], TenantController.prototype, "cancelSubscription", null);
-__decorate([
-    (0, common_1.Get)('businesses/owner/:ownerId'),
-    __param(0, (0, common_1.Param)('ownerId')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], TenantController.prototype, "getBusinessesByOwner", null);
+], TenantController.prototype, "checkSubscriptionLimits", null);
 TenantController = __decorate([
-    (0, common_1.Controller)('tenant'),
+    (0, swagger_1.ApiTags)('tenant'),
+    (0, common_1.Controller)('api/tenant'),
     __metadata("design:paramtypes", [tenant_service_1.TenantService])
 ], TenantController);
 exports.TenantController = TenantController;

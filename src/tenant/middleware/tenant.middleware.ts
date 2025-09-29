@@ -23,64 +23,92 @@ export class TenantMiddleware implements NestMiddleware {
 
   constructor(private tenantService: TenantService) {}
 
+  // async use(req: Request, res: Response, next: NextFunction) {
+  //   try {
+  //     // Extract subdomain from various sources
+  //     const subdomain = this.extractSubdomain(req)
+      
+  //     if (!subdomain) {
+  //       // No subdomain found, continue without tenant context
+  //       return next()
+  //     }
+
+  //     this.logger.debug(`Processing request for subdomain: ${subdomain}`)
+
+  //     // Get business by subdomain with caching
+  //     const business = await this.tenantService.getBusinessBySubdomain(subdomain)
+      
+  //     if (!business) {
+  //       return res.status(404).json({
+  //         success: false,
+  //         error: 'Business not found',
+  //         code: 'BUSINESS_NOT_FOUND'
+  //       })
+  //     }
+
+  //     if (business.status === 'suspended') {
+  //       return res.status(403).json({
+  //         success: false,
+  //         error: 'Business account is suspended',
+  //         code: 'BUSINESS_SUSPENDED'
+  //       })
+  //     }
+
+  //     // Get tenant configuration
+  //     const config = await this.tenantService.getTenantConfig(business._id.toString())
+
+  //     // Attach tenant info to request
+  //     req.tenant = {
+  //       businessId: business._id.toString(),
+  //       subdomain: business.subdomain,
+  //       business,
+  //       config
+  //     }
+
+  //     // Set tenant-specific response headers
+  //     this.setTenantHeaders(res, business, config)
+
+  //     this.logger.debug(`Tenant context set for business: ${business.businessName}`)
+
+  //     next()
+  //   } catch (error) {
+  //     this.logger.error(`Tenant middleware error: ${error.message}`)
+      
+  //     return res.status(500).json({
+  //       success: false,
+  //       error: 'Tenant resolution failed',
+  //       code: 'TENANT_RESOLUTION_ERROR'
+  //     })
+  //   }
+  // }
+
   async use(req: Request, res: Response, next: NextFunction) {
-    try {
-      // Extract subdomain from various sources
-      const subdomain = this.extractSubdomain(req)
-      
-      if (!subdomain) {
-        // No subdomain found, continue without tenant context
-        return next()
-      }
-
-      this.logger.debug(`Processing request for subdomain: ${subdomain}`)
-
-      // Get business by subdomain with caching
-      const business = await this.tenantService.getBusinessBySubdomain(subdomain)
-      
-      if (!business) {
-        return res.status(404).json({
-          success: false,
-          error: 'Business not found',
-          code: 'BUSINESS_NOT_FOUND'
-        })
-      }
-
-      if (business.status === 'suspended') {
-        return res.status(403).json({
-          success: false,
-          error: 'Business account is suspended',
-          code: 'BUSINESS_SUSPENDED'
-        })
-      }
-
-      // Get tenant configuration
-      const config = await this.tenantService.getTenantConfig(business._id.toString())
-
-      // Attach tenant info to request
-      req.tenant = {
-        businessId: business._id.toString(),
-        subdomain: business.subdomain,
-        business,
-        config
-      }
-
-      // Set tenant-specific response headers
-      this.setTenantHeaders(res, business, config)
-
-      this.logger.debug(`Tenant context set for business: ${business.businessName}`)
-
-      next()
-    } catch (error) {
-      this.logger.error(`Tenant middleware error: ${error.message}`)
-      
-      return res.status(500).json({
-        success: false,
-        error: 'Tenant resolution failed',
-        code: 'TENANT_RESOLUTION_ERROR'
-      })
+  try {
+    // Skip tenant resolution for certain routes
+    if (this.shouldSkipTenantResolution(req)) {
+      this.logger.debug(`Skipping tenant resolution for route: ${req.path}`);
+      return next();
     }
+
+    // Extract subdomain from various sources
+    const subdomain = this.extractSubdomain(req)
+    
+    if (!subdomain) {
+      // No subdomain found, continue without tenant context
+      return next()
+    }
+
+    // ... rest of your existing code
+  } catch (error) {
+    this.logger.error(`Tenant middleware error: ${error.message}`)
+    
+    return res.status(500).json({
+      success: false,
+      error: 'Tenant resolution failed',
+      code: 'TENANT_RESOLUTION_ERROR'
+    })
   }
+}
 
   private extractSubdomain(req: Request): string | null {
     // Method 1: From host header (subdomain.domain.com)
@@ -165,4 +193,31 @@ export class TenantMiddleware implements NestMiddleware {
       res.setHeader('X-Subscription-Plan', business.activeSubscription.planType)
     }
   }
+
+  // Add this method to your TenantMiddleware class
+private shouldSkipTenantResolution(req: Request): boolean {
+  const skipRoutes = [
+    '/api/tenant',                    // Business creation
+    '/api/tenant/register',           // Business registration
+    '/api/tenant/check-subdomain',    // Subdomain availability check
+    '/api/auth',                      // Authentication routes
+    '/api/health',                    // Health checks
+  ];
+
+  const skipPatterns = [
+    /^\/api\/tenant\/[^\/]+$/,        // GET business by ID
+  ];
+
+  // Check exact matches
+  if (skipRoutes.some(route => req.path.startsWith(route))) {
+    return true;
+  }
+
+  // Check pattern matches
+  if (skipPatterns.some(pattern => pattern.test(req.path))) {
+    return true;
+  }
+
+  return false;
+}
 }

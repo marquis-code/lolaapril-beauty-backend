@@ -23,7 +23,7 @@ export declare class StaffController {
     }>;
     getStaffByBusiness(status: string, req: any): Promise<{
         success: boolean;
-        data: import("./schemas/staff.schema").StaffDocument[];
+        data: any;
         message: string;
         error?: undefined;
         code?: undefined;
@@ -101,7 +101,7 @@ export declare class StaffController {
     }>;
     getAssignments(staffId: string, startDate: string, endDate: string): Promise<{
         success: boolean;
-        data: import("./schemas/staff-assignment.schema").StaffAssignmentDocument[];
+        data: any[];
         message: string;
         error?: undefined;
         code?: undefined;
@@ -175,7 +175,7 @@ export declare class StaffController {
     }>;
     updateStaffSkills(staffId: string, skills: any[]): Promise<{
         success: boolean;
-        data: import("./schemas/staff.schema").StaffDocument;
+        data: any;
         message: string;
         error?: undefined;
         code?: undefined;
@@ -188,7 +188,7 @@ export declare class StaffController {
     }>;
     updateStaffStatus(staffId: string, status: string, reason?: string): Promise<{
         success: boolean;
-        data: import("./schemas/staff.schema").StaffDocument;
+        data: any;
         message: string;
         error?: undefined;
         code?: undefined;

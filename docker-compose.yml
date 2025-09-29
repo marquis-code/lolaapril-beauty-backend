@@ -19,12 +19,12 @@ services:
     container_name: olgnova-backend
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "3000:3000"
     environment:
       MONGODB_URI: mongodb://admin:password123@mongodb:27017/olgnova?authSource=admin
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       FRONTEND_URL: http://localhost:3000
-      PORT: 3001
+      PORT: 3000
     depends_on:
       - mongodb
     volumes:

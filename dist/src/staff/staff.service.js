@@ -56,30 +56,30 @@ let StaffService = class StaffService {
         if (status === 'terminated') {
             updateData.terminationDate = new Date();
         }
-        if (reason) {
-        }
-        const staff = await this.staffModel.findByIdAndUpdate(staffId, updateData, { new: true });
-        if (!staff) {
+        const result = await this.staffModel.findByIdAndUpdate(staffId, updateData, { new: true }).exec();
+        if (!result) {
             throw new common_1.NotFoundException('Staff member not found');
         }
-        return staff;
+        return result;
     }
     async updateStaffSkills(staffId, skills) {
-        const staff = await this.staffModel.findByIdAndUpdate(staffId, { skills, updatedAt: new Date() }, { new: true });
-        if (!staff) {
+        const result = await this.staffModel.findByIdAndUpdate(staffId, { skills, updatedAt: new Date() }, { new: true }).exec();
+        if (!result) {
             throw new common_1.NotFoundException('Staff member not found');
         }
-        return staff;
+        return result;
     }
     async getStaffByBusiness(businessId, status) {
         const query = { businessId: new mongoose_2.Types.ObjectId(businessId) };
         if (status) {
             query.status = status;
         }
-        return await this.staffModel
+        const staff = await this.staffModel
             .find(query)
             .populate('userId', 'firstName lastName email')
-            .sort({ firstName: 1 });
+            .sort({ firstName: 1 })
+            .exec();
+        return staff;
     }
     async getAvailableStaff(businessId, date, startTime, endTime, serviceId) {
         let staffQuery = {
@@ -106,7 +106,7 @@ let StaffService = class StaffService {
         return await schedule.save();
     }
     async getStaffSchedule(staffId, date) {
-        return await this.staffScheduleModel.findOne({
+        const schedule = await this.staffScheduleModel.findOne({
             staffId: new mongoose_2.Types.ObjectId(staffId),
             effectiveDate: { $lte: date },
             $or: [
@@ -114,10 +114,11 @@ let StaffService = class StaffService {
                 { endDate: { $gte: date } }
             ],
             isActive: true
-        });
+        }).exec();
+        return schedule;
     }
     async updateStaffSchedule(scheduleId, updateData) {
-        const schedule = await this.staffScheduleModel.findByIdAndUpdate(scheduleId, Object.assign(Object.assign({}, updateData), { updatedAt: new Date() }), { new: true });
+        const schedule = await this.staffScheduleModel.findByIdAndUpdate(scheduleId, Object.assign(Object.assign({}, updateData), { updatedAt: new Date() }), { new: true }).exec();
         if (!schedule) {
             throw new common_1.NotFoundException('Schedule not found');
         }
@@ -191,7 +192,7 @@ let StaffService = class StaffService {
         return await assignment.save();
     }
     async getStaffAssignments(staffId, startDate, endDate) {
-        return await this.staffAssignmentModel
+        const result = await this.staffAssignmentModel
             .find({
             staffId: new mongoose_2.Types.ObjectId(staffId),
             assignmentDate: {
@@ -201,10 +202,12 @@ let StaffService = class StaffService {
         })
             .populate('appointmentId')
             .populate('clientId', 'firstName lastName email phone')
-            .sort({ assignmentDate: 1, 'assignmentDetails.startTime': 1 });
+            .sort({ assignmentDate: 1, 'assignmentDetails.startTime': 1 })
+            .exec();
+        return result;
     }
     async completeStaffAssignment(assignmentId, completionData) {
-        const assignment = await this.staffAssignmentModel.findByIdAndUpdate(assignmentId, Object.assign(Object.assign({}, completionData), { status: 'completed', updatedAt: new Date() }), { new: true });
+        const assignment = await this.staffAssignmentModel.findByIdAndUpdate(assignmentId, Object.assign(Object.assign({}, completionData), { status: 'completed', updatedAt: new Date() }), { new: true }).exec();
         if (!assignment) {
             throw new common_1.NotFoundException('Assignment not found');
         }
@@ -267,7 +270,8 @@ let StaffService = class StaffService {
                 $lte: endDate
             }
         })
-            .sort({ date: 1 });
+            .sort({ date: 1 })
+            .exec();
     }
     async recordWorkingHours(workingHoursDto) {
         const toWorkingTimeSlot = (slot) => {
@@ -355,10 +359,10 @@ let StaffService = class StaffService {
         const completedAssignments = await this.staffAssignmentModel.countDocuments({
             staffId: new mongoose_2.Types.ObjectId(staffId),
             status: 'completed'
-        });
+        }).exec();
         await this.staffModel.findByIdAndUpdate(staffId, {
             completedAppointments: completedAssignments
-        });
+        }).exec();
     }
     timeOverlaps(start1, end1, start2, end2) {
         return !(end1 <= start2 || start1 >= end2);
@@ -456,10 +460,7 @@ StaffService = __decorate([
     __param(1, (0, mongoose_1.InjectModel)(staff_schedule_schema_1.StaffSchedule.name)),
     __param(2, (0, mongoose_1.InjectModel)(staff_assignment_schema_1.StaffAssignment.name)),
     __param(3, (0, mongoose_1.InjectModel)(working_hours_schema_1.WorkingHours.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model,
-        mongoose_2.Model,
-        mongoose_2.Model,
-        mongoose_2.Model])
+    __metadata("design:paramtypes", [Object, Object, Object, Object])
 ], StaffService);
 exports.StaffService = StaffService;
 //# sourceMappingURL=staff.service.js.map

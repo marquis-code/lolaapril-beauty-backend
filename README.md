@@ -169,7 +169,7 @@ MONGODB_URI=mongodb://localhost:27017/olgnova
 JWT_SECRET=your-super-secret-jwt-key
 
 # Optional
-PORT=3001
+PORT=3000
 FRONTEND_URL=http://localhost:3000
 \`\`\`
 

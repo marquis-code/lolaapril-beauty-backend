@@ -82,19 +82,17 @@ let PaymentService = class PaymentService {
         const skip = (page - 1) * limit;
         const sortOptions = {};
         sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
-        const [payments, total] = await Promise.all([
-            this.paymentModel
-                .find(filter)
-                .populate("clientId", "firstName lastName email phone")
-                .populate("appointmentId", "selectedDate selectedTime")
-                .populate("bookingId", "bookingDate startTime")
-                .populate("processedBy", "firstName lastName email")
-                .sort(sortOptions)
-                .skip(skip)
-                .limit(limit)
-                .exec(),
-            this.paymentModel.countDocuments(filter),
-        ]);
+        const payments = await this.paymentModel
+            .find(filter)
+            .populate("clientId", "firstName lastName email phone")
+            .populate("appointmentId", "selectedDate selectedTime")
+            .populate("bookingId", "bookingDate startTime")
+            .populate("processedBy", "firstName lastName email")
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .exec();
+        const total = await this.paymentModel.countDocuments(filter).exec();
         return {
             success: true,
             data: {
@@ -191,15 +189,13 @@ let PaymentService = class PaymentService {
     async getPaymentStats() {
         var _a;
         try {
-            const [totalPayments, completedPayments, totalRevenue, pendingPayments] = await Promise.all([
-                this.paymentModel.countDocuments(),
-                this.paymentModel.countDocuments({ status: "completed" }),
-                this.paymentModel.aggregate([
-                    { $match: { status: "completed" } },
-                    { $group: { _id: null, total: { $sum: "$totalAmount" } } },
-                ]),
-                this.paymentModel.countDocuments({ status: "pending" }),
-            ]);
+            const totalPayments = await this.paymentModel.countDocuments().exec();
+            const completedPayments = await this.paymentModel.countDocuments({ status: "completed" }).exec();
+            const pendingPayments = await this.paymentModel.countDocuments({ status: "pending" }).exec();
+            const totalRevenueResult = await this.paymentModel.aggregate([
+                { $match: { status: "completed" } },
+                { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+            ]).exec();
             const paymentMethodStats = await this.paymentModel.aggregate([
                 { $match: { status: "completed" } },
                 { $group: { _id: "$paymentMethod", count: { $sum: 1 }, total: { $sum: "$totalAmount" } } },
@@ -210,7 +206,7 @@ let PaymentService = class PaymentService {
                 data: {
                     totalPayments,
                     completedPayments,
-                    totalRevenue: ((_a = totalRevenue[0]) === null || _a === void 0 ? void 0 : _a.total) || 0,
+                    totalRevenue: ((_a = totalRevenueResult[0]) === null || _a === void 0 ? void 0 : _a.total) || 0,
                     pendingPayments,
                     paymentMethodStats,
                 },

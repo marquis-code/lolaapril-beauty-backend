@@ -12,6 +12,13 @@ async function bootstrap() {
     const configService = app.get(config_1.ConfigService);
     app.use(compression());
     app.use((0, helmet_1.default)());
+    app.setGlobalPrefix('api', {
+        exclude: [
+            'health',
+            'docs',
+            { path: 'docs/(.*)', method: 'GET' },
+        ]
+    });
     const allowedOrigins = configService.get('ALLOWED_ORIGINS') ||
         'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173';
     app.enableCors({
@@ -65,7 +72,8 @@ async function bootstrap() {
     const port = configService.get('PORT') || 3000;
     await app.listen(port);
     console.log(`Application is running on: ${await app.getUrl()}`);
-    console.log(`Swagger documentation: http://localhost:${port}/api/docs`);
+    console.log(`Swagger documentation: http://localhost:${port}/docs`);
+    console.log(`API endpoints available at: http://localhost:${port}/api`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

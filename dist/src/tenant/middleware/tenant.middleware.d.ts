@@ -22,4 +22,5 @@ export declare class TenantMiddleware implements NestMiddleware {
     private extractSubdomain;
     private extractSubdomainFromHost;
     private setTenantHeaders;
+    private shouldSkipTenantResolution;
 }

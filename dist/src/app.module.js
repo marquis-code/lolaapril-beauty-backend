@@ -40,7 +40,7 @@ let AppModule = class AppModule {
             .forRoutes({ path: '*', method: common_1.RequestMethod.ALL });
         consumer
             .apply(tenant_middleware_1.TenantMiddleware)
-            .exclude({ path: 'health', method: common_1.RequestMethod.GET }, { path: 'docs', method: common_1.RequestMethod.GET }, { path: 'api/auth/login', method: common_1.RequestMethod.POST }, { path: 'api/auth/register', method: common_1.RequestMethod.POST }, { path: 'api/webhooks/(.*)', method: common_1.RequestMethod.ALL })
+            .exclude({ path: 'health', method: common_1.RequestMethod.GET }, { path: 'docs', method: common_1.RequestMethod.GET }, { path: 'api/auth/login', method: common_1.RequestMethod.POST }, { path: 'api/auth/register', method: common_1.RequestMethod.POST }, { path: 'api/webhooks/(.*)', method: common_1.RequestMethod.ALL }, { path: 'api/tenant', method: common_1.RequestMethod.POST }, { path: 'api/tenant/register', method: common_1.RequestMethod.POST }, { path: 'api/tenant/check-subdomain', method: common_1.RequestMethod.GET }, 'api/auth/(.*)')
             .forRoutes({ path: '*', method: common_1.RequestMethod.ALL });
     }
 };

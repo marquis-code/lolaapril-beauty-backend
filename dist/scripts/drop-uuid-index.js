@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 async function dropUuidIndex() {
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/your_database_name';
+    const uri = process.env.MONGODB_URL || 'mongodb://localhost:27017/your_database_name';
     const client = new mongodb_1.MongoClient(uri);
     try {
         await client.connect();

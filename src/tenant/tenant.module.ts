@@ -59,15 +59,9 @@ import { TenantConfig, TenantConfigSchema } from './schemas/tenant-config.schema
   controllers: [TenantController],
   providers: [
     TenantService,
-    // Note: Middleware and Guards should be registered separately in app.module.ts
-    // TenantMiddleware,
-    // TenantGuard,
-    // BusinessOwnerGuard,
-    // SubscriptionFeatureGuard,
   ],
   exports: [
     TenantService,
-    // Export schemas for use in other modules
     MongooseModule,
   ],
 })

@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 
 async function dropUuidIndex() {
   // Replace with your MongoDB connection string
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/your_database_name';
+  const uri = process.env.MONGODB_URL || 'mongodb://localhost:27017/your_database_name';
   
   const client = new MongoClient(uri);
   

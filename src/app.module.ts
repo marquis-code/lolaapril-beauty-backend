@@ -106,6 +106,10 @@ export class AppModule {
         { path: 'api/auth/login', method: RequestMethod.POST },
         { path: 'api/auth/register', method: RequestMethod.POST },
         { path: 'api/webhooks/(.*)', method: RequestMethod.ALL },
+        { path: 'api/tenant', method: RequestMethod.POST },
+        { path: 'api/tenant/register', method: RequestMethod.POST },
+        { path: 'api/tenant/check-subdomain', method: RequestMethod.GET },
+        'api/auth/(.*)',
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL })
   }
