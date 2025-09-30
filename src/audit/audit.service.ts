@@ -54,16 +54,16 @@ export class AuditService {
 
     const skip = (page - 1) * limit
 
-    const [logs, total] = await Promise.all([
-      this.auditLogModel
-        .find(query)
-        .populate("userId", "firstName lastName email")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .exec(),
-      this.auditLogModel.countDocuments(query),
-    ])
+    // Execute queries sequentially to avoid complex union type inference
+    const logs = await this.auditLogModel
+      .find(query)
+      .populate("userId", "firstName lastName email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec()
+
+    const total = await this.auditLogModel.countDocuments(query)
 
     return {
       logs,

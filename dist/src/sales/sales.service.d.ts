@@ -15,11 +15,7 @@ export declare class SalesService {
     findAllWithQuery(query: SalesQueryDto): Promise<{
         success: boolean;
         data: {
-            sales: (import("mongoose").Document<unknown, {}, SaleDocument, {}, {}> & Sale & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-                _id: unknown;
-            }> & {
-                __v: number;
-            })[];
+            sales: SaleDocument[];
             pagination: {
                 page: number;
                 limit: number;

@@ -52,16 +52,13 @@ let VoucherService = class VoucherService {
         const skip = (page - 1) * limit;
         const sortOptions = {};
         sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
-        const [vouchers, total] = await Promise.all([
-            this.voucherModel
-                .find(filter)
-                .populate("createdBy", "firstName lastName email")
-                .sort(sortOptions)
-                .skip(skip)
-                .limit(limit)
-                .exec(),
-            this.voucherModel.countDocuments(filter),
-        ]);
+        const vouchersQuery = this.voucherModel.find(filter);
+        vouchersQuery.populate("createdBy", "firstName lastName email");
+        vouchersQuery.sort(sortOptions);
+        vouchersQuery.skip(skip);
+        vouchersQuery.limit(limit);
+        const vouchers = await vouchersQuery.exec();
+        const total = await this.voucherModel.countDocuments(filter);
         return {
             vouchers,
             pagination: {
@@ -73,7 +70,9 @@ let VoucherService = class VoucherService {
         };
     }
     async findOne(id) {
-        const voucher = await this.voucherModel.findById(id).populate("createdBy", "firstName lastName email").exec();
+        const voucherQuery = this.voucherModel.findById(id);
+        voucherQuery.populate("createdBy", "firstName lastName email");
+        const voucher = await voucherQuery.exec();
         if (!voucher) {
             throw new common_1.NotFoundException("Voucher not found");
         }
@@ -87,10 +86,9 @@ let VoucherService = class VoucherService {
         return voucher;
     }
     async update(id, updateVoucherDto) {
-        const voucher = await this.voucherModel
-            .findByIdAndUpdate(id, Object.assign(Object.assign({}, updateVoucherDto), { updatedAt: new Date() }), { new: true })
-            .populate("createdBy", "firstName lastName email")
-            .exec();
+        const updateQuery = this.voucherModel.findByIdAndUpdate(id, Object.assign(Object.assign({}, updateVoucherDto), { updatedAt: new Date() }), { new: true });
+        updateQuery.populate("createdBy", "firstName lastName email");
+        const voucher = await updateQuery.exec();
         if (!voucher) {
             throw new common_1.NotFoundException("Voucher not found");
         }
@@ -155,12 +153,11 @@ let VoucherService = class VoucherService {
         };
     }
     async useVoucher(voucherCode) {
-        const voucher = await this.voucherModel
-            .findOneAndUpdate({ voucherCode }, {
+        const useQuery = this.voucherModel.findOneAndUpdate({ voucherCode }, {
             $inc: { usedCount: 1 },
             updatedAt: new Date(),
-        }, { new: true })
-            .exec();
+        }, { new: true });
+        const voucher = await useQuery.exec();
         if (!voucher) {
             throw new common_1.NotFoundException("Voucher not found");
         }

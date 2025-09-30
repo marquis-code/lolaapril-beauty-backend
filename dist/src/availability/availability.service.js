@@ -49,11 +49,19 @@ let AvailabilityService = class AvailabilityService {
         const existingAvailability = await this.staffAvailabilityModel.findOne({
             staffId: new mongoose_2.Types.ObjectId(dto.staffId),
             date: new Date(dto.date.getFullYear(), dto.date.getMonth(), dto.date.getDate())
-        });
+        }).exec();
         if (existingAvailability) {
-            existingAvailability.availableSlots = dto.availableSlots;
-            existingAvailability.updatedAt = new Date();
-            return await existingAvailability.save();
+            const updated = await this.staffAvailabilityModel
+                .findByIdAndUpdate(existingAvailability._id, {
+                availableSlots: dto.availableSlots,
+                updatedAt: new Date()
+            }, { new: true })
+                .lean()
+                .exec();
+            if (!updated) {
+                throw new common_1.BadRequestException('Failed to update staff availability');
+            }
+            return updated;
         }
         const availability = new this.staffAvailabilityModel({
             staffId: new mongoose_2.Types.ObjectId(dto.staffId),
@@ -62,13 +70,21 @@ let AvailabilityService = class AvailabilityService {
             availableSlots: dto.availableSlots,
             createdBy: new mongoose_2.Types.ObjectId(dto.createdBy)
         });
-        return await availability.save();
+        await availability.save();
+        const saved = await this.staffAvailabilityModel
+            .findById(availability._id)
+            .lean()
+            .exec();
+        if (!saved) {
+            throw new common_1.BadRequestException('Failed to retrieve saved staff availability');
+        }
+        return saved;
     }
     async blockStaffTime(dto) {
         const availability = await this.staffAvailabilityModel.findOne({
             staffId: new mongoose_2.Types.ObjectId(dto.staffId),
             date: new Date(dto.date.getFullYear(), dto.date.getMonth(), dto.date.getDate())
-        });
+        }).exec();
         if (!availability) {
             throw new common_1.BadRequestException('Staff availability not found');
         }
@@ -81,9 +97,12 @@ let AvailabilityService = class AvailabilityService {
         await availability.save();
     }
     async getBusinessHours(businessId, date) {
-        const businessHours = await this.businessHoursModel.findOne({
+        const businessHours = await this.businessHoursModel
+            .findOne({
             businessId: new mongoose_2.Types.ObjectId(businessId)
-        });
+        })
+            .lean()
+            .exec();
         if (!businessHours)
             return [];
         const isHoliday = businessHours.holidays.some(holiday => holiday.toDateString() === date.toDateString());
@@ -96,12 +115,15 @@ let AvailabilityService = class AvailabilityService {
         return daySchedule.timeSlots.filter(slot => !slot.isBreak);
     }
     async getStaffAvailability(businessId, staffIds, date) {
-        return await this.staffAvailabilityModel.find({
+        return await this.staffAvailabilityModel
+            .find({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             staffId: { $in: staffIds },
             date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
             status: { $ne: 'unavailable' }
-        });
+        })
+            .lean()
+            .exec();
     }
     generateAvailableSlots(businessHours, staffAvailability, duration) {
         const slots = [];
@@ -145,11 +167,14 @@ let AvailabilityService = class AvailabilityService {
     async checkStaffAvailability(staffIds, date, startTime, endTime) {
         if (staffIds.length === 0)
             return true;
-        const availability = await this.staffAvailabilityModel.find({
+        const availability = await this.staffAvailabilityModel
+            .find({
             staffId: { $in: staffIds },
             date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
             status: { $ne: 'unavailable' }
-        });
+        })
+            .lean()
+            .exec();
         return availability.length >= staffIds.length &&
             availability.every(avail => this.isTimeSlotAvailable(avail.availableSlots, startTime, endTime) &&
                 !this.isTimeSlotBlocked(avail.blockedSlots, startTime, endTime));

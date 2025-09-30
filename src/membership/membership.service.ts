@@ -22,47 +22,89 @@ export class MembershipService {
     return membership.save()
   }
 
+  // async findAllMemberships(query: MembershipQueryDto) {
+  //   const { page = 1, limit = 10, membershipType, isActive, search, sortBy = "createdAt", sortOrder = "desc" } = query
+
+  //   const filter: any = {}
+
+  //   if (membershipType) filter.membershipType = membershipType
+  //   if (isActive !== undefined) filter.isActive = isActive
+
+  //   // Search functionality
+  //   if (search) {
+  //     filter.$or = [
+  //       { membershipName: { $regex: search, $options: "i" } },
+  //       { description: { $regex: search, $options: "i" } },
+  //     ]
+  //   }
+
+  //   const skip = (page - 1) * limit
+  //   const sortOptions: any = {}
+  //   sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1
+
+  //   const [memberships, total] = await Promise.all([
+  //     this.membershipModel
+  //       .find(filter)
+  //       .populate("createdBy", "firstName lastName email")
+  //       .sort(sortOptions)
+  //       .skip(skip)
+  //       .limit(limit)
+  //       .exec(),
+  //     this.membershipModel.countDocuments(filter),
+  //   ])
+
+  //   return {
+  //     memberships,
+  //     pagination: {
+  //       page,
+  //       limit,
+  //       total,
+  //       pages: Math.ceil(total / limit),
+  //     },
+  //   }
+  // }
+
   async findAllMemberships(query: MembershipQueryDto) {
-    const { page = 1, limit = 10, membershipType, isActive, search, sortBy = "createdAt", sortOrder = "desc" } = query
+  const { page = 1, limit = 10, membershipType, isActive, search, sortBy = "createdAt", sortOrder = "desc" } = query
 
-    const filter: any = {}
+  const filter: any = {}
 
-    if (membershipType) filter.membershipType = membershipType
-    if (isActive !== undefined) filter.isActive = isActive
+  if (membershipType) filter.membershipType = membershipType
+  if (isActive !== undefined) filter.isActive = isActive
 
-    // Search functionality
-    if (search) {
-      filter.$or = [
-        { membershipName: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ]
-    }
-
-    const skip = (page - 1) * limit
-    const sortOptions: any = {}
-    sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1
-
-    const [memberships, total] = await Promise.all([
-      this.membershipModel
-        .find(filter)
-        .populate("createdBy", "firstName lastName email")
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .exec(),
-      this.membershipModel.countDocuments(filter),
-    ])
-
-    return {
-      memberships,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    }
+  // Search functionality
+  if (search) {
+    filter.$or = [
+      { membershipName: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ]
   }
+
+  const skip = (page - 1) * limit
+  const sortOptions: any = {}
+  sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1
+
+  // Execute queries separately to avoid complex type inference
+  const memberships = await this.membershipModel
+    .find(filter)
+    .populate("createdBy", "firstName lastName email")
+    .sort(sortOptions)
+    .skip(skip)
+    .limit(limit)
+    .exec()
+  
+  const total = await this.membershipModel.countDocuments(filter)
+
+  return {
+    memberships,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
+    },
+  }
+}
 
   async findMembershipById(id: string): Promise<Membership> {
     const membership = await this.membershipModel.findById(id).populate("createdBy", "firstName lastName email").exec()

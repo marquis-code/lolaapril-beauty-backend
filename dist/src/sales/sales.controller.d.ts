@@ -9,11 +9,7 @@ export declare class SalesController {
     findAll(query: SalesQueryDto): Promise<{
         success: boolean;
         data: {
-            sales: (import("mongoose").Document<unknown, {}, import("./schemas/sale.schema").SaleDocument, {}, {}> & import("./schemas/sale.schema").Sale & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-                _id: unknown;
-            }> & {
-                __v: number;
-            })[];
+            sales: import("./schemas/sale.schema").SaleDocument[];
             pagination: {
                 page: number;
                 limit: number;

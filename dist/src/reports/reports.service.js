@@ -32,18 +32,16 @@ let ReportsService = class ReportsService {
         try {
             const startDate = moment(date).startOf("day").toDate();
             const endDate = moment(date).endOf("day").toDate();
-            const [sales, appointments, newClients] = await Promise.all([
-                this.saleModel.find({
-                    createdAt: { $gte: startDate, $lte: endDate },
-                    status: "completed",
-                }),
-                this.appointmentModel.find({
-                    selectedDate: date,
-                }),
-                this.clientModel.find({
-                    createdAt: { $gte: startDate, $lte: endDate },
-                }),
-            ]);
+            const sales = await this.saleModel.find({
+                createdAt: { $gte: startDate, $lte: endDate },
+                status: "completed",
+            }).lean();
+            const appointments = await this.appointmentModel.find({
+                selectedDate: date,
+            }).lean();
+            const newClients = await this.clientModel.find({
+                createdAt: { $gte: startDate, $lte: endDate },
+            }).lean();
             const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
             const totalAppointments = appointments.length;
             const completedAppointments = appointments.filter((apt) => apt.status === "completed").length;

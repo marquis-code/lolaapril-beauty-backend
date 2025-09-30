@@ -29,12 +29,20 @@ let BookingService = BookingService_1 = class BookingService {
     async createBooking(createBookingData) {
         try {
             const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
-            const booking = new this.bookingModel(Object.assign(Object.assign({}, createBookingData), { expiresAt, clientId: new mongoose_2.Types.ObjectId(createBookingData.clientId), businessId: new mongoose_2.Types.ObjectId(createBookingData.businessId), services: createBookingData.services.map(service => (Object.assign(Object.assign({}, service), { serviceId: new mongoose_2.Types.ObjectId(service.serviceId), preferredStaffId: service.preferredStaffId ?
-                        new mongoose_2.Types.ObjectId(service.preferredStaffId) : undefined }))) }));
-            const savedBooking = await booking.save();
-            this.eventEmitter.emit('booking.created', savedBooking);
-            this.logger.log(`Booking created: ${savedBooking.bookingNumber}`);
-            return savedBooking;
+            const bookingData = Object.assign(Object.assign({}, createBookingData), { expiresAt, clientId: new mongoose_2.Types.ObjectId(createBookingData.clientId), businessId: new mongoose_2.Types.ObjectId(createBookingData.businessId), services: createBookingData.services.map(service => (Object.assign(Object.assign({}, service), { serviceId: new mongoose_2.Types.ObjectId(service.serviceId), preferredStaffId: service.preferredStaffId ?
+                        new mongoose_2.Types.ObjectId(service.preferredStaffId) : undefined }))) });
+            const [savedBooking] = await this.bookingModel.create([bookingData]);
+            const bookingId = savedBooking._id.toString();
+            const bookingResult = await this.bookingModel
+                .findById(bookingId)
+                .lean()
+                .exec();
+            if (!bookingResult) {
+                throw new Error('Failed to retrieve saved booking');
+            }
+            this.eventEmitter.emit('booking.created', bookingResult);
+            this.logger.log(`Booking created: ${bookingResult.bookingNumber}`);
+            return bookingResult;
         }
         catch (error) {
             this.logger.error(`Failed to create booking: ${error.message}`);
@@ -46,7 +54,9 @@ let BookingService = BookingService_1 = class BookingService {
             .findById(bookingId)
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
             .populate('services.preferredStaffId', 'firstName lastName')
-            .populate('processedBy', 'firstName lastName');
+            .populate('processedBy', 'firstName lastName')
+            .lean()
+            .exec();
         if (!booking) {
             throw new common_1.NotFoundException('Booking not found');
         }
@@ -71,16 +81,16 @@ let BookingService = BookingService_1 = class BookingService {
         const limit = parseInt(query.limit) || 50;
         const offset = parseInt(query.offset) || 0;
         const page = Math.floor(offset / limit) + 1;
-        const [bookings, total] = await Promise.all([
-            this.bookingModel
-                .find(filter)
-                .populate('services.serviceId', 'basicDetails pricingAndDuration')
-                .populate('services.preferredStaffId', 'firstName lastName')
-                .sort({ createdAt: -1 })
-                .limit(limit)
-                .skip(offset),
-            this.bookingModel.countDocuments(filter)
-        ]);
+        const bookings = await this.bookingModel
+            .find(filter)
+            .populate('services.serviceId', 'basicDetails pricingAndDuration')
+            .populate('services.preferredStaffId', 'firstName lastName')
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .skip(offset)
+            .lean()
+            .exec();
+        const total = await this.bookingModel.countDocuments(filter).exec();
         return {
             bookings,
             total,
@@ -105,7 +115,10 @@ let BookingService = BookingService_1 = class BookingService {
                 updateData.rejectionReason = reason;
             }
         }
-        const booking = await this.bookingModel.findByIdAndUpdate(bookingId, updateData, { new: true });
+        const booking = await this.bookingModel
+            .findByIdAndUpdate(bookingId, updateData, { new: true })
+            .lean()
+            .exec();
         if (!booking) {
             throw new common_1.NotFoundException('Booking not found');
         }
@@ -119,65 +132,80 @@ let BookingService = BookingService_1 = class BookingService {
         return booking;
     }
     async confirmBooking(bookingId, staffId, confirmedBy) {
-        const booking = await this.bookingModel.findById(bookingId);
-        if (!booking) {
+        const bookingDoc = await this.bookingModel.findById(bookingId).exec();
+        if (!bookingDoc) {
             throw new common_1.NotFoundException('Booking not found');
         }
-        if (booking.status !== 'pending') {
+        if (bookingDoc.status !== 'pending') {
             throw new common_1.BadRequestException('Booking is not in pending status');
         }
-        booking.status = 'confirmed';
-        booking.processedBy = new mongoose_2.Types.ObjectId(confirmedBy);
-        booking.updatedAt = new Date();
-        const savedBooking = await booking.save();
+        bookingDoc.status = 'confirmed';
+        bookingDoc.processedBy = new mongoose_2.Types.ObjectId(confirmedBy);
+        bookingDoc.updatedAt = new Date();
+        await bookingDoc.save();
+        const booking = await this.bookingModel
+            .findById(bookingId)
+            .lean()
+            .exec();
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found after save');
+        }
         this.eventEmitter.emit('booking.confirmed', {
-            booking: savedBooking,
+            booking,
             staffId,
             confirmedBy
         });
         this.logger.log(`Booking ${booking.bookingNumber} confirmed by staff ${confirmedBy}`);
-        return savedBooking;
+        return booking;
     }
     async rejectBooking(bookingId, reason, rejectedBy) {
-        const booking = await this.bookingModel.findById(bookingId);
-        if (!booking) {
+        const bookingDoc = await this.bookingModel.findById(bookingId).exec();
+        if (!bookingDoc) {
             throw new common_1.NotFoundException('Booking not found');
         }
-        if (booking.status !== 'pending') {
+        if (bookingDoc.status !== 'pending') {
             throw new common_1.BadRequestException('Booking is not in pending status');
         }
-        booking.status = 'rejected';
-        booking.rejectionReason = reason;
-        booking.processedBy = new mongoose_2.Types.ObjectId(rejectedBy);
-        booking.updatedAt = new Date();
-        await booking.save();
+        bookingDoc.status = 'rejected';
+        bookingDoc.rejectionReason = reason;
+        bookingDoc.processedBy = new mongoose_2.Types.ObjectId(rejectedBy);
+        bookingDoc.updatedAt = new Date();
+        await bookingDoc.save();
+        const booking = await this.bookingModel
+            .findById(bookingId)
+            .lean()
+            .exec();
         this.eventEmitter.emit('booking.rejected', {
             booking,
             reason,
             rejectedBy
         });
-        this.logger.log(`Booking ${booking.bookingNumber} rejected: ${reason}`);
+        this.logger.log(`Booking ${booking === null || booking === void 0 ? void 0 : booking.bookingNumber} rejected: ${reason}`);
     }
     async cancelBooking(bookingId, reason, cancelledBy) {
-        const booking = await this.bookingModel.findById(bookingId);
-        if (!booking) {
+        const bookingDoc = await this.bookingModel.findById(bookingId).exec();
+        if (!bookingDoc) {
             throw new common_1.NotFoundException('Booking not found');
         }
-        if (['cancelled', 'expired'].includes(booking.status)) {
+        if (['cancelled', 'expired'].includes(bookingDoc.status)) {
             throw new common_1.BadRequestException('Booking is already cancelled or expired');
         }
-        booking.status = 'cancelled';
-        booking.cancellationReason = reason;
-        booking.cancellationDate = new Date();
-        booking.processedBy = new mongoose_2.Types.ObjectId(cancelledBy);
-        booking.updatedAt = new Date();
-        await booking.save();
+        bookingDoc.status = 'cancelled';
+        bookingDoc.cancellationReason = reason;
+        bookingDoc.cancellationDate = new Date();
+        bookingDoc.processedBy = new mongoose_2.Types.ObjectId(cancelledBy);
+        bookingDoc.updatedAt = new Date();
+        await bookingDoc.save();
+        const booking = await this.bookingModel
+            .findById(bookingId)
+            .lean()
+            .exec();
         this.eventEmitter.emit('booking.cancelled', {
             booking,
             reason,
             cancelledBy
         });
-        this.logger.log(`Booking ${booking.bookingNumber} cancelled: ${reason}`);
+        this.logger.log(`Booking ${booking === null || booking === void 0 ? void 0 : booking.bookingNumber} cancelled: ${reason}`);
     }
     async getClientBookings(clientId, status) {
         const filter = {
@@ -186,17 +214,20 @@ let BookingService = BookingService_1 = class BookingService {
         if (status) {
             filter.status = status;
         }
-        return await this.bookingModel
+        const bookings = await this.bookingModel
             .find(filter)
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
             .populate('businessId', 'businessName contact address')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean()
+            .exec();
+        return bookings;
     }
     async getTodayBookings(businessId) {
         const today = new Date();
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-        return await this.bookingModel
+        const bookings = await this.bookingModel
             .find({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             preferredDate: {
@@ -206,23 +237,29 @@ let BookingService = BookingService_1 = class BookingService {
         })
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
             .populate('services.preferredStaffId', 'firstName lastName')
-            .sort({ preferredStartTime: 1 });
+            .sort({ preferredStartTime: 1 })
+            .lean()
+            .exec();
+        return bookings;
     }
     async getPendingBookings(businessId) {
-        return await this.bookingModel
+        const bookings = await this.bookingModel
             .find({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             status: 'pending',
             expiresAt: { $gt: new Date() }
         })
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
-            .sort({ createdAt: 1 });
+            .sort({ createdAt: 1 })
+            .lean()
+            .exec();
+        return bookings;
     }
     async getUpcomingBookings(businessId, days = 7) {
         const startDate = new Date();
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + days);
-        return await this.bookingModel
+        const bookings = await this.bookingModel
             .find({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             status: { $in: ['confirmed', 'pending'] },
@@ -232,29 +269,39 @@ let BookingService = BookingService_1 = class BookingService {
             }
         })
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
-            .sort({ preferredDate: 1, preferredStartTime: 1 });
+            .sort({ preferredDate: 1, preferredStartTime: 1 })
+            .lean()
+            .exec();
+        return bookings;
     }
     async linkAppointment(bookingId, appointmentId) {
         await this.bookingModel.findByIdAndUpdate(bookingId, {
             appointmentId: new mongoose_2.Types.ObjectId(appointmentId),
             updatedAt: new Date()
-        });
+        }).exec();
         this.logger.log(`Booking ${bookingId} linked to appointment ${appointmentId}`);
     }
     async extendBookingExpiry(bookingId, additionalMinutes = 30) {
-        const booking = await this.bookingModel.findById(bookingId);
-        if (!booking) {
+        const bookingDoc = await this.bookingModel.findById(bookingId).exec();
+        if (!bookingDoc) {
             throw new common_1.NotFoundException('Booking not found');
         }
-        if (booking.status !== 'pending') {
+        if (bookingDoc.status !== 'pending') {
             throw new common_1.BadRequestException('Can only extend pending bookings');
         }
-        const newExpiryTime = new Date(booking.expiresAt.getTime() + additionalMinutes * 60 * 1000);
-        booking.expiresAt = newExpiryTime;
-        booking.updatedAt = new Date();
-        const savedBooking = await booking.save();
+        const newExpiryTime = new Date(bookingDoc.expiresAt.getTime() + additionalMinutes * 60 * 1000);
+        const booking = await this.bookingModel
+            .findByIdAndUpdate(bookingId, {
+            expiresAt: newExpiryTime,
+            updatedAt: new Date()
+        }, { new: true })
+            .lean()
+            .exec();
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found after update');
+        }
         this.logger.log(`Booking ${booking.bookingNumber} expiry extended by ${additionalMinutes} minutes`);
-        return savedBooking;
+        return booking;
     }
     async getBookingStats(businessId, startDate, endDate) {
         const matchStage = {
@@ -275,8 +322,8 @@ let BookingService = BookingService_1 = class BookingService {
                     totalValue: { $sum: '$estimatedTotal' }
                 }
             }
-        ]);
-        const totalBookings = await this.bookingModel.countDocuments(matchStage);
+        ]).exec();
+        const totalBookings = await this.bookingModel.countDocuments(matchStage).exec();
         return {
             totalBookings,
             statusBreakdown: stats,
@@ -285,10 +332,13 @@ let BookingService = BookingService_1 = class BookingService {
     }
     async cleanupExpiredBookings() {
         try {
-            const expiredBookings = await this.bookingModel.find({
+            const expiredBookings = await this.bookingModel
+                .find({
                 status: 'pending',
                 expiresAt: { $lt: new Date() }
-            });
+            })
+                .lean()
+                .exec();
             if (expiredBookings.length > 0) {
                 await this.bookingModel.updateMany({
                     status: 'pending',
@@ -296,7 +346,7 @@ let BookingService = BookingService_1 = class BookingService {
                 }, {
                     status: 'expired',
                     updatedAt: new Date()
-                });
+                }).exec();
                 for (const booking of expiredBookings) {
                     this.eventEmitter.emit('booking.expired', booking);
                 }
@@ -309,7 +359,7 @@ let BookingService = BookingService_1 = class BookingService {
     }
     async sendPaymentReminders() {
         try {
-            const pendingBookings = await this.bookingModel.find({
+            const pendingBookingDocs = await this.bookingModel.find({
                 status: 'pending',
                 remindersSent: { $lt: 3 },
                 expiresAt: { $gt: new Date() },
@@ -317,15 +367,22 @@ let BookingService = BookingService_1 = class BookingService {
                     { lastReminderAt: { $exists: false } },
                     { lastReminderAt: { $lt: new Date(Date.now() - 10 * 60 * 1000) } }
                 ]
-            });
-            for (const booking of pendingBookings) {
-                this.eventEmitter.emit('booking.payment.reminder', booking);
-                booking.remindersSent += 1;
-                booking.lastReminderAt = new Date();
-                await booking.save();
+            }).exec();
+            for (const bookingDoc of pendingBookingDocs) {
+                const bookingId = bookingDoc._id.toString();
+                const booking = await this.bookingModel
+                    .findById(bookingId)
+                    .lean()
+                    .exec();
+                if (booking) {
+                    this.eventEmitter.emit('booking.payment.reminder', booking);
+                }
+                bookingDoc.remindersSent += 1;
+                bookingDoc.lastReminderAt = new Date();
+                await bookingDoc.save();
             }
-            if (pendingBookings.length > 0) {
-                this.logger.log(`Sent payment reminders for ${pendingBookings.length} bookings`);
+            if (pendingBookingDocs.length > 0) {
+                this.logger.log(`Sent payment reminders for ${pendingBookingDocs.length} bookings`);
             }
         }
         catch (error) {

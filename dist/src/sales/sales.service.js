@@ -24,7 +24,14 @@ let SalesService = class SalesService {
     async create(createSaleDto) {
         try {
             const sale = new this.saleModel(createSaleDto);
-            const savedSale = await sale.save();
+            await sale.save();
+            const savedSale = await this.saleModel
+                .findById(sale._id)
+                .lean()
+                .exec();
+            if (!savedSale) {
+                throw new Error("Failed to retrieve saved sale");
+            }
             return {
                 success: true,
                 data: savedSale,
@@ -41,7 +48,9 @@ let SalesService = class SalesService {
                 .find()
                 .populate("clientId", "profile.firstName profile.lastName profile.email")
                 .populate("createdBy", "firstName lastName")
-                .sort({ createdAt: -1 });
+                .sort({ createdAt: -1 })
+                .lean()
+                .exec();
             return {
                 success: true,
                 data: sales,
@@ -57,7 +66,9 @@ let SalesService = class SalesService {
                 .findById(id)
                 .populate("clientId", "profile.firstName profile.lastName profile.email")
                 .populate("createdBy", "firstName lastName")
-                .populate("completedBy", "firstName lastName");
+                .populate("completedBy", "firstName lastName")
+                .lean()
+                .exec();
             if (!sale) {
                 throw new common_1.NotFoundException("Sale not found");
             }
@@ -75,12 +86,15 @@ let SalesService = class SalesService {
     }
     async completeSale(id, completedBy) {
         try {
-            const sale = await this.saleModel.findByIdAndUpdate(id, {
+            const sale = await this.saleModel
+                .findByIdAndUpdate(id, {
                 status: "completed",
                 completedBy,
                 completedAt: new Date(),
                 updatedAt: new Date(),
-            }, { new: true, runValidators: true });
+            }, { new: true, runValidators: true })
+                .lean()
+                .exec();
             if (!sale) {
                 throw new common_1.NotFoundException("Sale not found");
             }
@@ -170,20 +184,19 @@ let SalesService = class SalesService {
         const skip = (page - 1) * limit;
         const sortOptions = {};
         sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
-        const [sales, total] = await Promise.all([
-            this.saleModel
-                .find(filter)
-                .populate("clientId", "firstName lastName email phone")
-                .populate("appointmentId", "selectedDate selectedTime")
-                .populate("bookingId", "bookingDate startTime")
-                .populate("createdBy", "firstName lastName email")
-                .populate("completedBy", "firstName lastName email")
-                .sort(sortOptions)
-                .skip(skip)
-                .limit(limit)
-                .exec(),
-            this.saleModel.countDocuments(filter),
-        ]);
+        const sales = await this.saleModel
+            .find(filter)
+            .populate("clientId", "firstName lastName email phone")
+            .populate("appointmentId", "selectedDate selectedTime")
+            .populate("bookingId", "bookingDate startTime")
+            .populate("createdBy", "firstName lastName email")
+            .populate("completedBy", "firstName lastName email")
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .lean()
+            .exec();
+        const total = await this.saleModel.countDocuments(filter).exec();
         return {
             success: true,
             data: {
@@ -204,6 +217,7 @@ let SalesService = class SalesService {
                 .populate("clientId", "firstName lastName email phone")
                 .populate("createdBy", "firstName lastName email")
                 .populate("completedBy", "firstName lastName email")
+                .lean()
                 .exec();
             if (!sale) {
                 throw new common_1.NotFoundException("Sale not found");
@@ -227,6 +241,7 @@ let SalesService = class SalesService {
                 .findByIdAndUpdate(id, { status, updatedAt: new Date() }, { new: true })
                 .populate("clientId", "firstName lastName email phone")
                 .populate("createdBy", "firstName lastName email")
+                .lean()
                 .exec();
             if (!sale) {
                 throw new common_1.NotFoundException("Sale not found");
@@ -249,7 +264,10 @@ let SalesService = class SalesService {
             const updateData = { paymentStatus, updatedAt: new Date() };
             if (amountPaid !== undefined) {
                 updateData.amountPaid = amountPaid;
-                const sale = await this.saleModel.findById(id);
+                const sale = await this.saleModel
+                    .findById(id)
+                    .lean()
+                    .exec();
                 if (sale) {
                     updateData.amountDue = Math.max(0, sale.totalAmount - amountPaid);
                 }
@@ -258,6 +276,7 @@ let SalesService = class SalesService {
                 .findByIdAndUpdate(id, updateData, { new: true })
                 .populate("clientId", "firstName lastName email phone")
                 .populate("createdBy", "firstName lastName email")
+                .lean()
                 .exec();
             if (!sale) {
                 throw new common_1.NotFoundException("Sale not found");
@@ -351,7 +370,7 @@ let SalesService = class SalesService {
     }
     async remove(id) {
         try {
-            const result = await this.saleModel.findByIdAndDelete(id);
+            const result = await this.saleModel.findByIdAndDelete(id).exec();
             if (!result) {
                 throw new common_1.NotFoundException("Sale not found");
             }

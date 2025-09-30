@@ -44,16 +44,14 @@ let AuditService = class AuditService {
                 query.createdAt.$lte = endDate;
         }
         const skip = (page - 1) * limit;
-        const [logs, total] = await Promise.all([
-            this.auditLogModel
-                .find(query)
-                .populate("userId", "firstName lastName email")
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .exec(),
-            this.auditLogModel.countDocuments(query),
-        ]);
+        const logs = await this.auditLogModel
+            .find(query)
+            .populate("userId", "firstName lastName email")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .exec();
+        const total = await this.auditLogModel.countDocuments(query);
         return {
             logs,
             pagination: {

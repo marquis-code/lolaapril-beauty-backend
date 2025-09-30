@@ -44,16 +44,14 @@ let MembershipService = class MembershipService {
         const skip = (page - 1) * limit;
         const sortOptions = {};
         sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
-        const [memberships, total] = await Promise.all([
-            this.membershipModel
-                .find(filter)
-                .populate("createdBy", "firstName lastName email")
-                .sort(sortOptions)
-                .skip(skip)
-                .limit(limit)
-                .exec(),
-            this.membershipModel.countDocuments(filter),
-        ]);
+        const memberships = await this.membershipModel
+            .find(filter)
+            .populate("createdBy", "firstName lastName email")
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .exec();
+        const total = await this.membershipModel.countDocuments(filter);
         return {
             memberships,
             pagination: {

@@ -46,20 +46,25 @@ let TeamService = class TeamService {
             });
         }
         if (serviceIds.size > 0) {
-            const existingServices = await this.serviceModel
-                .find({
-                _id: { $in: Array.from(serviceIds).map(id => new mongoose_1.Types.ObjectId(id)) },
+            const serviceObjectIds = Array.from(serviceIds).map(id => new mongoose_1.Types.ObjectId(id));
+            const query = this.serviceModel.find({
+                _id: { $in: serviceObjectIds },
                 isActive: true
-            })
-                .select('_id basicDetails.serviceName');
-            const existingServiceIds = new Set(existingServices.map(service => service._id.toString()));
+            });
+            query.select('_id basicDetails.serviceName');
+            query.lean();
+            const existingServices = await query.exec();
+            const existingServiceIds = new Set();
+            existingServices.forEach((service) => {
+                existingServiceIds.add(service._id.toString());
+            });
             const missingServices = Array.from(serviceIds).filter(id => !existingServiceIds.has(id));
             if (missingServices.length > 0) {
                 throw new common_1.NotFoundException(`Services not found: ${missingServices.join(', ')}`);
             }
             if (createTeamMemberDto.commissions) {
                 createTeamMemberDto.commissions.forEach(commission => {
-                    const service = existingServices.find(s => s._id.toString() === commission.serviceId.toString());
+                    const service = existingServices.find((s) => s._id.toString() === commission.serviceId.toString());
                     if (service) {
                         commission.serviceName = service.basicDetails.serviceName;
                     }
@@ -112,17 +117,14 @@ let TeamService = class TeamService {
             const skip = (page - 1) * limit;
             const sortOptions = {};
             sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
-            const [teamMembers, total] = await Promise.all([
-                this.teamMemberModel
-                    .find(filter)
-                    .populate('skills.services', 'basicDetails.serviceName')
-                    .populate('commissions.serviceId', 'basicDetails.serviceName')
-                    .sort(sortOptions)
-                    .skip(skip)
-                    .limit(limit)
-                    .exec(),
-                this.teamMemberModel.countDocuments(filter),
-            ]);
+            const teamMembersQuery = this.teamMemberModel.find(filter);
+            teamMembersQuery.populate('skills.services', 'basicDetails.serviceName');
+            teamMembersQuery.populate('commissions.serviceId', 'basicDetails.serviceName');
+            teamMembersQuery.sort(sortOptions);
+            teamMembersQuery.skip(skip);
+            teamMembersQuery.limit(limit);
+            const teamMembers = await teamMembersQuery.exec();
+            const total = await this.teamMemberModel.countDocuments(filter);
             return {
                 success: true,
                 data: teamMembers,
