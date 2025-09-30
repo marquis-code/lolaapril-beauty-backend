@@ -23,9 +23,8 @@ import { AvailabilityModule } from './availability/availability.module'
 import { NotificationModule } from './notification/notification.module'
 import { TenantModule } from './tenant/tenant.module'
 import { StaffModule } from './staff/staff.module'
+import { AuditInterceptor } from './audit/interceptors/audit.interceptor'
 
-// Import middleware
-// Import middleware
 import { TenantMiddleware } from './tenant/middleware/tenant.middleware'
 import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redirect.middleware'
 
@@ -59,9 +58,6 @@ import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redir
       verboseMemoryLeak: false,
       ignoreErrors: false,
     }),
-
-
-
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
@@ -88,7 +84,12 @@ import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redir
     NotificationModule,
     StaffModule,
   ],
-  providers: [],
+  providers: [   
+     {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
+    }
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
