@@ -13,6 +13,7 @@ const throttler_1 = require("@nestjs/throttler");
 const config_1 = require("@nestjs/config");
 const schedule_1 = require("@nestjs/schedule");
 const event_emitter_1 = require("@nestjs/event-emitter");
+const core_1 = require("@nestjs/core");
 const client_module_1 = require("./client/client.module");
 const service_module_1 = require("./service/service.module");
 const appointment_module_1 = require("./appointment/appointment.module");
@@ -31,6 +32,7 @@ const availability_module_1 = require("./availability/availability.module");
 const notification_module_1 = require("./notification/notification.module");
 const tenant_module_1 = require("./tenant/tenant.module");
 const staff_module_1 = require("./staff/staff.module");
+const audit_interceptor_1 = require("./audit/interceptors/audit.interceptor");
 const tenant_middleware_1 = require("./tenant/middleware/tenant.middleware");
 const subdomain_redirect_middleware_1 = require("./tenant/middleware/subdomain-redirect.middleware");
 let AppModule = class AppModule {
@@ -95,7 +97,12 @@ AppModule = __decorate([
             notification_module_1.NotificationModule,
             staff_module_1.StaffModule,
         ],
-        providers: [],
+        providers: [
+            {
+                provide: core_1.APP_INTERCEPTOR,
+                useClass: audit_interceptor_1.AuditInterceptor,
+            }
+        ],
     })
 ], AppModule);
 exports.AppModule = AppModule;

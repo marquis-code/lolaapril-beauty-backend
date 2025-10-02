@@ -50,12 +50,18 @@ async function bootstrap() {
   //   optionsSuccessStatus: 204,
   // });
 
-  app.enableCors({
-  origin: true, // Reflect request origin automatically
-  credentials: true,
+//   app.enableCors({
+//   origin: true, // Reflect request origin automatically
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+//   exposedHeaders: ['Content-Disposition'],
+// });
+
+app.enableCors({
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
-  exposedHeaders: ['Content-Disposition'],
+  allowedHeaders: '*',
 });
   
   // Global validation pipe
