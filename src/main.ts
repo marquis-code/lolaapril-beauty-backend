@@ -26,29 +26,37 @@ async function bootstrap() {
     'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173';
   
   // Enable CORS
+  // app.enableCors({
+  //   origin: (origin, callback) => {
+  //     if (!origin) {
+  //       return callback(null, true);
+  //     }
+      
+  //     const origins = allowedOrigins.split(',');
+      
+  //     // Check if the origin is allowed
+  //     if (origins.indexOf(origin) !== -1 || origins.includes('*')) {
+  //       return callback(null, true);
+  //     } else {
+  //       console.log(`Blocked request from: ${origin}`);
+  //       return callback(null, true); // Still allow for now, but log it
+  //     }
+  //   },
+  //   credentials: true,
+  //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  //   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  //   exposedHeaders: ['Content-Disposition'],
+  //   preflightContinue: false,
+  //   optionsSuccessStatus: 204,
+  // });
+
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin) {
-        return callback(null, true);
-      }
-      
-      const origins = allowedOrigins.split(',');
-      
-      // Check if the origin is allowed
-      if (origins.indexOf(origin) !== -1 || origins.includes('*')) {
-        return callback(null, true);
-      } else {
-        console.log(`Blocked request from: ${origin}`);
-        return callback(null, true); // Still allow for now, but log it
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
-    exposedHeaders: ['Content-Disposition'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-  });
+  origin: true, // Reflect request origin automatically
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Content-Disposition'],
+});
   
   // Global validation pipe
   app.useGlobalPipes(
