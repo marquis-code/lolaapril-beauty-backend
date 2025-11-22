@@ -6,6 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from "compression"
 import helmet from 'helmet';
 import { ConfigService } from '@nestjs/config';
+import * as bodyParser from 'body-parser'
 import mongoose from "mongoose"
 
 async function bootstrap() {
@@ -63,6 +64,12 @@ async function bootstrap() {
     preflightContinue: false,
     optionsSuccessStatus: 204,
   })
+
+  // app.use(
+  //   '/payments/webhook',
+  //   bodyParser.raw({ type: 'application/json' })
+  // )
+
 
     // Global validation pipe
   app.useGlobalPipes(

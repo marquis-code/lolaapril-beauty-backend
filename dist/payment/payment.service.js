@@ -11,6 +11,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentService = void 0;
 const common_1 = require("@nestjs/common");
@@ -18,10 +21,234 @@ const mongoose_1 = require("mongoose");
 const payment_schema_1 = require("./schemas/payment.schema");
 const notification_service_1 = require("../notification/notification.service");
 const mongoose_2 = require("@nestjs/mongoose");
+const config_1 = require("@nestjs/config");
+const axios_1 = __importDefault(require("axios"));
 let PaymentService = class PaymentService {
-    constructor(paymentModel, notificationService) {
+    constructor(paymentModel, notificationService, configService) {
         this.paymentModel = paymentModel;
         this.notificationService = notificationService;
+        this.configService = configService;
+        this.paystackBaseUrl = 'https://api.paystack.co';
+        this.paystackSecretKey = this.configService.get('PAYSTACK_SECRET_KEY');
+    }
+    async initializePayment(data) {
+        var _a, _b;
+        try {
+            const paymentReference = await this.generatePaymentReference();
+            const amountInKobo = Math.round(data.amount * 100);
+            const response = await axios_1.default.post(`${this.paystackBaseUrl}/transaction/initialize`, {
+                email: data.email,
+                amount: amountInKobo,
+                reference: paymentReference,
+                callback_url: `${this.configService.get('FRONTEND_URL')}/payment/callback`,
+                metadata: Object.assign({ clientId: data.clientId, appointmentId: data.appointmentId, bookingId: data.bookingId, custom_fields: [
+                        {
+                            display_name: "Client ID",
+                            variable_name: "client_id",
+                            value: data.clientId
+                        }
+                    ] }, data.metadata)
+            }, {
+                headers: {
+                    Authorization: `Bearer ${this.paystackSecretKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.data.status) {
+                throw new common_1.BadRequestException('Failed to initialize payment');
+            }
+            const payment = new this.paymentModel({
+                clientId: new mongoose_1.Types.ObjectId(data.clientId),
+                appointmentId: data.appointmentId ? new mongoose_1.Types.ObjectId(data.appointmentId) : undefined,
+                bookingId: data.bookingId ? new mongoose_1.Types.ObjectId(data.bookingId) : undefined,
+                paymentReference,
+                items: [],
+                subtotal: data.amount,
+                totalAmount: data.amount,
+                paymentMethod: 'online',
+                status: 'pending',
+                gatewayResponse: JSON.stringify(response.data.data)
+            });
+            await payment.save();
+            return {
+                success: true,
+                data: {
+                    authorizationUrl: response.data.data.authorization_url,
+                    accessCode: response.data.data.access_code,
+                    reference: paymentReference
+                },
+                message: 'Payment initialized successfully'
+            };
+        }
+        catch (error) {
+            if (axios_1.default.isAxiosError(error)) {
+                throw new common_1.BadRequestException(((_b = (_a = error.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || 'Failed to initialize payment with Paystack');
+            }
+            throw new Error(`Failed to initialize payment: ${error.message}`);
+        }
+    }
+    async verifyPayment(reference) {
+        var _a, _b, _c;
+        try {
+            const response = await axios_1.default.get(`${this.paystackBaseUrl}/transaction/verify/${reference}`, {
+                headers: {
+                    Authorization: `Bearer ${this.paystackSecretKey}`
+                }
+            });
+            if (!response.data.status) {
+                throw new common_1.BadRequestException('Payment verification failed');
+            }
+            const transactionData = response.data.data;
+            const payment = await this.paymentModel.findOne({ paymentReference: reference });
+            if (!payment) {
+                throw new common_1.NotFoundException('Payment record not found');
+            }
+            const updateData = {
+                transactionId: transactionData.id.toString(),
+                gatewayResponse: JSON.stringify(transactionData),
+                updatedAt: new Date()
+            };
+            if (transactionData.status === 'success') {
+                updateData.status = 'completed';
+                updateData.paidAt = new Date();
+                try {
+                    await this.notificationService.notifyPaymentConfirmation(payment._id.toString(), payment.clientId.toString(), ((_a = transactionData.metadata) === null || _a === void 0 ? void 0 : _a.businessId) || '', {
+                        amount: payment.totalAmount,
+                        method: payment.paymentMethod,
+                        transactionId: transactionData.id.toString(),
+                        receiptUrl: `${this.configService.get('FRONTEND_URL')}/receipts/${payment._id}`
+                    });
+                }
+                catch (notificationError) {
+                    console.error('Failed to send payment confirmation:', notificationError);
+                }
+            }
+            else if (transactionData.status === 'failed') {
+                updateData.status = 'failed';
+            }
+            else {
+                updateData.status = 'processing';
+            }
+            const updatedPayment = await this.paymentModel.findByIdAndUpdate(payment._id, updateData, { new: true, runValidators: true });
+            return {
+                success: true,
+                data: updatedPayment,
+                message: `Payment ${transactionData.status}`
+            };
+        }
+        catch (error) {
+            if (axios_1.default.isAxiosError(error)) {
+                throw new common_1.BadRequestException(((_c = (_b = error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) || 'Failed to verify payment with Paystack');
+            }
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to verify payment: ${error.message}`);
+        }
+    }
+    async handleWebhook(payload, signature) {
+        try {
+            const crypto = require('crypto');
+            const hash = crypto
+                .createHmac('sha512', this.paystackSecretKey)
+                .update(JSON.stringify(payload))
+                .digest('hex');
+            if (hash !== signature) {
+                throw new common_1.BadRequestException('Invalid webhook signature');
+            }
+            const event = payload.event;
+            switch (event) {
+                case 'charge.success':
+                    await this.handleSuccessfulCharge(payload.data);
+                    break;
+                case 'charge.failed':
+                    await this.handleFailedCharge(payload.data);
+                    break;
+                case 'transfer.success':
+                case 'transfer.failed':
+                    break;
+                default:
+                    console.log(`Unhandled webhook event: ${event}`);
+            }
+        }
+        catch (error) {
+            console.error('Webhook handling error:', error);
+            throw error;
+        }
+    }
+    async handleSuccessfulCharge(data) {
+        const payment = await this.paymentModel.findOne({
+            paymentReference: data.reference
+        });
+        if (payment && payment.status !== 'completed') {
+            await this.paymentModel.findByIdAndUpdate(payment._id, {
+                status: 'completed',
+                transactionId: data.id.toString(),
+                paidAt: new Date(),
+                gatewayResponse: JSON.stringify(data),
+                updatedAt: new Date()
+            });
+        }
+    }
+    async handleFailedCharge(data) {
+        const payment = await this.paymentModel.findOne({
+            paymentReference: data.reference
+        });
+        if (payment) {
+            await this.paymentModel.findByIdAndUpdate(payment._id, {
+                status: 'failed',
+                gatewayResponse: JSON.stringify(data),
+                updatedAt: new Date()
+            });
+        }
+    }
+    async initiateRefund(transactionReference, amount) {
+        var _a, _b;
+        try {
+            const payment = await this.paymentModel.findOne({
+                paymentReference: transactionReference
+            });
+            if (!payment) {
+                throw new common_1.NotFoundException('Payment not found');
+            }
+            if (payment.status !== 'completed') {
+                throw new common_1.BadRequestException('Can only refund completed payments');
+            }
+            const refundAmount = amount || payment.totalAmount;
+            const amountInKobo = Math.round(refundAmount * 100);
+            const response = await axios_1.default.post(`${this.paystackBaseUrl}/refund`, {
+                transaction: payment.transactionId || transactionReference,
+                amount: amountInKobo
+            }, {
+                headers: {
+                    Authorization: `Bearer ${this.paystackSecretKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.data.status) {
+                throw new common_1.BadRequestException('Refund initiation failed');
+            }
+            const totalRefunded = (payment.refundedAmount || 0) + refundAmount;
+            const newStatus = totalRefunded === payment.totalAmount ? 'refunded' : 'partially_refunded';
+            await this.paymentModel.findByIdAndUpdate(payment._id, {
+                refundedAmount: totalRefunded,
+                refundedAt: new Date(),
+                status: newStatus,
+                gatewayResponse: JSON.stringify(response.data.data),
+                updatedAt: new Date()
+            });
+            return {
+                success: true,
+                data: response.data.data,
+                message: 'Refund initiated successfully'
+            };
+        }
+        catch (error) {
+            if (axios_1.default.isAxiosError(error)) {
+                throw new common_1.BadRequestException(((_b = (_a = error.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || 'Failed to initiate refund');
+            }
+            throw error;
+        }
     }
     async create(createPaymentDto) {
         try {
@@ -257,6 +484,31 @@ let PaymentService = class PaymentService {
             throw new Error(`Failed to delete payment: ${error.message}`);
         }
     }
+    async generatePaymentReference() {
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 1000);
+        return `PAY-${timestamp}-${random}`;
+    }
+    async updatePaymentStatus(paymentId, status, metadata) {
+        try {
+            const updateData = {
+                status,
+                updatedAt: new Date()
+            };
+            if (metadata) {
+                updateData.metadata = Object.assign(Object.assign({}, updateData.metadata), metadata);
+            }
+            const payment = await this.paymentModel.findByIdAndUpdate(paymentId, updateData, { new: true }).exec();
+            if (!payment) {
+                throw new common_1.NotFoundException('Payment not found');
+            }
+            return payment;
+        }
+        catch (error) {
+            console.error('Error updating payment status:', error);
+            throw error;
+        }
+    }
     async createPaymentFromBooking(booking, transactionReference, paymentData) {
         const paymentItems = booking.services.map(service => ({
             itemType: 'service',
@@ -286,42 +538,6 @@ let PaymentService = class PaymentService {
             paidAt: new Date()
         });
         return await payment.save();
-    }
-    async createFailedPayment(data) {
-        const payment = new this.paymentModel({
-            clientId: new mongoose_1.Types.ObjectId(data.clientId),
-            bookingId: new mongoose_1.Types.ObjectId(data.bookingId),
-            businessId: new mongoose_1.Types.ObjectId(data.businessId),
-            paymentReference: data.transactionReference,
-            transactionId: data.transactionReference,
-            items: [],
-            subtotal: data.amount,
-            totalAmount: data.amount,
-            paymentMethod: 'unknown',
-            status: 'failed',
-            gatewayResponse: data.errorMessage
-        });
-        return await payment.save();
-    }
-    async initiateRefund(transactionReference, amount) {
-        console.log(`Refund initiated for ${transactionReference}: ${amount}`);
-    }
-    async generatePaymentReference() {
-        const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 1000);
-        return `PAY-${timestamp}-${random}`;
-    }
-    async getPaymentByAppointment(appointmentId) {
-        try {
-            const payment = await this.paymentModel.findOne({
-                appointmentId: new mongoose_1.Types.ObjectId(appointmentId)
-            }).exec();
-            return payment;
-        }
-        catch (error) {
-            console.error('Error getting payment by appointment:', error);
-            return null;
-        }
     }
     async createPaymentForAppointment(appointment) {
         try {
@@ -371,59 +587,41 @@ let PaymentService = class PaymentService {
             throw error;
         }
     }
-    async updatePaymentStatus(paymentId, status, metadata) {
+    async getPaymentByAppointment(appointmentId) {
         try {
-            const updateData = {
-                status,
-                updatedAt: new Date()
-            };
-            if (metadata) {
-                updateData.metadata = Object.assign(Object.assign({}, updateData.metadata), metadata);
-            }
-            const payment = await this.paymentModel.findByIdAndUpdate(paymentId, updateData, { new: true }).exec();
-            if (!payment) {
-                throw new common_1.NotFoundException('Payment not found');
-            }
+            const payment = await this.paymentModel.findOne({
+                appointmentId: new mongoose_1.Types.ObjectId(appointmentId)
+            }).exec();
             return payment;
         }
         catch (error) {
-            console.error('Error updating payment status:', error);
-            throw error;
+            console.error('Error getting payment by appointment:', error);
+            return null;
         }
     }
-    async getPaymentsByClient(clientId, limit = 10, offset = 0) {
-        try {
-            const payments = await this.paymentModel
-                .find({ clientId: new mongoose_1.Types.ObjectId(clientId) })
-                .sort({ transactionDate: -1 })
-                .limit(limit)
-                .skip(offset)
-                .populate('appointmentId', 'selectedDate selectedTime serviceDetails')
-                .exec();
-            const total = await this.paymentModel.countDocuments({
-                clientId: new mongoose_1.Types.ObjectId(clientId)
-            });
-            return {
-                payments,
-                pagination: {
-                    total,
-                    limit,
-                    offset,
-                    hasMore: total > (offset + limit)
-                }
-            };
-        }
-        catch (error) {
-            console.error('Error getting payments by client:', error);
-            throw error;
-        }
+    async createFailedPayment(data) {
+        const payment = new this.paymentModel({
+            clientId: new mongoose_1.Types.ObjectId(data.clientId),
+            bookingId: new mongoose_1.Types.ObjectId(data.bookingId),
+            businessId: new mongoose_1.Types.ObjectId(data.businessId),
+            paymentReference: data.transactionReference,
+            transactionId: data.transactionReference,
+            items: [],
+            subtotal: data.amount,
+            totalAmount: data.amount,
+            paymentMethod: 'unknown',
+            status: 'failed',
+            gatewayResponse: data.errorMessage
+        });
+        return await payment.save();
     }
 };
 PaymentService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(payment_schema_1.Payment.name)),
     __metadata("design:paramtypes", [mongoose_1.Model,
-        notification_service_1.NotificationService])
+        notification_service_1.NotificationService,
+        config_1.ConfigService])
 ], PaymentService);
 exports.PaymentService = PaymentService;
 //# sourceMappingURL=payment.service.js.map

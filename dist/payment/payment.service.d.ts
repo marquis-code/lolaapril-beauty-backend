@@ -1,28 +1,3 @@
-/// <reference types="mongoose/types/aggregate" />
-/// <reference types="mongoose/types/callback" />
-/// <reference types="mongoose/types/collection" />
-/// <reference types="mongoose/types/connection" />
-/// <reference types="mongoose/types/cursor" />
-/// <reference types="mongoose/types/document" />
-/// <reference types="mongoose/types/error" />
-/// <reference types="mongoose/types/expressions" />
-/// <reference types="mongoose/types/helpers" />
-/// <reference types="mongoose/types/middlewares" />
-/// <reference types="mongoose/types/indexes" />
-/// <reference types="mongoose/types/models" />
-/// <reference types="mongoose/types/mongooseoptions" />
-/// <reference types="mongoose/types/pipelinestage" />
-/// <reference types="mongoose/types/populate" />
-/// <reference types="mongoose/types/query" />
-/// <reference types="mongoose/types/schemaoptions" />
-/// <reference types="mongoose/types/session" />
-/// <reference types="mongoose/types/types" />
-/// <reference types="mongoose/types/utility" />
-/// <reference types="mongoose/types/validation" />
-/// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose/types/schematypes" />
-/// <reference types="mongoose/types/inferschematype" />
-/// <reference types="mongoose/types/inferrawdoctype" />
 import { Model } from "mongoose";
 import { Payment, PaymentDocument } from "./schemas/payment.schema";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
@@ -30,10 +5,27 @@ import { ApiResponse } from "../common/interfaces/common.interface";
 import { PaymentQueryDto } from "./dto/payment-query.dto";
 import { UpdatePaymentDto } from "./dto/update-payment.dto";
 import { NotificationService } from '../notification/notification.service';
+import { ConfigService } from '@nestjs/config';
 export declare class PaymentService {
     private paymentModel;
     private notificationService;
-    constructor(paymentModel: Model<PaymentDocument>, notificationService: NotificationService);
+    private configService;
+    private readonly paystackSecretKey;
+    private readonly paystackBaseUrl;
+    constructor(paymentModel: Model<PaymentDocument>, notificationService: NotificationService, configService: ConfigService);
+    initializePayment(data: {
+        email: string;
+        amount: number;
+        clientId: string;
+        appointmentId?: string;
+        bookingId?: string;
+        metadata?: any;
+    }): Promise<ApiResponse<any>>;
+    verifyPayment(reference: string): Promise<ApiResponse<Payment>>;
+    handleWebhook(payload: any, signature: string): Promise<void>;
+    private handleSuccessfulCharge;
+    private handleFailedCharge;
+    initiateRefund(transactionReference: string, amount?: number): Promise<ApiResponse<any>>;
     create(createPaymentDto: CreatePaymentDto): Promise<ApiResponse<Payment>>;
     findAll(): Promise<ApiResponse<Payment[]>>;
     findAllWithQuery(query: PaymentQueryDto): Promise<{
@@ -58,7 +50,11 @@ export declare class PaymentService {
     getPaymentStats(): Promise<ApiResponse<any>>;
     update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<ApiResponse<Payment>>;
     remove(id: string): Promise<ApiResponse<void>>;
+    private generatePaymentReference;
+    updatePaymentStatus(paymentId: string, status: string, metadata?: any): Promise<any>;
     createPaymentFromBooking(booking: any, transactionReference: string, paymentData: any): Promise<any>;
+    createPaymentForAppointment(appointment: any): Promise<any>;
+    getPaymentByAppointment(appointmentId: string): Promise<any>;
     createFailedPayment(data: {
         bookingId: string;
         transactionReference: string;
@@ -67,10 +63,4 @@ export declare class PaymentService {
         businessId: string;
         amount: number;
     }): Promise<any>;
-    initiateRefund(transactionReference: string, amount: number): Promise<void>;
-    private generatePaymentReference;
-    getPaymentByAppointment(appointmentId: string): Promise<any>;
-    createPaymentForAppointment(appointment: any): Promise<any>;
-    updatePaymentStatus(paymentId: string, status: string, metadata?: any): Promise<any>;
-    getPaymentsByClient(clientId: string, limit?: number, offset?: number): Promise<any>;
 }
