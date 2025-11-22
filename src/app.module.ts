@@ -1,10 +1,11 @@
+// app.module.ts
 import { Module, MiddlewareConsumer, RequestMethod } from "@nestjs/common"
-import { MongooseModule } from "@nestjs/mongoose"
-import { ThrottlerModule } from "@nestjs/throttler"
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from "@nestjs/mongoose"
 import { ScheduleModule } from '@nestjs/schedule'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { APP_INTERCEPTOR } from "@nestjs/core"
+
 import { ClientModule } from "./client/client.module"
 import { ServiceModule } from "./service/service.module"
 import { AppointmentModule } from "./appointment/appointment.module"
@@ -32,39 +33,34 @@ import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redir
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', `.env.${process.env.NODE_ENV || 'development'}`],
+    envFilePath: '.env'
     }),
-       // Database
-       MongooseModule.forRootAsync({
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: async (configService: ConfigService) => ({
-          uri: configService.get<string>('MONGO_URL'),
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URL'),
+          connectionFactory: (connection) => {
+          connection.on('connected', () => {
+            console.log('✅ MongoDB connected successfully')
+            console.log(`📍 Database: ${connection.name}`)
+            console.log(`🔗 Host: ${connection.host}:${connection.port}`)
+          })
+          
+          connection.on('error', (error: any) => {
+            console.error('❌ MongoDB connection error:', error.message)
+          })
+          
+          connection.on('disconnected', () => {
+            console.log('⚠️  MongoDB disconnected')
+          })
+          
+          return connection
+        },
       }),
-
-          // Scheduling for automated tasks
-    ScheduleModule.forRoot(),
-
-    // Event emitter for decoupled communication
-    EventEmitterModule.forRoot({
-      wildcard: false,
-      delimiter: '.',
-      newListener: false,
-      removeListener: false,
-      maxListeners: 10,
-      verboseMemoryLeak: false,
-      ignoreErrors: false,
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000,
-        limit: 10,
-      },
-    ]),
-
+    ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     TenantModule,
     AuthModule,
     AuditModule,
@@ -84,35 +80,15 @@ import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redir
     NotificationModule,
     StaffModule,
   ],
-  providers: [   
-     {
+  providers: [
+    {
       provide: APP_INTERCEPTOR,
       useClass: AuditInterceptor,
     }
   ],
 })
+
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    // Apply subdomain redirect middleware first
-    consumer
-      .apply(SubdomainRedirectMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL })
-
-    // Apply tenant middleware to all routes except health check
-    consumer
-      .apply(TenantMiddleware)
-      .exclude(
-        { path: 'health', method: RequestMethod.GET },
-        { path: 'docs', method: RequestMethod.GET },
-        { path: 'api/auth/login', method: RequestMethod.POST },
-        { path: 'api/auth/register', method: RequestMethod.POST },
-        { path: 'api/webhooks/(.*)', method: RequestMethod.ALL },
-        { path: 'api/tenant', method: RequestMethod.POST },
-        { path: 'api/tenant/register', method: RequestMethod.POST },
-        { path: 'api/tenant/check-subdomain', method: RequestMethod.GET },
-        'api/auth/(.*)',
-      )
-      .forRoutes({ path: '*', method: RequestMethod.ALL })
   }
 }
-

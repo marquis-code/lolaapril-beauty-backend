@@ -326,7 +326,7 @@ import { SaleDocument, Sale } from "../sales/schemas/sale.schema"
 import { AppointmentDocument, Appointment } from "../appointment/schemas/appointment.schema"
 import { ClientDocument, Client } from "../client/schemas/client.schema"
 import { ApiResponse } from "../common/interfaces/common.interface"
-import * as moment from "moment"
+import moment from "moment"
 import { InjectModel } from "@nestjs/mongoose"
 
 @Injectable()

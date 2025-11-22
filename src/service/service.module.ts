@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common"
 import { MongooseModule } from "@nestjs/mongoose"
-import { ServiceService } from "./service.service"
-import { ServiceController } from "./service.controller"
-import { ServiceCategory, ServiceCategorySchema } from "./schemas/service-category.schema"
-import { Service, ServiceSchema } from "./schemas/service.schema"
-import { ServiceBundle, ServiceBundleSchema } from "./schemas/service-bundle.schema"
+import { ServiceService } from "../service/service.service"
+import { ServiceController } from "../service/service.controller"
+import { ServiceCategory, ServiceCategorySchema } from "../service/schemas/service-category.schema"
+import { Service, ServiceSchema } from "../service/schemas/service.schema"
+import { ServiceBundle, ServiceBundleSchema } from "../service/schemas/service-bundle.schema"
 
 @Module({
   imports: [

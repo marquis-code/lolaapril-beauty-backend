@@ -14,7 +14,7 @@ import { Service } from "./schemas/service.schema"
 import { ServiceBundle } from "./schemas/service-bundle.schema"
 import { ApiResponseWrapper, ApiPaginatedResponse } from "../common/decorators/api-response.decorator"
 
-@ApiTags("Services")
+// @ApiTags("Services")
 @Controller("services")
 export class ServiceController {
   constructor(private readonly serviceService: ServiceService) {}
