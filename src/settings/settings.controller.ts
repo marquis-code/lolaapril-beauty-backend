@@ -20,7 +20,7 @@ export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: "Create new settings" })
   @ApiResponse({ status: 201, description: "Settings created successfully" })
@@ -29,7 +29,7 @@ export class SettingsController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all settings" })
   @ApiResponse({ status: 200, description: "Settings retrieved successfully" })
   findAll() {
@@ -37,7 +37,7 @@ export class SettingsController {
   }
 
   @Get("business-hours")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get business hours settings" })
   @ApiResponse({ status: 200, description: "Business hours retrieved successfully" })
   getBusinessHours() {
@@ -45,7 +45,7 @@ export class SettingsController {
   }
 
   @Get("appointment-settings")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get appointment settings" })
   @ApiResponse({ status: 200, description: "Appointment settings retrieved successfully" })
   getAppointmentSettings() {
@@ -53,7 +53,7 @@ export class SettingsController {
   }
 
   @Get("payment-settings")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: "Get payment settings" })
   @ApiResponse({ status: 200, description: "Payment settings retrieved successfully" })
   getPaymentSettings() {
@@ -61,7 +61,7 @@ export class SettingsController {
   }
 
   @Get("notification-settings")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get notification settings" })
   @ApiResponse({ status: 200, description: "Notification settings retrieved successfully" })
   getNotificationSettings() {
@@ -69,7 +69,7 @@ export class SettingsController {
   }
 
   @Get('type/:type')
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Get settings by type' })
   @ApiResponse({ status: 200, description: 'Settings retrieved successfully' })
   findByType(@Param('type') type: string) {
@@ -77,7 +77,7 @@ export class SettingsController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: 'Get settings by ID' })
   @ApiResponse({ status: 200, description: 'Settings retrieved successfully' })
@@ -87,7 +87,7 @@ export class SettingsController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: "Update settings" })
   @ApiResponse({ status: 200, description: "Settings updated successfully" })
@@ -97,7 +97,7 @@ export class SettingsController {
   }
 
   @Patch("business-hours/update")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: "Update business hours" })
   @ApiResponse({ status: 200, description: "Business hours updated successfully" })
@@ -106,7 +106,7 @@ export class SettingsController {
   }
 
   @Patch("appointment-settings/update")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: "Update appointment settings" })
   @ApiResponse({ status: 200, description: "Appointment settings updated successfully" })
@@ -115,7 +115,7 @@ export class SettingsController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.SETTINGS })
   @ApiOperation({ summary: 'Delete settings' })
   @ApiResponse({ status: 200, description: 'Settings deleted successfully' })

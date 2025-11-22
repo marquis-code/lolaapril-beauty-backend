@@ -60,7 +60,7 @@ let TeamController = class TeamController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.TEAM_MEMBER }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new team member" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Team member created successfully" }),
@@ -72,7 +72,7 @@ __decorate([
 ], TeamController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get all team members" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team members retrieved successfully" }),
     __param(0, (0, common_1.Query)()),
@@ -82,7 +82,7 @@ __decorate([
 ], TeamController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("stats"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: "Get team statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team statistics retrieved successfully" }),
     __metadata("design:type", Function),
@@ -91,7 +91,7 @@ __decorate([
 ], TeamController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)("role/:role"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get team members by role" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team members retrieved successfully" }),
     __metadata("design:type", Function),
@@ -100,7 +100,7 @@ __decorate([
 ], TeamController.prototype, "findByRole", null);
 __decorate([
     (0, common_1.Get)("department/:department"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get team members by department" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team members retrieved successfully" }),
     __metadata("design:type", Function),
@@ -109,7 +109,7 @@ __decorate([
 ], TeamController.prototype, "findByDepartment", null);
 __decorate([
     (0, common_1.Get)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.TEAM_MEMBER }),
     (0, swagger_1.ApiOperation)({ summary: "Get team member by ID" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member retrieved successfully" }),
@@ -120,7 +120,7 @@ __decorate([
 ], TeamController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.TEAM_MEMBER }),
     (0, swagger_1.ApiOperation)({ summary: "Update team member" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member updated successfully" }),
@@ -132,7 +132,7 @@ __decorate([
 ], TeamController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(":id/status"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.TEAM_MEMBER }),
     (0, swagger_1.ApiOperation)({ summary: "Update team member status" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member status updated successfully" }),
@@ -143,7 +143,7 @@ __decorate([
 ], TeamController.prototype, "updateStatus", null);
 __decorate([
     (0, common_1.Delete)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.DELETE, entity: audit_log_schema_1.AuditEntity.TEAM_MEMBER }),
     (0, swagger_1.ApiOperation)({ summary: "Delete team member" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member deleted successfully" }),

@@ -24,7 +24,7 @@ export class PaymentController {
 
   @Post('initialize')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
@@ -37,7 +37,7 @@ export class PaymentController {
 
   @Get('verify/:reference')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
@@ -62,7 +62,7 @@ export class PaymentController {
 
   @Post(':reference/refund')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
@@ -78,7 +78,7 @@ export class PaymentController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
@@ -90,7 +90,7 @@ export class PaymentController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get all payments" })
   @ApiResponse({ status: 200, description: "Payments retrieved successfully" })
@@ -100,7 +100,7 @@ export class PaymentController {
 
   @Get("stats")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get payment statistics" })
   @ApiResponse({ status: 200, description: "Payment statistics retrieved successfully" })
@@ -110,7 +110,7 @@ export class PaymentController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
@@ -123,7 +123,7 @@ export class PaymentController {
 
   @Patch(":id")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
@@ -136,7 +136,7 @@ export class PaymentController {
 
   @Patch(":id/status")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
@@ -152,7 +152,7 @@ export class PaymentController {
 
   @Post(":id/refund")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
@@ -168,7 +168,7 @@ export class PaymentController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()

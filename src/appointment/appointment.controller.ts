@@ -21,7 +21,7 @@ export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.APPOINTMENT })
   @ApiOperation({ summary: "Create a new appointment" })
   @ApiResponse({ status: 201, description: "Appointment created successfully" })
@@ -31,7 +31,7 @@ export class AppointmentController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all appointments" })
   @ApiResponse({ status: 200, description: "Appointments retrieved successfully" })
   findAll(@Query() query: AppointmentQueryDto) {
@@ -39,7 +39,7 @@ export class AppointmentController {
   }
 
   @Get("stats")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get appointment statistics" })
   @ApiResponse({ status: 200, description: "Statistics retrieved successfully" })
   getStats() {
@@ -47,7 +47,7 @@ export class AppointmentController {
   }
 
   @Get("available-slots/:date")
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: "Get available time slots for a date" })
   @ApiResponse({ status: 200, description: "Available slots retrieved successfully" })
   getAvailableSlots(date: string, staffId?: string) {
@@ -55,7 +55,7 @@ export class AppointmentController {
   }
 
   @Get("by-date/:date")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get appointments by date" })
   @ApiResponse({ status: 200, description: "Appointments retrieved successfully" })
   getByDate(date: string) {
@@ -63,7 +63,7 @@ export class AppointmentController {
   }
 
   @Get("by-staff/:staffId")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get appointments by staff member" })
   @ApiResponse({ status: 200, description: "Appointments retrieved successfully" })
   getByStaff(staffId: string, date?: string) {
@@ -71,7 +71,7 @@ export class AppointmentController {
   }
 
   @Get(":id")
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.APPOINTMENT })
   @ApiOperation({ summary: "Get appointment by ID" })
   @ApiResponse({ status: 200, description: "Appointment retrieved successfully" })
@@ -81,7 +81,7 @@ export class AppointmentController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.APPOINTMENT })
   @ApiOperation({ summary: "Update appointment" })
   @ApiResponse({ status: 200, description: "Appointment updated successfully" })
@@ -92,7 +92,7 @@ export class AppointmentController {
   }
 
   @Patch(":id/status")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.APPOINTMENT })
   @ApiOperation({ summary: "Update appointment status" })
   @ApiResponse({ status: 200, description: "Status updated successfully" })
@@ -102,7 +102,7 @@ export class AppointmentController {
   }
 
   @Patch(":id/assign-staff")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.APPOINTMENT })
   @ApiOperation({ summary: "Assign staff to appointment" })
   @ApiResponse({ status: 200, description: "Staff assigned successfully" })
@@ -112,7 +112,7 @@ export class AppointmentController {
   }
 
   @Delete(":id")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.APPOINTMENT })
   @ApiOperation({ summary: "Delete appointment" })
   @ApiResponse({ status: 200, description: "Appointment deleted successfully" })

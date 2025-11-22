@@ -1,38 +1,24 @@
-// src/modules/tenant/guards/subscription-feature.guard.ts
+// src/modules/tenant/guards/business-owner.guard.ts
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common'
-import { Reflector } from '@nestjs/core'
-
-export const RequireFeature = (feature: string) => {
-  return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
-    Reflect.defineMetadata('required-feature', feature, descriptor?.value || target)
-  }
-}
 
 @Injectable()
-export class SubscriptionFeatureGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
-
+export class BusinessOwnerGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const requiredFeature = this.reflector.get<string>(
-      'required-feature',
-      context.getHandler()
-    )
-
-    if (!requiredFeature) {
-      return true // No feature requirement
-    }
-
     const request = context.switchToHttp().getRequest()
     
-    if (!request.tenant || !request.tenant.business.activeSubscription) {
-      throw new ForbiddenException('Active subscription required')
+    if (!request.user || !request.tenant) {
+      throw new ForbiddenException('Authentication required')
     }
 
-    const subscription = request.tenant.business.activeSubscription
-    const hasFeature = subscription.limits?.features?.[requiredFeature]
+    const userId = request.user.id
+    const business = request.tenant.business
 
-    if (!hasFeature) {
-      throw new ForbiddenException(`Feature '${requiredFeature}' not available in current subscription plan`)
+    // Check if user is business owner or admin
+    const isOwner = business.ownerId.toString() === userId
+    const isAdmin = business.adminIds.some(adminId => adminId.toString() === userId)
+
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException('Access denied. Business owner or admin rights required.')
     }
 
     return true

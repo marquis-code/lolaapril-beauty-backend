@@ -22,48 +22,48 @@ import { Request } from 'express';
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a new business' })
-  @ApiResponse({ status: 201, description: 'Business created successfully' })
-  @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
-  @ApiResponse({ status: 409, description: 'Subdomain already exists' })
-  async createBusiness(@Body() createBusinessDto: CreateBusinessDto) { // Use any for now instead of CreateBusinessDto
-    try {
-      const business = await this.tenantService.createBusiness(createBusinessDto);
-      return {
-        success: true,
-        data: business,
-        message: 'Business created successfully'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        code: error.name
-      };
-    }
-  }
+  // @Post()
+  // @ApiOperation({ summary: 'Create a new business' })
+  // @ApiResponse({ status: 201, description: 'Business created successfully' })
+  // @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
+  // @ApiResponse({ status: 409, description: 'Subdomain already exists' })
+  // async createBusiness(@Body() createBusinessDto: CreateBusinessDto) { // Use any for now instead of CreateBusinessDto
+  //   try {
+  //     const business = await this.tenantService.createBusiness(createBusinessDto);
+  //     return {
+  //       success: true,
+  //       data: business,
+  //       message: 'Business created successfully'
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       error: error.message,
+  //       code: error.name
+  //     };
+  //   }
+  // }
 
-  @Post('register')
-  @ApiOperation({ summary: 'Register a new business with owner' })
-  async registerBusiness(@Body() registrationData: any) {
-    // This would handle both user creation and business creation in one go
-    try {
-      // Implementation would depend on your auth service
-      const result = await this.tenantService.registerBusinessWithOwner(registrationData);
-      return {
-        success: true,
-        data: result,
-        message: 'Business registered successfully'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        code: error.name
-      };
-    }
-  }
+  // @Post('register')
+  // @ApiOperation({ summary: 'Register a new business with owner' })
+  // async registerBusiness(@Body() registrationData: any) {
+  //   // This would handle both user creation and business creation in one go
+  //   try {
+  //     // Implementation would depend on your auth service
+  //     const result = await this.tenantService.registerBusinessWithOwner(registrationData);
+  //     return {
+  //       success: true,
+  //       data: result,
+  //       message: 'Business registered successfully'
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       error: error.message,
+  //       code: error.name
+  //     };
+  //   }
+  // }
 
   @Get('check-subdomain')
   @ApiOperation({ summary: 'Check if subdomain is available' })

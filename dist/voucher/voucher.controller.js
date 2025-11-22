@@ -61,7 +61,7 @@ let VoucherController = class VoucherController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.VOUCHER }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new voucher" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Voucher created successfully" }),
@@ -73,7 +73,7 @@ __decorate([
 ], VoucherController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: 'Get all vouchers' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Vouchers retrieved successfully' }),
     __param(0, (0, common_1.Query)()),
@@ -83,7 +83,7 @@ __decorate([
 ], VoucherController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("stats"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get voucher statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Voucher statistics retrieved successfully" }),
     __metadata("design:type", Function),
@@ -92,7 +92,7 @@ __decorate([
 ], VoucherController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Post)('validate'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: 'Validate a voucher' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher validation result' }),
     __param(0, (0, common_1.Body)()),
@@ -102,7 +102,7 @@ __decorate([
 ], VoucherController.prototype, "validateVoucher", null);
 __decorate([
     (0, common_1.Post)(':code/use'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.VOUCHER }),
     (0, swagger_1.ApiOperation)({ summary: 'Use a voucher' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher used successfully' }),
@@ -113,7 +113,7 @@ __decorate([
 ], VoucherController.prototype, "useVoucher", null);
 __decorate([
     (0, common_1.Get)('code/:code'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: 'Get voucher by code' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher retrieved successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Voucher not found' }),
@@ -124,7 +124,7 @@ __decorate([
 ], VoucherController.prototype, "findByCode", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.VOUCHER }),
     (0, swagger_1.ApiOperation)({ summary: 'Get voucher by ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher retrieved successfully' }),
@@ -136,7 +136,7 @@ __decorate([
 ], VoucherController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.VOUCHER }),
     (0, swagger_1.ApiOperation)({ summary: "Update voucher" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Voucher updated successfully" }),
@@ -149,7 +149,7 @@ __decorate([
 ], VoucherController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.DELETE, entity: audit_log_schema_1.AuditEntity.VOUCHER }),
     (0, swagger_1.ApiOperation)({ summary: 'Delete voucher' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher deleted successfully' }),

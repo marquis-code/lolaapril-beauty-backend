@@ -10,9 +10,13 @@ exports.AuthModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const jwt_1 = require("@nestjs/jwt");
+const config_1 = require("@nestjs/config");
 const passport_1 = require("@nestjs/passport");
 const auth_service_1 = require("./auth.service");
 const auth_controller_1 = require("./auth.controller");
+const business_schema_1 = require("../tenant/schemas/business.schema");
+const subscription_schema_1 = require("../tenant/schemas/subscription.schema");
+const tenant_config_schema_1 = require("../tenant/schemas/tenant-config.schema");
 const user_schema_1 = require("./schemas/user.schema");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 let AuthModule = class AuthModule {
@@ -20,8 +24,14 @@ let AuthModule = class AuthModule {
 AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]),
+            mongoose_1.MongooseModule.forFeature([
+                { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
+                { name: business_schema_1.Business.name, schema: business_schema_1.BusinessSchema },
+                { name: subscription_schema_1.Subscription.name, schema: subscription_schema_1.SubscriptionSchema },
+                { name: tenant_config_schema_1.TenantConfig.name, schema: tenant_config_schema_1.TenantConfigSchema },
+            ]),
             passport_1.PassportModule,
+            config_1.ConfigModule,
             jwt_1.JwtModule.register({
                 secret: process.env.JWT_ACCESS_SECRET || "access-secret",
                 signOptions: { expiresIn: "15m" },

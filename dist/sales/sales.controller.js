@@ -66,7 +66,7 @@ let SalesController = class SalesController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.SALE }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new sale" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Sale created successfully" }),
@@ -77,7 +77,7 @@ __decorate([
 ], SalesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get all sales" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sales retrieved successfully" }),
     __param(0, (0, common_1.Query)()),
@@ -87,7 +87,7 @@ __decorate([
 ], SalesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("stats"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get sales statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sales statistics retrieved successfully" }),
     __metadata("design:type", Function),
@@ -96,7 +96,7 @@ __decorate([
 ], SalesController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)("top-services"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get top performing services" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Top services retrieved successfully" }),
     __metadata("design:type", Function),
@@ -105,7 +105,7 @@ __decorate([
 ], SalesController.prototype, "getTopServices", null);
 __decorate([
     (0, common_1.Get)("revenue-by-period"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get revenue by time period" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Revenue data retrieved successfully" }),
     __metadata("design:type", Function),
@@ -114,7 +114,7 @@ __decorate([
 ], SalesController.prototype, "getRevenueByPeriod", null);
 __decorate([
     (0, common_1.Get)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.SALE }),
     (0, swagger_1.ApiOperation)({ summary: "Get sale by ID" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sale retrieved successfully" }),
@@ -125,7 +125,7 @@ __decorate([
 ], SalesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SALE }),
     (0, swagger_1.ApiOperation)({ summary: "Update sale" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sale updated successfully" }),
@@ -137,7 +137,7 @@ __decorate([
 ], SalesController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(":id/complete"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SALE }),
     (0, swagger_1.ApiOperation)({ summary: "Complete sale" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sale completed successfully" }),
@@ -148,7 +148,7 @@ __decorate([
 ], SalesController.prototype, "completeSale", null);
 __decorate([
     (0, common_1.Patch)(":id/status"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SALE }),
     (0, swagger_1.ApiOperation)({ summary: "Update sale status" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sale status updated successfully" }),
@@ -159,7 +159,7 @@ __decorate([
 ], SalesController.prototype, "updateStatus", null);
 __decorate([
     (0, common_1.Patch)(":id/payment-status"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SALE }),
     (0, swagger_1.ApiOperation)({ summary: "Update sale payment status" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payment status updated successfully" }),
@@ -170,7 +170,7 @@ __decorate([
 ], SalesController.prototype, "updatePaymentStatus", null);
 __decorate([
     (0, common_1.Delete)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.DELETE, entity: audit_log_schema_1.AuditEntity.SALE }),
     (0, swagger_1.ApiOperation)({ summary: "Delete sale" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Sale deleted successfully" }),

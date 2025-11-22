@@ -66,7 +66,7 @@ let AppointmentController = class AppointmentController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.APPOINTMENT }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new appointment" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Appointment created successfully" }),
@@ -78,7 +78,7 @@ __decorate([
 ], AppointmentController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get all appointments" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointments retrieved successfully" }),
     __param(0, (0, common_1.Query)()),
@@ -88,7 +88,7 @@ __decorate([
 ], AppointmentController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("stats"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get appointment statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Statistics retrieved successfully" }),
     __metadata("design:type", Function),
@@ -97,7 +97,7 @@ __decorate([
 ], AppointmentController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)("available-slots/:date"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: "Get available time slots for a date" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Available slots retrieved successfully" }),
     __metadata("design:type", Function),
@@ -106,7 +106,7 @@ __decorate([
 ], AppointmentController.prototype, "getAvailableSlots", null);
 __decorate([
     (0, common_1.Get)("by-date/:date"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get appointments by date" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointments retrieved successfully" }),
     __metadata("design:type", Function),
@@ -115,7 +115,7 @@ __decorate([
 ], AppointmentController.prototype, "getByDate", null);
 __decorate([
     (0, common_1.Get)("by-staff/:staffId"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get appointments by staff member" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointments retrieved successfully" }),
     __metadata("design:type", Function),
@@ -124,7 +124,7 @@ __decorate([
 ], AppointmentController.prototype, "getByStaff", null);
 __decorate([
     (0, common_1.Get)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.APPOINTMENT }),
     (0, swagger_1.ApiOperation)({ summary: "Get appointment by ID" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointment retrieved successfully" }),
@@ -135,7 +135,7 @@ __decorate([
 ], AppointmentController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.APPOINTMENT }),
     (0, swagger_1.ApiOperation)({ summary: "Update appointment" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointment updated successfully" }),
@@ -148,7 +148,7 @@ __decorate([
 ], AppointmentController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(":id/status"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.APPOINTMENT }),
     (0, swagger_1.ApiOperation)({ summary: "Update appointment status" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Status updated successfully" }),
@@ -159,7 +159,7 @@ __decorate([
 ], AppointmentController.prototype, "updateStatus", null);
 __decorate([
     (0, common_1.Patch)(":id/assign-staff"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.APPOINTMENT }),
     (0, swagger_1.ApiOperation)({ summary: "Assign staff to appointment" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Staff assigned successfully" }),
@@ -170,7 +170,7 @@ __decorate([
 ], AppointmentController.prototype, "assignStaff", null);
 __decorate([
     (0, common_1.Delete)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.DELETE, entity: audit_log_schema_1.AuditEntity.APPOINTMENT }),
     (0, swagger_1.ApiOperation)({ summary: "Delete appointment" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointment deleted successfully" }),

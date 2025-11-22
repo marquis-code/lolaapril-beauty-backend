@@ -68,7 +68,7 @@ let SettingsController = class SettingsController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: "Create new settings" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Settings created successfully" }),
@@ -79,7 +79,7 @@ __decorate([
 ], SettingsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get all settings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Settings retrieved successfully" }),
     __metadata("design:type", Function),
@@ -88,7 +88,7 @@ __decorate([
 ], SettingsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("business-hours"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get business hours settings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Business hours retrieved successfully" }),
     __metadata("design:type", Function),
@@ -97,7 +97,7 @@ __decorate([
 ], SettingsController.prototype, "getBusinessHours", null);
 __decorate([
     (0, common_1.Get)("appointment-settings"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get appointment settings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointment settings retrieved successfully" }),
     __metadata("design:type", Function),
@@ -106,7 +106,7 @@ __decorate([
 ], SettingsController.prototype, "getAppointmentSettings", null);
 __decorate([
     (0, common_1.Get)("payment-settings"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: "Get payment settings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payment settings retrieved successfully" }),
     __metadata("design:type", Function),
@@ -115,7 +115,7 @@ __decorate([
 ], SettingsController.prototype, "getPaymentSettings", null);
 __decorate([
     (0, common_1.Get)("notification-settings"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get notification settings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Notification settings retrieved successfully" }),
     __metadata("design:type", Function),
@@ -124,7 +124,7 @@ __decorate([
 ], SettingsController.prototype, "getNotificationSettings", null);
 __decorate([
     (0, common_1.Get)('type/:type'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: 'Get settings by type' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Settings retrieved successfully' }),
     __param(0, (0, common_1.Param)('type')),
@@ -134,7 +134,7 @@ __decorate([
 ], SettingsController.prototype, "findByType", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: 'Get settings by ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Settings retrieved successfully' }),
@@ -146,7 +146,7 @@ __decorate([
 ], SettingsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: "Update settings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Settings updated successfully" }),
@@ -159,7 +159,7 @@ __decorate([
 ], SettingsController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)("business-hours/update"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: "Update business hours" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Business hours updated successfully" }),
@@ -170,7 +170,7 @@ __decorate([
 ], SettingsController.prototype, "updateBusinessHours", null);
 __decorate([
     (0, common_1.Patch)("appointment-settings/update"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: "Update appointment settings" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointment settings updated successfully" }),
@@ -181,7 +181,7 @@ __decorate([
 ], SettingsController.prototype, "updateAppointmentSettings", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.DELETE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
     (0, swagger_1.ApiOperation)({ summary: 'Delete settings' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Settings deleted successfully' }),

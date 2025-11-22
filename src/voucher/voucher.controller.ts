@@ -22,7 +22,7 @@ export class VoucherController {
   constructor(private readonly voucherService: VoucherService) {}
 
 @Post()
-@Roles(UserRole.ADMIN, UserRole.STAFF)
+@Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
 @Audit({ action: AuditAction.CREATE, entity: AuditEntity.VOUCHER })
 @ApiOperation({ summary: "Create a new voucher" })
 @ApiResponse({ status: 201, description: "Voucher created successfully" })
@@ -32,7 +32,7 @@ create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) 
 }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+@Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Get all vouchers' })
   @ApiResponse({ status: 200, description: 'Vouchers retrieved successfully' })
   findAll(@Query() query: VoucherQueryDto) {
@@ -40,7 +40,7 @@ create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) 
   }
 
   @Get("stats")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+@Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get voucher statistics" })
   @ApiResponse({ status: 200, description: "Voucher statistics retrieved successfully" })
   getStats() {
@@ -48,7 +48,7 @@ create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) 
   }
 
   @Post('validate')
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: 'Validate a voucher' })
   @ApiResponse({ status: 200, description: 'Voucher validation result' })
   validateVoucher(@Body() body: {
@@ -66,7 +66,7 @@ create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) 
   }
 
   @Post(':code/use')
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.VOUCHER })
   @ApiOperation({ summary: 'Use a voucher' })
   @ApiResponse({ status: 200, description: 'Voucher used successfully' })
@@ -75,7 +75,7 @@ create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) 
   }
 
   @Get('code/:code')
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: 'Get voucher by code' })
   @ApiResponse({ status: 200, description: 'Voucher retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Voucher not found' })
@@ -84,7 +84,7 @@ create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) 
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.VOUCHER })
   @ApiOperation({ summary: 'Get voucher by ID' })
   @ApiResponse({ status: 200, description: 'Voucher retrieved successfully' })
@@ -94,7 +94,7 @@ create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) 
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.VOUCHER })
   @ApiOperation({ summary: "Update voucher" })
   @ApiResponse({ status: 200, description: "Voucher updated successfully" })
@@ -104,7 +104,7 @@ create(@Body() createVoucherDto: CreateVoucherDto, @Req() req: RequestWithUser) 
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.VOUCHER })
   @ApiOperation({ summary: 'Delete voucher' })
   @ApiResponse({ status: 200, description: 'Voucher deleted successfully' })

@@ -70,7 +70,7 @@ let MembershipController = class MembershipController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: 'Create a new membership program' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Membership program created successfully' }),
@@ -81,7 +81,7 @@ __decorate([
 ], MembershipController.prototype, "createMembership", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: 'Get all membership programs' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Membership programs retrieved successfully' }),
     __param(0, (0, common_1.Query)()),
@@ -91,7 +91,7 @@ __decorate([
 ], MembershipController.prototype, "findAllMemberships", null);
 __decorate([
     (0, common_1.Get)("stats"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get membership statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Membership statistics retrieved successfully" }),
     __metadata("design:type", Function),
@@ -100,7 +100,7 @@ __decorate([
 ], MembershipController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: 'Get membership program by ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Membership program retrieved successfully' }),
@@ -112,7 +112,7 @@ __decorate([
 ], MembershipController.prototype, "findMembershipById", null);
 __decorate([
     (0, common_1.Patch)(":id"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: "Update membership program" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Membership program updated successfully" }),
@@ -125,7 +125,7 @@ __decorate([
 ], MembershipController.prototype, "updateMembership", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.DELETE, entity: audit_log_schema_1.AuditEntity.MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: 'Delete membership program' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Membership program deleted successfully' }),
@@ -137,7 +137,7 @@ __decorate([
 ], MembershipController.prototype, "removeMembership", null);
 __decorate([
     (0, common_1.Post)('enroll'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.CLIENT_MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: 'Enroll client in membership program' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Client enrolled successfully' }),
@@ -148,7 +148,7 @@ __decorate([
 ], MembershipController.prototype, "enrollClient", null);
 __decorate([
     (0, common_1.Get)('client/:clientId'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: 'Get client memberships' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Client memberships retrieved successfully' }),
     __param(0, (0, common_1.Param)('clientId')),
@@ -158,7 +158,7 @@ __decorate([
 ], MembershipController.prototype, "findClientMemberships", null);
 __decorate([
     (0, common_1.Get)('client/:clientId/benefits'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: 'Get client membership benefits' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Client benefits retrieved successfully' }),
     __param(0, (0, common_1.Param)('clientId')),
@@ -168,7 +168,7 @@ __decorate([
 ], MembershipController.prototype, "getClientBenefits", null);
 __decorate([
     (0, common_1.Post)("client-membership/:id/points/add"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.CLIENT_MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: "Add points to client membership" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Points added successfully" }),
@@ -180,7 +180,7 @@ __decorate([
 ], MembershipController.prototype, "addPoints", null);
 __decorate([
     (0, common_1.Post)("client-membership/:id/points/redeem"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.CLIENT_MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: "Redeem points from client membership" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Points redeemed successfully" }),
@@ -192,7 +192,7 @@ __decorate([
 ], MembershipController.prototype, "redeemPoints", null);
 __decorate([
     (0, common_1.Post)("client-membership/:id/spending"),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.ADMIN, user_schema_1.UserRole.STAFF),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.CLIENT_MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: "Update client spending" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Spending updated successfully" }),

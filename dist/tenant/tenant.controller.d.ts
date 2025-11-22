@@ -1,35 +1,8 @@
 import { TenantService } from './tenant.service';
-import { CreateBusinessDto } from './dto/business.dto';
 import { Request } from 'express';
 export declare class TenantController {
     private readonly tenantService;
     constructor(tenantService: TenantService);
-    createBusiness(createBusinessDto: CreateBusinessDto): Promise<{
-        success: boolean;
-        data: any;
-        message: string;
-        error?: undefined;
-        code?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        code: any;
-        data?: undefined;
-        message?: undefined;
-    }>;
-    registerBusiness(registrationData: any): Promise<{
-        success: boolean;
-        data: any;
-        message: string;
-        error?: undefined;
-        code?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        code: any;
-        data?: undefined;
-        message?: undefined;
-    }>;
     checkSubdomainAvailability(subdomain: string): Promise<{
         success: boolean;
         data: {

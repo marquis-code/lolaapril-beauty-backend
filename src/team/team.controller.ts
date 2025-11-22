@@ -21,7 +21,7 @@ export class TeamController {
   constructor(private readonly teamService: TeamService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.TEAM_MEMBER })
   @ApiOperation({ summary: "Create a new team member" })
   @ApiResponse({ status: 201, description: "Team member created successfully" })
@@ -31,7 +31,7 @@ export class TeamController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all team members" })
   @ApiResponse({ status: 200, description: "Team members retrieved successfully" })
   findAll(@Query() query: TeamMemberQueryDto) {
@@ -39,7 +39,7 @@ export class TeamController {
   }
 
   @Get("stats")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: "Get team statistics" })
   @ApiResponse({ status: 200, description: "Team statistics retrieved successfully" })
   getStats() {
@@ -47,7 +47,7 @@ export class TeamController {
   }
 
   @Get("role/:role")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get team members by role" })
   @ApiResponse({ status: 200, description: "Team members retrieved successfully" })
   findByRole(role: string) {
@@ -55,7 +55,7 @@ export class TeamController {
   }
 
   @Get("department/:department")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get team members by department" })
   @ApiResponse({ status: 200, description: "Team members retrieved successfully" })
   findByDepartment(department: string) {
@@ -63,7 +63,7 @@ export class TeamController {
   }
 
   @Get(":id")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.TEAM_MEMBER })
   @ApiOperation({ summary: "Get team member by ID" })
   @ApiResponse({ status: 200, description: "Team member retrieved successfully" })
@@ -73,7 +73,7 @@ export class TeamController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.TEAM_MEMBER })
   @ApiOperation({ summary: "Update team member" })
   @ApiResponse({ status: 200, description: "Team member updated successfully" })
@@ -83,7 +83,7 @@ export class TeamController {
   }
 
   @Patch(":id/status")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.TEAM_MEMBER })
   @ApiOperation({ summary: "Update team member status" })
   @ApiResponse({ status: 200, description: "Team member status updated successfully" })
@@ -93,7 +93,7 @@ export class TeamController {
   }
 
   @Delete(":id")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.TEAM_MEMBER })
   @ApiOperation({ summary: "Delete team member" })
   @ApiResponse({ status: 200, description: "Team member deleted successfully" })

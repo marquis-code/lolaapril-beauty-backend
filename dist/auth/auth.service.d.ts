@@ -23,15 +23,73 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { JwtService } from "@nestjs/jwt";
-import { User, UserDocument } from "./schemas/user.schema";
+import { ConfigService } from "@nestjs/config";
+import { User, UserDocument, UserRole } from "./schemas/user.schema";
+import { BusinessDocument } from "../tenant/schemas/business.schema";
+import { SubscriptionDocument } from "../tenant/schemas/subscription.schema";
+import { TenantConfigDocument } from "../tenant/schemas/tenant-config.schema";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto";
 export declare class AuthService {
     private userModel;
+    private businessModel;
+    private subscriptionModel;
+    private tenantConfigModel;
     private jwtService;
-    constructor(userModel: Model<UserDocument>, jwtService: JwtService);
+    private configService;
+    private googleClient;
+    constructor(userModel: Model<UserDocument>, businessModel: Model<BusinessDocument>, subscriptionModel: Model<SubscriptionDocument>, tenantConfigModel: Model<TenantConfigDocument>, jwtService: JwtService, configService: ConfigService);
+    registerBusiness(registerDto: BusinessRegisterDto): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        user: {
+            id: unknown;
+            firstName: string;
+            lastName: string;
+            email: string;
+            role: UserRole;
+            status: import("./schemas/user.schema").UserStatus;
+        };
+        business: {
+            id: unknown;
+            businessName: string;
+            subdomain: string;
+            businessType: string;
+            status: string;
+            trialEndsAt: Date;
+        };
+    }>;
+    loginBusiness(loginDto: BusinessLoginDto): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        user: {
+            id: unknown;
+            firstName: string;
+            lastName: string;
+            email: string;
+            role: UserRole;
+            status: import("./schemas/user.schema").UserStatus.ACTIVE;
+        };
+        business: {
+            id: unknown;
+            businessName: string;
+            subdomain: string;
+            businessType: string;
+            status: string;
+            trialEndsAt: Date;
+            subscription: Types.ObjectId;
+        };
+        businesses: {
+            id: unknown;
+            businessName: string;
+            subdomain: string;
+            status: string;
+        }[];
+    }>;
+    googleAuth(googleAuthDto: GoogleAuthDto): Promise<any>;
     register(registerDto: RegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -40,7 +98,7 @@ export declare class AuthService {
             firstName: string;
             lastName: string;
             email: string;
-            role: import("./schemas/user.schema").UserRole;
+            role: UserRole;
             status: import("./schemas/user.schema").UserStatus;
         };
     }>;
@@ -52,7 +110,7 @@ export declare class AuthService {
             firstName: string;
             lastName: string;
             email: string;
-            role: import("./schemas/user.schema").UserRole;
+            role: UserRole;
             status: import("./schemas/user.schema").UserStatus.ACTIVE;
         };
     }>;
@@ -69,4 +127,6 @@ export declare class AuthService {
     }> & {
         __v: number;
     }>;
+    private createTrialSubscription;
+    private createDefaultTenantConfig;
 }

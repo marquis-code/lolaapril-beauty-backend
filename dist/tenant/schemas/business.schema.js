@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BusinessSchema = exports.Business = exports.BusinessSettings = exports.BusinessContact = exports.BusinessAddress = void 0;
+exports.BusinessSchema = exports.Business = exports.BusinessHours = exports.BusinessSettings = exports.BusinessContact = exports.BusinessAddress = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let BusinessAddress = class BusinessAddress {
@@ -70,9 +70,9 @@ __decorate([
             facebook: { type: String, required: false },
             instagram: { type: String, required: false },
             twitter: { type: String, required: false },
-            tiktok: { type: String, required: false }
+            tiktok: { type: String, required: false },
         },
-        default: {}
+        default: {},
     }),
     __metadata("design:type", Object)
 ], BusinessContact.prototype, "socialMedia", void 0);
@@ -83,15 +83,15 @@ exports.BusinessContact = BusinessContact;
 let BusinessSettings = class BusinessSettings {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ default: 'Africa/Lagos' }),
+    (0, mongoose_1.Prop)({ default: "Africa/Lagos" }),
     __metadata("design:type", String)
 ], BusinessSettings.prototype, "timezone", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: 'NGN' }),
+    (0, mongoose_1.Prop)({ default: "NGN" }),
     __metadata("design:type", String)
 ], BusinessSettings.prototype, "currency", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: 'en' }),
+    (0, mongoose_1.Prop)({ default: "en" }),
     __metadata("design:type", String)
 ], BusinessSettings.prototype, "language", void 0);
 __decorate([
@@ -136,9 +136,9 @@ __decorate([
             booking_confirmation: { type: Boolean, default: true },
             payment_reminders: { type: Boolean, default: true },
             appointment_reminders: { type: Boolean, default: true },
-            marketing: { type: Boolean, default: false }
+            marketing: { type: Boolean, default: false },
         },
-        default: {}
+        default: {},
     }),
     __metadata("design:type", Object)
 ], BusinessSettings.prototype, "notificationSettings", void 0);
@@ -146,6 +146,32 @@ BusinessSettings = __decorate([
     (0, mongoose_1.Schema)()
 ], BusinessSettings);
 exports.BusinessSettings = BusinessSettings;
+let BusinessHours = class BusinessHours {
+};
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], BusinessHours.prototype, "day", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Boolean)
+], BusinessHours.prototype, "isOpen", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], BusinessHours.prototype, "openTime", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], BusinessHours.prototype, "closeTime", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [{ openTime: String, closeTime: String }], default: [] }),
+    __metadata("design:type", Array)
+], BusinessHours.prototype, "breaks", void 0);
+BusinessHours = __decorate([
+    (0, mongoose_1.Schema)()
+], BusinessHours);
+exports.BusinessHours = BusinessHours;
 let Business = class Business {
 };
 __decorate([
@@ -163,7 +189,7 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({
         required: true,
-        enum: ['salon', 'spa', 'barbershop', 'beauty_clinic', 'wellness_center', 'other']
+        enum: ["salon", "spa", "barbershop", "beauty_clinic", "wellness_center", "other"],
     }),
     __metadata("design:type", String)
 ], Business.prototype, "businessType", void 0);
@@ -188,18 +214,26 @@ __decorate([
     __metadata("design:type", BusinessSettings)
 ], Business.prototype, "settings", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: true }),
+    (0, mongoose_1.Prop)({ type: [BusinessHours], default: [] }),
+    __metadata("design:type", Array)
+], Business.prototype, "businessHours", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "User", required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Business.prototype, "ownerId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [mongoose_2.Types.ObjectId], ref: 'User', default: [] }),
+    (0, mongoose_1.Prop)({ type: [mongoose_2.Types.ObjectId], ref: "User", default: [] }),
     __metadata("design:type", Array)
 ], Business.prototype, "adminIds", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: [mongoose_2.Types.ObjectId], ref: "User", default: [] }),
+    __metadata("design:type", Array)
+], Business.prototype, "staffIds", void 0);
+__decorate([
     (0, mongoose_1.Prop)({
         required: true,
-        enum: ['active', 'inactive', 'suspended', 'trial'],
-        default: 'trial'
+        enum: ["active", "inactive", "suspended", "trial", "expired"],
+        default: "trial",
     }),
     __metadata("design:type", String)
 ], Business.prototype, "status", void 0);
@@ -208,7 +242,7 @@ __decorate([
     __metadata("design:type", Date)
 ], Business.prototype, "trialEndsAt", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Subscription' }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "Subscription" }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Business.prototype, "activeSubscription", void 0);
 __decorate([
@@ -220,13 +254,33 @@ __decorate([
                 accountName: String,
                 accountNumber: String,
                 bankName: String,
-                bankCode: String
-            }
+                bankCode: String,
+            },
         },
-        default: {}
+        default: {},
     }),
     __metadata("design:type", Object)
 ], Business.prototype, "businessDocuments", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 0 }),
+    __metadata("design:type", Number)
+], Business.prototype, "totalAppointments", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 0 }),
+    __metadata("design:type", Number)
+], Business.prototype, "totalRevenue", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 0 }),
+    __metadata("design:type", Number)
+], Business.prototype, "totalClients", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 0 }),
+    __metadata("design:type", Number)
+], Business.prototype, "averageRating", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 0 }),
+    __metadata("design:type", Number)
+], Business.prototype, "totalReviews", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)
@@ -243,4 +297,7 @@ exports.BusinessSchema = mongoose_1.SchemaFactory.createForClass(Business);
 exports.BusinessSchema.index({ subdomain: 1 });
 exports.BusinessSchema.index({ ownerId: 1 });
 exports.BusinessSchema.index({ status: 1 });
+exports.BusinessSchema.index({ businessType: 1 });
+exports.BusinessSchema.index({ adminIds: 1 });
+exports.BusinessSchema.index({ staffIds: 1 });
 //# sourceMappingURL=business.schema.js.map

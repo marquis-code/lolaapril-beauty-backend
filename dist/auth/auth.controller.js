@@ -18,10 +18,20 @@ const swagger_1 = require("@nestjs/swagger");
 const auth_service_1 = require("./auth.service");
 const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
+const business_register_dto_1 = require("./dto/business-register.dto");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
+    }
+    async registerBusiness(registerDto) {
+        return this.authService.registerBusiness(registerDto);
+    }
+    async loginBusiness(loginDto) {
+        return this.authService.loginBusiness(loginDto);
+    }
+    async googleAuth(googleAuthDto) {
+        return this.authService.googleAuth(googleAuthDto);
     }
     async register(registerDto) {
         return this.authService.register(registerDto);
@@ -33,9 +43,50 @@ let AuthController = class AuthController {
         return this.authService.logout(req.user.sub);
     }
     async getProfile(req) {
-        return this.authService.validateUser(req.user.sub);
+        const user = await this.authService.validateUser(req.user.sub);
+        const response = { user };
+        if (req.user.businessId) {
+            response.businessContext = {
+                businessId: req.user.businessId,
+                subdomain: req.user.subdomain,
+            };
+        }
+        return response;
+    }
+    async refreshTokens(body) {
+        return this.authService.refreshTokens(body.userId, body.refreshToken);
     }
 };
+__decorate([
+    (0, common_1.Post)("business/register"),
+    (0, swagger_1.ApiOperation)({ summary: "Register a new business with owner account" }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "Business registered successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: "Business subdomain or user email already exists" }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [business_register_dto_1.BusinessRegisterDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "registerBusiness", null);
+__decorate([
+    (0, common_1.Post)("business/login"),
+    (0, swagger_1.ApiOperation)({ summary: "Login as business owner" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Business login successful" }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: "Invalid credentials" }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [business_register_dto_1.BusinessLoginDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "loginBusiness", null);
+__decorate([
+    (0, common_1.Post)("google"),
+    (0, swagger_1.ApiOperation)({ summary: "Authenticate with Google OAuth" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Google authentication successful" }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: "Google authentication failed" }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [business_register_dto_1.GoogleAuthDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleAuth", null);
 __decorate([
     (0, common_1.Post)("register"),
     (0, swagger_1.ApiOperation)({ summary: "Register a new user" }),
@@ -78,6 +129,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Post)('refresh'),
+    (0, swagger_1.ApiOperation)({ summary: 'Refresh access token' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Token refreshed successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Invalid refresh token' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "refreshTokens", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),

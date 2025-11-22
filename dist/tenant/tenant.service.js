@@ -19,104 +19,136 @@ const mongoose_2 = require("mongoose");
 const business_schema_1 = require("./schemas/business.schema");
 const subscription_schema_1 = require("./schemas/subscription.schema");
 const tenant_config_schema_1 = require("./schemas/tenant-config.schema");
+const user_schema_1 = require("../auth/schemas/user.schema");
 let TenantService = class TenantService {
-    constructor(businessModel, subscriptionModel, tenantConfigModel) {
+    constructor(businessModel, subscriptionModel, tenantConfigModel, userModel) {
         this.businessModel = businessModel;
         this.subscriptionModel = subscriptionModel;
         this.tenantConfigModel = tenantConfigModel;
-    }
-    async createBusiness(createBusinessDto) {
-        const existingBusiness = await this.businessModel.findOne({
-            subdomain: createBusinessDto.subdomain
-        }).exec();
-        if (existingBusiness) {
-            throw new common_1.BadRequestException('Subdomain already taken');
-        }
-        const businessData = {
-            businessName: createBusinessDto.businessName,
-            subdomain: createBusinessDto.subdomain,
-            businessType: createBusinessDto.businessType,
-            ownerId: new mongoose_2.Types.ObjectId(createBusinessDto.ownerId),
-            status: createBusinessDto.status || 'trial',
-            trialEndsAt: createBusinessDto.trialEndsAt ? new Date(createBusinessDto.trialEndsAt) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-        };
-        if (createBusinessDto.address)
-            businessData.address = createBusinessDto.address;
-        if (createBusinessDto.contact)
-            businessData.contact = createBusinessDto.contact;
-        if (createBusinessDto.businessDescription)
-            businessData.businessDescription = createBusinessDto.businessDescription;
-        if (createBusinessDto.logo)
-            businessData.logo = createBusinessDto.logo;
-        if (createBusinessDto.images)
-            businessData.images = createBusinessDto.images;
-        if (createBusinessDto.settings)
-            businessData.settings = createBusinessDto.settings;
-        if (createBusinessDto.businessDocuments)
-            businessData.businessDocuments = createBusinessDto.businessDocuments;
-        if (createBusinessDto.adminIds && createBusinessDto.adminIds.length > 0) {
-            businessData.adminIds = createBusinessDto.adminIds.map(id => new mongoose_2.Types.ObjectId(id));
-        }
-        const savedBusiness = await this.businessModel.create(businessData);
-        const businessIdString = savedBusiness._id.toString();
-        try {
-            await this.createDefaultTenantConfig(businessIdString);
-        }
-        catch (error) {
-            console.log('Warning: Failed to create default tenant config:', error.message);
-        }
-        try {
-            await this.createTrialSubscription(businessIdString);
-        }
-        catch (error) {
-            console.log('Warning: Failed to create trial subscription:', error.message);
-        }
-        return JSON.parse(JSON.stringify(savedBusiness));
+        this.userModel = userModel;
     }
     async isSubdomainAvailable(subdomain) {
         const existingBusiness = await this.businessModel.findOne({ subdomain });
         return !existingBusiness;
     }
-    async registerBusinessWithOwner(registrationData) {
-        return await this.createBusiness(registrationData);
-    }
     async getBusinessBySubdomain(subdomain) {
-        const business = await this.businessModel
+        const business = (await this.businessModel
             .findOne({ subdomain })
-            .populate('activeSubscription')
-            .populate('ownerId', 'firstName lastName email')
-            .exec();
+            .populate("activeSubscription")
+            .populate("ownerId", "firstName lastName email")
+            .exec());
         if (!business) {
-            throw new common_1.NotFoundException('Business not found');
+            throw new common_1.NotFoundException("Business not found");
         }
         return business;
     }
     async getBusinessById(businessId) {
-        const business = await this.businessModel
+        const business = (await this.businessModel
             .findById(businessId)
-            .populate('activeSubscription')
-            .populate('ownerId', 'firstName lastName email')
-            .populate('adminIds', 'firstName lastName email role')
-            .exec();
+            .populate("activeSubscription")
+            .populate("ownerId", "firstName lastName email")
+            .populate("adminIds", "firstName lastName email role")
+            .populate("staffIds", "firstName lastName email role")
+            .exec());
         if (!business) {
-            throw new common_1.NotFoundException('Business not found');
+            throw new common_1.NotFoundException("Business not found");
         }
         return business;
     }
     async updateBusiness(businessId, updateData) {
-        const business = await this.businessModel.findByIdAndUpdate(businessId, Object.assign(Object.assign({}, updateData), { updatedAt: new Date() }), { new: true }).exec();
+        const business = (await this.businessModel
+            .findByIdAndUpdate(businessId, Object.assign(Object.assign({}, updateData), { updatedAt: new Date() }), { new: true })
+            .exec());
         if (!business) {
-            throw new common_1.NotFoundException('Business not found');
+            throw new common_1.NotFoundException("Business not found");
         }
         return business;
     }
-    async checkSubscriptionLimits(businessId) {
-        const business = await this.businessModel
-            .findById(businessId)
-            .populate('activeSubscription')
-            .exec();
+    async getBusinessesByOwner(ownerId) {
+        return (await this.businessModel
+            .find({ ownerId: new mongoose_2.Types.ObjectId(ownerId) })
+            .populate("activeSubscription")
+            .sort({ createdAt: -1 })
+            .exec());
+    }
+    async getBusinessesByUser(userId) {
+        return (await this.businessModel
+            .find({
+            $or: [{ ownerId: new mongoose_2.Types.ObjectId(userId) }, { adminIds: new mongoose_2.Types.ObjectId(userId) }, { staffIds: new mongoose_2.Types.ObjectId(userId) }],
+        })
+            .populate("activeSubscription")
+            .sort({ createdAt: -1 })
+            .exec());
+    }
+    async addStaffMember(businessId, staffData) {
+        const business = await this.businessModel.findById(businessId);
         if (!business) {
-            throw new common_1.NotFoundException('Business not found');
+            throw new common_1.NotFoundException("Business not found");
+        }
+        let user = await this.userModel.findOne({ email: staffData.email });
+        if (!user) {
+            const bcrypt = require("bcryptjs");
+            const tempPassword = Math.random().toString(36).slice(-8);
+            const newUserData = {
+                email: staffData.email,
+                firstName: staffData.firstName,
+                lastName: staffData.lastName,
+                phone: staffData.phone,
+                password: await bcrypt.hash(tempPassword, 12),
+                role: user_schema_1.UserRole.STAFF,
+                status: "active",
+                staffBusinessId: business._id,
+            };
+            user = new this.userModel(newUserData);
+            await user.save();
+        }
+        else {
+            await this.userModel.findByIdAndUpdate(user._id, {
+                role: user_schema_1.UserRole.STAFF,
+                staffBusinessId: business._id,
+            });
+        }
+        await this.businessModel.findByIdAndUpdate(businessId, {
+            $addToSet: { staffIds: user._id },
+        });
+        return {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+        };
+    }
+    async removeStaffMember(businessId, staffId) {
+        await this.businessModel.findByIdAndUpdate(businessId, {
+            $pull: { staffIds: new mongoose_2.Types.ObjectId(staffId) },
+        });
+        await this.userModel.findByIdAndUpdate(staffId, {
+            staffBusinessId: null,
+            role: user_schema_1.UserRole.CLIENT,
+        });
+    }
+    async addBusinessAdmin(businessId, adminId) {
+        await this.businessModel.findByIdAndUpdate(businessId, {
+            $addToSet: { adminIds: new mongoose_2.Types.ObjectId(adminId) },
+        });
+        await this.userModel.findByIdAndUpdate(adminId, {
+            role: user_schema_1.UserRole.BUSINESS_ADMIN,
+            $addToSet: { adminBusinesses: new mongoose_2.Types.ObjectId(businessId) },
+        });
+    }
+    async removeBusinessAdmin(businessId, adminId) {
+        await this.businessModel.findByIdAndUpdate(businessId, {
+            $pull: { adminIds: new mongoose_2.Types.ObjectId(adminId) },
+        });
+        await this.userModel.findByIdAndUpdate(adminId, {
+            $pull: { adminBusinesses: new mongoose_2.Types.ObjectId(businessId) },
+        });
+    }
+    async checkSubscriptionLimits(businessId) {
+        const business = await this.businessModel.findById(businessId).populate("activeSubscription").exec();
+        if (!business) {
+            throw new common_1.NotFoundException("Business not found");
         }
         const subscription = business.activeSubscription;
         if (!subscription) {
@@ -124,7 +156,7 @@ let TenantService = class TenantService {
                 isValid: false,
                 limits: null,
                 usage: null,
-                warnings: ['No active subscription']
+                warnings: ["No active subscription"],
             };
         }
         const usage = await this.getCurrentUsage(businessId);
@@ -146,162 +178,52 @@ let TenantService = class TenantService {
             isValid: warnings.length === 0,
             limits,
             usage,
-            warnings
+            warnings,
         };
     }
     async getTenantConfig(businessId) {
-        const config = await this.tenantConfigModel.findOne({ businessId }).exec();
+        const config = (await this.tenantConfigModel.findOne({ businessId }).exec());
         if (!config) {
-            return await this.createDefaultTenantConfig(businessId);
+            throw new common_1.NotFoundException("Tenant configuration not found");
         }
         return config;
     }
     async updateTenantConfig(businessId, configData) {
-        const config = await this.tenantConfigModel.findOneAndUpdate({ businessId: new mongoose_2.Types.ObjectId(businessId) }, Object.assign(Object.assign({}, configData), { updatedAt: new Date() }), { new: true, upsert: true }).exec();
+        const config = (await this.tenantConfigModel
+            .findOneAndUpdate({ businessId: new mongoose_2.Types.ObjectId(businessId) }, Object.assign(Object.assign({}, configData), { updatedAt: new Date() }), { new: true, upsert: true })
+            .exec());
         return config;
-    }
-    async createSubscription(businessId, subscriptionData) {
-        const startDate = new Date();
-        const endDate = new Date();
-        if (subscriptionData.billingCycle === 'monthly') {
-            endDate.setMonth(endDate.getMonth() + 1);
-        }
-        else {
-            endDate.setFullYear(endDate.getFullYear() + 1);
-        }
-        const subscription = new this.subscriptionModel(Object.assign(Object.assign({ businessId: new mongoose_2.Types.ObjectId(businessId) }, subscriptionData), { startDate,
-            endDate, nextBillingDate: endDate, status: 'active' }));
-        const savedSubscription = await subscription.save();
-        await this.businessModel.findByIdAndUpdate(businessId, {
-            activeSubscription: savedSubscription._id,
-            status: 'active'
-        }).exec();
-        return savedSubscription;
-    }
-    async cancelSubscription(subscriptionId, reason) {
-        const subscription = await this.subscriptionModel.findById(subscriptionId).exec();
-        if (!subscription) {
-            throw new common_1.NotFoundException('Subscription not found');
-        }
-        subscription.status = 'cancelled';
-        subscription.cancellationDate = new Date();
-        subscription.cancellationReason = reason;
-        subscription.autoRenew = false;
-        await subscription.save();
-        await this.businessModel.findByIdAndUpdate(subscription.businessId, {
-            status: 'inactive'
-        }).exec();
-    }
-    async getBusinessesByOwner(ownerId) {
-        return await this.businessModel
-            .find({ ownerId: new mongoose_2.Types.ObjectId(ownerId) })
-            .populate('activeSubscription')
-            .sort({ createdAt: -1 })
-            .exec();
-    }
-    async addBusinessAdmin(businessId, adminId) {
-        await this.businessModel.findByIdAndUpdate(businessId, {
-            $addToSet: { adminIds: new mongoose_2.Types.ObjectId(adminId) }
-        });
-    }
-    async removeBusinessAdmin(businessId, adminId) {
-        await this.businessModel.findByIdAndUpdate(businessId, {
-            $pull: { adminIds: new mongoose_2.Types.ObjectId(adminId) }
-        });
     }
     async suspendBusiness(businessId, reason) {
         await this.businessModel.findByIdAndUpdate(businessId, {
-            status: 'suspended',
-            updatedAt: new Date()
+            status: "suspended",
+            updatedAt: new Date(),
         });
     }
     async reactivateBusiness(businessId) {
         const business = await this.businessModel.findById(businessId);
         if (!business) {
-            throw new common_1.NotFoundException('Business not found');
+            throw new common_1.NotFoundException("Business not found");
         }
         const hasActiveSubscription = await this.subscriptionModel.findOne({
             businessId: new mongoose_2.Types.ObjectId(businessId),
-            status: 'active',
-            endDate: { $gt: new Date() }
+            status: "active",
+            endDate: { $gt: new Date() },
         });
-        const newStatus = hasActiveSubscription ? 'active' : 'trial';
+        const newStatus = hasActiveSubscription ? "active" : "trial";
         await this.businessModel.findByIdAndUpdate(businessId, {
             status: newStatus,
-            updatedAt: new Date()
+            updatedAt: new Date(),
         });
-    }
-    async createDefaultTenantConfig(businessId) {
-        const config = new this.tenantConfigModel({
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            brandColors: {
-                primary: '#007bff',
-                secondary: '#6c757d',
-                accent: '#28a745',
-                background: '#ffffff',
-                text: '#333333'
-            },
-            typography: {
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                headerFont: 'Inter, sans-serif'
-            },
-            customization: {
-                showBusinessLogo: true,
-                showPoweredBy: true
-            },
-            integrations: {
-                emailProvider: 'smtp',
-                smsProvider: 'twilio',
-                paymentProvider: 'paystack'
-            }
-        });
-        return await config.save();
-    }
-    async createTrialSubscription(businessId) {
-        const startDate = new Date();
-        const endDate = new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000);
-        const subscription = new this.subscriptionModel({
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            planType: 'trial',
-            planName: 'Trial Plan',
-            monthlyPrice: 0,
-            yearlyPrice: 0,
-            billingCycle: 'monthly',
-            startDate,
-            endDate,
-            nextBillingDate: endDate,
-            status: 'active',
-            limits: {
-                maxStaff: 3,
-                maxServices: 10,
-                maxAppointmentsPerMonth: 100,
-                maxStorageGB: 1,
-                features: {
-                    onlineBooking: true,
-                    analytics: false,
-                    marketing: false,
-                    inventory: false,
-                    multiLocation: false,
-                    apiAccess: false,
-                    customBranding: false,
-                    advancedReports: false
-                }
-            },
-            trialDays: 14
-        });
-        const savedSubscription = await subscription.save();
-        await this.businessModel.findByIdAndUpdate(businessId, {
-            activeSubscription: savedSubscription._id
-        }).exec();
-        return savedSubscription;
     }
     async getCurrentUsage(businessId) {
+        var _a;
+        const business = await this.businessModel.findById(businessId);
         return {
-            staffCount: 0,
+            staffCount: ((_a = business === null || business === void 0 ? void 0 : business.staffIds) === null || _a === void 0 ? void 0 : _a.length) || 0,
             servicesCount: 0,
             monthlyAppointments: 0,
-            storageUsedGB: 0
+            storageUsedGB: 0,
         };
     }
 };
@@ -310,7 +232,9 @@ TenantService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
     __param(1, (0, mongoose_1.InjectModel)(subscription_schema_1.Subscription.name)),
     __param(2, (0, mongoose_1.InjectModel)(tenant_config_schema_1.TenantConfig.name)),
+    __param(3, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model])
 ], TenantService);

@@ -23,7 +23,7 @@ export class MembershipController {
 
   // Membership Program Management
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.MEMBERSHIP })
   @ApiOperation({ summary: 'Create a new membership program' })
   @ApiResponse({ status: 201, description: 'Membership program created successfully' })
@@ -32,7 +32,7 @@ export class MembershipController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Get all membership programs' })
   @ApiResponse({ status: 200, description: 'Membership programs retrieved successfully' })
   findAllMemberships(@Query() query: MembershipQueryDto) {
@@ -40,7 +40,7 @@ export class MembershipController {
   }
 
   @Get("stats")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get membership statistics" })
   @ApiResponse({ status: 200, description: "Membership statistics retrieved successfully" })
   getStats() {
@@ -48,7 +48,7 @@ export class MembershipController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.MEMBERSHIP })
   @ApiOperation({ summary: 'Get membership program by ID' })
   @ApiResponse({ status: 200, description: 'Membership program retrieved successfully' })
@@ -58,7 +58,7 @@ export class MembershipController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.MEMBERSHIP })
   @ApiOperation({ summary: "Update membership program" })
   @ApiResponse({ status: 200, description: "Membership program updated successfully" })
@@ -68,7 +68,7 @@ export class MembershipController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.MEMBERSHIP })
   @ApiOperation({ summary: 'Delete membership program' })
   @ApiResponse({ status: 200, description: 'Membership program deleted successfully' })
@@ -79,7 +79,7 @@ export class MembershipController {
 
   // Client Membership Management
   @Post('enroll')
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.CLIENT_MEMBERSHIP })
   @ApiOperation({ summary: 'Enroll client in membership program' })
   @ApiResponse({ status: 201, description: 'Client enrolled successfully' })
@@ -88,7 +88,7 @@ export class MembershipController {
   }
 
   @Get('client/:clientId')
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: 'Get client memberships' })
   @ApiResponse({ status: 200, description: 'Client memberships retrieved successfully' })
   findClientMemberships(@Param('clientId') clientId: string) {
@@ -96,7 +96,7 @@ export class MembershipController {
   }
 
   @Get('client/:clientId/benefits')
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: 'Get client membership benefits' })
   @ApiResponse({ status: 200, description: 'Client benefits retrieved successfully' })
   getClientBenefits(@Param('clientId') clientId: string) {
@@ -104,7 +104,7 @@ export class MembershipController {
   }
 
   @Post("client-membership/:id/points/add")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.CLIENT_MEMBERSHIP })
   @ApiOperation({ summary: "Add points to client membership" })
   @ApiResponse({ status: 200, description: "Points added successfully" })
@@ -113,7 +113,7 @@ export class MembershipController {
   }
 
   @Post("client-membership/:id/points/redeem")
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.CLIENT_MEMBERSHIP })
   @ApiOperation({ summary: "Redeem points from client membership" })
   @ApiResponse({ status: 200, description: "Points redeemed successfully" })
@@ -122,7 +122,7 @@ export class MembershipController {
   }
 
   @Post("client-membership/:id/spending")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.CLIENT_MEMBERSHIP })
   @ApiOperation({ summary: "Update client spending" })
   @ApiResponse({ status: 200, description: "Spending updated successfully" })

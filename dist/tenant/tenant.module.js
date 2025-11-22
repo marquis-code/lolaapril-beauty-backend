@@ -14,6 +14,7 @@ const tenant_service_1 = require("./tenant.service");
 const business_schema_1 = require("./schemas/business.schema");
 const subscription_schema_1 = require("./schemas/subscription.schema");
 const tenant_config_schema_1 = require("./schemas/tenant-config.schema");
+const user_schema_1 = require("../auth/schemas/user.schema");
 let TenantModule = class TenantModule {
 };
 TenantModule = __decorate([
@@ -24,6 +25,7 @@ TenantModule = __decorate([
                 { name: business_schema_1.Business.name, schema: business_schema_1.BusinessSchema },
                 { name: subscription_schema_1.Subscription.name, schema: subscription_schema_1.SubscriptionSchema },
                 { name: tenant_config_schema_1.TenantConfig.name, schema: tenant_config_schema_1.TenantConfigSchema },
+                { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
             ]),
         ],
         controllers: [tenant_controller_1.TenantController],

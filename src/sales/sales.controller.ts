@@ -21,7 +21,7 @@ export class SalesController {
   constructor(private readonly salesService: SalesService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.SALE })
   @ApiOperation({ summary: "Create a new sale" })
   @ApiResponse({ status: 201, description: "Sale created successfully" })
@@ -30,7 +30,7 @@ export class SalesController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all sales" })
   @ApiResponse({ status: 200, description: "Sales retrieved successfully" })
   findAll(@Query() query: SalesQueryDto) {
@@ -38,7 +38,7 @@ export class SalesController {
   }
 
   @Get("stats")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get sales statistics" })
   @ApiResponse({ status: 200, description: "Sales statistics retrieved successfully" })
   getStats() {
@@ -46,7 +46,7 @@ export class SalesController {
   }
 
   @Get("top-services")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get top performing services" })
   @ApiResponse({ status: 200, description: "Top services retrieved successfully" })
   getTopServices() {
@@ -54,7 +54,7 @@ export class SalesController {
   }
 
   @Get("revenue-by-period")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get revenue by time period" })
   @ApiResponse({ status: 200, description: "Revenue data retrieved successfully" })
   getRevenueByPeriod(period: "daily" | "weekly" | "monthly" = "daily") {
@@ -62,7 +62,7 @@ export class SalesController {
   }
 
   @Get(":id")
-  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.SALE })
   @ApiOperation({ summary: "Get sale by ID" })
   @ApiResponse({ status: 200, description: "Sale retrieved successfully" })
@@ -72,7 +72,7 @@ export class SalesController {
   }
 
   @Patch(":id")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SALE })
   @ApiOperation({ summary: "Update sale" })
   @ApiResponse({ status: 200, description: "Sale updated successfully" })
@@ -82,7 +82,7 @@ export class SalesController {
   }
 
   @Patch(":id/complete")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SALE })
   @ApiOperation({ summary: "Complete sale" })
   @ApiResponse({ status: 200, description: "Sale completed successfully" })
@@ -92,7 +92,7 @@ export class SalesController {
   }
 
   @Patch(":id/status")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SALE })
   @ApiOperation({ summary: "Update sale status" })
   @ApiResponse({ status: 200, description: "Sale status updated successfully" })
@@ -102,7 +102,7 @@ export class SalesController {
   }
 
   @Patch(":id/payment-status")
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.SALE })
   @ApiOperation({ summary: "Update sale payment status" })
   @ApiResponse({ status: 200, description: "Payment status updated successfully" })
@@ -112,7 +112,7 @@ export class SalesController {
   }
 
   @Delete(":id")
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.SALE })
   @ApiOperation({ summary: "Delete sale" })
   @ApiResponse({ status: 200, description: "Sale deleted successfully" })

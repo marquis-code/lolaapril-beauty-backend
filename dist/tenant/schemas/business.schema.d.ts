@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { type Document, Types } from "mongoose";
+import { Document, Types } from "mongoose";
 export type BusinessDocument = Business & Document;
 export declare class BusinessAddress {
     street: string;
@@ -66,6 +66,16 @@ export declare class BusinessSettings {
         marketing: boolean;
     };
 }
+export declare class BusinessHours {
+    day: string;
+    isOpen: boolean;
+    openTime: string;
+    closeTime: string;
+    breaks: Array<{
+        openTime: string;
+        closeTime: string;
+    }>;
+}
 export declare class Business {
     businessName: string;
     subdomain: string;
@@ -76,8 +86,10 @@ export declare class Business {
     address: BusinessAddress;
     contact: BusinessContact;
     settings: BusinessSettings;
+    businessHours: BusinessHours[];
     ownerId: Types.ObjectId;
     adminIds: Types.ObjectId[];
+    staffIds: Types.ObjectId[];
     status: string;
     trialEndsAt: Date;
     activeSubscription: Types.ObjectId;
@@ -91,6 +103,11 @@ export declare class Business {
             bankCode?: string;
         };
     };
+    totalAppointments: number;
+    totalRevenue: number;
+    totalClients: number;
+    averageRating: number;
+    totalReviews: number;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -16,44 +16,9 @@ exports.TenantController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const tenant_service_1 = require("./tenant.service");
-const business_dto_1 = require("./dto/business.dto");
 let TenantController = class TenantController {
     constructor(tenantService) {
         this.tenantService = tenantService;
-    }
-    async createBusiness(createBusinessDto) {
-        try {
-            const business = await this.tenantService.createBusiness(createBusinessDto);
-            return {
-                success: true,
-                data: business,
-                message: 'Business created successfully'
-            };
-        }
-        catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                code: error.name
-            };
-        }
-    }
-    async registerBusiness(registrationData) {
-        try {
-            const result = await this.tenantService.registerBusinessWithOwner(registrationData);
-            return {
-                success: true,
-                data: result,
-                message: 'Business registered successfully'
-            };
-        }
-        catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                code: error.name
-            };
-        }
     }
     async checkSubdomainAvailability(subdomain) {
         try {
@@ -175,25 +140,6 @@ let TenantController = class TenantController {
         }
     }
 };
-__decorate([
-    (0, common_1.Post)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Create a new business' }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Business created successfully' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad request - validation failed' }),
-    (0, swagger_1.ApiResponse)({ status: 409, description: 'Subdomain already exists' }),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [business_dto_1.CreateBusinessDto]),
-    __metadata("design:returntype", Promise)
-], TenantController.prototype, "createBusiness", null);
-__decorate([
-    (0, common_1.Post)('register'),
-    (0, swagger_1.ApiOperation)({ summary: 'Register a new business with owner' }),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], TenantController.prototype, "registerBusiness", null);
 __decorate([
     (0, common_1.Get)('check-subdomain'),
     (0, swagger_1.ApiOperation)({ summary: 'Check if subdomain is available' }),
