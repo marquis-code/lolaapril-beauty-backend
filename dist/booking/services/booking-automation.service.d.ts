@@ -29,7 +29,7 @@ export declare class BookingAutomationService {
         businessId: string;
         clientId: string;
         serviceIds: string[];
-        preferredDate: Date;
+        preferredDate: Date | string;
         preferredStartTime: string;
         clientName: string;
         clientEmail: string;
@@ -44,6 +44,7 @@ export declare class BookingAutomationService {
         gateway: string;
         status: 'successful' | 'failed';
     }): Promise<AutomatedBookingResult>;
+    private parseDate;
     private processAutoConfirmedBooking;
     private validateTenantLimits;
     private checkAvailabilityForAllServices;

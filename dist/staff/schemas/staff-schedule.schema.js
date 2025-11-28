@@ -85,7 +85,7 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({
         required: true,
-        enum: ['regular', 'temporary', 'override'],
+        enum: ['regular', 'temporary', 'override', '24_7'],
         default: 'regular'
     }),
     __metadata("design:type", String)
@@ -98,6 +98,10 @@ __decorate([
     (0, mongoose_1.Prop)({ default: true }),
     __metadata("design:type", Boolean)
 ], StaffSchedule.prototype, "isActive", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], StaffSchedule.prototype, "isDefault24_7", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
@@ -117,4 +121,5 @@ exports.StaffSchedule = StaffSchedule;
 exports.StaffScheduleSchema = mongoose_1.SchemaFactory.createForClass(StaffSchedule);
 exports.StaffScheduleSchema.index({ staffId: 1, effectiveDate: 1 });
 exports.StaffScheduleSchema.index({ businessId: 1, isActive: 1 });
+exports.StaffScheduleSchema.index({ staffId: 1, isDefault24_7: 1 });
 //# sourceMappingURL=staff-schedule.schema.js.map

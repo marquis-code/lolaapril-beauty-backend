@@ -5,6 +5,16 @@ export interface BookingResponse<T> {
     error?: string;
     code?: string;
 }
+export interface StaffAssignment {
+    staffId: string;
+    serviceId: string;
+    staffName?: string;
+    assignedAt: Date;
+    status: 'assigned' | 'pending' | 'failed' | 'confirmed';
+    email?: string;
+    phone?: string;
+    error?: string;
+}
 export interface BookingResult {
     bookingId: string;
     bookingNumber: string;
@@ -30,6 +40,7 @@ export interface AppointmentResult {
     message: string;
     appointment: any;
     assignment: any;
+    assignments?: StaffAssignment[];
 }
 export interface PaymentResult {
     paymentId: string;

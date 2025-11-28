@@ -36,21 +36,21 @@ export class TenantService {
     return business
   }
 
-  async getBusinessById(businessId: string): Promise<any> {
-    const business = (await this.businessModel
-      .findById(businessId)
-      .populate("activeSubscription")
-      .populate("ownerId", "firstName lastName email")
-      .populate("adminIds", "firstName lastName email role")
-      .populate("staffIds", "firstName lastName email role")
-      .exec()) as any
+  // async getBusinessById(businessId: string): Promise<any> {
+  //   const business = (await this.businessModel
+  //     .findById(businessId)
+  //     .populate("activeSubscription")
+  //     .populate("ownerId", "firstName lastName email")
+  //     .populate("adminIds", "firstName lastName email role")
+  //     .populate("staffIds", "firstName lastName email role")
+  //     .exec()) as any
 
-    if (!business) {
-      throw new NotFoundException("Business not found")
-    }
+  //   if (!business) {
+  //     throw new NotFoundException("Business not found")
+  //   }
 
-    return business
-  }
+  //   return business
+  // }
 
   async updateBusiness(businessId: string, updateData: any): Promise<BusinessDocument> {
     const business = (await this.businessModel
@@ -138,46 +138,52 @@ async addStaffMember(businessId: string, staffData: { email: string; firstName: 
   }
 
   // Check if user exists
-  let user: UserDocument | null = await this.userModel.findOne({ email: staffData.email })
+  const existingUser = await this.userModel.findOne({ email: staffData.email })
 
-  if (!user) {
+  let userId: any
+
+  if (!existingUser) {
     // Create staff user
     const bcrypt = require("bcryptjs")
     const tempPassword = Math.random().toString(36).slice(-8)
+    const hashedPassword = await bcrypt.hash(tempPassword, 12)
 
-    // Create new user without spreading to avoid complex union type
-    const newUserData: any = {
+    const newUser = (await this.userModel.create({
       email: staffData.email,
       firstName: staffData.firstName,
       lastName: staffData.lastName,
       phone: staffData.phone,
-      password: await bcrypt.hash(tempPassword, 12),
+      password: hashedPassword,
       role: UserRole.STAFF,
       status: "active",
       staffBusinessId: business._id,
-    }
+    } as any)) as any
 
-    user = new this.userModel(newUserData)
-    await user.save()
+    userId = newUser._id
   } else {
     // Update existing user to staff role
-    await this.userModel.findByIdAndUpdate(user._id, {
+    await this.userModel.findByIdAndUpdate(existingUser._id, {
       role: UserRole.STAFF,
       staffBusinessId: business._id,
     })
+
+    userId = existingUser._id
   }
 
   // Add to business staff list
   await this.businessModel.findByIdAndUpdate(businessId, {
-    $addToSet: { staffIds: user._id },
+    $addToSet: { staffIds: userId },
   })
 
+  // Fetch the final user data
+  const finalUser = await this.userModel.findById(userId)
+
   return {
-    id: user._id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    role: user.role,
+    id: finalUser._id,
+    firstName: finalUser.firstName,
+    lastName: finalUser.lastName,
+    email: finalUser.email,
+    role: finalUser.role,
   }
 }
 
@@ -217,68 +223,166 @@ async addStaffMember(businessId: string, staffData: { email: string; firstName: 
   }
 
   // ==================== SUBSCRIPTION MANAGEMENT ====================
+  // async checkSubscriptionLimits(
+  //   businessId: string
+  // ): Promise<{
+  //   isValid: boolean
+  //   limits: any
+  //   usage: any
+  //   warnings: string[]
+  // }> {
+  //   const business = await this.businessModel.findById(businessId).populate("activeSubscription").exec()
+
+  //   if (!business) {
+  //     throw new NotFoundException("Business not found")
+  //   }
+
+  //   const subscription = business.activeSubscription as any
+  //   if (!subscription) {
+  //     return {
+  //       isValid: false,
+  //       limits: null,
+  //       usage: null,
+  //       warnings: ["No active subscription"],
+  //     }
+  //   }
+
+  //   const usage = await this.getCurrentUsage(businessId)
+  //   const limits = subscription.limits
+  //   const warnings: string[] = []
+
+  //   if (usage.staffCount >= limits.maxStaff) {
+  //     warnings.push(`Staff limit reached (${limits.maxStaff})`)
+  //   }
+
+  //   if (usage.servicesCount >= limits.maxServices) {
+  //     warnings.push(`Services limit reached (${limits.maxServices})`)
+  //   }
+
+  //   if (usage.monthlyAppointments >= limits.maxAppointmentsPerMonth) {
+  //     warnings.push(`Monthly appointments limit reached (${limits.maxAppointmentsPerMonth})`)
+  //   }
+
+  //   if (usage.storageUsedGB >= limits.maxStorageGB) {
+  //     warnings.push(`Storage limit reached (${limits.maxStorageGB}GB)`)
+  //   }
+
+  //   return {
+  //     isValid: warnings.length === 0,
+  //     limits,
+  //     usage,
+  //     warnings,
+  //   }
+  // }
+
   async checkSubscriptionLimits(
-    businessId: string
-  ): Promise<{
-    isValid: boolean
-    limits: any
-    usage: any
-    warnings: string[]
-  }> {
-    const business = await this.businessModel.findById(businessId).populate("activeSubscription").exec()
+  businessId: string,
+  context?: 'booking' | 'staff' | 'service'
+): Promise<{
+  isValid: boolean
+  limits: any
+  usage: any
+  warnings: string[]
+}> {
+  const business = await this.businessModel.findById(businessId).populate("activeSubscription").exec()
 
-    if (!business) {
-      throw new NotFoundException("Business not found")
+  if (!business) {
+    throw new NotFoundException("Business not found")
+  }
+
+  const subscription = business.activeSubscription as any
+  if (!subscription) {
+    return {
+      isValid: false,
+      limits: null,
+      usage: null,
+      warnings: ["No active subscription"],
     }
+  }
 
-    const subscription = business.activeSubscription as any
-    if (!subscription) {
-      return {
-        isValid: false,
-        limits: null,
-        usage: null,
-        warnings: ["No active subscription"],
-      }
-    }
+  const usage = await this.getCurrentUsage(businessId)
+  const limits = subscription.limits
+  const warnings: string[] = []
 
-    const usage = await this.getCurrentUsage(businessId)
-    const limits = subscription.limits
-    const warnings: string[] = []
-
+  // Only check relevant limits based on context
+  if (context === 'staff' || !context) {
     if (usage.staffCount >= limits.maxStaff) {
       warnings.push(`Staff limit reached (${limits.maxStaff})`)
     }
+  }
 
+  if (context === 'service' || !context) {
     if (usage.servicesCount >= limits.maxServices) {
       warnings.push(`Services limit reached (${limits.maxServices})`)
     }
+  }
 
+  if (context === 'booking' || !context) {
     if (usage.monthlyAppointments >= limits.maxAppointmentsPerMonth) {
       warnings.push(`Monthly appointments limit reached (${limits.maxAppointmentsPerMonth})`)
     }
-
-    if (usage.storageUsedGB >= limits.maxStorageGB) {
-      warnings.push(`Storage limit reached (${limits.maxStorageGB}GB)`)
-    }
-
-    return {
-      isValid: warnings.length === 0,
-      limits,
-      usage,
-      warnings,
-    }
   }
+
+  if (usage.storageUsedGB >= limits.maxStorageGB) {
+    warnings.push(`Storage limit reached (${limits.maxStorageGB}GB)`)
+  }
+
+  return {
+    isValid: warnings.length === 0,
+    limits,
+    usage,
+    warnings,
+  }
+}
 
   // ==================== TENANT CONFIG ====================
-  async getTenantConfig(businessId: string): Promise<TenantConfigDocument> {
-    const config = (await this.tenantConfigModel.findOne({ businessId }).exec()) as any
+  // async getTenantConfig(businessId: string): Promise<TenantConfigDocument> {
+  //   const config = (await this.tenantConfigModel.findOne({ businessId }).exec()) as any
 
-    if (!config) {
-      throw new NotFoundException("Tenant configuration not found")
-    }
+  //   if (!config) {
+  //     throw new NotFoundException("Tenant configuration not found")
+  //   }
 
-    return config
+  //   return config
+  // }
+
+  // Replace the getTenantConfig method in tenant.service.ts with this:
+
+async getTenantConfig(businessId: string): Promise<TenantConfigDocument> {
+  // Convert string to ObjectId for proper querying
+  const config = (await this.tenantConfigModel
+    .findOne({ businessId: new Types.ObjectId(businessId) })
+    .exec()) as any
+
+  if (!config) {
+    throw new NotFoundException("Tenant configuration not found")
   }
+
+  return config
+}
+
+// Also update the getBusinessById method to handle the conversion properly:
+
+async getBusinessById(businessId: string): Promise<any> {
+  // Validate if businessId is a valid ObjectId
+  if (!Types.ObjectId.isValid(businessId)) {
+    throw new BadRequestException("Invalid business ID format")
+  }
+
+  const business = (await this.businessModel
+    .findById(businessId)
+    .populate("activeSubscription")
+    .populate("ownerId", "firstName lastName email")
+    .populate("adminIds", "firstName lastName email role")
+    .populate("staffIds", "firstName lastName email role")
+    .exec()) as any
+
+  if (!business) {
+    throw new NotFoundException("Business not found")
+  }
+
+  return business
+}
 
   async updateTenantConfig(businessId: string, configData: any): Promise<TenantConfigDocument> {
     const config = (await this.tenantConfigModel

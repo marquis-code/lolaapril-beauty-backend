@@ -6,6 +6,17 @@ export interface BookingResponse<T> {
   code?: string
 }
 
+export interface StaffAssignment {
+  staffId: string
+  serviceId: string
+  staffName?: string
+  assignedAt: Date
+  status: 'assigned' | 'pending' | 'failed' | 'confirmed'
+  email?: string
+  phone?: string
+  error?: string
+}
+
 export interface BookingResult {
   bookingId: string
   bookingNumber: string
@@ -31,7 +42,8 @@ export interface AppointmentResult {
   booking: any
   message: string
   appointment: any
-  assignment: any
+  assignment: any,
+assignments?: StaffAssignment[] // New: multiple assignments
 }
 
 export interface PaymentResult {

@@ -75,7 +75,15 @@ export declare class StaffController {
     }>;
     assignStaff(assignStaffDto: AssignStaffDto, req: any): Promise<{
         success: boolean;
-        data: import("./schemas/staff-assignment.schema").StaffAssignmentDocument;
+        data: {
+            staffId: string;
+            serviceId: string;
+            staffName?: string;
+            email?: string;
+            phone?: string;
+            status: string;
+            assignedAt: Date;
+        };
         message: string;
         error?: undefined;
         code?: undefined;
@@ -88,7 +96,15 @@ export declare class StaffController {
     }>;
     autoAssignStaff(autoAssignDto: AutoAssignStaffDto): Promise<{
         success: boolean;
-        data: import("./schemas/staff-assignment.schema").StaffAssignmentDocument;
+        data: {
+            staffId: string;
+            serviceId: string;
+            staffName?: string;
+            email?: string;
+            phone?: string;
+            status: string;
+            assignedAt: Date;
+        };
         message: string;
         error?: undefined;
         code?: undefined;

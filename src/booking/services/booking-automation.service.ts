@@ -1,3 +1,4 @@
+
 // src/modules/booking/services/booking-automation.service.ts
 import { Injectable, BadRequestException, Logger } from '@nestjs/common'
 import { BookingService } from './booking.service'
@@ -37,16 +38,19 @@ export class BookingAutomationService {
     businessId: string
     clientId: string
     serviceIds: string[]
-    preferredDate: Date
+    preferredDate: Date | string  // Accept both Date and string
     preferredStartTime: string
     clientName: string
     clientEmail: string
     clientPhone: string
     specialRequests?: string
-    autoConfirm?: boolean // If true, skip manual confirmation
+    autoConfirm?: boolean
   }): Promise<AutomatedBookingResult> {
     try {
       this.logger.log(`Creating automated booking for client: ${bookingData.clientId}`)
+
+      // Convert date string to Date if needed
+      const preferredDate = this.parseDate(bookingData.preferredDate)
 
       // 1. Check tenant subscription limits
       await this.validateTenantLimits(bookingData.businessId)
@@ -64,7 +68,7 @@ export class BookingAutomationService {
       const isAvailable = await this.checkAvailabilityForAllServices(
         bookingData.businessId,
         bookingData.serviceIds,
-        bookingData.preferredDate,
+        preferredDate,
         bookingData.preferredStartTime,
         totalDuration
       )
@@ -83,7 +87,7 @@ export class BookingAutomationService {
           duration: this.getServiceDurationInMinutes(service),
           price: service.pricingAndDuration.price.amount,
         })),
-        preferredDate: bookingData.preferredDate,
+        preferredDate: preferredDate,
         preferredStartTime: bookingData.preferredStartTime,
         estimatedEndTime,
         totalDuration,
@@ -146,11 +150,14 @@ export class BookingAutomationService {
         return await this.handlePaymentFailure(booking, paymentData.transactionReference)
       }
 
+      // Convert booking.preferredDate to Date if it's a string
+      const bookingDate = this.parseDate(booking.preferredDate)
+
       // 1. Re-check availability before confirming (prevent double booking)
       const isStillAvailable = await this.checkAvailabilityForAllServices(
         booking.businessId.toString(),
         booking.services.map(s => s.serviceId.toString()),
-        booking.preferredDate,
+        bookingDate,
         booking.preferredStartTime,
         booking.totalDuration
       )
@@ -217,6 +224,19 @@ export class BookingAutomationService {
   }
 
   // Private helper methods
+  private parseDate(date: Date | string): Date {
+    if (date instanceof Date) {
+      return date
+    }
+    
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) {
+      throw new BadRequestException('Invalid date format')
+    }
+    
+    return parsedDate
+  }
+
   private async processAutoConfirmedBooking(booking: any, services: any[]): Promise<AutomatedBookingResult> {
     // Create appointment immediately for auto-confirmed bookings
     const appointment = await this.appointmentService.createFromBooking(booking)
@@ -255,7 +275,7 @@ export class BookingAutomationService {
     return await this.availabilityService.checkSlotAvailability({
       businessId,
       serviceId: serviceIds[0],
-      date,
+      date: date.toISOString().split('T')[0], // Convert Date to string format YYYY-MM-DD
       startTime,
       duration: totalDuration
     })
@@ -266,12 +286,15 @@ export class BookingAutomationService {
       // Assign staff for the primary service
       const primaryService = services[0]
       
+      // Convert dates if needed
+      const scheduledDate = this.parseDate(appointment.scheduledDate)
+      
       return await this.staffService.autoAssignStaff(
         appointment.businessId.toString(),
         appointment._id.toString(),
         appointment.clientId.toString(),
         primaryService._id.toString(),
-        appointment.scheduledDate,
+        scheduledDate,
         appointment.scheduledStartTime,
         appointment.scheduledEndTime
       )
@@ -286,6 +309,10 @@ export class BookingAutomationService {
     payment: any,
     staffAssignment: any
   ): Promise<void> {
+    // Convert date to string for display
+    const appointmentDate = this.parseDate(appointment.scheduledDate)
+    const dateString = appointmentDate.toDateString()
+    
     // Notify client about appointment confirmation
     await this.notificationService.notifyBookingConfirmation(
       appointment.bookingId.toString(),
@@ -294,7 +321,7 @@ export class BookingAutomationService {
       {
         clientName: appointment.clientName,
         serviceName: appointment.services.map(s => s.serviceName).join(', '),
-        date: appointment.scheduledDate.toDateString(),
+        date: dateString,
         time: appointment.scheduledStartTime,
         businessName: appointment.businessName,
         appointmentNumber: appointment.appointmentNumber,
@@ -315,7 +342,7 @@ export class BookingAutomationService {
           method: payment.paymentMethod,
           transactionId: payment.transactionId,
           serviceName: appointment.services.map(s => s.serviceName).join(', '),
-          appointmentDate: appointment.scheduledDate.toDateString(),
+          appointmentDate: dateString,
           businessName: appointment.businessName,
           clientEmail: appointment.clientEmail,
           clientPhone: appointment.clientPhone
@@ -333,7 +360,7 @@ export class BookingAutomationService {
           staffName: staffAssignment.staffName,
           clientName: appointment.clientName,
           serviceName: appointment.services.map(s => s.serviceName).join(', '),
-          date: appointment.scheduledDate.toDateString(),
+          date: dateString,
           time: appointment.scheduledStartTime,
           businessName: appointment.businessName,
           appointmentNumber: appointment.appointmentNumber

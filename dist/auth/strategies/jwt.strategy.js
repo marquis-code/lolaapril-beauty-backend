@@ -24,16 +24,27 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: process.env.JWT_ACCESS_SECRET || 'access-secret',
+            secretOrKey: process.env.JWT_SECRET,
         });
         this.userModel = userModel;
     }
     async validate(payload) {
+        console.log('🔐 JWT Payload:', payload);
         const user = await this.userModel.findById(payload.sub);
+        console.log('👤 User found:', user ? `${user._id} - ${user.email}` : 'NOT FOUND');
         if (!user) {
-            throw new common_1.UnauthorizedException();
+            throw new common_1.UnauthorizedException('User not found');
         }
-        return { userId: payload.sub, email: payload.email, role: payload.role };
+        const result = {
+            userId: payload.sub,
+            sub: payload.sub,
+            email: payload.email,
+            role: payload.role,
+            businessId: payload.businessId,
+            subdomain: payload.subdomain
+        };
+        console.log('✅ Validated user:', result);
+        return result;
     }
 };
 JwtStrategy = __decorate([

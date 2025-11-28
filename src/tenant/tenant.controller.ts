@@ -12,61 +12,28 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { TenantService } from './tenant.service';
-import { CreateBusinessDto, UpdateBusinessDto } from './dto/business.dto';
-// import { CreateBusinessDto, UpdateBusinessDto } from './dto/business.dto'; // Comment out for now if DTO doesn't exist
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Comment out if guard doesn't exist
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    sub: string;
+    email: string;
+    role: string;
+    businessId?: string;
+    subdomain?: string;
+  };
+}
 
 @ApiTags('tenant')
 @Controller('api/tenant')
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}
 
-  // @Post()
-  // @ApiOperation({ summary: 'Create a new business' })
-  // @ApiResponse({ status: 201, description: 'Business created successfully' })
-  // @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
-  // @ApiResponse({ status: 409, description: 'Subdomain already exists' })
-  // async createBusiness(@Body() createBusinessDto: CreateBusinessDto) { // Use any for now instead of CreateBusinessDto
-  //   try {
-  //     const business = await this.tenantService.createBusiness(createBusinessDto);
-  //     return {
-  //       success: true,
-  //       data: business,
-  //       message: 'Business created successfully'
-  //     };
-  //   } catch (error) {
-  //     return {
-  //       success: false,
-  //       error: error.message,
-  //       code: error.name
-  //     };
-  //   }
-  // }
-
-  // @Post('register')
-  // @ApiOperation({ summary: 'Register a new business with owner' })
-  // async registerBusiness(@Body() registrationData: any) {
-  //   // This would handle both user creation and business creation in one go
-  //   try {
-  //     // Implementation would depend on your auth service
-  //     const result = await this.tenantService.registerBusinessWithOwner(registrationData);
-  //     return {
-  //       success: true,
-  //       data: result,
-  //       message: 'Business registered successfully'
-  //     };
-  //   } catch (error) {
-  //     return {
-  //       success: false,
-  //       error: error.message,
-  //       code: error.name
-  //     };
-  //   }
-  // }
-
+  // ==================== SUBDOMAIN CHECK ====================
   @Get('check-subdomain')
   @ApiOperation({ summary: 'Check if subdomain is available' })
+  @ApiResponse({ status: 200, description: 'Subdomain availability checked' })
   async checkSubdomainAvailability(@Query('subdomain') subdomain: string) {
     try {
       const isAvailable = await this.tenantService.isSubdomainAvailable(subdomain);
@@ -83,21 +50,16 @@ export class TenantController {
     }
   }
 
+  // ==================== BUSINESS MANAGEMENT ====================
   @Get('businesses')
-  // @UseGuards(JwtAuthGuard) // Comment out for now
-  // @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get businesses owned by current user' })
-  async getBusinessesByOwner(@Req() req: Request) {
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get businesses by user' })
+  @ApiResponse({ status: 200, description: 'Businesses retrieved successfully' })
+  async getBusinessesByUser(@Req() req: RequestWithUser) {
     try {
-      // For now, get from query param since we don't have auth guard
-      const userId = req.query.ownerId as string;
-      if (!userId) {
-        return {
-          success: false,
-          error: 'ownerId is required as query parameter'
-        };
-      }
-      const businesses = await this.tenantService.getBusinessesByOwner(userId);
+      const userId = req.user.sub;
+      const businesses = await this.tenantService.getBusinessesByUser(userId);
       return {
         success: true,
         data: businesses,
@@ -111,8 +73,30 @@ export class TenantController {
     }
   }
 
+  @Get('subdomain/:subdomain')
+  @ApiOperation({ summary: 'Get business by subdomain' })
+  @ApiResponse({ status: 200, description: 'Business retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
+  async getBusinessBySubdomain(@Param('subdomain') subdomain: string) {
+    try {
+      const business = await this.tenantService.getBusinessBySubdomain(subdomain);
+      return {
+        success: true,
+        data: business,
+        message: 'Business retrieved successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
   @Get(':businessId')
   @ApiOperation({ summary: 'Get business by ID' })
+  @ApiResponse({ status: 200, description: 'Business retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
   async getBusinessById(@Param('businessId') businessId: string) {
     try {
       const business = await this.tenantService.getBusinessById(businessId);
@@ -130,12 +114,14 @@ export class TenantController {
   }
 
   @Put(':businessId')
-  // @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update business' })
+  @ApiResponse({ status: 200, description: 'Business updated successfully' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
   async updateBusiness(
     @Param('businessId') businessId: string,
-    @Body() updateBusinessDto: any // Use any for now instead of UpdateBusinessDto
+    @Body() updateBusinessDto: any
   ) {
     try {
       const business = await this.tenantService.updateBusiness(businessId, updateBusinessDto);
@@ -152,8 +138,110 @@ export class TenantController {
     }
   }
 
+  // ==================== STAFF MANAGEMENT ====================
+  @Post(':businessId/staff')
+  // @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add staff member to business' })
+  @ApiResponse({ status: 201, description: 'Staff member added successfully' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
+  async addStaffMember(
+    @Param('businessId') businessId: string,
+    @Body() staffData: { email: string; firstName: string; lastName: string; phone?: string }
+  ) {
+    try {
+      const staff = await this.tenantService.addStaffMember(businessId, staffData);
+      return {
+        success: true,
+        data: staff,
+        message: 'Staff member added successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  @Delete(':businessId/staff/:staffId')
+  // @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remove staff member from business' })
+  @ApiResponse({ status: 200, description: 'Staff member removed successfully' })
+  @ApiResponse({ status: 404, description: 'Business or staff not found' })
+  async removeStaffMember(
+    @Param('businessId') businessId: string,
+    @Param('staffId') staffId: string
+  ) {
+    try {
+      await this.tenantService.removeStaffMember(businessId, staffId);
+      return {
+        success: true,
+        message: 'Staff member removed successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // ==================== ADMIN MANAGEMENT ====================
+  @Post(':businessId/admin/:adminId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add business admin' })
+  @ApiResponse({ status: 201, description: 'Admin added successfully' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
+  async addBusinessAdmin(
+    @Param('businessId') businessId: string,
+    @Param('adminId') adminId: string
+  ) {
+    try {
+      await this.tenantService.addBusinessAdmin(businessId, adminId);
+      return {
+        success: true,
+        message: 'Admin added successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  @Delete(':businessId/admin/:adminId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remove business admin' })
+  @ApiResponse({ status: 200, description: 'Admin removed successfully' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
+  async removeBusinessAdmin(
+    @Param('businessId') businessId: string,
+    @Param('adminId') adminId: string
+  ) {
+    try {
+      await this.tenantService.removeBusinessAdmin(businessId, adminId);
+      return {
+        success: true,
+        message: 'Admin removed successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // ==================== TENANT CONFIG ====================
   @Get(':businessId/config')
   @ApiOperation({ summary: 'Get tenant configuration' })
+  @ApiResponse({ status: 200, description: 'Tenant configuration retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Configuration not found' })
   async getTenantConfig(@Param('businessId') businessId: string) {
     try {
       const config = await this.tenantService.getTenantConfig(businessId);
@@ -171,9 +259,10 @@ export class TenantController {
   }
 
   @Put(':businessId/config')
-  // @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update tenant configuration' })
+  @ApiResponse({ status: 200, description: 'Tenant configuration updated successfully' })
   async updateTenantConfig(
     @Param('businessId') businessId: string,
     @Body() configData: any
@@ -193,10 +282,12 @@ export class TenantController {
     }
   }
 
+  // ==================== SUBSCRIPTION ====================
   @Get(':businessId/subscription/limits')
-  // @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Check subscription limits' })
+  @ApiResponse({ status: 200, description: 'Subscription limits retrieved successfully' })
   async checkSubscriptionLimits(@Param('businessId') businessId: string) {
     try {
       const limits = await this.tenantService.checkSubscriptionLimits(businessId);
@@ -204,6 +295,52 @@ export class TenantController {
         success: true,
         data: limits,
         message: 'Subscription limits retrieved successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // ==================== BUSINESS STATUS ====================
+  @Put(':businessId/suspend')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Suspend business' })
+  @ApiResponse({ status: 200, description: 'Business suspended successfully' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
+  async suspendBusiness(
+    @Param('businessId') businessId: string,
+    @Body() body: { reason: string }
+  ) {
+    try {
+      await this.tenantService.suspendBusiness(businessId, body.reason);
+      return {
+        success: true,
+        message: 'Business suspended successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  @Put(':businessId/reactivate')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reactivate business' })
+  @ApiResponse({ status: 200, description: 'Business reactivated successfully' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
+  async reactivateBusiness(@Param('businessId') businessId: string) {
+    try {
+      await this.tenantService.reactivateBusiness(businessId);
+      return {
+        success: true,
+        message: 'Business reactivated successfully'
       };
     } catch (error) {
       return {

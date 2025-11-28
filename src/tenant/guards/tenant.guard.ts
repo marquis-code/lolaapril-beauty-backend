@@ -1,6 +1,8 @@
+
 // src/modules/tenant/guards/tenant.guard.ts
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common'
 import { TenantService } from '../tenant.service'
+import { TenantRequest } from '../middleware/tenant.middleware'
 
 @Injectable()
 export class TenantGuard implements CanActivate {
@@ -9,9 +11,10 @@ export class TenantGuard implements CanActivate {
   constructor(private tenantService: TenantService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest()
+    const request = context.switchToHttp().getRequest<TenantRequest>()
     
-    if (!request.tenant) {
+    if (!request.tenant || !request.tenant.businessId) {
+      this.logger.error('Tenant not identified in request')
       throw new ForbiddenException('Tenant not identified')
     }
 
@@ -31,8 +34,9 @@ export class TenantGuard implements CanActivate {
       )
 
       if (!limitsCheck.isValid) {
-        // Log warning but don't block - let specific services handle limits
-        this.logger.warn(`Subscription limits exceeded for business ${request.tenant.businessId}: ${limitsCheck.warnings.join(', ')}`)
+        this.logger.warn(
+          `Subscription limits exceeded for business ${request.tenant.businessId}: ${limitsCheck.warnings.join(', ')}`
+        )
       }
 
       // Attach limits info to request for services to use
@@ -41,7 +45,9 @@ export class TenantGuard implements CanActivate {
       return true
     } catch (error) {
       this.logger.error(`Tenant guard error: ${error.message}`)
-      throw new ForbiddenException(error.message)
+      throw error instanceof ForbiddenException 
+        ? error 
+        : new ForbiddenException(error.message)
     }
   }
 }

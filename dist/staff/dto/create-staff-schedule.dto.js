@@ -100,5 +100,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateStaffScheduleDto.prototype, "createdBy", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreateStaffScheduleDto.prototype, "isDefault24_7", void 0);
 exports.CreateStaffScheduleDto = CreateStaffScheduleDto;
 //# sourceMappingURL=create-staff-schedule.dto.js.map

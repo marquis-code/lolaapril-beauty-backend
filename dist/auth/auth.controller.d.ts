@@ -47,19 +47,19 @@ export declare class AuthController {
             status: import("./schemas/user.schema").UserStatus.ACTIVE;
         };
         business: {
-            id: unknown;
-            businessName: string;
-            subdomain: string;
-            businessType: string;
-            status: string;
-            trialEndsAt: Date;
-            subscription: import("mongoose").Types.ObjectId;
+            id: any;
+            businessName: any;
+            subdomain: any;
+            businessType: any;
+            status: any;
+            trialEndsAt: any;
+            subscription: any;
         };
         businesses: {
-            id: unknown;
-            businessName: string;
-            subdomain: string;
-            status: string;
+            id: any;
+            businessName: any;
+            subdomain: any;
+            status: any;
         }[];
     }>;
     googleAuth(googleAuthDto: GoogleAuthDto): Promise<any>;

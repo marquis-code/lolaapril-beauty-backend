@@ -124,73 +124,6 @@ let StaffService = class StaffService {
         }
         return schedule;
     }
-    async assignStaffToAppointment(assignmentDto) {
-        const isAvailable = await this.checkStaffAvailability(assignmentDto.staffId, assignmentDto.assignmentDate, assignmentDto.assignmentDetails.startTime, assignmentDto.assignmentDetails.endTime);
-        if (!isAvailable) {
-            throw new common_1.BadRequestException('Staff is not available for the requested time slot');
-        }
-        const hasSkill = await this.checkStaffSkill(assignmentDto.staffId, assignmentDto.assignmentDetails.serviceId);
-        if (!hasSkill) {
-            throw new common_1.BadRequestException('Staff does not have the required skills for this service');
-        }
-        const assignmentDetails = {
-            startTime: assignmentDto.assignmentDetails.startTime,
-            endTime: assignmentDto.assignmentDetails.endTime,
-            assignmentType: assignmentDto.assignmentDetails.assignmentType,
-            estimatedDuration: assignmentDto.assignmentDetails.estimatedDuration,
-            specialInstructions: assignmentDto.assignmentDetails.specialInstructions,
-            serviceId: new mongoose_2.Types.ObjectId(assignmentDto.assignmentDetails.serviceId),
-            serviceName: assignmentDto.assignmentDetails.serviceName,
-            roomNumber: assignmentDto.assignmentDetails.roomNumber,
-            requiredEquipment: assignmentDto.assignmentDetails.requiredEquipment || [],
-            clientPreferences: assignmentDto.assignmentDetails.clientPreferences,
-            setupTimeMinutes: assignmentDto.assignmentDetails.setupTimeMinutes || 0,
-            cleanupTimeMinutes: assignmentDto.assignmentDetails.cleanupTimeMinutes || 0
-        };
-        const assignment = new this.staffAssignmentModel({
-            staffId: new mongoose_2.Types.ObjectId(assignmentDto.staffId),
-            businessId: new mongoose_2.Types.ObjectId(assignmentDto.businessId),
-            appointmentId: new mongoose_2.Types.ObjectId(assignmentDto.appointmentId),
-            clientId: new mongoose_2.Types.ObjectId(assignmentDto.clientId),
-            assignmentDate: assignmentDto.assignmentDate,
-            assignmentDetails,
-            assignedBy: new mongoose_2.Types.ObjectId(assignmentDto.assignedBy),
-            assignmentMethod: assignmentDto.assignmentMethod || 'manual'
-        });
-        return await assignment.save();
-    }
-    async autoAssignStaff(businessId, appointmentId, clientId, serviceId, assignmentDate, startTime, endTime) {
-        const availableStaff = await this.getAvailableStaff(businessId, assignmentDate, startTime, endTime, serviceId);
-        if (availableStaff.length === 0) {
-            throw new common_1.BadRequestException('No staff available for the requested time slot');
-        }
-        const selectedStaff = await this.selectBestStaff(availableStaff, serviceId, clientId);
-        const assignmentDetails = {
-            startTime,
-            endTime,
-            assignmentType: 'primary',
-            estimatedDuration: this.calculateMinutesDifference(startTime, endTime),
-            serviceId: new mongoose_2.Types.ObjectId(serviceId),
-            serviceName: 'Service Name',
-            specialInstructions: '',
-            roomNumber: '',
-            requiredEquipment: [],
-            clientPreferences: '',
-            setupTimeMinutes: 0,
-            cleanupTimeMinutes: 0
-        };
-        const assignment = new this.staffAssignmentModel({
-            staffId: selectedStaff._id,
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            appointmentId: new mongoose_2.Types.ObjectId(appointmentId),
-            clientId: new mongoose_2.Types.ObjectId(clientId),
-            assignmentDate,
-            assignmentDetails,
-            assignedBy: selectedStaff._id,
-            assignmentMethod: 'auto'
-        });
-        return await assignment.save();
-    }
     async getStaffAssignments(staffId, startDate, endDate) {
         const result = await this.staffAssignmentModel
             .find({
@@ -335,17 +268,6 @@ let StaffService = class StaffService {
             return false;
         return staff.skills.some(skill => skill.serviceId.toString() === serviceId && skill.isActive);
     }
-    async selectBestStaff(availableStaff, serviceId, clientId) {
-        const staffWithSkills = availableStaff.map(staff => {
-            const skill = staff.skills.find(s => s.serviceId.toString() === serviceId);
-            return {
-                staff,
-                skillLevel: skill ? this.getSkillLevelScore(skill.skillLevel) : 0
-            };
-        });
-        staffWithSkills.sort((a, b) => b.skillLevel - a.skillLevel);
-        return staffWithSkills[0].staff;
-    }
     getSkillLevelScore(skillLevel) {
         const scores = {
             'beginner': 1,
@@ -389,53 +311,6 @@ let StaffService = class StaffService {
         });
         return `STF${String(count + 1).padStart(4, '0')}`;
     }
-    async createDefaultSchedule(staffId, businessId) {
-        const defaultSchedule = [];
-        for (let day = 1; day <= 5; day++) {
-            defaultSchedule.push({
-                dayOfWeek: day,
-                isWorkingDay: true,
-                workingHours: [{
-                        startTime: '09:00',
-                        endTime: '17:00',
-                        isBreak: false
-                    }],
-                breaks: [{
-                        startTime: '12:00',
-                        endTime: '13:00',
-                        isBreak: true,
-                        breakType: 'lunch'
-                    }],
-                maxHoursPerDay: 8
-            });
-        }
-        defaultSchedule.push({
-            dayOfWeek: 6,
-            isWorkingDay: true,
-            workingHours: [{
-                    startTime: '09:00',
-                    endTime: '14:00',
-                    isBreak: false
-                }],
-            breaks: [],
-            maxHoursPerDay: 5
-        });
-        defaultSchedule.push({
-            dayOfWeek: 0,
-            isWorkingDay: false,
-            workingHours: [],
-            breaks: [],
-            maxHoursPerDay: 0
-        });
-        await this.createStaffSchedule({
-            staffId,
-            businessId,
-            effectiveDate: new Date(),
-            weeklySchedule: defaultSchedule,
-            scheduleType: 'regular',
-            createdBy: staffId
-        });
-    }
     async deactivateOverlappingSchedules(staffId, effectiveDate, endDate) {
         const query = {
             staffId: new mongoose_2.Types.ObjectId(staffId),
@@ -451,6 +326,296 @@ let StaffService = class StaffService {
         await this.staffScheduleModel.updateMany(query, {
             isActive: false,
             updatedAt: new Date()
+        });
+    }
+    async assignStaffToAppointment(assignmentDto) {
+        try {
+            const { businessId, appointmentId, staffId, assignmentDate, assignmentDetails } = assignmentDto;
+            const { serviceId, startTime, endTime, estimatedDuration } = assignmentDetails;
+            const calculatedEndTime = endTime || this.addMinutesToTime(startTime, estimatedDuration);
+            const isAvailable = await this.checkStaffAvailability(staffId, assignmentDate, startTime, calculatedEndTime);
+            if (!isAvailable) {
+                throw new common_1.BadRequestException('Staff is not available for the requested time slot');
+            }
+            const staff = await this.staffModel.findById(staffId).exec();
+            if (!staff) {
+                throw new common_1.NotFoundException('Staff member not found');
+            }
+            const fullAssignmentDetails = {
+                startTime,
+                endTime: calculatedEndTime,
+                assignmentType: assignmentDetails.assignmentType || 'primary',
+                estimatedDuration: estimatedDuration,
+                serviceId: new mongoose_2.Types.ObjectId(serviceId),
+                serviceName: assignmentDetails.serviceName || 'Service',
+                specialInstructions: assignmentDetails.specialInstructions || '',
+                roomNumber: assignmentDetails.roomNumber || '',
+                requiredEquipment: assignmentDetails.requiredEquipment || [],
+                clientPreferences: assignmentDetails.clientPreferences || '',
+                setupTimeMinutes: assignmentDetails.setupTimeMinutes || 0,
+                cleanupTimeMinutes: assignmentDetails.cleanupTimeMinutes || 0
+            };
+            const assignment = new this.staffAssignmentModel({
+                staffId: new mongoose_2.Types.ObjectId(staffId),
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                appointmentId: new mongoose_2.Types.ObjectId(appointmentId),
+                clientId: assignmentDto.clientId ? new mongoose_2.Types.ObjectId(assignmentDto.clientId) : undefined,
+                assignmentDate,
+                assignmentDetails: fullAssignmentDetails,
+                assignedBy: assignmentDto.assignedBy ? new mongoose_2.Types.ObjectId(assignmentDto.assignedBy) : undefined,
+                assignmentMethod: assignmentDto.assignmentMethod || 'manual'
+            });
+            await assignment.save();
+            return {
+                staffId: staff._id.toString(),
+                serviceId: serviceId,
+                staffName: `${staff.firstName} ${staff.lastName}`,
+                email: staff.email,
+                phone: staff.phone,
+                status: 'assigned',
+                assignedAt: new Date()
+            };
+        }
+        catch (error) {
+            console.error(`Failed to assign staff ${assignmentDto.staffId}:`, error.message);
+            throw error;
+        }
+    }
+    addMinutesToTime(time, minutes) {
+        const [hours, mins] = time.split(':').map(Number);
+        const totalMinutes = hours * 60 + mins + minutes;
+        const newHours = Math.floor(totalMinutes / 60);
+        const newMins = totalMinutes % 60;
+        return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;
+    }
+    async getAssignmentsByAppointment(appointmentId) {
+        try {
+            const assignments = await this.staffAssignmentModel
+                .find({ appointmentId: new mongoose_2.Types.ObjectId(appointmentId) })
+                .populate('staffId', 'firstName lastName email phone')
+                .populate('clientId', 'firstName lastName email phone')
+                .exec();
+            return assignments.map(assignment => ({
+                assignmentId: assignment._id.toString(),
+                staffId: assignment.staffId._id.toString(),
+                staffName: `${assignment.staffId.firstName} ${assignment.staffId.lastName}`,
+                serviceId: assignment.assignmentDetails.serviceId.toString(),
+                serviceName: assignment.assignmentDetails.serviceName,
+                startTime: assignment.assignmentDetails.startTime,
+                endTime: assignment.assignmentDetails.endTime,
+                status: assignment.status,
+                assignedAt: assignment.createdAt
+            }));
+        }
+        catch (error) {
+            console.error('Failed to get assignments:', error.message);
+            return [];
+        }
+    }
+    async updateAssignmentStatus(assignmentId, status) {
+        try {
+            await this.staffAssignmentModel.findByIdAndUpdate(assignmentId, {
+                status,
+                updatedAt: new Date()
+            }, { new: true }).exec();
+        }
+        catch (error) {
+            console.error('Failed to update assignment status:', error.message);
+            throw error;
+        }
+    }
+    async cancelStaffAssignment(assignmentId, reason) {
+        try {
+            await this.staffAssignmentModel.findByIdAndUpdate(assignmentId, {
+                status: 'cancelled',
+                cancellationReason: reason,
+                updatedAt: new Date()
+            }, { new: true }).exec();
+        }
+        catch (error) {
+            console.error('Failed to cancel assignment:', error.message);
+            throw error;
+        }
+    }
+    async reassignStaff(assignmentId, newStaffId, reason) {
+        try {
+            const oldAssignment = await this.staffAssignmentModel.findById(assignmentId).exec();
+            if (!oldAssignment) {
+                throw new common_1.NotFoundException('Assignment not found');
+            }
+            const isAvailable = await this.checkStaffAvailability(newStaffId, oldAssignment.assignmentDate, oldAssignment.assignmentDetails.startTime, oldAssignment.assignmentDetails.endTime);
+            if (!isAvailable) {
+                throw new common_1.BadRequestException('New staff is not available for this time slot');
+            }
+            const newStaff = await this.staffModel.findById(newStaffId).exec();
+            if (!newStaff) {
+                throw new common_1.NotFoundException('New staff member not found');
+            }
+            oldAssignment.status = 'cancelled';
+            oldAssignment.cancellationReason = reason || 'Reassigned to different staff';
+            await oldAssignment.save();
+            const newAssignment = new this.staffAssignmentModel({
+                staffId: new mongoose_2.Types.ObjectId(newStaffId),
+                businessId: oldAssignment.businessId,
+                appointmentId: oldAssignment.appointmentId,
+                clientId: oldAssignment.clientId,
+                assignmentDate: oldAssignment.assignmentDate,
+                assignmentDetails: oldAssignment.assignmentDetails,
+                assignmentMethod: 'manual',
+                notes: `Reassigned from staff ${oldAssignment.staffId}. Reason: ${reason}`
+            });
+            await newAssignment.save();
+            return {
+                staffId: newStaff._id.toString(),
+                serviceId: oldAssignment.assignmentDetails.serviceId.toString(),
+                staffName: `${newStaff.firstName} ${newStaff.lastName}`,
+                status: 'assigned',
+                assignedAt: new Date()
+            };
+        }
+        catch (error) {
+            console.error('Failed to reassign staff:', error.message);
+            throw error;
+        }
+    }
+    async createDefaultSchedule(staffId, businessId) {
+        const default24_7Schedule = [];
+        for (let day = 0; day <= 6; day++) {
+            default24_7Schedule.push({
+                dayOfWeek: day,
+                isWorkingDay: true,
+                workingHours: [{
+                        startTime: '00:00',
+                        endTime: '23:59',
+                        isBreak: false
+                    }],
+                breaks: [],
+                maxHoursPerDay: 24
+            });
+        }
+        await this.createStaffSchedule({
+            staffId,
+            businessId,
+            effectiveDate: new Date(),
+            endDate: undefined,
+            weeklySchedule: default24_7Schedule,
+            scheduleType: '24_7',
+            reason: 'Default 24/7 staff availability',
+            createdBy: staffId,
+            isDefault24_7: true
+        });
+    }
+    async autoAssignStaff(businessId, appointmentId, clientId, serviceId, assignmentDate, startTime, endTime) {
+        try {
+            const availableStaff = await this.getAvailableStaff(businessId, assignmentDate, startTime, endTime, serviceId);
+            if (availableStaff.length === 0) {
+                throw new common_1.BadRequestException('No staff available for the requested time slot');
+            }
+            const selectedStaff = await this.selectBestStaff(availableStaff, serviceId, clientId);
+            const duration = this.calculateMinutesDifference(startTime, endTime);
+            const assignment = new this.staffAssignmentModel({
+                staffId: selectedStaff._id,
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                appointmentId: new mongoose_2.Types.ObjectId(appointmentId),
+                clientId: new mongoose_2.Types.ObjectId(clientId),
+                assignmentDate,
+                assignmentDetails: {
+                    startTime,
+                    endTime,
+                    assignmentType: 'primary',
+                    estimatedDuration: duration,
+                    serviceId: new mongoose_2.Types.ObjectId(serviceId),
+                    serviceName: 'Service',
+                    specialInstructions: '',
+                    roomNumber: '',
+                    requiredEquipment: [],
+                    clientPreferences: '',
+                    setupTimeMinutes: 0,
+                    cleanupTimeMinutes: 0
+                },
+                assignedBy: selectedStaff._id,
+                assignmentMethod: 'auto',
+                status: 'scheduled'
+            });
+            await assignment.save();
+            return {
+                staffId: selectedStaff._id.toString(),
+                serviceId: serviceId,
+                staffName: `${selectedStaff.firstName} ${selectedStaff.lastName}`,
+                email: selectedStaff.email,
+                phone: selectedStaff.phone,
+                status: 'assigned',
+                assignedAt: new Date()
+            };
+        }
+        catch (error) {
+            console.error('Auto-assignment failed:', error.message);
+            throw error;
+        }
+    }
+    async selectBestStaff(availableStaff, serviceId, clientId) {
+        const staffScores = await Promise.all(availableStaff.map(async (staff) => {
+            let score = 0;
+            const skill = staff.skills.find(s => s.serviceId.toString() === serviceId);
+            if (skill) {
+                const skillScores = {
+                    'master': 40,
+                    'expert': 30,
+                    'intermediate': 20,
+                    'beginner': 10
+                };
+                score += skillScores[skill.skillLevel] || 0;
+            }
+            if (staff.totalReviews > 0) {
+                score += (staff.totalRating / staff.totalReviews) * 6;
+            }
+            const experienceMonths = (skill === null || skill === void 0 ? void 0 : skill.experienceMonths) || 0;
+            score += Math.min(experienceMonths / 6, 20);
+            const todayAssignments = await this.staffAssignmentModel.countDocuments({
+                staffId: staff._id,
+                assignmentDate: new Date(),
+                status: { $in: ['scheduled', 'confirmed', 'in_progress'] }
+            }).exec();
+            score += Math.max(10 - todayAssignments, 0);
+            return { staff, score };
+        }));
+        staffScores.sort((a, b) => b.score - a.score);
+        return staffScores[0].staff;
+    }
+    async getStaffWorkload(staffId, date) {
+        const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const assignments = await this.staffAssignmentModel
+            .find({
+            staffId: new mongoose_2.Types.ObjectId(staffId),
+            assignmentDate: normalizedDate,
+            status: { $in: ['scheduled', 'confirmed', 'in_progress'] }
+        })
+            .populate('appointmentId')
+            .populate('clientId', 'firstName lastName')
+            .sort({ 'assignmentDetails.startTime': 1 })
+            .exec();
+        const totalMinutes = assignments.reduce((total, assignment) => {
+            return total + assignment.assignmentDetails.estimatedDuration;
+        }, 0);
+        return {
+            totalAssignments: assignments.length,
+            totalMinutes,
+            assignments
+        };
+    }
+    async hasOverlappingAssignments(staffId, date, startTime, endTime) {
+        const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const overlappingAssignments = await this.staffAssignmentModel
+            .find({
+            staffId: new mongoose_2.Types.ObjectId(staffId),
+            assignmentDate: normalizedDate,
+            status: { $in: ['scheduled', 'confirmed', 'in_progress'] }
+        })
+            .exec();
+        return overlappingAssignments.some(assignment => {
+            const assignmentStart = assignment.assignmentDetails.startTime;
+            const assignmentEnd = assignment.assignmentDetails.endTime;
+            return this.timeOverlaps(startTime, endTime, assignmentStart, assignmentEnd);
         });
     }
 };

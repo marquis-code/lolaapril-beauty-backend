@@ -14,9 +14,9 @@ import { AuditAction, AuditEntity } from "../audit/schemas/audit-log.schema"
 
 @ApiTags("Appointments")
 @Controller("appointments")
-@UseGuards(JwtAuthGuard, RolesGuard)
-@UseInterceptors(AuditInterceptor)
-@ApiBearerAuth()
+// @UseGuards(JwtAuthGuard, RolesGuard)
+// @UseInterceptors(AuditInterceptor)
+// @ApiBearerAuth()
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
@@ -31,7 +31,7 @@ export class AppointmentController {
   }
 
   @Get()
-  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  // @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all appointments" })
   @ApiResponse({ status: 200, description: "Appointments retrieved successfully" })
   findAll(@Query() query: AppointmentQueryDto) {

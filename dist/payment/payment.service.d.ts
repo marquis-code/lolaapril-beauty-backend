@@ -25,7 +25,6 @@ export declare class PaymentService {
     handleWebhook(payload: any, signature: string): Promise<void>;
     private handleSuccessfulCharge;
     private handleFailedCharge;
-    initiateRefund(transactionReference: string, amount?: number): Promise<ApiResponse<any>>;
     create(createPaymentDto: CreatePaymentDto): Promise<ApiResponse<Payment>>;
     findAll(): Promise<ApiResponse<Payment[]>>;
     findAllWithQuery(query: PaymentQueryDto): Promise<{
@@ -51,10 +50,13 @@ export declare class PaymentService {
     update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<ApiResponse<Payment>>;
     remove(id: string): Promise<ApiResponse<void>>;
     private generatePaymentReference;
-    updatePaymentStatus(paymentId: string, status: string, metadata?: any): Promise<any>;
-    createPaymentFromBooking(booking: any, transactionReference: string, paymentData: any): Promise<any>;
     createPaymentForAppointment(appointment: any): Promise<any>;
     getPaymentByAppointment(appointmentId: string): Promise<any>;
+    createPaymentFromBooking(booking: any, transactionReference: string, paymentInfo: {
+        paymentMethod: string;
+        gateway: string;
+        status: string;
+    }): Promise<any>;
     createFailedPayment(data: {
         bookingId: string;
         transactionReference: string;
@@ -63,4 +65,7 @@ export declare class PaymentService {
         businessId: string;
         amount: number;
     }): Promise<any>;
+    updatePaymentStatus(paymentId: string, status: 'completed' | 'failed' | 'pending' | 'cancelled' | 'refunded', transactionReference: string): Promise<any>;
+    getPaymentByBookingId(bookingId: string): Promise<any>;
+    initiateRefund(transactionReference: string, amount: number): Promise<void>;
 }

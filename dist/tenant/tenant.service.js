@@ -42,19 +42,6 @@ let TenantService = class TenantService {
         }
         return business;
     }
-    async getBusinessById(businessId) {
-        const business = (await this.businessModel
-            .findById(businessId)
-            .populate("activeSubscription")
-            .populate("ownerId", "firstName lastName email")
-            .populate("adminIds", "firstName lastName email role")
-            .populate("staffIds", "firstName lastName email role")
-            .exec());
-        if (!business) {
-            throw new common_1.NotFoundException("Business not found");
-        }
-        return business;
-    }
     async updateBusiness(businessId, updateData) {
         const business = (await this.businessModel
             .findByIdAndUpdate(businessId, Object.assign(Object.assign({}, updateData), { updatedAt: new Date() }), { new: true })
@@ -85,38 +72,41 @@ let TenantService = class TenantService {
         if (!business) {
             throw new common_1.NotFoundException("Business not found");
         }
-        let user = await this.userModel.findOne({ email: staffData.email });
-        if (!user) {
+        const existingUser = await this.userModel.findOne({ email: staffData.email });
+        let userId;
+        if (!existingUser) {
             const bcrypt = require("bcryptjs");
             const tempPassword = Math.random().toString(36).slice(-8);
-            const newUserData = {
+            const hashedPassword = await bcrypt.hash(tempPassword, 12);
+            const newUser = (await this.userModel.create({
                 email: staffData.email,
                 firstName: staffData.firstName,
                 lastName: staffData.lastName,
                 phone: staffData.phone,
-                password: await bcrypt.hash(tempPassword, 12),
+                password: hashedPassword,
                 role: user_schema_1.UserRole.STAFF,
                 status: "active",
                 staffBusinessId: business._id,
-            };
-            user = new this.userModel(newUserData);
-            await user.save();
+            }));
+            userId = newUser._id;
         }
         else {
-            await this.userModel.findByIdAndUpdate(user._id, {
+            await this.userModel.findByIdAndUpdate(existingUser._id, {
                 role: user_schema_1.UserRole.STAFF,
                 staffBusinessId: business._id,
             });
+            userId = existingUser._id;
         }
         await this.businessModel.findByIdAndUpdate(businessId, {
-            $addToSet: { staffIds: user._id },
+            $addToSet: { staffIds: userId },
         });
+        const finalUser = await this.userModel.findById(userId);
         return {
-            id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            role: user.role,
+            id: finalUser._id,
+            firstName: finalUser.firstName,
+            lastName: finalUser.lastName,
+            email: finalUser.email,
+            role: finalUser.role,
         };
     }
     async removeStaffMember(businessId, staffId) {
@@ -145,7 +135,7 @@ let TenantService = class TenantService {
             $pull: { adminBusinesses: new mongoose_2.Types.ObjectId(businessId) },
         });
     }
-    async checkSubscriptionLimits(businessId) {
+    async checkSubscriptionLimits(businessId, context) {
         const business = await this.businessModel.findById(businessId).populate("activeSubscription").exec();
         if (!business) {
             throw new common_1.NotFoundException("Business not found");
@@ -162,14 +152,20 @@ let TenantService = class TenantService {
         const usage = await this.getCurrentUsage(businessId);
         const limits = subscription.limits;
         const warnings = [];
-        if (usage.staffCount >= limits.maxStaff) {
-            warnings.push(`Staff limit reached (${limits.maxStaff})`);
+        if (context === 'staff' || !context) {
+            if (usage.staffCount >= limits.maxStaff) {
+                warnings.push(`Staff limit reached (${limits.maxStaff})`);
+            }
         }
-        if (usage.servicesCount >= limits.maxServices) {
-            warnings.push(`Services limit reached (${limits.maxServices})`);
+        if (context === 'service' || !context) {
+            if (usage.servicesCount >= limits.maxServices) {
+                warnings.push(`Services limit reached (${limits.maxServices})`);
+            }
         }
-        if (usage.monthlyAppointments >= limits.maxAppointmentsPerMonth) {
-            warnings.push(`Monthly appointments limit reached (${limits.maxAppointmentsPerMonth})`);
+        if (context === 'booking' || !context) {
+            if (usage.monthlyAppointments >= limits.maxAppointmentsPerMonth) {
+                warnings.push(`Monthly appointments limit reached (${limits.maxAppointmentsPerMonth})`);
+            }
         }
         if (usage.storageUsedGB >= limits.maxStorageGB) {
             warnings.push(`Storage limit reached (${limits.maxStorageGB}GB)`);
@@ -182,11 +178,29 @@ let TenantService = class TenantService {
         };
     }
     async getTenantConfig(businessId) {
-        const config = (await this.tenantConfigModel.findOne({ businessId }).exec());
+        const config = (await this.tenantConfigModel
+            .findOne({ businessId: new mongoose_2.Types.ObjectId(businessId) })
+            .exec());
         if (!config) {
             throw new common_1.NotFoundException("Tenant configuration not found");
         }
         return config;
+    }
+    async getBusinessById(businessId) {
+        if (!mongoose_2.Types.ObjectId.isValid(businessId)) {
+            throw new common_1.BadRequestException("Invalid business ID format");
+        }
+        const business = (await this.businessModel
+            .findById(businessId)
+            .populate("activeSubscription")
+            .populate("ownerId", "firstName lastName email")
+            .populate("adminIds", "firstName lastName email role")
+            .populate("staffIds", "firstName lastName email role")
+            .exec());
+        if (!business) {
+            throw new common_1.NotFoundException("Business not found");
+        }
+        return business;
     }
     async updateTenantConfig(businessId, configData) {
         const config = (await this.tenantConfigModel

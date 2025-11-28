@@ -20,4 +20,5 @@ export declare class CreateStaffScheduleDto {
     scheduleType?: string;
     reason?: string;
     createdBy: string;
+    isDefault24_7?: boolean;
 }

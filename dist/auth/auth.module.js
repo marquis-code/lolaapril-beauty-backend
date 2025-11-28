@@ -33,7 +33,7 @@ AuthModule = __decorate([
             passport_1.PassportModule,
             config_1.ConfigModule,
             jwt_1.JwtModule.register({
-                secret: process.env.JWT_ACCESS_SECRET || "access-secret",
+                secret: process.env.JWT_SECRET,
                 signOptions: { expiresIn: "15m" },
             }),
         ],

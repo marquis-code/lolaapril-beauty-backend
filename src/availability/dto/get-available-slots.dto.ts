@@ -1,20 +1,19 @@
 // src/modules/availability/dto/get-available-slots.dto.ts
-import { IsNotEmpty, IsDateString, IsString, IsNumber } from 'class-validator'
+import { IsString, IsDateString, IsNumber, IsOptional } from 'class-validator'
+import { Type } from 'class-transformer'
 
 export class GetAvailableSlotsDto {
-  @IsNotEmpty()
   @IsString()
-  businessId: string
+  @IsOptional() // Make optional since middleware will set it
+  businessId?: string
 
-  @IsNotEmpty()
   @IsString()
   serviceId: string
 
-  @IsNotEmpty()
   @IsDateString()
-  date: Date
+  date: string
 
-  @IsNotEmpty()
   @IsNumber()
+  @Type(() => Number)
   duration: number
 }

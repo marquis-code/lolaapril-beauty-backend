@@ -20,7 +20,8 @@ let TenantGuard = TenantGuard_1 = class TenantGuard {
     }
     async canActivate(context) {
         const request = context.switchToHttp().getRequest();
-        if (!request.tenant) {
+        if (!request.tenant || !request.tenant.businessId) {
+            this.logger.error('Tenant not identified in request');
             throw new common_1.ForbiddenException('Tenant not identified');
         }
         try {
@@ -39,7 +40,9 @@ let TenantGuard = TenantGuard_1 = class TenantGuard {
         }
         catch (error) {
             this.logger.error(`Tenant guard error: ${error.message}`);
-            throw new common_1.ForbiddenException(error.message);
+            throw error instanceof common_1.ForbiddenException
+                ? error
+                : new common_1.ForbiddenException(error.message);
         }
     }
 };

@@ -90,8 +90,8 @@ export class PaymentController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
-  @ApiBearerAuth()
+  // @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  // @ApiBearerAuth()
   @ApiOperation({ summary: "Get all payments" })
   @ApiResponse({ status: 200, description: "Payments retrieved successfully" })
   findAll(@Query() query: PaymentQueryDto) {

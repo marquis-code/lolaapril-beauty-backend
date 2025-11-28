@@ -207,19 +207,6 @@ async getStaffByBusiness(businessId: string, status?: string): Promise<any> {
   return schedule as StaffScheduleDocument | null // Explicit cast
 }
 
-  // async updateStaffSchedule(scheduleId: string, updateData: Partial<StaffSchedule>): Promise<StaffScheduleDocument> {
-  //   const schedule = await this.staffScheduleModel.findByIdAndUpdate(
-  //     scheduleId,
-  //     { ...updateData, updatedAt: new Date() },
-  //     { new: true }
-  //   )
-
-  //   if (!schedule) {
-  //     throw new NotFoundException('Schedule not found')
-  //   }
-
-  //   return schedule
-  // }
 
   async updateStaffSchedule(scheduleId: string, updateData: Partial<StaffSchedule>): Promise<StaffScheduleDocument> {
   const schedule = await this.staffScheduleModel.findByIdAndUpdate(
@@ -234,153 +221,6 @@ async getStaffByBusiness(businessId: string, status?: string): Promise<any> {
 
   return schedule as StaffScheduleDocument // Explicit cast after null check
 }
-
-
-  // ================== ASSIGNMENT MANAGEMENT ==================
-  async assignStaffToAppointment(assignmentDto: AssignStaffDto): Promise<StaffAssignmentDocument> {
-    // Check if staff is available for the time slot
-    const isAvailable = await this.checkStaffAvailability(
-      assignmentDto.staffId,
-      assignmentDto.assignmentDate,
-      assignmentDto.assignmentDetails.startTime,
-      assignmentDto.assignmentDetails.endTime
-    )
-
-    if (!isAvailable) {
-      throw new BadRequestException('Staff is not available for the requested time slot')
-    }
-
-    // Check if staff has the required skills
-    const hasSkill = await this.checkStaffSkill(
-      assignmentDto.staffId,
-      assignmentDto.assignmentDetails.serviceId
-    )
-
-    if (!hasSkill) {
-      throw new BadRequestException('Staff does not have the required skills for this service')
-    }
-
-    // Convert DTO assignment details to schema format
-    const assignmentDetails: AssignmentDetails = {
-      startTime: assignmentDto.assignmentDetails.startTime,
-      endTime: assignmentDto.assignmentDetails.endTime,
-      assignmentType: assignmentDto.assignmentDetails.assignmentType,
-      estimatedDuration: assignmentDto.assignmentDetails.estimatedDuration,
-      specialInstructions: assignmentDto.assignmentDetails.specialInstructions,
-      serviceId: new Types.ObjectId(assignmentDto.assignmentDetails.serviceId),
-      serviceName: assignmentDto.assignmentDetails.serviceName,
-      roomNumber: assignmentDto.assignmentDetails.roomNumber,
-      requiredEquipment: assignmentDto.assignmentDetails.requiredEquipment || [],
-      clientPreferences: assignmentDto.assignmentDetails.clientPreferences,
-      setupTimeMinutes: assignmentDto.assignmentDetails.setupTimeMinutes || 0,
-      cleanupTimeMinutes: assignmentDto.assignmentDetails.cleanupTimeMinutes || 0
-    }
-
-    const assignment = new this.staffAssignmentModel({
-      staffId: new Types.ObjectId(assignmentDto.staffId),
-      businessId: new Types.ObjectId(assignmentDto.businessId),
-      appointmentId: new Types.ObjectId(assignmentDto.appointmentId),
-      clientId: new Types.ObjectId(assignmentDto.clientId),
-      assignmentDate: assignmentDto.assignmentDate,
-      assignmentDetails,
-      assignedBy: new Types.ObjectId(assignmentDto.assignedBy),
-      assignmentMethod: assignmentDto.assignmentMethod || 'manual'
-    }) as any
-
-    return await assignment.save()
-  }
-
-  async autoAssignStaff(
-    businessId: string,
-    appointmentId: string,
-    clientId: string,
-    serviceId: string,
-    assignmentDate: Date,
-    startTime: string,
-    endTime: string
-  ): Promise<StaffAssignmentDocument> {
-    // Get available staff for the service and time slot
-    const availableStaff = await this.getAvailableStaff(
-      businessId,
-      assignmentDate,
-      startTime,
-      endTime,
-      serviceId
-    )
-
-    if (availableStaff.length === 0) {
-      throw new BadRequestException('No staff available for the requested time slot')
-    }
-
-    // Apply assignment algorithm
-    const selectedStaff = await this.selectBestStaff(availableStaff, serviceId, clientId)
-
-    // Create assignment details for auto assignment
-    const assignmentDetails: AssignmentDetails = {
-      startTime,
-      endTime,
-      assignmentType: 'primary',
-      estimatedDuration: this.calculateMinutesDifference(startTime, endTime),
-      serviceId: new Types.ObjectId(serviceId),
-      serviceName: 'Service Name', // TODO: Get from service model
-      specialInstructions: '',
-      roomNumber: '',
-      requiredEquipment: [],
-      clientPreferences: '',
-      setupTimeMinutes: 0,
-      cleanupTimeMinutes: 0
-    }
-
-    const assignment = new this.staffAssignmentModel({
-      staffId: selectedStaff._id,
-      businessId: new Types.ObjectId(businessId),
-      appointmentId: new Types.ObjectId(appointmentId),
-      clientId: new Types.ObjectId(clientId),
-      assignmentDate,
-      assignmentDetails,
-      assignedBy: selectedStaff._id, // Auto-assigned by system
-      assignmentMethod: 'auto'
-    }) as any
-
-    return await assignment.save()
-  }
-
-  // async getStaffAssignments(
-  //   staffId: string,
-  //   startDate: Date,
-  //   endDate: Date
-  // ): Promise<StaffAssignmentDocument[]> {
-  //   return await this.staffAssignmentModel
-  //     .find({
-  //       staffId: new Types.ObjectId(staffId),
-  //       assignmentDate: {
-  //         $gte: startDate,
-  //         $lte: endDate
-  //       }
-  //     })
-  //     .populate('appointmentId')
-  //     .populate('clientId', 'firstName lastName email phone')
-  //     .sort({ assignmentDate: 1, 'assignmentDetails.startTime': 1 })
-  // }
-
-//   async getStaffAssignments(
-//   staffId: string,
-//   startDate: Date,
-//   endDate: Date
-// ): Promise<StaffAssignmentDocument[]> {
-//   return await this.staffAssignmentModel
-//     .find({
-//       staffId: new Types.ObjectId(staffId),
-//       assignmentDate: {
-//         $gte: startDate,
-//         $lte: endDate
-//       }
-//     })
-//     .populate('appointmentId')
-//     .populate('clientId', 'firstName lastName email phone')
-//     .sort({ assignmentDate: 1, 'assignmentDetails.startTime': 1 })
-//     .exec() as StaffAssignmentDocument[] // Add .exec() and explicit cast
-// }
 
 async getStaffAssignments(
   staffId: string,
@@ -660,24 +500,24 @@ private async recordWorkingHours(workingHoursDto: {
     )
   }
 
-  private async selectBestStaff(
-    availableStaff: StaffDocument[],
-    serviceId: string,
-    clientId: string
-  ): Promise<StaffDocument> {
-    // Simple implementation: select staff with highest skill level
-    const staffWithSkills = availableStaff.map(staff => {
-      const skill = staff.skills.find(s => s.serviceId.toString() === serviceId)
-      return {
-        staff,
-        skillLevel: skill ? this.getSkillLevelScore(skill.skillLevel) : 0
-      }
-    })
+  // private async selectBestStaff(
+  //   availableStaff: StaffDocument[],
+  //   serviceId: string,
+  //   clientId: string
+  // ): Promise<StaffDocument> {
+  //   // Simple implementation: select staff with highest skill level
+  //   const staffWithSkills = availableStaff.map(staff => {
+  //     const skill = staff.skills.find(s => s.serviceId.toString() === serviceId)
+  //     return {
+  //       staff,
+  //       skillLevel: skill ? this.getSkillLevelScore(skill.skillLevel) : 0
+  //     }
+  //   })
 
-    staffWithSkills.sort((a, b) => b.skillLevel - a.skillLevel)
+  //   staffWithSkills.sort((a, b) => b.skillLevel - a.skillLevel)
     
-    return staffWithSkills[0].staff
-  }
+  //   return staffWithSkills[0].staff
+  // }
 
   private getSkillLevelScore(skillLevel: string): number {
     const scores = {
@@ -746,63 +586,63 @@ private async recordWorkingHours(workingHoursDto: {
     return `STF${String(count + 1).padStart(4, '0')}`
   }
 
-  private async createDefaultSchedule(
-    staffId: string,
-    businessId: string
-  ): Promise<void> {
-    const defaultSchedule: DailySchedule[] = []
+  // private async createDefaultSchedule(
+  //   staffId: string,
+  //   businessId: string
+  // ): Promise<void> {
+  //   const defaultSchedule: DailySchedule[] = []
     
-    // Monday to Friday: 9 AM - 5 PM
-    for (let day = 1; day <= 5; day++) {
-      defaultSchedule.push({
-        dayOfWeek: day,
-        isWorkingDay: true,
-        workingHours: [{
-          startTime: '09:00',
-          endTime: '17:00',
-          isBreak: false
-        }],
-        breaks: [{
-          startTime: '12:00',
-          endTime: '13:00',
-          isBreak: true,
-          breakType: 'lunch'
-        }],
-        maxHoursPerDay: 8
-      })
-    }
+  //   // Monday to Friday: 9 AM - 5 PM
+  //   for (let day = 1; day <= 5; day++) {
+  //     defaultSchedule.push({
+  //       dayOfWeek: day,
+  //       isWorkingDay: true,
+  //       workingHours: [{
+  //         startTime: '09:00',
+  //         endTime: '17:00',
+  //         isBreak: false
+  //       }],
+  //       breaks: [{
+  //         startTime: '12:00',
+  //         endTime: '13:00',
+  //         isBreak: true,
+  //         breakType: 'lunch'
+  //       }],
+  //       maxHoursPerDay: 8
+  //     })
+  //   }
 
-    // Saturday: 9 AM - 2 PM
-    defaultSchedule.push({
-      dayOfWeek: 6,
-      isWorkingDay: true,
-      workingHours: [{
-        startTime: '09:00',
-        endTime: '14:00',
-        isBreak: false
-      }],
-      breaks: [],
-      maxHoursPerDay: 5
-    })
+  //   // Saturday: 9 AM - 2 PM
+  //   defaultSchedule.push({
+  //     dayOfWeek: 6,
+  //     isWorkingDay: true,
+  //     workingHours: [{
+  //       startTime: '09:00',
+  //       endTime: '14:00',
+  //       isBreak: false
+  //     }],
+  //     breaks: [],
+  //     maxHoursPerDay: 5
+  //   })
 
-    // Sunday: Off
-    defaultSchedule.push({
-      dayOfWeek: 0,
-      isWorkingDay: false,
-      workingHours: [],
-      breaks: [],
-      maxHoursPerDay: 0
-    })
+  //   // Sunday: Off
+  //   defaultSchedule.push({
+  //     dayOfWeek: 0,
+  //     isWorkingDay: false,
+  //     workingHours: [],
+  //     breaks: [],
+  //     maxHoursPerDay: 0
+  //   })
 
-    await this.createStaffSchedule({
-      staffId,
-      businessId,
-      effectiveDate: new Date(),
-      weeklySchedule: defaultSchedule,
-      scheduleType: 'regular',
-      createdBy: staffId
-    })
-  }
+  //   await this.createStaffSchedule({
+  //     staffId,
+  //     businessId,
+  //     effectiveDate: new Date(),
+  //     weeklySchedule: defaultSchedule,
+  //     scheduleType: 'regular',
+  //     createdBy: staffId
+  //   })
+  // }
 
   private async deactivateOverlappingSchedules(
     staffId: string,
@@ -827,4 +667,608 @@ private async recordWorkingHours(workingHoursDto: {
       updatedAt: new Date()
     })
   }
+
+//Aded again
+//Added here
+// Add these new methods to your StaffService class
+
+/**
+ * Simplified staff assignment for booking orchestrator
+ * This is a lightweight version that returns assignment info without full validation
+ */
+async assignStaffToAppointment(assignmentDto: AssignStaffDto): Promise<{
+  staffId: string
+  serviceId: string
+  staffName?: string
+  email?: string
+  phone?: string
+  status: string
+  assignedAt: Date
+}> {
+  try {
+    const { businessId, appointmentId, staffId, assignmentDate, assignmentDetails } = assignmentDto
+    const { serviceId, startTime, endTime, estimatedDuration } = assignmentDetails
+
+    // If endTime is not provided, calculate it from duration
+    const calculatedEndTime = endTime || this.addMinutesToTime(startTime, estimatedDuration)
+
+    // Check if staff is available (optional - can be made strict or lenient)
+    const isAvailable = await this.checkStaffAvailability(
+      staffId,
+      assignmentDate,
+      startTime,
+      calculatedEndTime
+    )
+
+    if (!isAvailable) {
+      throw new BadRequestException('Staff is not available for the requested time slot')
+    }
+
+    // Get staff details
+    const staff = await this.staffModel.findById(staffId).exec()
+    
+    if (!staff) {
+      throw new NotFoundException('Staff member not found')
+    }
+
+    // Create assignment details
+    const fullAssignmentDetails: AssignmentDetails = {
+      startTime,
+      endTime: calculatedEndTime,
+      assignmentType: assignmentDetails.assignmentType || 'primary',
+      estimatedDuration: estimatedDuration,
+      serviceId: new Types.ObjectId(serviceId),
+      serviceName: assignmentDetails.serviceName || 'Service',
+      specialInstructions: assignmentDetails.specialInstructions || '',
+      roomNumber: assignmentDetails.roomNumber || '',
+      requiredEquipment: assignmentDetails.requiredEquipment || [],
+      clientPreferences: assignmentDetails.clientPreferences || '',
+      setupTimeMinutes: assignmentDetails.setupTimeMinutes || 0,
+      cleanupTimeMinutes: assignmentDetails.cleanupTimeMinutes || 0
+    }
+
+    // Create the assignment record
+    const assignment = new this.staffAssignmentModel({
+      staffId: new Types.ObjectId(staffId),
+      businessId: new Types.ObjectId(businessId),
+      appointmentId: new Types.ObjectId(appointmentId),
+      clientId: assignmentDto.clientId ? new Types.ObjectId(assignmentDto.clientId) : undefined,
+      assignmentDate,
+      assignmentDetails: fullAssignmentDetails,
+      assignedBy: assignmentDto.assignedBy ? new Types.ObjectId(assignmentDto.assignedBy) : undefined,
+      assignmentMethod: assignmentDto.assignmentMethod || 'manual'
+    })
+
+    await assignment.save()
+
+    // Return assignment info
+    return {
+      staffId: staff._id.toString(),
+      serviceId: serviceId,
+      staffName: `${staff.firstName} ${staff.lastName}`,
+      email: staff.email,
+      phone: staff.phone,
+      status: 'assigned',
+      assignedAt: new Date()
+    }
+  } catch (error) {
+    console.error(`Failed to assign staff ${assignmentDto.staffId}:`, error.message)
+    throw error
+  }
+}
+
+/**
+ * Helper method to add minutes to a time string
+ */
+private addMinutesToTime(time: string, minutes: number): string {
+  const [hours, mins] = time.split(':').map(Number)
+  const totalMinutes = hours * 60 + mins + minutes
+  const newHours = Math.floor(totalMinutes / 60)
+  const newMins = totalMinutes % 60
+  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`
+}
+
+/**
+ * Enhanced auto-assign that returns detailed assignment info
+ */
+// async autoAssignStaff(
+//   businessId: string,
+//   appointmentId: string,
+//   clientId: string,
+//   serviceId: string,
+//   assignmentDate: Date,
+//   startTime: string,
+//   endTime: string
+// ): Promise<{
+//   staffId: string
+//   serviceId: string
+//   staffName?: string
+//   email?: string
+//   phone?: string
+//   status: string
+//   assignedAt: Date
+// }> {
+//   try {
+//     // Get available staff for the service and time slot
+//     const availableStaff = await this.getAvailableStaff(
+//       businessId,
+//       assignmentDate,
+//       startTime,
+//       endTime,
+//       serviceId
+//     )
+
+//     if (availableStaff.length === 0) {
+//       throw new BadRequestException('No staff available for the requested time slot')
+//     }
+
+//     // Apply assignment algorithm
+//     const selectedStaff = await this.selectBestStaff(availableStaff, serviceId, clientId)
+
+//     // Calculate duration
+//     const duration = this.calculateMinutesDifference(startTime, endTime)
+
+//     // Create assignment details
+//     const assignmentDetails: AssignmentDetails = {
+//       startTime,
+//       endTime,
+//       assignmentType: 'primary',
+//       estimatedDuration: duration,
+//       serviceId: new Types.ObjectId(serviceId),
+//       serviceName: 'Service', // Will be populated by orchestrator
+//       specialInstructions: '',
+//       roomNumber: '',
+//       requiredEquipment: [],
+//       clientPreferences: '',
+//       setupTimeMinutes: 0,
+//       cleanupTimeMinutes: 0
+//     }
+
+//     // Create the assignment
+//     const assignment = new this.staffAssignmentModel({
+//       staffId: selectedStaff._id,
+//       businessId: new Types.ObjectId(businessId),
+//       appointmentId: new Types.ObjectId(appointmentId),
+//       clientId: new Types.ObjectId(clientId),
+//       assignmentDate,
+//       assignmentDetails,
+//       assignedBy: selectedStaff._id,
+//       assignmentMethod: 'auto'
+//     })
+
+//     await assignment.save()
+
+//     // Return detailed assignment info
+//     return {
+//       staffId: selectedStaff._id.toString(),
+//       serviceId: serviceId,
+//       staffName: `${selectedStaff.firstName} ${selectedStaff.lastName}`,
+//       email: selectedStaff.email,
+//       phone: selectedStaff.phone,
+//       status: 'assigned',
+//       assignedAt: new Date()
+//     }
+//   } catch (error) {
+//     console.error('Auto-assignment failed:', error.message)
+//     throw error
+//   }
+// }
+
+/**
+ * Get multiple staff assignments by appointment ID
+ * Useful for retrieving all staff assigned to an appointment
+ */
+async getAssignmentsByAppointment(appointmentId: string): Promise<any[]> {
+  try {
+    const assignments = await this.staffAssignmentModel
+      .find({ appointmentId: new Types.ObjectId(appointmentId) })
+      .populate('staffId', 'firstName lastName email phone')
+      .populate('clientId', 'firstName lastName email phone')
+      .exec()
+
+    return assignments.map(assignment => ({
+      assignmentId: assignment._id.toString(),
+      staffId: assignment.staffId._id.toString(),
+      staffName: `${assignment.staffId.firstName} ${assignment.staffId.lastName}`,
+      serviceId: assignment.assignmentDetails.serviceId.toString(),
+      serviceName: assignment.assignmentDetails.serviceName,
+      startTime: assignment.assignmentDetails.startTime,
+      endTime: assignment.assignmentDetails.endTime,
+      status: assignment.status,
+      assignedAt: assignment.createdAt
+    }))
+  } catch (error) {
+    console.error('Failed to get assignments:', error.message)
+    return []
+  }
+}
+
+/**
+ * Update assignment status (for check-in, completion, etc.)
+ */
+async updateAssignmentStatus(
+  assignmentId: string,
+  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
+): Promise<void> {
+  try {
+    await this.staffAssignmentModel.findByIdAndUpdate(
+      assignmentId,
+      { 
+        status, 
+        updatedAt: new Date() 
+      },
+      { new: true }
+    ).exec()
+  } catch (error) {
+    console.error('Failed to update assignment status:', error.message)
+    throw error
+  }
+}
+
+/**
+ * Cancel a staff assignment
+ */
+async cancelStaffAssignment(
+  assignmentId: string,
+  reason?: string
+): Promise<void> {
+  try {
+    await this.staffAssignmentModel.findByIdAndUpdate(
+      assignmentId,
+      { 
+        status: 'cancelled',
+        cancellationReason: reason,
+        updatedAt: new Date() 
+      },
+      { new: true }
+    ).exec()
+  } catch (error) {
+    console.error('Failed to cancel assignment:', error.message)
+    throw error
+  }
+}
+
+/**
+ * Reassign a service to a different staff member
+ */
+async reassignStaff(
+  assignmentId: string,
+  newStaffId: string,
+  reason?: string
+): Promise<{
+  staffId: string
+  serviceId: string
+  staffName?: string
+  status: string
+  assignedAt: Date
+}> {
+  try {
+    // Get the existing assignment
+    const oldAssignment = await this.staffAssignmentModel.findById(assignmentId).exec()
+    
+    if (!oldAssignment) {
+      throw new NotFoundException('Assignment not found')
+    }
+
+    // Check if new staff is available
+    const isAvailable = await this.checkStaffAvailability(
+      newStaffId,
+      oldAssignment.assignmentDate,
+      oldAssignment.assignmentDetails.startTime,
+      oldAssignment.assignmentDetails.endTime
+    )
+
+    if (!isAvailable) {
+      throw new BadRequestException('New staff is not available for this time slot')
+    }
+
+    // Get new staff details
+    const newStaff = await this.staffModel.findById(newStaffId).exec()
+    
+    if (!newStaff) {
+      throw new NotFoundException('New staff member not found')
+    }
+
+    // Cancel old assignment
+    oldAssignment.status = 'cancelled'
+    oldAssignment.cancellationReason = reason || 'Reassigned to different staff'
+    await oldAssignment.save()
+
+    // Create new assignment
+    const newAssignment = new this.staffAssignmentModel({
+      staffId: new Types.ObjectId(newStaffId),
+      businessId: oldAssignment.businessId,
+      appointmentId: oldAssignment.appointmentId,
+      clientId: oldAssignment.clientId,
+      assignmentDate: oldAssignment.assignmentDate,
+      assignmentDetails: oldAssignment.assignmentDetails,
+      assignmentMethod: 'manual',
+      notes: `Reassigned from staff ${oldAssignment.staffId}. Reason: ${reason}`
+    })
+
+    await newAssignment.save()
+
+    return {
+      staffId: newStaff._id.toString(),
+      serviceId: oldAssignment.assignmentDetails.serviceId.toString(),
+      staffName: `${newStaff.firstName} ${newStaff.lastName}`,
+      status: 'assigned',
+      assignedAt: new Date()
+    }
+  } catch (error) {
+    console.error('Failed to reassign staff:', error.message)
+    throw error
+  }
+}
+
+// ============================================================================
+// 2. UPDATE: StaffService - Add default 24/7 schedule creation
+// ============================================================================
+// Add this method to StaffService:
+
+// private async createDefaultSchedule(
+//   staffId: string,
+//   businessId: string
+// ): Promise<void> {
+//   // Default 24/7 availability schedule
+//   const default24_7Schedule: DailySchedule[] = []
+  
+//   // All days available 24/7 (12:00 AM to 11:59 PM)
+//   for (let day = 0; day <= 6; day++) {
+//     default24_7Schedule.push({
+//       dayOfWeek: day,
+//       isWorkingDay: true,
+//       workingHours: [{
+//         startTime: '00:00',
+//         endTime: '23:59',
+//         isBreak: false
+//       }],
+//       breaks: [],
+//       maxHoursPerDay: 24
+//     })
+//   }
+
+//   await this.createStaffSchedule({
+//     staffId,
+//     businessId,
+//     effectiveDate: new Date(),
+//     weeklySchedule: default24_7Schedule,
+//     scheduleType: '24_7',
+//     reason: 'Default 24/7 availability',
+//     createdBy: staffId,
+//     isDefault24_7: true // Mark as default
+//   })
+// }
+
+//Newly Added
+// src/modules/staff/services/staff.service.ts - Key Updates
+
+// UPDATE: createDefaultSchedule method to create TRUE 24/7 availability
+private async createDefaultSchedule(
+  staffId: string,
+  businessId: string
+): Promise<void> {
+  const default24_7Schedule: DailySchedule[] = []
+  
+  // Create 24/7 availability for ALL days (0-6)
+  for (let day = 0; day <= 6; day++) {
+    default24_7Schedule.push({
+      dayOfWeek: day,
+      isWorkingDay: true,
+      workingHours: [{
+        startTime: '00:00',
+        endTime: '23:59',
+        isBreak: false
+      }],
+      breaks: [], // No breaks in default 24/7 schedule
+      maxHoursPerDay: 24
+    })
+  }
+
+  await this.createStaffSchedule({
+    staffId,
+    businessId,
+    effectiveDate: new Date(),
+    endDate: undefined, // No end date for default schedule
+    weeklySchedule: default24_7Schedule,
+    scheduleType: '24_7',
+    reason: 'Default 24/7 staff availability',
+    createdBy: staffId,
+    isDefault24_7: true // Mark as default 24/7 schedule
+  })
+}
+
+// UPDATE: Enhanced auto-assignment with better staff selection logic
+async autoAssignStaff(
+  businessId: string,
+  appointmentId: string,
+  clientId: string,
+  serviceId: string,
+  assignmentDate: Date,
+  startTime: string,
+  endTime: string
+): Promise<{
+  staffId: string
+  serviceId: string
+  staffName?: string
+  email?: string
+  phone?: string
+  status: string
+  assignedAt: Date
+}> {
+  try {
+    // Get available staff for the service and time slot
+    const availableStaff = await this.getAvailableStaff(
+      businessId,
+      assignmentDate,
+      startTime,
+      endTime,
+      serviceId
+    )
+
+    if (availableStaff.length === 0) {
+      throw new BadRequestException('No staff available for the requested time slot')
+    }
+
+    // Apply intelligent selection algorithm
+    const selectedStaff = await this.selectBestStaff(
+      availableStaff, 
+      serviceId, 
+      clientId
+    )
+
+    // Calculate duration
+    const duration = this.calculateMinutesDifference(startTime, endTime)
+
+    // Create assignment
+    const assignment = new this.staffAssignmentModel({
+      staffId: selectedStaff._id,
+      businessId: new Types.ObjectId(businessId),
+      appointmentId: new Types.ObjectId(appointmentId),
+      clientId: new Types.ObjectId(clientId),
+      assignmentDate,
+      assignmentDetails: {
+        startTime,
+        endTime,
+        assignmentType: 'primary',
+        estimatedDuration: duration,
+        serviceId: new Types.ObjectId(serviceId),
+        serviceName: 'Service',
+        specialInstructions: '',
+        roomNumber: '',
+        requiredEquipment: [],
+        clientPreferences: '',
+        setupTimeMinutes: 0,
+        cleanupTimeMinutes: 0
+      },
+      assignedBy: selectedStaff._id,
+      assignmentMethod: 'auto',
+      status: 'scheduled'
+    })
+
+    await assignment.save()
+
+    return {
+      staffId: selectedStaff._id.toString(),
+      serviceId: serviceId,
+      staffName: `${selectedStaff.firstName} ${selectedStaff.lastName}`,
+      email: selectedStaff.email,
+      phone: selectedStaff.phone,
+      status: 'assigned',
+      assignedAt: new Date()
+    }
+  } catch (error) {
+    console.error('Auto-assignment failed:', error.message)
+    throw error
+  }
+}
+
+// ENHANCED: Better staff selection algorithm
+private async selectBestStaff(
+  availableStaff: StaffDocument[],
+  serviceId: string,
+  clientId: string
+): Promise<StaffDocument> {
+  // Score each staff member based on multiple criteria
+  const staffScores = await Promise.all(
+    availableStaff.map(async (staff) => {
+      let score = 0
+      
+      // 1. Skill level for this service (40 points max)
+      const skill = staff.skills.find(s => s.serviceId.toString() === serviceId)
+      if (skill) {
+        const skillScores = {
+          'master': 40,
+          'expert': 30,
+          'intermediate': 20,
+          'beginner': 10
+        }
+        score += skillScores[skill.skillLevel] || 0
+      }
+      
+      // 2. Staff rating (30 points max)
+      if (staff.totalReviews > 0) {
+        score += (staff.totalRating / staff.totalReviews) * 6 // Convert 5-star to 30 points
+      }
+      
+      // 3. Experience with service (20 points max)
+      const experienceMonths = skill?.experienceMonths || 0
+      score += Math.min(experienceMonths / 6, 20) // Max 20 points at 120+ months
+      
+      // 4. Workload balance (10 points) - fewer current assignments = higher score
+      const todayAssignments = await this.staffAssignmentModel.countDocuments({
+        staffId: staff._id,
+        assignmentDate: new Date(),
+        status: { $in: ['scheduled', 'confirmed', 'in_progress'] }
+      }).exec()
+      score += Math.max(10 - todayAssignments, 0)
+      
+      return { staff, score }
+    })
+  )
+  
+  // Sort by score (highest first)
+  staffScores.sort((a, b) => b.score - a.score)
+  
+  // Return the best staff member
+  return staffScores[0].staff
+}
+
+// NEW: Get staff workload for the day
+async getStaffWorkload(
+  staffId: string,
+  date: Date
+): Promise<{
+  totalAssignments: number
+  totalMinutes: number
+  assignments: any[]
+}> {
+  const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  
+  const assignments = await this.staffAssignmentModel
+    .find({
+      staffId: new Types.ObjectId(staffId),
+      assignmentDate: normalizedDate,
+      status: { $in: ['scheduled', 'confirmed', 'in_progress'] }
+    })
+    .populate('appointmentId')
+    .populate('clientId', 'firstName lastName')
+    .sort({ 'assignmentDetails.startTime': 1 })
+    .exec()
+  
+  const totalMinutes = assignments.reduce((total, assignment) => {
+    return total + assignment.assignmentDetails.estimatedDuration
+  }, 0)
+  
+  return {
+    totalAssignments: assignments.length,
+    totalMinutes,
+    assignments
+  }
+}
+
+// NEW: Check if staff has overlapping assignments
+private async hasOverlappingAssignments(
+  staffId: string,
+  date: Date,
+  startTime: string,
+  endTime: string
+): Promise<boolean> {
+  const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  
+  const overlappingAssignments = await this.staffAssignmentModel
+    .find({
+      staffId: new Types.ObjectId(staffId),
+      assignmentDate: normalizedDate,
+      status: { $in: ['scheduled', 'confirmed', 'in_progress'] }
+    })
+    .exec()
+  
+  return overlappingAssignments.some(assignment => {
+    const assignmentStart = assignment.assignmentDetails.startTime
+    const assignmentEnd = assignment.assignmentDetails.endTime
+    
+    return this.timeOverlaps(startTime, endTime, assignmentStart, assignmentEnd)
+  })
+}
 }

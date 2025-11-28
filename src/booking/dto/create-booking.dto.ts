@@ -1,43 +1,56 @@
-import { IsNotEmpty, IsDateString, IsString, IsArray, IsOptional, IsBoolean, IsEmail, IsPhoneNumber } from 'class-validator'
+// src/modules/booking/dto/create-booking.dto.ts
+import { IsString, IsNotEmpty, IsArray, IsOptional, IsNumber, Min } from 'class-validator'
+
+export class ServiceBookingDto {
+  @IsString()
+  @IsNotEmpty()
+  serviceId: string
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  bufferTime?: number // Optional buffer time for this service
+}
 
 export class CreateBookingDto {
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   businessId: string
 
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   clientId: string
 
-  @IsNotEmpty()
   @IsArray()
-  serviceIds: string[]
-
   @IsNotEmpty()
-  @IsDateString()
-  preferredDate: Date
+  services: ServiceBookingDto[] // Updated to include buffer time
 
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
+  preferredDate: string
+
+  @IsString()
+  @IsNotEmpty()
   preferredStartTime: string
 
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   clientName: string
 
+  @IsString()
   @IsNotEmpty()
-  @IsEmail()
   clientEmail: string
 
+  @IsString()
   @IsNotEmpty()
-  @IsPhoneNumber('NG') // Nigerian phone numbers
   clientPhone: string
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   specialRequests?: string
 
+  @IsNumber()
   @IsOptional()
-  @IsBoolean()
-  autoConfirm?: boolean
+  @Min(0)
+  additionalBufferTime?: number // Optional additional buffer time
 }

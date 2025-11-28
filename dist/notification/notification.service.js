@@ -118,34 +118,41 @@ let NotificationService = class NotificationService {
         });
     }
     async notifyStaffNewBooking(booking) {
-        const template = await this.getTemplate(booking.businessId, 'staff_assignment');
-        const variables = {
-            staffName: booking.staffName || 'Team',
-            clientName: booking.clientName,
-            serviceName: booking.serviceName,
-            appointmentDate: booking.date,
-            appointmentTime: booking.time,
-            businessName: booking.businessName,
-            appointmentNumber: booking.bookingNumber,
-            serviceNotes: booking.notes || 'None',
-        };
-        const content = this.replaceTemplateVariables(template.content, variables);
-        const subject = this.replaceTemplateVariables(template.subject, variables);
-        if (booking.staffId) {
+        try {
+            const template = await this.getTemplate(booking.businessId.toString(), 'new_booking');
+            const variables = {
+                staffName: 'Team',
+                clientName: booking.clientName,
+                serviceName: booking.services.map(s => s.serviceName).join(', '),
+                appointmentDate: new Date(booking.preferredDate).toLocaleDateString(),
+                appointmentTime: booking.preferredStartTime,
+                businessName: booking.businessName || 'Your Business',
+                bookingNumber: booking.bookingNumber,
+                specialRequests: booking.specialRequests || 'None',
+                estimatedTotal: booking.estimatedTotal || 0,
+                estimatedDuration: booking.totalDuration || 0,
+            };
+            const content = this.replaceTemplateVariables(template.content, variables);
+            const subject = this.replaceTemplateVariables(template.subject, variables);
+            const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL || 'staff@business.com';
+            const staffPhone = process.env.STAFF_NOTIFICATION_PHONE || '';
             await this.sendNotification({
-                businessId: booking.businessId,
-                recipientId: booking.staffId,
+                businessId: booking.businessId.toString(),
+                recipientId: booking.businessId.toString(),
                 recipientType: 'staff',
-                recipient: booking.staffEmail,
-                recipientPhone: booking.staffPhone,
+                recipient: staffEmail,
+                recipientPhone: staffPhone,
                 subject,
                 content,
                 channel: template.channel,
-                preferences: { email: true, sms: true },
+                preferences: { email: true, sms: false },
                 templateId: template._id.toString(),
-                relatedEntityId: booking._id,
+                relatedEntityId: booking._id.toString(),
                 relatedEntityType: 'booking'
             });
+        }
+        catch (error) {
+            console.error(`Failed to send new booking notification: ${error.message}`);
         }
     }
     async notifySlotUnavailableRefund(bookingId, clientId, businessId, details) {

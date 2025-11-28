@@ -146,4 +146,31 @@ export class NotificationController {
       { new: true }
     )
   }
+
+  @Post('seed-templates')
+async seedTemplates() {
+  // Use the seeder code directly here
+  const templates = [
+    {
+      templateType: 'new_booking',
+      name: 'New Booking Notification (Staff)',
+      subject: 'New Booking Received - {{bookingNumber}}',
+      content: '<h2>New Booking</h2><p>Client: {{clientName}}</p><p>Service: {{serviceName}}</p>',
+      channel: 'email',
+      isDefault: true,
+      isActive: true,
+    },
+    // ... add other templates
+  ]
+
+  for (const template of templates) {
+    await this.notificationTemplateModel.findOneAndUpdate(
+      { templateType: template.templateType, isDefault: true },
+      template,
+      { upsert: true, new: true }
+    )
+  }
+
+  return { success: true, message: 'Templates seeded successfully' }
+}
 }

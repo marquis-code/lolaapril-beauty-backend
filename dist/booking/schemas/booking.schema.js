@@ -27,13 +27,13 @@ __decorate([
     __metadata("design:type", Number)
 ], BookedService.prototype, "duration", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ default: 0 }),
+    __metadata("design:type", Number)
+], BookedService.prototype, "bufferTime", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Number)
 ], BookedService.prototype, "price", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
-    __metadata("design:type", mongoose_2.Types.ObjectId)
-], BookedService.prototype, "preferredStaffId", void 0);
 BookedService = __decorate([
     (0, mongoose_1.Schema)()
 ], BookedService);
@@ -70,6 +70,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Booking.prototype, "businessId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 0 }),
+    __metadata("design:type", Number)
+], Booking.prototype, "totalBufferTime", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true, unique: true }),
     __metadata("design:type", String)
@@ -205,20 +209,4 @@ exports.BookingSchema.index({ createdAt: -1 });
 exports.BookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 exports.BookingSchema.index({ clientEmail: 1 });
 exports.BookingSchema.index({ clientPhone: 1 });
-exports.BookingSchema.pre('save', async function (next) {
-    if (this.isNew && !this.bookingNumber) {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const count = await this.model('Booking').countDocuments({
-            createdAt: {
-                $gte: new Date(year, today.getMonth(), today.getDate()),
-                $lt: new Date(year, today.getMonth(), today.getDate() + 1)
-            }
-        });
-        this.bookingNumber = `BK-${year}${month}${day}-${String(count + 1).padStart(3, '0')}`;
-    }
-    next();
-});
 //# sourceMappingURL=booking.schema.js.map

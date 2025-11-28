@@ -1,11 +1,14 @@
 // src/modules/availability/controllers/availability.controller.ts
-import { Controller, Get, Post, Body, Query, UseGuards, ValidationPipe } from '@nestjs/common'
-import { AvailabilityService } from '../availability/availability.service'
-import { CreateStaffAvailabilityDto } from '../availability/dto/create-staff-availability.dto'
-import { CheckAvailabilityDto } from '../availability/dto/check-availability.dto'
-import { GetAvailableSlotsDto } from '../availability/dto/get-available-slots.dto'
-import { BlockStaffTimeDto } from '../availability/dto/block-staff-time.dto'
+// src/modules/availability/controllers/availability.controller.ts
+import { Controller, Get, Post, Body, Query, UseGuards, ValidationPipe, Req, BadRequestException } from '@nestjs/common'
+import { AvailabilityService } from './availability.service'
+import { CreateStaffAvailabilityDto } from './dto/create-staff-availability.dto'
+import { CheckAvailabilityDto } from './dto/check-availability.dto'
+import { GetAvailableSlotsDto } from './dto/get-available-slots.dto'
+import { BlockStaffTimeDto } from './dto/block-staff-time.dto'
 import { TenantGuard } from '../tenant/guards/tenant.guard'
+import { TenantRequest } from '../tenant/middleware/tenant.middleware'
+import { GetAllSlotsDto } from "./dto/get-all-slots.dto"
 
 @Controller('availability')
 @UseGuards(TenantGuard)
@@ -13,7 +16,17 @@ export class AvailabilityController {
   constructor(private readonly availabilityService: AvailabilityService) {}
 
   @Get('slots')
-  async getAvailableSlots(@Query(ValidationPipe) dto: GetAvailableSlotsDto) {
+  async getAvailableSlots(
+    @Query(ValidationPipe) dto: GetAvailableSlotsDto,
+    @Req() req: TenantRequest
+  ) {
+    // Inject businessId from tenant context
+    dto.businessId = dto.businessId || req.tenant?.businessId
+    
+    if (!dto.businessId) {
+      throw new BadRequestException('Business ID is required')
+    }
+    
     return {
       success: true,
       data: await this.availabilityService.getAvailableSlots(dto)
@@ -21,7 +34,16 @@ export class AvailabilityController {
   }
 
   @Get('check')
-  async checkSlotAvailability(@Query(ValidationPipe) dto: CheckAvailabilityDto) {
+  async checkSlotAvailability(
+    @Query(ValidationPipe) dto: CheckAvailabilityDto,
+    @Req() req: TenantRequest
+  ) {
+    dto.businessId = dto.businessId || req.tenant?.businessId
+    
+    if (!dto.businessId) {
+      throw new BadRequestException('Business ID is required')
+    }
+    
     return {
       success: true,
       data: {
@@ -31,7 +53,16 @@ export class AvailabilityController {
   }
 
   @Post('staff')
-  async createStaffAvailability(@Body(ValidationPipe) dto: CreateStaffAvailabilityDto) {
+  async createStaffAvailability(
+    @Body(ValidationPipe) dto: CreateStaffAvailabilityDto,
+    @Req() req: TenantRequest
+  ) {
+    dto.businessId = dto.businessId || req.tenant?.businessId
+    
+    if (!dto.businessId) {
+      throw new BadRequestException('Business ID is required')
+    }
+    
     return {
       success: true,
       data: await this.availabilityService.createStaffAvailability(dto),
@@ -40,11 +71,79 @@ export class AvailabilityController {
   }
 
   @Post('staff/block')
-  async blockStaffTime(@Body(ValidationPipe) dto: BlockStaffTimeDto) {
+  async blockStaffTime(
+    @Body(ValidationPipe) dto: BlockStaffTimeDto,
+    @Req() req: TenantRequest
+  ) {
+    // Ensure businessId is set from tenant context or request body
+    dto.businessId = dto.businessId || req.tenant?.businessId
+    
+    if (!dto.businessId) {
+      throw new BadRequestException('Business ID is required. Please provide businessId in the request body or ensure tenant context is set.')
+    }
+    
     await this.availabilityService.blockStaffTime(dto)
     return {
       success: true,
       message: 'Staff time blocked successfully'
     }
   }
+
+  @Get('all-slots')
+async getAllSlots(
+  @Query(ValidationPipe) dto: GetAllSlotsDto,
+  @Req() req: TenantRequest
+) {
+  // Inject businessId from tenant context
+  dto.businessId = dto.businessId || req.tenant?.businessId
+  
+  if (!dto.businessId) {
+    throw new BadRequestException('Business ID is required')
+  }
+  
+  return {
+    success: true,
+    data: await this.availabilityService.getAllSlots(dto)
+  }
+}
+
+@Post('business-hours')
+async createBusinessHours(@Body('businessId') businessId: string) {
+  return this.availabilityService.createBusinessHours(businessId)
+}
+
+@Post('setup')
+async setupAvailability(@Body() dto: {
+  businessId: string
+  staffIds: string[]
+  startDate: string
+  endDate: string
+  createdBy: string
+}) {
+  await this.availabilityService.setupAvailabilityForBusiness(
+    dto.businessId,
+    dto.staffIds,
+    dto.startDate,
+    dto.endDate,
+    dto.createdBy
+  )
+  return { message: 'Availability setup completed' }
+}
+
+@Post('business-hours/24x7')
+async createBusinessHours24x7(@Body('businessId') businessId: string) {
+  return this.availabilityService.createBusinessHours24x7(businessId)
+}
+
+@Post('check-fully-booked')
+async checkFullyBooked(@Body() dto: {
+  businessId: string
+  date: string
+  startTime: string
+  duration: number
+  bufferTime?: number
+}) {
+  return this.availabilityService.isFullyBooked(dto)
+}
+
 }

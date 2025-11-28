@@ -1,3 +1,4 @@
+
 // src/modules/availability/schemas/business-hours.schema.ts
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
 import { Document, Types } from "mongoose"
@@ -7,10 +8,10 @@ export type BusinessHoursDocument = BusinessHours & Document
 @Schema()
 export class TimeSlot {
   @Prop({ required: true })
-  startTime: string // "09:00"
+  startTime: string // "00:00" for 24hrs
 
   @Prop({ required: true })
-  endTime: string // "17:00"
+  endTime: string // "23:59" for 24hrs
 
   @Prop({ default: false })
   isBreak: boolean
@@ -26,6 +27,9 @@ export class DaySchedule {
 
   @Prop({ type: [TimeSlot], default: [] })
   timeSlots: TimeSlot[]
+
+  @Prop({ default: false })
+  is24Hours: boolean // NEW: Flag for 24-hour operation
 }
 
 @Schema({ timestamps: true })
@@ -46,7 +50,10 @@ export class BusinessHours {
   defaultSlotDuration: number
 
   @Prop({ default: 0 })
-  bufferTime: number
+  bufferTime: number // NEW: Default buffer time in minutes
+
+  @Prop({ default: false })
+  operates24x7: boolean // NEW: Flag for 24/7 operation
 
   @Prop({ default: Date.now })
   createdAt: Date

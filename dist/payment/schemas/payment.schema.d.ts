@@ -23,11 +23,10 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { type Document, Types } from "mongoose";
-export type PaymentDocument = Payment & Document;
+import { Document, Types } from 'mongoose';
 export declare class PaymentItem {
     itemType: string;
-    itemId: string;
+    itemId?: Types.ObjectId;
     itemName: string;
     quantity: number;
     unitPrice: number;
@@ -35,30 +34,40 @@ export declare class PaymentItem {
     discount: number;
     tax: number;
 }
+export declare const PaymentItemSchema: import("mongoose").Schema<PaymentItem, import("mongoose").Model<PaymentItem, any, any, any, Document<unknown, any, PaymentItem, any, {}> & PaymentItem & {
+    _id: Types.ObjectId;
+} & {
+    __v: number;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, PaymentItem, Document<unknown, {}, import("mongoose").FlatRecord<PaymentItem>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<PaymentItem> & {
+    _id: Types.ObjectId;
+} & {
+    __v: number;
+}>;
 export declare class Payment {
     clientId: Types.ObjectId;
-    appointmentId: Types.ObjectId;
-    bookingId: Types.ObjectId;
+    appointmentId?: Types.ObjectId;
+    bookingId?: Types.ObjectId;
+    businessId?: Types.ObjectId;
     paymentReference: string;
+    transactionId?: string;
     items: PaymentItem[];
     subtotal: number;
-    totalDiscount: number;
     totalTax: number;
-    serviceCharge: number;
+    totalDiscount: number;
     totalAmount: number;
+    gateway?: string;
     paymentMethod: string;
     status: string;
-    transactionId: string;
-    gatewayResponse: string;
-    paidAt: Date;
-    refundedAmount: number;
-    refundedAt: Date;
-    refundReason: string;
-    processedBy: Types.ObjectId;
-    notes: string;
-    createdAt: Date;
-    updatedAt: Date;
+    paidAt?: Date;
+    refundedAmount?: number;
+    refundedAt?: Date;
+    refundReason?: string;
+    gatewayResponse?: string;
+    processedBy?: Types.ObjectId;
+    notes?: string;
+    metadata?: Record<string, any>;
 }
+export type PaymentDocument = Payment & Document;
 export declare const PaymentSchema: import("mongoose").Schema<Payment, import("mongoose").Model<Payment, any, any, any, Document<unknown, any, Payment, any, {}> & Payment & {
     _id: Types.ObjectId;
 } & {

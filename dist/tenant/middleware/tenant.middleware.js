@@ -8,112 +8,114 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var TenantMiddleware_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TenantMiddleware = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_service_1 = require("../tenant.service");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const booking_schema_1 = require("../../booking/schemas/booking.schema");
 let TenantMiddleware = TenantMiddleware_1 = class TenantMiddleware {
-    constructor(tenantService) {
+    constructor(tenantService, bookingModel) {
         this.tenantService = tenantService;
+        this.bookingModel = bookingModel;
         this.logger = new common_1.Logger(TenantMiddleware_1.name);
     }
     async use(req, res, next) {
+        var _a, _b, _c, _d, _e;
         try {
-            if (this.shouldSkipTenantResolution(req)) {
-                this.logger.debug(`Skipping tenant resolution for route: ${req.path}`);
-                return next();
+            this.logger.log(`Processing request: ${req.method} ${req.path}`);
+            let businessId;
+            businessId = (_a = req.params) === null || _a === void 0 ? void 0 : _a.businessId;
+            this.logger.debug(`BusinessId from params: ${businessId}`);
+            if (!businessId) {
+                businessId = (_b = req.query) === null || _b === void 0 ? void 0 : _b.businessId;
+                this.logger.debug(`BusinessId from query: ${businessId}`);
             }
-            const subdomain = this.extractSubdomain(req);
-            if (!subdomain) {
-                return next();
+            if (!businessId && ((_c = req.body) === null || _c === void 0 ? void 0 : _c.businessId)) {
+                businessId = req.body.businessId;
+                this.logger.debug(`BusinessId from body: ${businessId}`);
             }
-        }
-        catch (error) {
-            this.logger.error(`Tenant middleware error: ${error.message}`);
-            return res.status(500).json({
-                success: false,
-                error: 'Tenant resolution failed',
-                code: 'TENANT_RESOLUTION_ERROR'
-            });
-        }
-    }
-    extractSubdomain(req) {
-        const host = req.get('host') || '';
-        const hostSubdomain = this.extractSubdomainFromHost(host);
-        if (hostSubdomain) {
-            return hostSubdomain;
-        }
-        const headerSubdomain = req.get('X-Tenant-Subdomain');
-        if (headerSubdomain) {
-            return headerSubdomain;
-        }
-        const querySubdomain = req.query.tenant;
-        if (querySubdomain) {
-            return querySubdomain;
-        }
-        if (req.body && req.body.subdomain) {
-            return req.body.subdomain;
-        }
-        return null;
-    }
-    extractSubdomainFromHost(host) {
-        if (!host)
-            return null;
-        const hostWithoutPort = host.split(':')[0];
-        const parts = hostWithoutPort.split('.');
-        if (hostWithoutPort.includes('localhost')) {
-            if (parts.length >= 2) {
-                const potentialSubdomain = parts[0];
-                if (!['www', 'api', 'admin'].includes(potentialSubdomain)) {
-                    return potentialSubdomain;
+            if (!businessId) {
+                businessId = req.headers['x-business-id'];
+                this.logger.debug(`BusinessId from header: ${businessId}`);
+            }
+            if (!businessId && ((_d = req.params) === null || _d === void 0 ? void 0 : _d.bookingId)) {
+                try {
+                    const booking = await this.bookingModel
+                        .findById(req.params.bookingId)
+                        .select('businessId')
+                        .lean()
+                        .exec();
+                    if (booking) {
+                        businessId = booking.businessId.toString();
+                        this.logger.log(`BusinessId from booking: ${businessId}`);
+                    }
+                }
+                catch (error) {
+                    this.logger.warn(`Failed to get businessId from booking: ${error.message}`);
                 }
             }
-            return null;
-        }
-        if (parts.length >= 3) {
-            const subdomain = parts[0];
-            if (['www', 'api', 'admin', 'mail', 'ftp'].includes(subdomain)) {
-                return null;
+            if (!businessId && ((_e = req.params) === null || _e === void 0 ? void 0 : _e.appointmentId)) {
+                try {
+                    this.logger.debug(`AppointmentId found but Appointment model not injected yet`);
+                }
+                catch (error) {
+                    this.logger.warn(`Failed to get businessId from appointment: ${error.message}`);
+                }
             }
-            return subdomain;
+            if (!businessId) {
+                const host = req.headers.host || req.hostname;
+                const subdomain = host.split('.')[0];
+                this.logger.debug(`Extracted subdomain: ${subdomain}`);
+                if (subdomain && !['www', 'api', 'localhost'].includes(subdomain)) {
+                    try {
+                        const business = await this.tenantService.getBusinessBySubdomain(subdomain);
+                        businessId = business._id.toString();
+                        this.logger.log(`BusinessId from subdomain: ${businessId}`);
+                    }
+                    catch (error) {
+                        this.logger.warn(`Failed to get business by subdomain: ${error.message}`);
+                    }
+                }
+            }
+            if (!businessId && req.user) {
+                const userId = req.user.sub || req.user.id;
+                this.logger.debug(`Looking up businesses for user: ${userId}`);
+                const businesses = await this.tenantService.getBusinessesByUser(userId);
+                if (businesses && businesses.length > 0) {
+                    businessId = businesses[0]._id.toString();
+                    this.logger.log(`BusinessId from user: ${businessId}`);
+                }
+            }
+            if (businessId) {
+                const business = await this.tenantService.getBusinessById(businessId);
+                req.tenant = {
+                    businessId: businessId,
+                    business: business
+                };
+                this.logger.log(`✅ Tenant context set for business: ${businessId}`);
+            }
+            else {
+                this.logger.warn('⚠️ No businessId found from any source');
+            }
+            next();
         }
-        return null;
-    }
-    setTenantHeaders(res, business, config) {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('X-Business-Name', business.businessName);
-        res.setHeader('X-Business-Type', business.businessType);
-        if (config.brandColors) {
-            res.setHeader('X-Brand-Primary-Color', config.brandColors.primary);
+        catch (error) {
+            this.logger.error(`Tenant middleware error: ${error.message}`, error.stack);
+            next();
         }
-        if (business.activeSubscription) {
-            res.setHeader('X-Subscription-Plan', business.activeSubscription.planType);
-        }
-    }
-    shouldSkipTenantResolution(req) {
-        const skipRoutes = [
-            '/api/tenant',
-            '/api/tenant/register',
-            '/api/tenant/check-subdomain',
-            '/api/auth',
-            '/api/health',
-        ];
-        const skipPatterns = [
-            /^\/api\/tenant\/[^\/]+$/,
-        ];
-        if (skipRoutes.some(route => req.path.startsWith(route))) {
-            return true;
-        }
-        if (skipPatterns.some(pattern => pattern.test(req.path))) {
-            return true;
-        }
-        return false;
     }
 };
 TenantMiddleware = TenantMiddleware_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [tenant_service_1.TenantService])
+    __param(1, (0, mongoose_1.InjectModel)(booking_schema_1.Booking.name)),
+    __metadata("design:paramtypes", [tenant_service_1.TenantService,
+        mongoose_2.Model])
 ], TenantMiddleware);
 exports.TenantMiddleware = TenantMiddleware;
 //# sourceMappingURL=tenant.middleware.js.map

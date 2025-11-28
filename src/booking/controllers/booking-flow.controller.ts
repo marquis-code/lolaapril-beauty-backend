@@ -1,7 +1,10 @@
 // src/modules/booking/controllers/booking-flow.controller.ts
-import { Controller, Post, Body, Param, UseGuards, Request } from '@nestjs/common'
+import { Controller, Post, Body, Param, UseGuards, Request, BadRequestException, ValidationPipe, UsePipes } from '@nestjs/common'
 import { BookingOrchestrator } from '../services/booking-orchestrator.service'
 import { TenantGuard } from '../../tenant/guards/tenant.guard'
+import { TenantRequest } from '../../tenant/middleware/tenant.middleware'
+import { CreateBookingDto } from '../dto/create-booking.dto'
+import { ConfirmBookingDto } from "../dto/confirm-booking.dto"
 import { 
   BookingResult, 
   PaymentResult, 
@@ -10,18 +13,20 @@ import {
 } from '../types/booking.types'
 
 @Controller('booking-flow')
-@UseGuards(TenantGuard)
 export class BookingFlowController {
   constructor(private bookingOrchestrator: BookingOrchestrator) {}
 
   @Post('create')
   async createBooking(
-    @Body() createBookingDto: any,
-    @Request() req: any
+    @Body() createBookingDto: CreateBookingDto,
+    @Request() req: TenantRequest
   ): Promise<BookingResponse<BookingResult>> {
     try {
-      // Tenant info available from middleware
-      const businessId = req.tenant.businessId
+      const businessId = createBookingDto.businessId || req.tenant?.businessId
+      
+      if (!businessId) {
+        throw new BadRequestException('Business ID is required')
+      }
       
       const result = await this.bookingOrchestrator.createBookingWithValidation({
         ...createBookingDto,
@@ -44,14 +49,58 @@ export class BookingFlowController {
   }
 
   @Post('confirm/:bookingId')
+  @UsePipes(new ValidationPipe({ 
+    whitelist: true, 
+    forbidNonWhitelisted: false,
+    transform: true 
+  }))
   async confirmBooking(
     @Param('bookingId') bookingId: string,
-    @Body('staffId') staffId: string
+    @Body() confirmDto: ConfirmBookingDto,
+    @Request() req: TenantRequest
   ): Promise<BookingResponse<AppointmentResult>> {
     try {
+      console.log('🎯 CONTROLLER: CONFIRM BOOKING')
+      console.log('BookingId:', bookingId)
+      console.log('DTO Received:', JSON.stringify(confirmDto, null, 2))
+      
+      // Validate bookingId format
+      if (!this.isValidObjectId(bookingId)) {
+        throw new BadRequestException('Invalid booking ID format')
+      }
+      
+      // Validate that we have either staffId or staffAssignments
+      if (!confirmDto.staffId && (!confirmDto.staffAssignments || confirmDto.staffAssignments.length === 0)) {
+        throw new BadRequestException('Either staffId or staffAssignments must be provided')
+      }
+      
+      // Validate staffAssignments if provided
+      if (confirmDto.staffAssignments && confirmDto.staffAssignments.length > 0) {
+        for (const assignment of confirmDto.staffAssignments) {
+          // Validate staffId
+          if (!assignment.staffId) {
+            throw new BadRequestException('staffId is required in staffAssignments')
+          }
+          if (!this.isValidObjectId(assignment.staffId)) {
+            throw new BadRequestException(`Invalid staffId format: ${assignment.staffId}`)
+          }
+          
+          // Validate serviceId
+          if (!assignment.serviceId) {
+            throw new BadRequestException('serviceId is required in staffAssignments')
+          }
+          if (!this.isValidObjectId(assignment.serviceId)) {
+            throw new BadRequestException(`Invalid serviceId format: ${assignment.serviceId}`)
+          }
+        }
+        
+        console.log(`✅ Validated ${confirmDto.staffAssignments.length} staff assignments`)
+      }
+      
       const result = await this.bookingOrchestrator.confirmBookingAndCreateAppointment(
         bookingId,
-        staffId
+        confirmDto.staffId,
+        confirmDto.staffAssignments
       )
 
       return {
@@ -60,6 +109,9 @@ export class BookingFlowController {
         message: 'Booking confirmed and appointment created successfully'
       }
     } catch (error) {
+      console.error('❌ CONTROLLER ERROR:', error.message)
+      console.error('Error stack:', error.stack)
+      
       return {
         success: false,
         error: error.message,
@@ -69,7 +121,7 @@ export class BookingFlowController {
     }
   }
 
-  @Post('payment/:bookingId') // Note: using bookingId for automation
+  @Post('payment/:bookingId')
   async handlePayment(
     @Param('bookingId') bookingId: string,
     @Body() paymentDto: {
@@ -82,8 +134,12 @@ export class BookingFlowController {
     }
   ): Promise<BookingResponse<PaymentResult>> {
     try {
+      if (!this.isValidObjectId(bookingId)) {
+        throw new BadRequestException('Invalid booking ID format')
+      }
+
       const result = await this.bookingOrchestrator.handlePaymentAndComplete(
-        bookingId, // Changed to bookingId for automation flow
+        bookingId,
         paymentDto.transactionReference,
         {
           amount: paymentDto.amount,
@@ -107,5 +163,10 @@ export class BookingFlowController {
         message: 'Payment processing failed'
       }
     }
+  }
+
+  // Helper method to validate MongoDB ObjectId format
+  private isValidObjectId(id: string): boolean {
+    return typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)
   }
 }

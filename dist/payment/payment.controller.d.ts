@@ -15,7 +15,7 @@ export declare class PaymentController {
     }>;
     initiateRefund(reference: string, body: {
         amount?: number;
-    }): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    }): Promise<void>;
     create(createPaymentDto: CreatePaymentDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
     findAll(query: PaymentQueryDto): Promise<{
         success: boolean;

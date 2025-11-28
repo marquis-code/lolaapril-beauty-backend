@@ -1,5 +1,14 @@
 import { TenantService } from './tenant.service';
 import { Request } from 'express';
+interface RequestWithUser extends Request {
+    user: {
+        sub: string;
+        email: string;
+        role: string;
+        businessId?: string;
+        subdomain?: string;
+    };
+}
 export declare class TenantController {
     private readonly tenantService;
     constructor(tenantService: TenantService);
@@ -17,9 +26,20 @@ export declare class TenantController {
         data?: undefined;
         message?: undefined;
     }>;
-    getBusinessesByOwner(req: Request): Promise<{
+    getBusinessesByUser(req: RequestWithUser): Promise<{
         success: boolean;
         data: import("./schemas/business.schema").BusinessDocument[];
+        message: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        data?: undefined;
+        message?: undefined;
+    }>;
+    getBusinessBySubdomain(subdomain: string): Promise<{
+        success: boolean;
+        data: import("./schemas/business.schema").BusinessDocument;
         message: string;
         error?: undefined;
     } | {
@@ -48,6 +68,49 @@ export declare class TenantController {
         success: boolean;
         error: any;
         data?: undefined;
+        message?: undefined;
+    }>;
+    addStaffMember(businessId: string, staffData: {
+        email: string;
+        firstName: string;
+        lastName: string;
+        phone?: string;
+    }): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        data?: undefined;
+        message?: undefined;
+    }>;
+    removeStaffMember(businessId: string, staffId: string): Promise<{
+        success: boolean;
+        message: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        message?: undefined;
+    }>;
+    addBusinessAdmin(businessId: string, adminId: string): Promise<{
+        success: boolean;
+        message: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        message?: undefined;
+    }>;
+    removeBusinessAdmin(businessId: string, adminId: string): Promise<{
+        success: boolean;
+        message: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
         message?: undefined;
     }>;
     getTenantConfig(businessId: string): Promise<{
@@ -88,4 +151,25 @@ export declare class TenantController {
         data?: undefined;
         message?: undefined;
     }>;
+    suspendBusiness(businessId: string, body: {
+        reason: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        message?: undefined;
+    }>;
+    reactivateBusiness(businessId: string): Promise<{
+        success: boolean;
+        message: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        message?: undefined;
+    }>;
 }
+export {};

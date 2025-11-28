@@ -86,6 +86,23 @@ let NotificationController = class NotificationController {
     async updateTemplate(templateId, updateDto) {
         return await this.notificationTemplateModel.findByIdAndUpdate(templateId, Object.assign(Object.assign({}, updateDto), { updatedAt: new Date() }), { new: true });
     }
+    async seedTemplates() {
+        const templates = [
+            {
+                templateType: 'new_booking',
+                name: 'New Booking Notification (Staff)',
+                subject: 'New Booking Received - {{bookingNumber}}',
+                content: '<h2>New Booking</h2><p>Client: {{clientName}}</p><p>Service: {{serviceName}}</p>',
+                channel: 'email',
+                isDefault: true,
+                isActive: true,
+            },
+        ];
+        for (const template of templates) {
+            await this.notificationTemplateModel.findOneAndUpdate({ templateType: template.templateType, isDefault: true }, template, { upsert: true, new: true });
+        }
+        return { success: true, message: 'Templates seeded successfully' };
+    }
 };
 __decorate([
     (0, common_1.Get)('templates/:businessId'),
@@ -140,6 +157,12 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], NotificationController.prototype, "updateTemplate", null);
+__decorate([
+    (0, common_1.Post)('seed-templates'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], NotificationController.prototype, "seedTemplates", null);
 NotificationController = __decorate([
     (0, common_1.Controller)('notifications'),
     __param(1, (0, mongoose_1.InjectModel)(notification_schema_1.NotificationTemplate.name)),

@@ -5,53 +5,65 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var TenantRateLimitMiddleware_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TenantRateLimitMiddleware = void 0;
 const common_1 = require("@nestjs/common");
-const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
-let TenantRateLimitMiddleware = class TenantRateLimitMiddleware {
+const express_rate_limit_1 = require("express-rate-limit");
+let TenantRateLimitMiddleware = TenantRateLimitMiddleware_1 = class TenantRateLimitMiddleware {
     constructor() {
+        this.logger = new common_1.Logger(TenantRateLimitMiddleware_1.name);
         this.limiters = new Map();
+        this.planLimiters = new Map();
+    }
+    onModuleInit() {
+        this.defaultLimiter = this.createLimiterForPlan('trial');
+        const plans = ['trial', 'basic', 'standard', 'premium', 'enterprise'];
+        plans.forEach(plan => {
+            this.planLimiters.set(plan, this.createLimiterForPlan(plan));
+        });
+        this.logger.log('Rate limiters initialized for all plan types');
     }
     use(req, res, next) {
+        var _a, _b;
         if (!req.tenant) {
-            return next();
+            return this.defaultLimiter(req, res, next);
         }
         const tenantId = req.tenant.businessId;
         let limiter = this.limiters.get(tenantId);
         if (!limiter) {
-            limiter = this.createTenantLimiter(req.tenant.business.activeSubscription);
+            const planType = ((_b = (_a = req.tenant.business) === null || _a === void 0 ? void 0 : _a.activeSubscription) === null || _b === void 0 ? void 0 : _b.planType) || 'trial';
+            limiter = this.planLimiters.get(planType) || this.defaultLimiter;
             this.limiters.set(tenantId, limiter);
         }
         limiter(req, res, next);
     }
-    createTenantLimiter(subscription) {
+    createLimiterForPlan(planType) {
         const limits = {
-            trial: { windowMs: 15 * 60 * 1000, max: 100 },
-            basic: { windowMs: 15 * 60 * 1000, max: 300 },
-            standard: { windowMs: 15 * 60 * 1000, max: 600 },
-            premium: { windowMs: 15 * 60 * 1000, max: 1000 },
-            enterprise: { windowMs: 15 * 60 * 1000, max: 2000 }
+            trial: { windowMs: 15 * 60 * 1000, limit: 100 },
+            basic: { windowMs: 15 * 60 * 1000, limit: 300 },
+            standard: { windowMs: 15 * 60 * 1000, limit: 600 },
+            premium: { windowMs: 15 * 60 * 1000, limit: 1000 },
+            enterprise: { windowMs: 15 * 60 * 1000, limit: 2000 }
         };
-        const planType = (subscription === null || subscription === void 0 ? void 0 : subscription.planType) || 'trial';
         const config = limits[planType] || limits.trial;
-        return (0, express_rate_limit_1.default)({
+        return (0, express_rate_limit_1.rateLimit)({
             windowMs: config.windowMs,
-            max: config.max,
+            limit: config.limit,
             message: {
                 success: false,
-                error: 'Too many requests, please try again later.',
+                error: `Rate limit exceeded for ${planType} plan. Please try again later.`,
                 code: 'RATE_LIMIT_EXCEEDED'
             },
-            standardHeaders: true,
+            standardHeaders: 'draft-7',
             legacyHeaders: false,
+            skip: (req) => {
+                return req.path === '/health' || req.path === '/api/health';
+            }
         });
     }
 };
-TenantRateLimitMiddleware = __decorate([
+TenantRateLimitMiddleware = TenantRateLimitMiddleware_1 = __decorate([
     (0, common_1.Injectable)()
 ], TenantRateLimitMiddleware);
 exports.TenantRateLimitMiddleware = TenantRateLimitMiddleware;

@@ -34,6 +34,7 @@ export declare class DaySchedule {
     dayOfWeek: number;
     isOpen: boolean;
     timeSlots: TimeSlot[];
+    is24Hours: boolean;
 }
 export declare class BusinessHours {
     businessId: Types.ObjectId;
@@ -42,6 +43,7 @@ export declare class BusinessHours {
     specialOpenDays: Date[];
     defaultSlotDuration: number;
     bufferTime: number;
+    operates24x7: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

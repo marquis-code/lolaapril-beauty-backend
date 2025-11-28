@@ -47,6 +47,7 @@ export declare class StaffSchedule {
     scheduleType: string;
     reason: string;
     isActive: boolean;
+    isDefault24_7: boolean;
     createdBy: Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;

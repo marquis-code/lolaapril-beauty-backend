@@ -1,19 +1,261 @@
+// // src/modules/tenant/middleware/tenant.middleware.ts
+// import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
+// import { Request, Response, NextFunction } from 'express'
+// import { TenantService } from '../tenant.service'
+
+// export interface TenantRequest extends Request {
+//   tenant?: {
+//     businessId: string
+//     business: any
+//     limits?: any
+//   }
+//   user?: {
+//     sub: string
+//     id: string
+//     email: string
+//     role: string
+//   }
+// }
+
+// @Injectable()
+// export class TenantMiddleware implements NestMiddleware {
+//   private readonly logger = new Logger(TenantMiddleware.name)
+
+//   constructor(private tenantService: TenantService) {}
+
+//   async use(req: TenantRequest, res: Response, next: NextFunction) {
+//     try {
+//       this.logger.log(`Processing request: ${req.method} ${req.path}`)
+      
+//       // Extract businessId from multiple possible sources
+//       let businessId: string | undefined
+
+//       // 1. From route params (highest priority)
+//       businessId = req.params?.businessId
+//       this.logger.debug(`BusinessId from params: ${businessId}`)
+
+//       // 2. From query params
+//       if (!businessId) {
+//         businessId = req.query?.businessId as string
+//         this.logger.debug(`BusinessId from query: ${businessId}`)
+//       }
+
+//       // 3. From request body
+//       if (!businessId && req.body?.businessId) {
+//         businessId = req.body.businessId
+//         this.logger.debug(`BusinessId from body: ${businessId}`)
+//       }
+
+//       // 4. From subdomain in hostname
+//       if (!businessId) {
+//         const host = req.headers.host || req.hostname
+//         const subdomain = host.split('.')[0]
+//         this.logger.debug(`Extracted subdomain: ${subdomain}`)
+        
+//         // Only try to fetch by subdomain if it's not 'www', 'api', or localhost
+//         if (subdomain && !['www', 'api', 'localhost'].includes(subdomain)) {
+//           try {
+//             const business = await this.tenantService.getBusinessBySubdomain(subdomain)
+//             businessId = business._id.toString()
+//             this.logger.log(`BusinessId from subdomain: ${businessId}`)
+//           } catch (error) {
+//             this.logger.warn(`Failed to get business by subdomain: ${error.message}`)
+//           }
+//         }
+//       }
+
+//       // 5. From user's associated business (for staff/admin)
+//       if (!businessId && req.user) {
+//         const userId = req.user.sub || req.user.id
+//         this.logger.debug(`Looking up businesses for user: ${userId}`)
+        
+//         const businesses = await this.tenantService.getBusinessesByUser(userId)
+        
+//         if (businesses && businesses.length > 0) {
+//           businessId = businesses[0]._id.toString()
+//           this.logger.log(`BusinessId from user: ${businessId}`)
+//         }
+//       }
+
+//       // If we found a businessId, fetch and attach the business
+//       if (businessId) {
+//         const business = await this.tenantService.getBusinessById(businessId)
+        
+//         req.tenant = {
+//           businessId: businessId,
+//           business: business
+//         }
+        
+//         this.logger.log(`Tenant context set for business: ${businessId}`)
+//       } else {
+//         this.logger.warn('No businessId found from any source')
+//       }
+
+//       next()
+//     } catch (error) {
+//       this.logger.error(`Tenant middleware error: ${error.message}`, error.stack)
+//       // Don't throw error here - let the guard handle it
+//       next()
+//     }
+//   }
+// }
+
+// // src/modules/tenant/middleware/tenant.middleware.ts
+// import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
+// import { Request, Response, NextFunction } from 'express'
+// import { TenantService } from '../tenant.service'
+// import { InjectModel } from '@nestjs/mongoose'
+// import { Model } from 'mongoose'
+// import { Booking } from '../../booking/schemas/booking.schema'
+
+// export interface TenantRequest extends Request {
+//   tenant?: {
+//     businessId: string
+//     business: any
+//     limits?: any
+//   }
+//   user?: {
+//     sub: string
+//     id: string
+//     email: string
+//     role: string
+//   }
+// }
+
+// @Injectable()
+// export class TenantMiddleware implements NestMiddleware {
+//   private readonly logger = new Logger(TenantMiddleware.name)
+
+//   constructor(
+//     private tenantService: TenantService,
+//     @InjectModel(Booking.name) private bookingModel: Model<Booking>
+//   ) {}
+
+//   async use(req: TenantRequest, res: Response, next: NextFunction) {
+//     try {
+//       this.logger.log(`Processing request: ${req.method} ${req.path}`)
+      
+//       // Extract businessId from multiple possible sources
+//       let businessId: string | undefined
+
+//       // 1. From route params (highest priority)
+//       businessId = req.params?.businessId
+//       this.logger.debug(`BusinessId from params: ${businessId}`)
+
+//       // 2. From query params
+//       if (!businessId) {
+//         businessId = req.query?.businessId as string
+//         this.logger.debug(`BusinessId from query: ${businessId}`)
+//       }
+
+//       // 3. From request body
+//       if (!businessId && req.body?.businessId) {
+//         businessId = req.body.businessId
+//         this.logger.debug(`BusinessId from body: ${businessId}`)
+//       }
+
+//       // 4. ✅ NEW: From bookingId in route params - fetch booking and extract businessId
+//       if (!businessId && req.params?.bookingId) {
+//         try {
+//           const booking = await this.bookingModel
+//             .findById(req.params.bookingId)
+//             .select('businessId')
+//             .lean()
+//             .exec()
+          
+//           if (booking) {
+//             businessId = booking.businessId.toString()
+//             this.logger.log(`BusinessId from booking: ${businessId}`)
+//           }
+//         } catch (error) {
+//           this.logger.warn(`Failed to get businessId from booking: ${error.message}`)
+//         }
+//       }
+
+//       // 5. ✅ NEW: From appointmentId in route params - fetch appointment and extract businessId
+//       if (!businessId && req.params?.appointmentId) {
+//         try {
+//           // You'll need to inject the Appointment model too
+//           // For now, we'll skip this but you can add it similarly
+//           this.logger.debug(`AppointmentId found but Appointment model not injected yet`)
+//         } catch (error) {
+//           this.logger.warn(`Failed to get businessId from appointment: ${error.message}`)
+//         }
+//       }
+
+//       // 6. From subdomain in hostname
+//       if (!businessId) {
+//         const host = req.headers.host || req.hostname
+//         const subdomain = host.split('.')[0]
+//         this.logger.debug(`Extracted subdomain: ${subdomain}`)
+        
+//         // Only try to fetch by subdomain if it's not 'www', 'api', or localhost
+//         if (subdomain && !['www', 'api', 'localhost'].includes(subdomain)) {
+//           try {
+//             const business = await this.tenantService.getBusinessBySubdomain(subdomain)
+//             businessId = business._id.toString()
+//             this.logger.log(`BusinessId from subdomain: ${businessId}`)
+//           } catch (error) {
+//             this.logger.warn(`Failed to get business by subdomain: ${error.message}`)
+//           }
+//         }
+//       }
+
+//       // 7. From user's associated business (for staff/admin)
+//       if (!businessId && req.user) {
+//         const userId = req.user.sub || req.user.id
+//         this.logger.debug(`Looking up businesses for user: ${userId}`)
+        
+//         const businesses = await this.tenantService.getBusinessesByUser(userId)
+        
+//         if (businesses && businesses.length > 0) {
+//           businessId = businesses[0]._id.toString()
+//           this.logger.log(`BusinessId from user: ${businessId}`)
+//         }
+//       }
+
+//       // If we found a businessId, fetch and attach the business
+//       if (businessId) {
+//         const business = await this.tenantService.getBusinessById(businessId)
+        
+//         req.tenant = {
+//           businessId: businessId,
+//           business: business
+//         }
+        
+//         this.logger.log(`✅ Tenant context set for business: ${businessId}`)
+//       } else {
+//         this.logger.warn('⚠️ No businessId found from any source')
+//       }
+
+//       next()
+//     } catch (error) {
+//       this.logger.error(`Tenant middleware error: ${error.message}`, error.stack)
+//       // Don't throw error here - let the guard handle it
+//       next()
+//     }
+//   }
+// }
+
 // src/modules/tenant/middleware/tenant.middleware.ts
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
 import { Request, Response, NextFunction } from 'express'
 import { TenantService } from '../tenant.service'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
+import { Booking } from '../../booking/schemas/booking.schema'
 
-declare global {
-  namespace Express {
-    interface Request {
-      tenant?: {
-        businessId: string
-        subdomain: string
-        business: any
-        config: any
-        limits?: any
-      }
-    }
+export interface TenantRequest extends Request {
+  tenant?: {
+    businessId: string
+    business: any
+    limits?: any
+  }
+  user?: {
+    sub: string
+    id: string
+    email: string
+    role: string
   }
 }
 
@@ -21,145 +263,119 @@ declare global {
 export class TenantMiddleware implements NestMiddleware {
   private readonly logger = new Logger(TenantMiddleware.name)
 
-  constructor(private tenantService: TenantService) {}
+  constructor(
+    private tenantService: TenantService,
+    @InjectModel(Booking.name) private bookingModel: Model<Booking>
+  ) {}
 
+  async use(req: TenantRequest, res: Response, next: NextFunction) {
+    try {
+      this.logger.log(`Processing request: ${req.method} ${req.path}`)
+      
+      // Extract businessId from multiple possible sources
+      let businessId: string | undefined
 
-  async use(req: Request, res: Response, next: NextFunction) {
-  try {
-    // Skip tenant resolution for certain routes
-    if (this.shouldSkipTenantResolution(req)) {
-      this.logger.debug(`Skipping tenant resolution for route: ${req.path}`);
-      return next();
-    }
+      // 1. From route params (highest priority)
+      businessId = req.params?.businessId
+      this.logger.debug(`BusinessId from params: ${businessId}`)
 
-    // Extract subdomain from various sources
-    const subdomain = this.extractSubdomain(req)
-    
-    if (!subdomain) {
-      // No subdomain found, continue without tenant context
-      return next()
-    }
+      // 2. From query params
+      if (!businessId) {
+        businessId = req.query?.businessId as string
+        this.logger.debug(`BusinessId from query: ${businessId}`)
+      }
 
-    // ... rest of your existing code
-  } catch (error) {
-    this.logger.error(`Tenant middleware error: ${error.message}`)
-    
-    return res.status(500).json({
-      success: false,
-      error: 'Tenant resolution failed',
-      code: 'TENANT_RESOLUTION_ERROR'
-    })
-  }
-}
+      // 3. From request body
+      if (!businessId && req.body?.businessId) {
+        businessId = req.body.businessId
+        this.logger.debug(`BusinessId from body: ${businessId}`)
+      }
 
-  private extractSubdomain(req: Request): string | null {
-    // Method 1: From host header (subdomain.domain.com)
-    const host = req.get('host') || ''
-    const hostSubdomain = this.extractSubdomainFromHost(host)
-    
-    if (hostSubdomain) {
-      return hostSubdomain
-    }
+      // 3.5. From custom header (X-Business-Id)
+      if (!businessId) {
+        businessId = req.headers['x-business-id'] as string
+        this.logger.debug(`BusinessId from header: ${businessId}`)
+      }
 
-    // Method 2: From custom header (for development/testing)
-    const headerSubdomain = req.get('X-Tenant-Subdomain')
-    if (headerSubdomain) {
-      return headerSubdomain
-    }
-
-    // Method 3: From query parameter (fallback for development)
-    const querySubdomain = req.query.tenant as string
-    if (querySubdomain) {
-      return querySubdomain
-    }
-
-    // Method 4: From request body (for API calls)
-    if (req.body && req.body.subdomain) {
-      return req.body.subdomain
-    }
-
-    return null
-  }
-
-  private extractSubdomainFromHost(host: string): string | null {
-    if (!host) return null
-
-    // Remove port if present
-    const hostWithoutPort = host.split(':')[0]
-    
-    // Split by dots
-    const parts = hostWithoutPort.split('.')
-    
-    // For development (localhost): check for patterns like 'tenant.localhost'
-    if (hostWithoutPort.includes('localhost')) {
-      if (parts.length >= 2) {
-        const potentialSubdomain = parts[0]
-        // Ignore common subdomains
-        if (!['www', 'api', 'admin'].includes(potentialSubdomain)) {
-          return potentialSubdomain
+      // 4. ✅ NEW: From bookingId in route params - fetch booking and extract businessId
+      if (!businessId && req.params?.bookingId) {
+        try {
+          const booking = await this.bookingModel
+            .findById(req.params.bookingId)
+            .select('businessId')
+            .lean()
+            .exec()
+          
+          if (booking) {
+            businessId = booking.businessId.toString()
+            this.logger.log(`BusinessId from booking: ${businessId}`)
+          }
+        } catch (error) {
+          this.logger.warn(`Failed to get businessId from booking: ${error.message}`)
         }
       }
-      return null
-    }
 
-    // For production: expecting pattern like 'subdomain.yourdomain.com'
-    if (parts.length >= 3) {
-      const subdomain = parts[0]
-      
-      // Ignore common subdomains
-      if (['www', 'api', 'admin', 'mail', 'ftp'].includes(subdomain)) {
-        return null
+      // 5. ✅ NEW: From appointmentId in route params - fetch appointment and extract businessId
+      if (!businessId && req.params?.appointmentId) {
+        try {
+          // You'll need to inject the Appointment model too
+          // For now, we'll skip this but you can add it similarly
+          this.logger.debug(`AppointmentId found but Appointment model not injected yet`)
+        } catch (error) {
+          this.logger.warn(`Failed to get businessId from appointment: ${error.message}`)
+        }
       }
-      
-      return subdomain
+
+      // 6. From subdomain in hostname
+      if (!businessId) {
+        const host = req.headers.host || req.hostname
+        const subdomain = host.split('.')[0]
+        this.logger.debug(`Extracted subdomain: ${subdomain}`)
+        
+        // Only try to fetch by subdomain if it's not 'www', 'api', or localhost
+        if (subdomain && !['www', 'api', 'localhost'].includes(subdomain)) {
+          try {
+            const business = await this.tenantService.getBusinessBySubdomain(subdomain)
+            businessId = business._id.toString()
+            this.logger.log(`BusinessId from subdomain: ${businessId}`)
+          } catch (error) {
+            this.logger.warn(`Failed to get business by subdomain: ${error.message}`)
+          }
+        }
+      }
+
+      // 7. From user's associated business (for staff/admin)
+      if (!businessId && req.user) {
+        const userId = req.user.sub || req.user.id
+        this.logger.debug(`Looking up businesses for user: ${userId}`)
+        
+        const businesses = await this.tenantService.getBusinessesByUser(userId)
+        
+        if (businesses && businesses.length > 0) {
+          businessId = businesses[0]._id.toString()
+          this.logger.log(`BusinessId from user: ${businessId}`)
+        }
+      }
+
+      // If we found a businessId, fetch and attach the business
+      if (businessId) {
+        const business = await this.tenantService.getBusinessById(businessId)
+        
+        req.tenant = {
+          businessId: businessId,
+          business: business
+        }
+        
+        this.logger.log(`✅ Tenant context set for business: ${businessId}`)
+      } else {
+        this.logger.warn('⚠️ No businessId found from any source')
+      }
+
+      next()
+    } catch (error) {
+      this.logger.error(`Tenant middleware error: ${error.message}`, error.stack)
+      // Don't throw error here - let the guard handle it
+      next()
     }
-    
-    return null
   }
-
-  private setTenantHeaders(res: Response, business: any, config: any): void {
-    // Set CORS headers based on tenant config
-    res.setHeader('Access-Control-Allow-Origin', '*') // Configure based on tenant settings
-    
-    // Set tenant-specific headers
-    res.setHeader('X-Business-Name', business.businessName)
-    res.setHeader('X-Business-Type', business.businessType)
-    
-    // Set custom branding headers if available
-    if (config.brandColors) {
-      res.setHeader('X-Brand-Primary-Color', config.brandColors.primary)
-    }
-    
-    // Set subscription plan info
-    if (business.activeSubscription) {
-      res.setHeader('X-Subscription-Plan', business.activeSubscription.planType)
-    }
-  }
-
-  // Add this method to your TenantMiddleware class
-private shouldSkipTenantResolution(req: Request): boolean {
-  const skipRoutes = [
-    '/api/tenant',                    // Business creation
-    '/api/tenant/register',           // Business registration
-    '/api/tenant/check-subdomain',    // Subdomain availability check
-    '/api/auth',                      // Authentication routes
-    '/api/health',                    // Health checks
-  ];
-
-  const skipPatterns = [
-    /^\/api\/tenant\/[^\/]+$/,        // GET business by ID
-  ];
-
-  // Check exact matches
-  if (skipRoutes.some(route => req.path.startsWith(route))) {
-    return true;
-  }
-
-  // Check pattern matches
-  if (skipPatterns.some(pattern => pattern.test(req.path))) {
-    return true;
-  }
-
-  return false;
-}
 }

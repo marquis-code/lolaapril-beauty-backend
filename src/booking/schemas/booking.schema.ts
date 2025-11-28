@@ -1,3 +1,4 @@
+
 // src/modules/booking/schemas/booking.schema.ts
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
 import { Document, Types } from "mongoose"
@@ -15,11 +16,14 @@ export class BookedService {
   @Prop({ required: true })
   duration: number // in minutes
 
+  @Prop({ default: 0 })
+  bufferTime: number // Buffer time in minutes
+
   @Prop({ required: true })
   price: number
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
-  preferredStaffId?: Types.ObjectId
+  // @Prop({ type: Types.ObjectId, ref: 'User' })
+  // preferredStaffId?: Types.ObjectId
 }
 
 @Schema()
@@ -34,7 +38,7 @@ export class BookingMetadata {
   referrer: string
 
   @Prop({ default: 'web' })
-  platform: string // 'web', 'mobile', 'app'
+  platform: string
 }
 
 @Schema({ timestamps: true })
@@ -45,8 +49,11 @@ export class Booking {
   @Prop({ type: Types.ObjectId, ref: 'Business', required: true })
   businessId: Types.ObjectId
 
+  @Prop({ default: 0 })
+  totalBufferTime: number
+
   @Prop({ required: true, unique: true })
-  bookingNumber: string // e.g., "BK-2024-001"
+  bookingNumber: string
 
   @Prop({ type: [BookedService], required: true })
   services: BookedService[]
@@ -61,7 +68,7 @@ export class Booking {
   estimatedEndTime: string
 
   @Prop({ required: true })
-  totalDuration: number // in minutes
+  totalDuration: number
 
   @Prop({ required: true })
   estimatedTotal: number
@@ -75,7 +82,6 @@ export class Booking {
   @Prop({ required: true })
   clientPhone: string
 
-  // Added missing field
   @Prop()
   businessName: string
 
@@ -117,13 +123,13 @@ export class Booking {
   cancellationDate: Date
 
   @Prop()
-  expiresAt: Date // Auto-expire pending bookings
+  expiresAt: Date
 
   @Prop({ type: Types.ObjectId, ref: "User" })
-  processedBy: Types.ObjectId // Staff who confirmed/rejected
+  processedBy: Types.ObjectId
 
   @Prop({ type: Types.ObjectId, ref: "Appointment" })
-  appointmentId: Types.ObjectId // Link to created appointment
+  appointmentId: Types.ObjectId
 
   @Prop({ type: BookingMetadata, default: {} })
   metadata: BookingMetadata
@@ -143,7 +149,6 @@ export class Booking {
 
 export const BookingSchema = SchemaFactory.createForClass(Booking)
 
-// Add indexes for better performance
 BookingSchema.index({ clientId: 1 })
 BookingSchema.index({ businessId: 1 })
 BookingSchema.index({ bookingNumber: 1 })
@@ -151,27 +156,6 @@ BookingSchema.index({ preferredDate: 1, preferredStartTime: 1 })
 BookingSchema.index({ status: 1 })
 BookingSchema.index({ bookingSource: 1 })
 BookingSchema.index({ createdAt: -1 })
-BookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }) // TTL index
+BookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 BookingSchema.index({ clientEmail: 1 })
 BookingSchema.index({ clientPhone: 1 })
-
-// Fix the pre-save middleware - use Model instead of this.constructor
-BookingSchema.pre('save', async function(next) {
-  if (this.isNew && !this.bookingNumber) {
-    const today = new Date()
-    const year = today.getFullYear()
-    const month = String(today.getMonth() + 1).padStart(2, '0')
-    const day = String(today.getDate()).padStart(2, '0')
-    
-    // Use this.model() to access the model properly
-    const count = await this.model('Booking').countDocuments({
-      createdAt: {
-        $gte: new Date(year, today.getMonth(), today.getDate()),
-        $lt: new Date(year, today.getMonth(), today.getDate() + 1)
-      }
-    })
-    
-    this.bookingNumber = `BK-${year}${month}${day}-${String(count + 1).padStart(3, '0')}`
-  }
-  next()
-})

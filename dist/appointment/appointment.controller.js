@@ -19,11 +19,8 @@ const appointment_service_1 = require("./appointment.service");
 const create_appointment_dto_1 = require("./dto/create-appointment.dto");
 const update_appointment_dto_1 = require("./dto/update-appointment.dto");
 const appointment_query_dto_1 = require("./dto/appointment-query.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
-const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
 const audit_decorator_1 = require("../audit/decorators/audit.decorator");
 const audit_log_schema_1 = require("../audit/schemas/audit-log.schema");
 let AppointmentController = class AppointmentController {
@@ -78,7 +75,6 @@ __decorate([
 ], AppointmentController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get all appointments" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointments retrieved successfully" }),
     __param(0, (0, common_1.Query)()),
@@ -182,9 +178,6 @@ __decorate([
 AppointmentController = __decorate([
     (0, swagger_1.ApiTags)("Appointments"),
     (0, common_1.Controller)("appointments"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
-    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [appointment_service_1.AppointmentService])
 ], AppointmentController);
 exports.AppointmentController = AppointmentController;

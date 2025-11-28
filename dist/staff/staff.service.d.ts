@@ -22,8 +22,6 @@ export declare class StaffService {
     createStaffSchedule(createScheduleDto: CreateStaffScheduleDto): Promise<StaffScheduleDocument>;
     getStaffSchedule(staffId: string, date: Date): Promise<StaffScheduleDocument | null>;
     updateStaffSchedule(scheduleId: string, updateData: Partial<StaffSchedule>): Promise<StaffScheduleDocument>;
-    assignStaffToAppointment(assignmentDto: AssignStaffDto): Promise<StaffAssignmentDocument>;
-    autoAssignStaff(businessId: string, appointmentId: string, clientId: string, serviceId: string, assignmentDate: Date, startTime: string, endTime: string): Promise<StaffAssignmentDocument>;
     getStaffAssignments(staffId: string, startDate: Date, endDate: Date): Promise<any[]>;
     completeStaffAssignment(assignmentId: string, completionData: CompleteAssignmentDto): Promise<StaffAssignmentDocument>;
     checkInStaff(checkInDto: CheckInStaffDto): Promise<void>;
@@ -32,7 +30,6 @@ export declare class StaffService {
     private recordWorkingHours;
     private checkStaffAvailability;
     private checkStaffSkill;
-    private selectBestStaff;
     private getSkillLevelScore;
     private updateStaffStats;
     private timeOverlaps;
@@ -40,6 +37,42 @@ export declare class StaffService {
     private timeToMinutes;
     private calculateTotalMinutes;
     private generateStaffId;
-    private createDefaultSchedule;
     private deactivateOverlappingSchedules;
+    assignStaffToAppointment(assignmentDto: AssignStaffDto): Promise<{
+        staffId: string;
+        serviceId: string;
+        staffName?: string;
+        email?: string;
+        phone?: string;
+        status: string;
+        assignedAt: Date;
+    }>;
+    private addMinutesToTime;
+    getAssignmentsByAppointment(appointmentId: string): Promise<any[]>;
+    updateAssignmentStatus(assignmentId: string, status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'): Promise<void>;
+    cancelStaffAssignment(assignmentId: string, reason?: string): Promise<void>;
+    reassignStaff(assignmentId: string, newStaffId: string, reason?: string): Promise<{
+        staffId: string;
+        serviceId: string;
+        staffName?: string;
+        status: string;
+        assignedAt: Date;
+    }>;
+    private createDefaultSchedule;
+    autoAssignStaff(businessId: string, appointmentId: string, clientId: string, serviceId: string, assignmentDate: Date, startTime: string, endTime: string): Promise<{
+        staffId: string;
+        serviceId: string;
+        staffName?: string;
+        email?: string;
+        phone?: string;
+        status: string;
+        assignedAt: Date;
+    }>;
+    private selectBestStaff;
+    getStaffWorkload(staffId: string, date: Date): Promise<{
+        totalAssignments: number;
+        totalMinutes: number;
+        assignments: any[];
+    }>;
+    private hasOverlappingAssignments;
 }

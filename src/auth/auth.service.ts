@@ -125,109 +125,217 @@ export class AuthService {
   }
 
   // ==================== BUSINESS LOGIN ====================
-  async loginBusiness(loginDto: BusinessLoginDto) {
-    const { email, password, subdomain } = loginDto
+  // async loginBusiness(loginDto: BusinessLoginDto) {
+  //   const { email, password, subdomain } = loginDto
 
-    // Find user
-    const user = await this.userModel.findOne({ email })
-    if (!user) {
-      throw new UnauthorizedException("Invalid credentials")
-    }
+  //   // Find user
+  //   const user = await this.userModel.findOne({ email })
+  //   if (!user) {
+  //     throw new UnauthorizedException("Invalid credentials")
+  //   }
 
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password)
-    if (!isPasswordValid) {
-      throw new UnauthorizedException("Invalid credentials")
-    }
+  //   // Check password
+  //   const isPasswordValid = await bcrypt.compare(password, user.password)
+  //   if (!isPasswordValid) {
+  //     throw new UnauthorizedException("Invalid credentials")
+  //   }
 
-    // Check if user is active
-    if (user.status !== "active") {
-      throw new UnauthorizedException("Account is not active")
-    }
+  //   // Check if user is active
+  //   if (user.status !== "active") {
+  //     throw new UnauthorizedException("Account is not active")
+  //   }
 
-    // Check if user is business owner or admin
-    if (![UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN].includes(user.role)) {
-      throw new UnauthorizedException("Not authorized to access business portal")
-    }
+  //   // Check if user is business owner or admin
+  //   if (![UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN].includes(user.role)) {
+  //     throw new UnauthorizedException("Not authorized to access business portal")
+  //   }
 
-    // Find businesses owned or managed by user
-    const businesses = await this.businessModel
-      .find({
-        $or: [{ ownerId: user._id }, { adminIds: user._id }],
-      })
-      .populate("activeSubscription")
+  //   // Find businesses owned or managed by user
+  //   const businesses = await this.businessModel
+  //     .find({
+  //       $or: [{ ownerId: user._id }, { adminIds: user._id }],
+  //     })
+  //     .populate("activeSubscription")
 
-    if (businesses.length === 0) {
-      throw new UnauthorizedException("No business account found for this user")
-    }
+  //   if (businesses.length === 0) {
+  //     throw new UnauthorizedException("No business account found for this user")
+  //   }
 
-    // If subdomain provided, find specific business
-    let business: BusinessDocument
-    if (subdomain) {
-      business = businesses.find((b) => b.subdomain === subdomain)
-      if (!business) {
-        throw new UnauthorizedException("Business not found or access denied")
-      }
-    } else {
-      business = businesses[0]
-    }
+  //   // If subdomain provided, find specific business
+  //   let business: BusinessDocument
+  //   if (subdomain) {
+  //     business = businesses.find((b) => b.subdomain === subdomain)
+  //     if (!business) {
+  //       throw new UnauthorizedException("Business not found or access denied")
+  //     }
+  //   } else {
+  //     business = businesses[0]
+  //   }
 
-    // Check business status
-    if (business.status === "suspended") {
-      throw new UnauthorizedException("Business account is suspended")
-    }
+  //   // Check business status
+  //   if (business.status === "suspended") {
+  //     throw new UnauthorizedException("Business account is suspended")
+  //   }
 
-    if (business.status === "expired") {
-      throw new UnauthorizedException("Business subscription has expired")
-    }
+  //   if (business.status === "expired") {
+  //     throw new UnauthorizedException("Business subscription has expired")
+  //   }
 
-    // Update user's current business context
-    await this.userModel.findByIdAndUpdate(user._id, {
-      currentBusinessId: business._id,
-    })
+  //   // Update user's current business context
+  //   await this.userModel.findByIdAndUpdate(user._id, {
+  //     currentBusinessId: business._id,
+  //   })
 
-    // Generate tokens
-    const tokens = await this.generateTokens(
-      user._id.toString(),
-      user.email,
-      user.role,
-      business._id.toString(),
-      business.subdomain
-    )
+  //   // Generate tokens
+  //   const tokens = await this.generateTokens(
+  //     user._id.toString(),
+  //     user.email,
+  //     user.role,
+  //     business._id.toString(),
+  //     business.subdomain
+  //   )
 
-    // Update user
-    await this.userModel.findByIdAndUpdate(user._id, {
-      refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-      lastLogin: new Date(),
-    })
+  //   // Update user
+  //   await this.userModel.findByIdAndUpdate(user._id, {
+  //     refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+  //     lastLogin: new Date(),
+  //   })
 
-    return {
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-      },
-      business: {
-        id: business._id,
-        businessName: business.businessName,
-        subdomain: business.subdomain,
-        businessType: business.businessType,
-        status: business.status,
-        trialEndsAt: business.trialEndsAt,
-        subscription: business.activeSubscription,
-      },
-      businesses: businesses.map((b) => ({
-        id: b._id,
-        businessName: b.businessName,
-        subdomain: b.subdomain,
-        status: b.status,
-      })),
-      ...tokens,
-    }
+  //   return {
+  //     user: {
+  //       id: user._id,
+  //       firstName: user.firstName,
+  //       lastName: user.lastName,
+  //       email: user.email,
+  //       role: user.role,
+  //       status: user.status,
+  //     },
+  //     business: {
+  //       id: business._id,
+  //       businessName: business.businessName,
+  //       subdomain: business.subdomain,
+  //       businessType: business.businessType,
+  //       status: business.status,
+  //       trialEndsAt: business.trialEndsAt,
+  //       subscription: business.activeSubscription,
+  //     },
+  //     businesses: businesses.map((b) => ({
+  //       id: b._id,
+  //       businessName: b.businessName,
+  //       subdomain: b.subdomain,
+  //       status: b.status,
+  //     })),
+  //     ...tokens,
+  //   }
+  // }
+
+  // Replace the loginBusiness method in auth.service.ts with this:
+
+async loginBusiness(loginDto: BusinessLoginDto) {
+  const { email, password, subdomain } = loginDto
+
+  // Find user
+  const user = await this.userModel.findOne({ email })
+  if (!user) {
+    throw new UnauthorizedException("Invalid credentials")
   }
+
+  // Check password
+  const isPasswordValid = await bcrypt.compare(password, user.password)
+  if (!isPasswordValid) {
+    throw new UnauthorizedException("Invalid credentials")
+  }
+
+  // Check if user is active
+  if (user.status !== "active") {
+    throw new UnauthorizedException("Account is not active")
+  }
+
+  // Check if user is business owner or admin
+  if (![UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN].includes(user.role)) {
+    throw new UnauthorizedException("Not authorized to access business portal")
+  }
+
+  // @ts-ignore - Bypass TypeScript for complex Mongoose query
+  const businesses: any[] = await this.businessModel
+    .find({
+      $or: [{ ownerId: user._id }, { adminIds: user._id }],
+    })
+    .populate("activeSubscription")
+    .lean()
+    .exec()
+
+  if (!businesses || businesses.length === 0) {
+    throw new UnauthorizedException("No business account found for this user")
+  }
+
+  // If subdomain provided, find specific business
+  let business: any
+  if (subdomain) {
+    business = businesses.find((b) => b.subdomain === subdomain)
+    if (!business) {
+      throw new UnauthorizedException("Business not found or access denied")
+    }
+  } else {
+    business = businesses[0]
+  }
+
+  // Check business status
+  if (business.status === "suspended") {
+    throw new UnauthorizedException("Business account is suspended")
+  }
+
+  if (business.status === "expired") {
+    throw new UnauthorizedException("Business subscription has expired")
+  }
+
+  // Update user's current business context
+  await this.userModel.findByIdAndUpdate(user._id, {
+    currentBusinessId: business._id,
+  })
+
+  // Generate tokens
+  const tokens = await this.generateTokens(
+    user._id.toString(),
+    user.email,
+    user.role,
+    business._id.toString(),
+    business.subdomain
+  )
+
+  // Update user
+  await this.userModel.findByIdAndUpdate(user._id, {
+    refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+    lastLogin: new Date(),
+  })
+
+  return {
+    user: {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    },
+    business: {
+      id: business._id,
+      businessName: business.businessName,
+      subdomain: business.subdomain,
+      businessType: business.businessType,
+      status: business.status,
+      trialEndsAt: business.trialEndsAt,
+      subscription: business.activeSubscription,
+    },
+    businesses: businesses.map((b) => ({
+      id: b._id,
+      businessName: b.businessName,
+      subdomain: b.subdomain,
+      status: b.status,
+    })),
+    ...tokens,
+  }
+}
 
   // ==================== GOOGLE OAUTH ====================
   async googleAuth(googleAuthDto: GoogleAuthDto) {
@@ -463,11 +571,11 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_ACCESS_SECRET || "access-secret",
+        secret: process.env.JWT_SECRET,
         expiresIn: "15m",
       }),
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_SECRET || "refresh-secret",
+        secret: process.env.JWT_REFRESH_SECRET,
         expiresIn: "7d",
       }),
     ])

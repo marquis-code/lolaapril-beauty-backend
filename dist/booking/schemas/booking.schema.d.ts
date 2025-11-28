@@ -29,8 +29,8 @@ export declare class BookedService {
     serviceId: Types.ObjectId;
     serviceName: string;
     duration: number;
+    bufferTime: number;
     price: number;
-    preferredStaffId?: Types.ObjectId;
 }
 export declare class BookingMetadata {
     userAgent: string;
@@ -41,6 +41,7 @@ export declare class BookingMetadata {
 export declare class Booking {
     clientId: Types.ObjectId;
     businessId: Types.ObjectId;
+    totalBufferTime: number;
     bookingNumber: string;
     services: BookedService[];
     preferredDate: Date;

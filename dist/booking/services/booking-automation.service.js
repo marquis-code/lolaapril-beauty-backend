@@ -35,11 +35,12 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
     async createAutomatedBooking(bookingData) {
         try {
             this.logger.log(`Creating automated booking for client: ${bookingData.clientId}`);
+            const preferredDate = this.parseDate(bookingData.preferredDate);
             await this.validateTenantLimits(bookingData.businessId);
             const services = await this.getServicesDetails(bookingData.serviceIds);
             const { totalDuration, totalAmount } = this.calculateBookingTotals(services);
             const estimatedEndTime = this.addMinutesToTime(bookingData.preferredStartTime, totalDuration);
-            const isAvailable = await this.checkAvailabilityForAllServices(bookingData.businessId, bookingData.serviceIds, bookingData.preferredDate, bookingData.preferredStartTime, totalDuration);
+            const isAvailable = await this.checkAvailabilityForAllServices(bookingData.businessId, bookingData.serviceIds, preferredDate, bookingData.preferredStartTime, totalDuration);
             if (!isAvailable) {
                 throw new common_1.BadRequestException('Selected time slot is no longer available');
             }
@@ -52,7 +53,7 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
                     duration: this.getServiceDurationInMinutes(service),
                     price: service.pricingAndDuration.price.amount,
                 })),
-                preferredDate: bookingData.preferredDate,
+                preferredDate: preferredDate,
                 preferredStartTime: bookingData.preferredStartTime,
                 estimatedEndTime,
                 totalDuration,
@@ -92,7 +93,8 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
             if (paymentData.status === 'failed') {
                 return await this.handlePaymentFailure(booking, paymentData.transactionReference);
             }
-            const isStillAvailable = await this.checkAvailabilityForAllServices(booking.businessId.toString(), booking.services.map(s => s.serviceId.toString()), booking.preferredDate, booking.preferredStartTime, booking.totalDuration);
+            const bookingDate = this.parseDate(booking.preferredDate);
+            const isStillAvailable = await this.checkAvailabilityForAllServices(booking.businessId.toString(), booking.services.map(s => s.serviceId.toString()), bookingDate, booking.preferredStartTime, booking.totalDuration);
             if (!isStillAvailable) {
                 await this.handleUnavailableSlot(booking, paymentData.transactionReference);
                 throw new common_1.BadRequestException('Time slot is no longer available. Payment will be refunded.');
@@ -127,6 +129,16 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
             throw error;
         }
     }
+    parseDate(date) {
+        if (date instanceof Date) {
+            return date;
+        }
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate.getTime())) {
+            throw new common_1.BadRequestException('Invalid date format');
+        }
+        return parsedDate;
+    }
     async processAutoConfirmedBooking(booking, services) {
         const appointment = await this.appointmentService.createFromBooking(booking);
         const staffAssignment = await this.autoAssignStaffToAppointment(appointment, services);
@@ -149,7 +161,7 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
         return await this.availabilityService.checkSlotAvailability({
             businessId,
             serviceId: serviceIds[0],
-            date,
+            date: date.toISOString().split('T')[0],
             startTime,
             duration: totalDuration
         });
@@ -157,7 +169,8 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
     async autoAssignStaffToAppointment(appointment, services) {
         try {
             const primaryService = services[0];
-            return await this.staffService.autoAssignStaff(appointment.businessId.toString(), appointment._id.toString(), appointment.clientId.toString(), primaryService._id.toString(), appointment.scheduledDate, appointment.scheduledStartTime, appointment.scheduledEndTime);
+            const scheduledDate = this.parseDate(appointment.scheduledDate);
+            return await this.staffService.autoAssignStaff(appointment.businessId.toString(), appointment._id.toString(), appointment.clientId.toString(), primaryService._id.toString(), scheduledDate, appointment.scheduledStartTime, appointment.scheduledEndTime);
         }
         catch (error) {
             this.logger.warn(`Staff auto-assignment failed: ${error.message}. Manual assignment required.`);
@@ -165,10 +178,12 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
         }
     }
     async sendAppointmentConfirmationNotifications(appointment, payment, staffAssignment) {
+        const appointmentDate = this.parseDate(appointment.scheduledDate);
+        const dateString = appointmentDate.toDateString();
         await this.notificationService.notifyBookingConfirmation(appointment.bookingId.toString(), appointment.clientId.toString(), appointment.businessId.toString(), {
             clientName: appointment.clientName,
             serviceName: appointment.services.map(s => s.serviceName).join(', '),
-            date: appointment.scheduledDate.toDateString(),
+            date: dateString,
             time: appointment.scheduledStartTime,
             businessName: appointment.businessName,
             appointmentNumber: appointment.appointmentNumber,
@@ -182,7 +197,7 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
                 method: payment.paymentMethod,
                 transactionId: payment.transactionId,
                 serviceName: appointment.services.map(s => s.serviceName).join(', '),
-                appointmentDate: appointment.scheduledDate.toDateString(),
+                appointmentDate: dateString,
                 businessName: appointment.businessName,
                 clientEmail: appointment.clientEmail,
                 clientPhone: appointment.clientPhone
@@ -193,7 +208,7 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
                 staffName: staffAssignment.staffName,
                 clientName: appointment.clientName,
                 serviceName: appointment.services.map(s => s.serviceName).join(', '),
-                date: appointment.scheduledDate.toDateString(),
+                date: dateString,
                 time: appointment.scheduledStartTime,
                 businessName: appointment.businessName,
                 appointmentNumber: appointment.appointmentNumber

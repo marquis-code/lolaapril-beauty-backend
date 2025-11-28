@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Model, Types } from "mongoose";
+import { Model } from "mongoose";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { User, UserDocument, UserRole } from "./schemas/user.schema";
@@ -74,19 +74,19 @@ export declare class AuthService {
             status: import("./schemas/user.schema").UserStatus.ACTIVE;
         };
         business: {
-            id: unknown;
-            businessName: string;
-            subdomain: string;
-            businessType: string;
-            status: string;
-            trialEndsAt: Date;
-            subscription: Types.ObjectId;
+            id: any;
+            businessName: any;
+            subdomain: any;
+            businessType: any;
+            status: any;
+            trialEndsAt: any;
+            subscription: any;
         };
         businesses: {
-            id: unknown;
-            businessName: string;
-            subdomain: string;
-            status: string;
+            id: any;
+            businessName: any;
+            subdomain: any;
+            status: any;
         }[];
     }>;
     googleAuth(googleAuthDto: GoogleAuthDto): Promise<any>;

@@ -14,28 +14,29 @@ const class_validator_1 = require("class-validator");
 class BlockStaffTimeDto {
 }
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], BlockStaffTimeDto.prototype, "staffId", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], BlockStaffTimeDto.prototype, "businessId", void 0);
+__decorate([
     (0, class_validator_1.IsDateString)(),
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], BlockStaffTimeDto.prototype, "date", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], BlockStaffTimeDto.prototype, "startTime", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], BlockStaffTimeDto.prototype, "endTime", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], BlockStaffTimeDto.prototype, "reason", void 0);
 exports.BlockStaffTimeDto = BlockStaffTimeDto;

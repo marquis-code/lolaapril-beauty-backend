@@ -130,4 +130,8 @@ export declare class NotificationController {
     }> & {
         __v: number;
     }>;
+    seedTemplates(): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

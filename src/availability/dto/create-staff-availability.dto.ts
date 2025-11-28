@@ -1,29 +1,38 @@
 // src/modules/availability/dto/create-staff-availability.dto.ts
-import { IsNotEmpty, IsDateString, IsArray, IsOptional, IsString } from 'class-validator'
-import { TimeSlot } from '../schemas/business-hours.schema'
+import { IsString, IsDateString, IsArray, IsOptional, ValidateNested } from 'class-validator'
+import { Type } from 'class-transformer'
+
+export class TimeSlotDto {
+  @IsString()
+  startTime: string
+
+  @IsString()
+  endTime: string
+
+  @IsOptional()
+  isBreak?: boolean
+}
 
 export class CreateStaffAvailabilityDto {
-  @IsNotEmpty()
   @IsString()
   staffId: string
 
-  @IsNotEmpty()
   @IsString()
-  businessId: string
-
-  @IsNotEmpty()
-  @IsDateString()
-  date: Date
-
-  @IsNotEmpty()
-  @IsArray()
-  availableSlots: TimeSlot[]
-
   @IsOptional()
+  businessId?: string
+
+  @IsDateString()
+  date: string // Keep as string
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TimeSlotDto)
+  availableSlots: TimeSlotDto[]
+
   @IsString()
+  @IsOptional()
   reason?: string
 
-  @IsNotEmpty()
   @IsString()
   createdBy: string
 }

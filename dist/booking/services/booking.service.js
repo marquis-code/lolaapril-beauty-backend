@@ -28,39 +28,96 @@ let BookingService = BookingService_1 = class BookingService {
     }
     async createBooking(createBookingData) {
         try {
+            console.log('📥 Received booking data:', JSON.stringify(createBookingData, null, 2));
+            const bookingNumber = await this.generateBookingNumber(createBookingData.businessId);
             const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
-            const bookingData = Object.assign(Object.assign({}, createBookingData), { expiresAt, clientId: new mongoose_2.Types.ObjectId(createBookingData.clientId), businessId: new mongoose_2.Types.ObjectId(createBookingData.businessId), services: createBookingData.services.map(service => (Object.assign(Object.assign({}, service), { serviceId: new mongoose_2.Types.ObjectId(service.serviceId), preferredStaffId: service.preferredStaffId ?
-                        new mongoose_2.Types.ObjectId(service.preferredStaffId) : undefined }))) });
-            const [savedBooking] = await this.bookingModel.create([bookingData]);
-            const bookingId = savedBooking._id.toString();
+            const bookingData = {
+                bookingNumber,
+                clientId: new mongoose_2.Types.ObjectId(createBookingData.clientId),
+                businessId: new mongoose_2.Types.ObjectId(createBookingData.businessId),
+                services: createBookingData.services.map((service) => {
+                    console.log('📋 Mapping service:', service);
+                    return {
+                        serviceId: new mongoose_2.Types.ObjectId(service.serviceId),
+                        serviceName: service.serviceName,
+                        duration: service.duration,
+                        bufferTime: service.bufferTime || 0,
+                        price: service.price,
+                        preferredStaffId: service.preferredStaffId ?
+                            new mongoose_2.Types.ObjectId(service.preferredStaffId) : undefined
+                    };
+                }),
+                preferredDate: createBookingData.preferredDate,
+                preferredStartTime: createBookingData.preferredStartTime,
+                estimatedEndTime: createBookingData.estimatedEndTime,
+                totalDuration: createBookingData.totalDuration,
+                totalBufferTime: createBookingData.totalBufferTime || 0,
+                estimatedTotal: createBookingData.estimatedTotal,
+                clientName: createBookingData.clientName,
+                clientEmail: createBookingData.clientEmail,
+                clientPhone: createBookingData.clientPhone,
+                specialRequests: createBookingData.specialRequests,
+                status: createBookingData.status || 'pending',
+                bookingSource: createBookingData.bookingSource || 'online',
+                expiresAt,
+                metadata: createBookingData.metadata || { platform: 'web' }
+            };
+            console.log('💾 Saving booking data:', JSON.stringify(bookingData, null, 2));
+            const savedBooking = await this.bookingModel.create(bookingData);
+            console.log('✅ Booking saved with ID:', savedBooking._id);
             const bookingResult = await this.bookingModel
-                .findById(bookingId)
+                .findById(savedBooking._id)
                 .lean()
                 .exec();
             if (!bookingResult) {
                 throw new Error('Failed to retrieve saved booking');
             }
             this.eventEmitter.emit('booking.created', bookingResult);
-            this.logger.log(`Booking created: ${bookingResult.bookingNumber}`);
+            this.logger.log(`Booking created: ${bookingResult.bookingNumber} - Total: ₦${bookingResult.estimatedTotal}`);
             return bookingResult;
         }
         catch (error) {
             this.logger.error(`Failed to create booking: ${error.message}`);
+            this.logger.error(`Stack: ${error.stack}`);
+            if (error.name === 'ValidationError') {
+                this.logger.error('Validation errors:', JSON.stringify(error.errors, null, 2));
+            }
             throw error;
         }
     }
+    async generateBookingNumber(businessId) {
+        const today = new Date();
+        const datePrefix = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+        const count = await this.bookingModel.countDocuments({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            createdAt: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            }
+        }).exec();
+        const sequence = (count + 1).toString().padStart(4, '0');
+        return `BK-${datePrefix}-${sequence}`;
+    }
     async getBookingById(bookingId) {
-        const booking = await this.bookingModel
-            .findById(bookingId)
-            .populate('services.serviceId', 'basicDetails pricingAndDuration')
-            .populate('services.preferredStaffId', 'firstName lastName')
-            .populate('processedBy', 'firstName lastName')
-            .lean()
-            .exec();
-        if (!booking) {
+        try {
+            console.log('🔍 Looking for booking:', bookingId);
+            const booking = await this.bookingModel
+                .findById(bookingId)
+                .lean()
+                .exec();
+            if (!booking) {
+                console.log('❌ Booking not found:', bookingId);
+                throw new common_1.NotFoundException('Booking not found');
+            }
+            console.log('✅ Booking found:', booking.bookingNumber);
+            return booking;
+        }
+        catch (error) {
+            console.error('❌ Error fetching booking:', error.message);
             throw new common_1.NotFoundException('Booking not found');
         }
-        return booking;
     }
     async getBookings(query) {
         const filter = {

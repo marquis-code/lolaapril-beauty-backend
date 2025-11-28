@@ -1,6 +1,6 @@
 export declare class GetAvailableSlotsDto {
-    businessId: string;
+    businessId?: string;
     serviceId: string;
-    date: Date;
+    date: string;
     duration: number;
 }

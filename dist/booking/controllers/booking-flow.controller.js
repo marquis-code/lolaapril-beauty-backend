@@ -15,14 +15,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingFlowController = void 0;
 const common_1 = require("@nestjs/common");
 const booking_orchestrator_service_1 = require("../services/booking-orchestrator.service");
-const tenant_guard_1 = require("../../tenant/guards/tenant.guard");
+const create_booking_dto_1 = require("../dto/create-booking.dto");
+const confirm_booking_dto_1 = require("../dto/confirm-booking.dto");
 let BookingFlowController = class BookingFlowController {
     constructor(bookingOrchestrator) {
         this.bookingOrchestrator = bookingOrchestrator;
     }
     async createBooking(createBookingDto, req) {
+        var _a;
         try {
-            const businessId = req.tenant.businessId;
+            const businessId = createBookingDto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+            if (!businessId) {
+                throw new common_1.BadRequestException('Business ID is required');
+            }
             const result = await this.bookingOrchestrator.createBookingWithValidation(Object.assign(Object.assign({}, createBookingDto), { businessId }));
             return {
                 success: true,
@@ -39,9 +44,35 @@ let BookingFlowController = class BookingFlowController {
             };
         }
     }
-    async confirmBooking(bookingId, staffId) {
+    async confirmBooking(bookingId, confirmDto, req) {
         try {
-            const result = await this.bookingOrchestrator.confirmBookingAndCreateAppointment(bookingId, staffId);
+            console.log('🎯 CONTROLLER: CONFIRM BOOKING');
+            console.log('BookingId:', bookingId);
+            console.log('DTO Received:', JSON.stringify(confirmDto, null, 2));
+            if (!this.isValidObjectId(bookingId)) {
+                throw new common_1.BadRequestException('Invalid booking ID format');
+            }
+            if (!confirmDto.staffId && (!confirmDto.staffAssignments || confirmDto.staffAssignments.length === 0)) {
+                throw new common_1.BadRequestException('Either staffId or staffAssignments must be provided');
+            }
+            if (confirmDto.staffAssignments && confirmDto.staffAssignments.length > 0) {
+                for (const assignment of confirmDto.staffAssignments) {
+                    if (!assignment.staffId) {
+                        throw new common_1.BadRequestException('staffId is required in staffAssignments');
+                    }
+                    if (!this.isValidObjectId(assignment.staffId)) {
+                        throw new common_1.BadRequestException(`Invalid staffId format: ${assignment.staffId}`);
+                    }
+                    if (!assignment.serviceId) {
+                        throw new common_1.BadRequestException('serviceId is required in staffAssignments');
+                    }
+                    if (!this.isValidObjectId(assignment.serviceId)) {
+                        throw new common_1.BadRequestException(`Invalid serviceId format: ${assignment.serviceId}`);
+                    }
+                }
+                console.log(`✅ Validated ${confirmDto.staffAssignments.length} staff assignments`);
+            }
+            const result = await this.bookingOrchestrator.confirmBookingAndCreateAppointment(bookingId, confirmDto.staffId, confirmDto.staffAssignments);
             return {
                 success: true,
                 data: result,
@@ -49,6 +80,8 @@ let BookingFlowController = class BookingFlowController {
             };
         }
         catch (error) {
+            console.error('❌ CONTROLLER ERROR:', error.message);
+            console.error('Error stack:', error.stack);
             return {
                 success: false,
                 error: error.message,
@@ -59,6 +92,9 @@ let BookingFlowController = class BookingFlowController {
     }
     async handlePayment(bookingId, paymentDto) {
         try {
+            if (!this.isValidObjectId(bookingId)) {
+                throw new common_1.BadRequestException('Invalid booking ID format');
+            }
             const result = await this.bookingOrchestrator.handlePaymentAndComplete(bookingId, paymentDto.transactionReference, {
                 amount: paymentDto.amount,
                 method: paymentDto.method,
@@ -81,21 +117,30 @@ let BookingFlowController = class BookingFlowController {
             };
         }
     }
+    isValidObjectId(id) {
+        return typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
+    }
 };
 __decorate([
     (0, common_1.Post)('create'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [create_booking_dto_1.CreateBookingDto, Object]),
     __metadata("design:returntype", Promise)
 ], BookingFlowController.prototype, "createBooking", null);
 __decorate([
     (0, common_1.Post)('confirm/:bookingId'),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: false,
+        transform: true
+    })),
     __param(0, (0, common_1.Param)('bookingId')),
-    __param(1, (0, common_1.Body)('staffId')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, confirm_booking_dto_1.ConfirmBookingDto, Object]),
     __metadata("design:returntype", Promise)
 ], BookingFlowController.prototype, "confirmBooking", null);
 __decorate([
@@ -108,7 +153,6 @@ __decorate([
 ], BookingFlowController.prototype, "handlePayment", null);
 BookingFlowController = __decorate([
     (0, common_1.Controller)('booking-flow'),
-    (0, common_1.UseGuards)(tenant_guard_1.TenantGuard),
     __metadata("design:paramtypes", [booking_orchestrator_service_1.BookingOrchestrator])
 ], BookingFlowController);
 exports.BookingFlowController = BookingFlowController;

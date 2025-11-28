@@ -44,6 +44,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: [TimeSlot], default: [] }),
     __metadata("design:type", Array)
 ], DaySchedule.prototype, "timeSlots", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], DaySchedule.prototype, "is24Hours", void 0);
 DaySchedule = __decorate([
     (0, mongoose_1.Schema)()
 ], DaySchedule);
@@ -74,6 +78,10 @@ __decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)
 ], BusinessHours.prototype, "bufferTime", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], BusinessHours.prototype, "operates24x7", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)

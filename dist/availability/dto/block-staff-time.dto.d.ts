@@ -1,7 +1,8 @@
 export declare class BlockStaffTimeDto {
     staffId: string;
-    date: Date;
+    businessId?: string;
+    date: string;
     startTime: string;
     endTime: string;
-    reason: string;
+    reason?: string;
 }

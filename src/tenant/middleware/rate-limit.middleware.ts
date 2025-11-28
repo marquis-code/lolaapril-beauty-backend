@@ -1,23 +1,100 @@
-import { Injectable, NestMiddleware } from '@nestjs/common'
-import { Request, Response, NextFunction } from 'express'
-import rateLimit from 'express-rate-limit'
+// // src/modules/tenant/middleware/tenant-rate-limit.middleware.ts
+// import { Injectable, NestMiddleware } from '@nestjs/common'
+// import { Response, NextFunction } from 'express'
+// import { rateLimit, RateLimitRequestHandler } from 'express-rate-limit'
+// import { TenantRequest } from '../../types/tenant-request.interface'
+
+// @Injectable()
+// export class TenantRateLimitMiddleware implements NestMiddleware {
+//   private limiters = new Map<string, RateLimitRequestHandler>()
+
+//   use(req: TenantRequest, res: Response, next: NextFunction) {
+//     if (!req.tenant) {
+//       return next()
+//     }
+
+//     const tenantId = req.tenant.businessId
+//     let limiter = this.limiters.get(tenantId)
+    
+//     if (!limiter) {
+//       limiter = this.createTenantLimiter(req.tenant.business.activeSubscription)
+//       this.limiters.set(tenantId, limiter)
+//     }
+    
+//     limiter(req, res, next)
+//   }
+
+//   private createTenantLimiter(subscription: any): RateLimitRequestHandler {
+//     const limits: Record<string, { windowMs: number; max: number }> = {
+//       trial: { windowMs: 15 * 60 * 1000, max: 100 },
+//       basic: { windowMs: 15 * 60 * 1000, max: 300 },
+//       standard: { windowMs: 15 * 60 * 1000, max: 600 },
+//       premium: { windowMs: 15 * 60 * 1000, max: 1000 },
+//       enterprise: { windowMs: 15 * 60 * 1000, max: 2000 }
+//     }
+
+//     const planType = subscription?.planType || 'trial'
+//     const config = limits[planType] || limits.trial
+
+//     return rateLimit({
+//       windowMs: config.windowMs,
+//       max: config.max,
+//       handler: (req, res) => {
+//         res.status(429).json({
+//           success: false,
+//           error: 'Too many requests, please try again later.',
+//           code: 'RATE_LIMIT_EXCEEDED'
+//         })
+//       },
+//       standardHeaders: true,
+//       legacyHeaders: false,
+//       keyGenerator: (req) => {
+//         const tenantReq = req as TenantRequest
+//         return tenantReq.tenant?.businessId || req.ip || 'unknown'
+//       }
+//     })
+//   }
+// }
+
+// src/modules/tenant/middleware/tenant-rate-limit.middleware.ts
+import { Injectable, NestMiddleware, Logger, OnModuleInit } from '@nestjs/common'
+import { Response, NextFunction } from 'express'
+import { rateLimit, RateLimitRequestHandler } from 'express-rate-limit'
+import { TenantRequest } from './tenant.middleware'
 
 @Injectable()
-export class TenantRateLimitMiddleware implements NestMiddleware {
-  private limiters = new Map<string, any>()
+export class TenantRateLimitMiddleware implements NestMiddleware, OnModuleInit {
+  private readonly logger = new Logger(TenantRateLimitMiddleware.name)
+  private limiters = new Map<string, RateLimitRequestHandler>()
+  private planLimiters = new Map<string, RateLimitRequestHandler>()
+  private defaultLimiter: RateLimitRequestHandler
 
-  use(req: Request, res: Response, next: NextFunction) {
+  onModuleInit() {
+    // Pre-initialize limiters for each plan type at module initialization
+    this.defaultLimiter = this.createLimiterForPlan('trial')
+    
+    const plans = ['trial', 'basic', 'standard', 'premium', 'enterprise']
+    plans.forEach(plan => {
+      this.planLimiters.set(plan, this.createLimiterForPlan(plan))
+    })
+
+    this.logger.log('Rate limiters initialized for all plan types')
+  }
+
+  use(req: TenantRequest, res: Response, next: NextFunction) {
+    // If no tenant context, use default limiter
     if (!req.tenant) {
-      return next()
+      return this.defaultLimiter(req, res, next)
     }
 
     const tenantId = req.tenant.businessId
     
-    // Get or create rate limiter for this tenant
+    // Get or create tenant-specific limiter
     let limiter = this.limiters.get(tenantId)
     
     if (!limiter) {
-      limiter = this.createTenantLimiter(req.tenant.business.activeSubscription)
+      const planType = req.tenant.business?.activeSubscription?.planType || 'trial'
+      limiter = this.planLimiters.get(planType) || this.defaultLimiter
       this.limiters.set(tenantId, limiter)
     }
     
@@ -25,29 +102,30 @@ export class TenantRateLimitMiddleware implements NestMiddleware {
     limiter(req, res, next)
   }
 
-  private createTenantLimiter(subscription: any) {
-    // Different rate limits based on subscription plan
-    const limits = {
-      trial: { windowMs: 15 * 60 * 1000, max: 100 }, // 100 requests per 15 minutes
-      basic: { windowMs: 15 * 60 * 1000, max: 300 },
-      standard: { windowMs: 15 * 60 * 1000, max: 600 },
-      premium: { windowMs: 15 * 60 * 1000, max: 1000 },
-      enterprise: { windowMs: 15 * 60 * 1000, max: 2000 }
+  private createLimiterForPlan(planType: string): RateLimitRequestHandler {
+    const limits: Record<string, { windowMs: number; limit: number }> = {
+      trial: { windowMs: 15 * 60 * 1000, limit: 100 },
+      basic: { windowMs: 15 * 60 * 1000, limit: 300 },
+      standard: { windowMs: 15 * 60 * 1000, limit: 600 },
+      premium: { windowMs: 15 * 60 * 1000, limit: 1000 },
+      enterprise: { windowMs: 15 * 60 * 1000, limit: 2000 }
     }
 
-    const planType = subscription?.planType || 'trial'
     const config = limits[planType] || limits.trial
 
     return rateLimit({
       windowMs: config.windowMs,
-      max: config.max,
+      limit: config.limit,
       message: {
         success: false,
-        error: 'Too many requests, please try again later.',
+        error: `Rate limit exceeded for ${planType} plan. Please try again later.`,
         code: 'RATE_LIMIT_EXCEEDED'
       },
-      standardHeaders: true,
+      standardHeaders: 'draft-7',
       legacyHeaders: false,
+      skip: (req) => {
+        return req.path === '/health' || req.path === '/api/health'
+      }
     })
   }
 }

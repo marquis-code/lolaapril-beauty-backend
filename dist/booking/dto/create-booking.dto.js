@@ -9,59 +9,74 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateBookingDto = void 0;
+exports.CreateBookingDto = exports.ServiceBookingDto = void 0;
 const class_validator_1 = require("class-validator");
+class ServiceBookingDto {
+}
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], ServiceBookingDto.prototype, "serviceId", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], ServiceBookingDto.prototype, "bufferTime", void 0);
+exports.ServiceBookingDto = ServiceBookingDto;
 class CreateBookingDto {
 }
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "businessId", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "clientId", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsArray)(),
-    __metadata("design:type", Array)
-], CreateBookingDto.prototype, "serviceIds", void 0);
-__decorate([
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsDateString)(),
-    __metadata("design:type", Date)
+    __metadata("design:type", Array)
+], CreateBookingDto.prototype, "services", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
 ], CreateBookingDto.prototype, "preferredDate", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "preferredStartTime", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "clientName", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsEmail)(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "clientEmail", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsPhoneNumber)('NG'),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "clientPhone", void 0);
 __decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "specialRequests", void 0);
 __decorate([
+    (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsBoolean)(),
-    __metadata("design:type", Boolean)
-], CreateBookingDto.prototype, "autoConfirm", void 0);
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateBookingDto.prototype, "additionalBufferTime", void 0);
 exports.CreateBookingDto = CreateBookingDto;
 //# sourceMappingURL=create-booking.dto.js.map

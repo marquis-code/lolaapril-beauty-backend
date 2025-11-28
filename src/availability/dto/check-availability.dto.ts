@@ -1,24 +1,22 @@
 // src/modules/availability/dto/check-availability.dto.ts
-import { IsNotEmpty, IsDateString, IsString, IsNumber } from 'class-validator'
+import { IsString, IsDateString, IsNumber, IsOptional } from 'class-validator'
+import { Type } from 'class-transformer'
 
 export class CheckAvailabilityDto {
-  @IsNotEmpty()
   @IsString()
-  businessId: string
+  @IsOptional()
+  businessId?: string
 
-  @IsNotEmpty()
   @IsString()
   serviceId: string
 
-  @IsNotEmpty()
   @IsDateString()
-  date: Date
+  date: string // Keep as string
 
-  @IsNotEmpty()
   @IsString()
   startTime: string
 
-  @IsNotEmpty()
   @IsNumber()
+  @Type(() => Number)
   duration: number
 }

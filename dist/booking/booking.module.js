@@ -11,11 +11,13 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const booking_controller_1 = require("./controllers/booking.controller");
+const booking_flow_controller_1 = require("./controllers/booking-flow.controller");
 const booking_service_1 = require("./services/booking.service");
 const booking_automation_service_1 = require("./services/booking-automation.service");
 const booking_orchestrator_service_1 = require("./services/booking-orchestrator.service");
 const booking_schema_1 = require("./schemas/booking.schema");
 const booking_events_1 = require("./events/booking.events");
+const tenant_middleware_1 = require("../tenant/middleware/tenant.middleware");
 const availability_module_1 = require("../availability/availability.module");
 const tenant_module_1 = require("../tenant/tenant.module");
 const notification_module_1 = require("../notification/notification.module");
@@ -24,6 +26,11 @@ const payment_module_1 = require("../payment/payment.module");
 const staff_module_1 = require("../staff/staff.module");
 const service_module_1 = require("../service/service.module");
 let BookingModule = class BookingModule {
+    configure(consumer) {
+        consumer
+            .apply(tenant_middleware_1.TenantMiddleware)
+            .forRoutes({ path: 'bookings/*', method: common_1.RequestMethod.ALL }, { path: 'booking-flow/*', method: common_1.RequestMethod.ALL });
+    }
 };
 BookingModule = __decorate([
     (0, common_1.Module)({
@@ -33,14 +40,14 @@ BookingModule = __decorate([
             ]),
             event_emitter_1.EventEmitterModule.forRoot(),
             (0, common_1.forwardRef)(() => availability_module_1.AvailabilityModule),
-            (0, common_1.forwardRef)(() => tenant_module_1.TenantModule),
+            tenant_module_1.TenantModule,
             (0, common_1.forwardRef)(() => notification_module_1.NotificationModule),
             (0, common_1.forwardRef)(() => appointment_module_1.AppointmentModule),
             (0, common_1.forwardRef)(() => payment_module_1.PaymentModule),
             (0, common_1.forwardRef)(() => staff_module_1.StaffModule),
             (0, common_1.forwardRef)(() => service_module_1.ServiceModule),
         ],
-        controllers: [booking_controller_1.BookingController],
+        controllers: [booking_controller_1.BookingController, booking_flow_controller_1.BookingFlowController],
         providers: [
             booking_service_1.BookingService,
             booking_automation_service_1.BookingAutomationService,

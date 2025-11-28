@@ -1,24 +1,24 @@
 // src/modules/availability/dto/block-staff-time.dto.ts
-import { IsNotEmpty, IsDateString, IsString } from 'class-validator'
+import { IsString, IsDateString, IsOptional } from 'class-validator'
 
 export class BlockStaffTimeDto {
-  @IsNotEmpty()
   @IsString()
   staffId: string
 
-  @IsNotEmpty()
-  @IsDateString()
-  date: Date
+  @IsString()
+  @IsOptional()
+  businessId?: string
 
-  @IsNotEmpty()
+  @IsDateString()
+  date: string // Keep as string
+
   @IsString()
   startTime: string
 
-  @IsNotEmpty()
   @IsString()
   endTime: string
 
-  @IsNotEmpty()
   @IsString()
-  reason: string
+  @IsOptional()
+  reason?: string
 }

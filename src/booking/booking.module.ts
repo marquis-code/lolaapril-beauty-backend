@@ -1,42 +1,12 @@
-// import { Module } from '@nestjs/common'
-// import { MongooseModule } from '@nestjs/mongoose'
-// import { EventEmitterModule } from '@nestjs/event-emitter'
-// import { BookingController } from './controllers/booking.controller'
-// import { BookingService } from './services/booking.service'
-// import { BookingAutomationService } from './services/booking-automation.service'
-// import { Booking, BookingSchema } from './schemas/booking.schema'
-// import { AvailabilityModule } from '../availability/availability.module'
-// import { TenantModule } from '../tenant/tenant.module'
-// import { NotificationModule } from '../notification/notification.module'
-// import { AppointmentModule } from '../appointment/appointment.module'
-// import { PaymentModule } from '../payment/payment.module'
-// import { StaffModule } from '../staff/staff.module'
 
-// @Module({
-//   imports: [
-//     MongooseModule.forFeature([
-//       { name: Booking.name, schema: BookingSchema }
-//     ]),
-//     EventEmitterModule.forRoot(),
-//     AvailabilityModule,
-//     TenantModule,
-//     NotificationModule,
-//     AppointmentModule,
-//     PaymentModule,
-//     StaffModule,
-//   ],
-//   controllers: [BookingController],
-//   providers: [BookingService, BookingAutomationService],
-//   exports: [BookingService, BookingAutomationService],
-// })
-// export class BookingModule {}
-
-import { Module, forwardRef } from '@nestjs/common'
+// src/modules/booking/booking.module.ts
+import { Module, forwardRef, MiddlewareConsumer, RequestMethod } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 
 // Controllers
 import { BookingController } from './controllers/booking.controller'
+import { BookingFlowController } from './controllers/booking-flow.controller'
 
 // Services
 import { BookingService } from './services/booking.service'
@@ -48,6 +18,9 @@ import { Booking, BookingSchema } from './schemas/booking.schema'
 
 // Event Handlers
 import { BookingEventHandler } from './events/booking.events'
+
+// Middleware
+import { TenantMiddleware } from '../tenant/middleware/tenant.middleware'
 
 // Import other modules (using forwardRef to avoid circular dependencies)
 import { AvailabilityModule } from '../availability/availability.module'
@@ -70,7 +43,7 @@ import { ServiceModule } from '../service/service.module'
     
     // Related modules (using forwardRef to prevent circular dependencies)
     forwardRef(() => AvailabilityModule),
-    forwardRef(() => TenantModule),
+    TenantModule, // Import TenantModule to access middleware
     forwardRef(() => NotificationModule),
     forwardRef(() => AppointmentModule),
     forwardRef(() => PaymentModule),
@@ -78,19 +51,28 @@ import { ServiceModule } from '../service/service.module'
     forwardRef(() => ServiceModule),
   ],
   
-  controllers: [BookingController],
+  controllers: [BookingController, BookingFlowController],
   
   providers: [
     BookingService,
     BookingAutomationService,
-    BookingOrchestrator, // Main orchestrator service
-    BookingEventHandler, // Event handler for automated workflows
+    BookingOrchestrator,
+    BookingEventHandler,
   ],
   
   exports: [
     BookingService,
     BookingAutomationService,
-    BookingOrchestrator, // Export so other modules can use it
+    BookingOrchestrator,
   ],
 })
-export class BookingModule {}
+export class BookingModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TenantMiddleware)
+      .forRoutes(
+        { path: 'bookings/*', method: RequestMethod.ALL },
+        { path: 'booking-flow/*', method: RequestMethod.ALL }
+      )
+  }
+}

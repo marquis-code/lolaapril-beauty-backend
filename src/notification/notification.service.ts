@@ -145,41 +145,86 @@ export class NotificationService {
     })
   }
 
+  // async notifyStaffNewBooking(booking: any): Promise<void> {
+  //   const template = await this.getTemplate(booking.businessId, 'staff_assignment')
+    
+  //   const variables = {
+  //     staffName: booking.staffName || 'Team',
+  //     clientName: booking.clientName,
+  //     serviceName: booking.serviceName,
+  //     appointmentDate: booking.date,
+  //     appointmentTime: booking.time,
+  //     businessName: booking.businessName,
+  //     appointmentNumber: booking.bookingNumber,
+  //     serviceNotes: booking.notes || 'None',
+  //   }
+
+  //   const content = this.replaceTemplateVariables(template.content, variables)
+  //   const subject = this.replaceTemplateVariables(template.subject, variables)
+
+  //   // Send to all staff members or specific staff
+  //   if (booking.staffId) {
+  //     await this.sendNotification({
+  //       businessId: booking.businessId,
+  //       recipientId: booking.staffId,
+  //       recipientType: 'staff',
+  //       recipient: booking.staffEmail,
+  //       recipientPhone: booking.staffPhone,
+  //       subject,
+  //       content,
+  //       channel: template.channel,
+  //       preferences: { email: true, sms: true },
+  //       templateId: template._id.toString(),
+  //       relatedEntityId: booking._id,
+  //       relatedEntityType: 'booking'
+  //     })
+  //   }
+  // }
+
   async notifyStaffNewBooking(booking: any): Promise<void> {
-    const template = await this.getTemplate(booking.businessId, 'staff_assignment')
+  try {
+    const template = await this.getTemplate(booking.businessId.toString(), 'new_booking')
     
     const variables = {
-      staffName: booking.staffName || 'Team',
+      staffName: 'Team', // Generic since we don't know who will handle it yet
       clientName: booking.clientName,
-      serviceName: booking.serviceName,
-      appointmentDate: booking.date,
-      appointmentTime: booking.time,
-      businessName: booking.businessName,
-      appointmentNumber: booking.bookingNumber,
-      serviceNotes: booking.notes || 'None',
+      serviceName: booking.services.map(s => s.serviceName).join(', '),
+      appointmentDate: new Date(booking.preferredDate).toLocaleDateString(),
+      appointmentTime: booking.preferredStartTime,
+      businessName: booking.businessName || 'Your Business',
+      bookingNumber: booking.bookingNumber,
+      specialRequests: booking.specialRequests || 'None',
+      estimatedTotal: booking.estimatedTotal || 0,
+      estimatedDuration: booking.totalDuration || 0,
     }
 
     const content = this.replaceTemplateVariables(template.content, variables)
     const subject = this.replaceTemplateVariables(template.subject, variables)
 
-    // Send to all staff members or specific staff
-    if (booking.staffId) {
-      await this.sendNotification({
-        businessId: booking.businessId,
-        recipientId: booking.staffId,
-        recipientType: 'staff',
-        recipient: booking.staffEmail,
-        recipientPhone: booking.staffPhone,
-        subject,
-        content,
-        channel: template.channel,
-        preferences: { email: true, sms: true },
-        templateId: template._id.toString(),
-        relatedEntityId: booking._id,
-        relatedEntityType: 'booking'
-      })
-    }
+    // For now, send to a generic staff notification email
+    // You can modify this to send to all staff members or specific staff
+    const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL || 'staff@business.com'
+    const staffPhone = process.env.STAFF_NOTIFICATION_PHONE || ''
+
+    await this.sendNotification({
+      businessId: booking.businessId.toString(),
+      recipientId: booking.businessId.toString(), // Use business ID as recipient for now
+      recipientType: 'staff',
+      recipient: staffEmail,
+      recipientPhone: staffPhone,
+      subject,
+      content,
+      channel: template.channel,
+      preferences: { email: true, sms: false },
+      templateId: template._id.toString(),
+      relatedEntityId: booking._id.toString(),
+      relatedEntityType: 'booking'
+    })
+  } catch (error) {
+    console.error(`Failed to send new booking notification: ${error.message}`)
+    // Don't throw - notification failure shouldn't break booking
   }
+}
 
   async notifySlotUnavailableRefund(
     bookingId: string, 
@@ -524,28 +569,6 @@ export class NotificationService {
     await log.save()
   }
 
-  // private async getTemplate(businessId: string, templateType: string): Promise<NotificationTemplateDocument> {
-  //   let template = await this.notificationTemplateModel.findOne({
-  //     businessId: new Types.ObjectId(businessId),
-  //     templateType,
-  //     isActive: true,
-  //   })
-
-  //   // If no business-specific template, get default
-  //   if (!template) {
-  //     template = await this.notificationTemplateModel.findOne({
-  //       templateType,
-  //       isDefault: true,
-  //       isActive: true,
-  //     })
-  //   }
-
-  //   if (!template) {
-  //     throw new Error(`No template found for type: ${templateType}`)
-  //   }
-
-  //   return template
-  // }
 
   private async getTemplate(businessId: string, templateType: string): Promise<NotificationTemplateDocument> {
   let template = await this.notificationTemplateModel.findOne({

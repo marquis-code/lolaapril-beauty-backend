@@ -8,6 +8,7 @@ export declare class BookingService {
     private readonly logger;
     constructor(bookingModel: Model<BookingDocument>, eventEmitter: EventEmitter2);
     createBooking(createBookingData: any): Promise<BookingDocument>;
+    private generateBookingNumber;
     getBookingById(bookingId: string): Promise<BookingDocument>;
     getBookings(query: GetBookingsDto & {
         businessId: string;

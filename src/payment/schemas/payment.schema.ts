@@ -1,20 +1,21 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
-import { type Document, Types } from "mongoose"
 
-export type PaymentDocument = Payment & Document
+// src/modules/payment/schemas/payment.schema.ts
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document, Types } from 'mongoose'
 
-@Schema()
+// Payment Item Schema
+@Schema({ _id: false })
 export class PaymentItem {
-  @Prop({ required: true })
-  itemType: string // 'service', 'product', 'bundle'
+  @Prop({ required: true, enum: ['service', 'product', 'package', 'other'] })
+  itemType: string
 
-  @Prop({ required: true })
-  itemId: string
+  @Prop({ type: Types.ObjectId, required: false })
+  itemId?: Types.ObjectId
 
   @Prop({ required: true })
   itemName: string
 
-  @Prop({ required: true })
+  @Prop({ default: 1 })
   quantity: number
 
   @Prop({ required: true })
@@ -23,97 +24,106 @@ export class PaymentItem {
   @Prop({ required: true })
   totalPrice: number
 
-  @Prop()
+  @Prop({ default: 0 })
   discount: number
 
-  @Prop()
+  @Prop({ default: 0 })
   tax: number
 }
 
-@Schema({ timestamps: true })
+export const PaymentItemSchema = SchemaFactory.createForClass(PaymentItem)
+
+// Main Payment Schema
+@Schema({ 
+  timestamps: true,
+  collection: 'payments'
+})
 export class Payment {
-  @Prop({ type: Types.ObjectId, ref: "Client", required: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   clientId: Types.ObjectId
 
-  @Prop({ type: Types.ObjectId, ref: "Appointment" })
-  appointmentId: Types.ObjectId
+  @Prop({ type: Types.ObjectId, ref: 'Appointment' })
+  appointmentId?: Types.ObjectId
 
-  @Prop({ type: Types.ObjectId, ref: "Booking" })
-  bookingId: Types.ObjectId
+  @Prop({ type: Types.ObjectId, ref: 'Booking' })
+  bookingId?: Types.ObjectId
+
+  @Prop({ type: Types.ObjectId, ref: 'Business' })
+  businessId?: Types.ObjectId
 
   @Prop({ required: true, unique: true })
   paymentReference: string
 
-  @Prop({ type: [PaymentItem], required: true })
+  @Prop()
+  transactionId?: string
+
+  @Prop({ type: [PaymentItemSchema], default: [] })
   items: PaymentItem[]
 
   @Prop({ required: true })
   subtotal: number
 
   @Prop({ default: 0 })
-  totalDiscount: number
-
-  @Prop({ default: 0 })
   totalTax: number
 
   @Prop({ default: 0 })
-  serviceCharge: number
+  totalDiscount: number
 
   @Prop({ required: true })
   totalAmount: number
 
-  @Prop({
-    required: true,
-    enum: ["cash", "card", "bank_transfer", "mobile_money", "online"],
+  // FIXED: Added 'gateway' field to track payment provider
+  @Prop()
+  gateway?: string
+
+  // FIXED: Updated enum to match possible payment methods
+  @Prop({ 
+    required: true, 
+    enum: ['cash', 'card', 'online', 'bank_transfer', 'mobile_money', 'crypto'],
+    default: 'online'
   })
   paymentMethod: string
 
-  @Prop({
+  @Prop({ 
     required: true,
-    enum: ["pending", "processing", "completed", "failed", "refunded", "partially_refunded"],
-    default: "pending",
+    enum: ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded', 'partially_refunded'],
+    default: 'pending'
   })
   status: string
 
   @Prop()
-  transactionId: string
+  paidAt?: Date
+
+  @Prop({ default: 0 })
+  refundedAmount?: number
 
   @Prop()
-  gatewayResponse: string
+  refundedAt?: Date
 
   @Prop()
-  paidAt: Date
+  refundReason?: string
 
   @Prop()
-  refundedAmount: number
+  gatewayResponse?: string
+
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  processedBy?: Types.ObjectId
 
   @Prop()
-  refundedAt: Date
+  notes?: string
 
-  @Prop()
-  refundReason: string
-
-  @Prop({ type: Types.ObjectId, ref: "User" })
-  processedBy: Types.ObjectId
-
-  @Prop()
-  notes: string
-
-  @Prop({ default: Date.now })
-  createdAt: Date
-
-  @Prop({ default: Date.now })
-  updatedAt: Date
+  @Prop({ type: Object })
+  metadata?: Record<string, any>
 }
 
+export type PaymentDocument = Payment & Document
 export const PaymentSchema = SchemaFactory.createForClass(Payment)
 
-// Add indexes
-PaymentSchema.index({ clientId: 1 })
-PaymentSchema.index({ appointmentId: 1 })
-PaymentSchema.index({ bookingId: 1 })
+// Indexes for better query performance
 PaymentSchema.index({ paymentReference: 1 })
-PaymentSchema.index({ status: 1 })
-PaymentSchema.index({ paymentMethod: 1 })
-PaymentSchema.index({ createdAt: -1 })
-PaymentSchema.index({ paidAt: -1 })
+PaymentSchema.index({ clientId: 1, createdAt: -1 })
+PaymentSchema.index({ status: 1, createdAt: -1 })
+PaymentSchema.index({ bookingId: 1 })
+PaymentSchema.index({ appointmentId: 1 })
+PaymentSchema.index({ transactionId: 1 })
+PaymentSchema.index({ gateway: 1 })

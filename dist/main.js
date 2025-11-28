@@ -25,6 +25,17 @@ async function bootstrap() {
     });
     app.use((0, compression_1.default)());
     app.use((0, helmet_1.default)());
+    app.use((req, res, next) => {
+        if (req.path.includes('/payments/initialize')) {
+            console.log('═══════════════════════════════════════');
+            console.log('🔍 PAYMENT INITIALIZE REQUEST');
+            console.log('📨 Authorization Header:', req.headers.authorization);
+            console.log('📍 Path:', req.path);
+            console.log('🔑 JWT_SECRET exists:', !!configService.get('JWT_SECRET'));
+            console.log('═══════════════════════════════════════');
+        }
+        next();
+    });
     const allowedOrigins = configService.get("ALLOWED_ORIGINS") ||
         "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173";
     app.enableCors({
@@ -77,6 +88,7 @@ async function bootstrap() {
     const port = configService.get("PORT") || 3001;
     await app.listen(port);
     console.log(`Application is running on: ${await app.getUrl()}`);
+    console.log(`🔐 JWT Secret configured:`, !!configService.get('JWT_SECRET'));
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

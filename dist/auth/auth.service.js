@@ -148,8 +148,10 @@ let AuthService = class AuthService {
             .find({
             $or: [{ ownerId: user._id }, { adminIds: user._id }],
         })
-            .populate("activeSubscription");
-        if (businesses.length === 0) {
+            .populate("activeSubscription")
+            .lean()
+            .exec();
+        if (!businesses || businesses.length === 0) {
             throw new common_1.UnauthorizedException("No business account found for this user");
         }
         let business;
@@ -362,11 +364,11 @@ let AuthService = class AuthService {
         }
         const [accessToken, refreshToken] = await Promise.all([
             this.jwtService.signAsync(payload, {
-                secret: process.env.JWT_ACCESS_SECRET || "access-secret",
+                secret: process.env.JWT_SECRET,
                 expiresIn: "15m",
             }),
             this.jwtService.signAsync(payload, {
-                secret: process.env.JWT_REFRESH_SECRET || "refresh-secret",
+                secret: process.env.JWT_REFRESH_SECRET,
                 expiresIn: "7d",
             }),
         ]);

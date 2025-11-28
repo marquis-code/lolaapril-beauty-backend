@@ -1,7 +1,12 @@
-import { NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-export declare class TenantRateLimitMiddleware implements NestMiddleware {
+import { NestMiddleware, OnModuleInit } from '@nestjs/common';
+import { Response, NextFunction } from 'express';
+import { TenantRequest } from './tenant.middleware';
+export declare class TenantRateLimitMiddleware implements NestMiddleware, OnModuleInit {
+    private readonly logger;
     private limiters;
-    use(req: Request, res: Response, next: NextFunction): void;
-    private createTenantLimiter;
+    private planLimiters;
+    private defaultLimiter;
+    onModuleInit(): void;
+    use(req: TenantRequest, res: Response, next: NextFunction): unknown;
+    private createLimiterForPlan;
 }

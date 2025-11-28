@@ -1,7 +1,7 @@
 export declare class CheckAvailabilityDto {
-    businessId: string;
+    businessId?: string;
     serviceId: string;
-    date: Date;
+    date: string;
     startTime: string;
     duration: number;
 }

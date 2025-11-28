@@ -7,17 +7,9 @@ import { StaffService } from '../../staff/staff.service';
 import { TenantService } from '../../tenant/tenant.service';
 import { ServiceService } from '../../service/service.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-interface CreateBookingDto {
-    businessId: string;
-    clientId: string;
-    serviceIds: string[];
-    preferredDate: Date;
-    preferredStartTime: string;
-    clientName: string;
-    clientEmail: string;
-    clientPhone: string;
-    specialRequests?: string;
-}
+import { CreateBookingDto } from "../dto/create-booking.dto";
+import { AppointmentResult } from "../types/booking.types";
+import { Logger } from 'winston';
 interface BookingResult {
     bookingId: string;
     bookingNumber: string;
@@ -30,19 +22,6 @@ interface BookingResult {
     availableSlots?: any[];
     message: string;
     requiresPayment?: boolean;
-}
-interface AppointmentResult {
-    appointmentId: string;
-    appointmentNumber: string;
-    scheduledDate: Date;
-    scheduledTime: string;
-    status: string;
-    clientId: string;
-    businessId: string;
-    booking: any;
-    message: string;
-    appointment: any;
-    assignment: any;
 }
 interface PaymentResult {
     paymentId: string;
@@ -57,6 +36,7 @@ interface PaymentResult {
     appointment: any;
 }
 export declare class BookingOrchestrator {
+    private readonly logger;
     private readonly bookingService;
     private readonly appointmentService;
     private readonly paymentService;
@@ -66,10 +46,8 @@ export declare class BookingOrchestrator {
     private readonly tenantService;
     private readonly serviceService;
     private readonly eventEmitter;
-    private readonly logger;
-    constructor(bookingService: BookingService, appointmentService: AppointmentService, paymentService: PaymentService, availabilityService: AvailabilityService, notificationService: NotificationService, staffService: StaffService, tenantService: TenantService, serviceService: ServiceService, eventEmitter: EventEmitter2);
-    createBookingWithValidation(createBookingDto: CreateBookingDto): Promise<BookingResult>;
-    confirmBookingAndCreateAppointment(bookingId: string, staffId?: string): Promise<AppointmentResult>;
+    constructor(logger: Logger, bookingService: BookingService, appointmentService: AppointmentService, paymentService: PaymentService, availabilityService: AvailabilityService, notificationService: NotificationService, staffService: StaffService, tenantService: TenantService, serviceService: ServiceService, eventEmitter: EventEmitter2);
+    private calculateTotalBufferTime;
     handlePaymentAndComplete(bookingId: string, transactionReference: string, paymentData: {
         amount: number;
         method: string;
@@ -78,6 +56,9 @@ export declare class BookingOrchestrator {
         businessId: string;
     }): Promise<PaymentResult>;
     private sendConfirmationNotifications;
+    createBookingWithValidation(createBookingDto: CreateBookingDto): Promise<BookingResult>;
+    private parseDate;
+    private formatDateForAvailability;
     private checkAvailabilityForAllServices;
     private handlePaymentFailure;
     private handleUnavailableSlot;
@@ -87,5 +68,12 @@ export declare class BookingOrchestrator {
     private getServiceDurationInMinutes;
     private addMinutesToTime;
     private getPreferredStaff;
+    confirmBookingAndCreateAppointment(bookingId: string, staffId?: string, staffAssignments?: Array<{
+        staffId: string;
+        serviceId: string;
+        staffName?: string;
+    }>): Promise<AppointmentResult>;
+    setupDefaultStaffAvailability(businessId: string, staffId: string, createdBy: string): Promise<void>;
+    private validateAndReportStaffAvailability;
 }
 export {};

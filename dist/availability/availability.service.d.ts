@@ -1,10 +1,11 @@
 import { Model, Types } from 'mongoose';
-import { BusinessHoursDocument } from '../availability/schemas/business-hours.schema';
-import { StaffAvailabilityDocument } from '../availability/schemas/staff-availability.schema';
-import { CreateStaffAvailabilityDto } from '../availability/dto/create-staff-availability.dto';
-import { CheckAvailabilityDto } from '../availability/dto/check-availability.dto';
-import { GetAvailableSlotsDto } from '../availability/dto/get-available-slots.dto';
-import { BlockStaffTimeDto } from '../availability/dto/block-staff-time.dto';
+import { BusinessHoursDocument, TimeSlot } from './schemas/business-hours.schema';
+import { StaffAvailabilityDocument } from './schemas/staff-availability.schema';
+import { CreateStaffAvailabilityDto } from './dto/create-staff-availability.dto';
+import { CheckAvailabilityDto } from './dto/check-availability.dto';
+import { GetAvailableSlotsDto } from './dto/get-available-slots.dto';
+import { BlockStaffTimeDto } from './dto/block-staff-time.dto';
+import { GetAllSlotsDto } from "./dto/get-all-slots.dto";
 export interface AvailabilitySlot {
     startTime: string;
     endTime: string;
@@ -17,14 +18,43 @@ export declare class AvailabilityService {
     private businessHoursModel;
     private staffAvailabilityModel;
     constructor(businessHoursModel: Model<BusinessHoursDocument>, staffAvailabilityModel: Model<StaffAvailabilityDocument>);
-    getAvailableSlots(dto: GetAvailableSlotsDto): Promise<AvailabilitySlot[]>;
-    checkSlotAvailability(dto: CheckAvailabilityDto): Promise<boolean>;
+    getAvailableSlots(dto: GetAvailableSlotsDto & {
+        bufferTime?: number;
+    }): Promise<AvailabilitySlot[]>;
     createStaffAvailability(dto: CreateStaffAvailabilityDto): Promise<StaffAvailabilityDocument>;
     blockStaffTime(dto: BlockStaffTimeDto): Promise<void>;
+    getAllSlots(dto: GetAllSlotsDto): Promise<{
+        date: string;
+        dayOfWeek: string;
+        businessHours: TimeSlot[];
+        staffAvailability: Array<{
+            staffId: string;
+            staffName: string;
+            email: string;
+            availableSlots: TimeSlot[];
+            blockedSlots: TimeSlot[];
+            status: string;
+        }>;
+    }[]>;
+    private getDayName;
+    private parseDate;
+    private normalizeDate;
     private getBusinessHours;
     private getStaffAvailability;
-    private generateAvailableSlots;
+    getAvailableStaffList(dto: {
+        businessId: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        serviceId?: string;
+    }): Promise<Array<{
+        staffId: string;
+        staffName: string;
+        skillLevel?: string;
+        isAvailable: boolean;
+    }>>;
     private getAvailableStaffForSlot;
+    private generateAvailableSlots;
     private isTimeSlotAvailable;
     private isTimeSlotBlocked;
     private isWithinBusinessHours;
@@ -33,4 +63,63 @@ export declare class AvailabilityService {
     private minutesToTime;
     private addMinutesToTime;
     private getServiceDetails;
+    createBusinessHours(businessId: string): Promise<any>;
+    setupAvailabilityForBusiness(businessId: string, staffIds: string[], startDate: string, endDate: string, createdBy: string): Promise<void>;
+    createBusinessHours24x7(businessId: string): Promise<any>;
+    setupStaffAvailability24x7(businessId: string, staffId: string, startDate: Date, endDate: Date, createdBy: string): Promise<void>;
+    autoCreateStaffAvailability(businessId: string, staffId: string, createdBy: string): Promise<void>;
+    checkSlotAvailability(dto: CheckAvailabilityDto & {
+        bufferTime?: number;
+    }): Promise<boolean>;
+    isFullyBooked(dto: {
+        businessId: string;
+        date: string;
+        startTime: string;
+        duration: number;
+        bufferTime?: number;
+    }): Promise<{
+        isFullyBooked: boolean;
+        availableStaffCount: number;
+        totalStaffCount: number;
+        message: string;
+        availableStaff?: Array<{
+            staffId: string;
+            staffName: string;
+            currentWorkload: number;
+        }>;
+    }>;
+    isFullyBookedV2(dto: {
+        businessId: string;
+        date: string;
+        startTime: string;
+        duration: number;
+        bufferTime?: number;
+    }): Promise<{
+        isFullyBooked: boolean;
+        availableStaffCount: number;
+        totalStaffCount: number;
+        message: string;
+        availableStaff?: Array<{
+            staffId: string;
+            staffName: string;
+            currentWorkload: number;
+        }>;
+    }>;
+    isFullyBookedV3(dto: {
+        businessId: string;
+        date: string;
+        startTime: string;
+        duration: number;
+        bufferTime?: number;
+    }): Promise<{
+        isFullyBooked: boolean;
+        availableStaffCount: number;
+        totalStaffCount: number;
+        message: string;
+        availableStaff?: Array<{
+            staffId: string;
+            staffName: string;
+            currentWorkload: number;
+        }>;
+    }>;
 }

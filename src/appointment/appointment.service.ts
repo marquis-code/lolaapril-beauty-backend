@@ -360,48 +360,233 @@ export class AppointmentService {
   return allSlots.filter((slot) => !bookedTimes.includes(slot))
 }
 
-    async createFromBooking(booking: any): Promise<any> {
+// Add this import at the top of your file if not present:
+// import { Types } from 'mongoose'
+
+// REPLACE the entire createFromBooking method in your AppointmentService with this:
+
+// REPLACE createFromBooking in your AppointmentService with THIS:
+
+async createFromBooking(booking: any): Promise<any> {
+  try {
+    // Parse the booking date
+    const bookingDate = booking.preferredDate instanceof Date 
+      ? booking.preferredDate 
+      : new Date(booking.preferredDate)
+    
+    // Calculate total duration in hours and minutes
+    const totalMinutes = booking.services.reduce((sum, s) => sum + s.duration + (s.bufferTime || 0), 0)
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+    
+    // Calculate end time
+    const [startHour, startMin] = booking.preferredStartTime.split(':').map(Number)
+    const endTotalMinutes = startHour * 60 + startMin + totalMinutes
+    const endHour = Math.floor(endTotalMinutes / 60) % 24
+    const endMin = endTotalMinutes % 60
+    const endTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`
+    
+    // Get day of week
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    const dayOfWeek = daysOfWeek[bookingDate.getDay()]
+    
+    // Format date as YYYY-MM-DD
+    const dateString = bookingDate.toISOString().split('T')[0]
+    
+    // Build appointment data matching YOUR schema
     const appointmentData = {
-      bookingId: booking._id,
       clientId: booking.clientId,
-      businessId: booking.businessId,
-      appointmentNumber: await this.generateAppointmentNumber(),
-      clientName: booking.clientName,
-      clientEmail: booking.clientEmail,
-      clientPhone: booking.clientPhone,
-      services: booking.services.map(service => ({
-        serviceId: service.serviceId,
+      
+      businessInfo: {
+        businessId: booking.businessId.toString(),
+        businessName: booking.businessName || 'Business',
+        rating: 0,
+        reviewCount: 0,
+        address: booking.businessAddress || 'Address not provided'
+      },
+      
+      selectedServices: booking.services.map(service => ({
+        serviceId: service.serviceId.toString(),
         serviceName: service.serviceName,
-        duration: service.duration,
-        price: service.price,
+        serviceType: 'standard',
+        selectedOption: {
+          optionId: service.serviceId.toString(),
+          optionName: service.serviceName,
+          duration: {
+            hours: Math.floor(service.duration / 60),
+            minutes: service.duration % 60
+          },
+          description: service.serviceName,
+          price: {
+            currency: 'NGN',
+            amount: service.price
+          }
+        },
+        additionalServices: []
       })),
-      scheduledDate: booking.preferredDate,
-      scheduledStartTime: booking.preferredStartTime,
-      scheduledEndTime: booking.estimatedEndTime,
-      totalDuration: booking.totalDuration,
-      totalAmount: booking.estimatedTotal,
-      status: 'scheduled'
+      
+      totalDuration: {
+        hours: hours,
+        minutes: minutes
+      },
+      
+      selectedDate: bookingDate,
+      selectedTime: booking.preferredStartTime,
+      
+      appointmentDetails: {
+        date: dateString,
+        dayOfWeek: dayOfWeek,
+        startTime: booking.preferredStartTime,
+        endTime: endTime,
+        duration: `${hours}h ${minutes}m`
+      },
+      
+      serviceDetails: {
+        serviceName: booking.services.map(s => s.serviceName).join(', '),
+        serviceDescription: booking.services.map(s => s.serviceName).join(', '),
+        price: {
+          currency: 'NGN',
+          amount: booking.estimatedTotal
+        }
+      },
+      
+      paymentDetails: {
+        paymentMethod: 'pending',
+        subtotal: {
+          currency: 'NGN',
+          amount: booking.estimatedTotal
+        },
+        tax: {
+          currency: 'NGN',
+          amount: 0,
+          rate: 0
+        },
+        total: {
+          currency: 'NGN',
+          amount: booking.estimatedTotal
+        },
+        paymentStatus: {
+          payNow: {
+            currency: 'NGN',
+            amount: booking.estimatedTotal
+          },
+          payAtVenue: {
+            currency: 'NGN',
+            amount: 0
+          }
+        }
+      },
+      
+      paymentInstructions: {
+        paymentUrl: '',
+        confirmationPolicy: 'Payment required to confirm booking'
+      },
+      
+      customerNotes: booking.specialRequests || '',
+      
+      status: 'confirmed',
+      
+      appointmentNumber: '',
+      reminderSent: false
     }
-
+    
+    // Create appointment
     const appointment = new this.appointmentModel(appointmentData)
-    return await appointment.save()
+    await appointment.save()
+    
+    // Generate appointment number
+    if (!appointment.appointmentNumber) {
+      appointment.appointmentNumber = await this.generateAppointmentNumber(
+        booking.businessId.toString()
+      )
+      await appointment.save()
+    }
+    
+    // Return plain object
+    return {
+      _id: appointment._id,
+      appointmentNumber: appointment.appointmentNumber,
+      clientId: appointment.clientId,
+      businessInfo: appointment.businessInfo,
+      selectedServices: appointment.selectedServices,
+      totalDuration: appointment.totalDuration,
+      selectedDate: appointment.selectedDate,
+      selectedTime: appointment.selectedTime,
+      appointmentDetails: appointment.appointmentDetails,
+      serviceDetails: appointment.serviceDetails,
+      paymentDetails: appointment.paymentDetails,
+      status: appointment.status,
+      customerNotes: appointment.customerNotes,
+      createdAt: appointment.createdAt
+    }
+    
+  } catch (error) {
+    throw error
   }
+}
 
-  private async generateAppointmentNumber(): Promise<string> {
-    const today = new Date()
-    const year = today.getFullYear()
-    const month = String(today.getMonth() + 1).padStart(2, '0')
-    const day = String(today.getDate()).padStart(2, '0')
+private async generateAppointmentNumber(businessId: string): Promise<string> {
+  const today = new Date()
+  const datePrefix = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`
+  
+  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+  
+  const count = await this.appointmentModel.countDocuments({
+    'businessInfo.businessId': businessId,
+    createdAt: {
+      $gte: startOfDay,
+      $lt: endOfDay
+    }
+  }).exec()
+  
+  const sequence = (count + 1).toString().padStart(4, '0')
+  
+  return `APT-${datePrefix}-${sequence}`
+}
+
+  //   async createFromBooking(booking: any): Promise<any> {
+  //   const appointmentData = {
+  //     bookingId: booking._id,
+  //     clientId: booking.clientId,
+  //     businessId: booking.businessId,
+  //     appointmentNumber: await this.generateAppointmentNumber(),
+  //     clientName: booking.clientName,
+  //     clientEmail: booking.clientEmail,
+  //     clientPhone: booking.clientPhone,
+  //     services: booking.services.map(service => ({
+  //       serviceId: service.serviceId,
+  //       serviceName: service.serviceName,
+  //       duration: service.duration,
+  //       price: service.price,
+  //     })),
+  //     scheduledDate: booking.preferredDate,
+  //     scheduledStartTime: booking.preferredStartTime,
+  //     scheduledEndTime: booking.estimatedEndTime,
+  //     totalDuration: booking.totalDuration,
+  //     totalAmount: booking.estimatedTotal,
+  //     status: 'scheduled'
+  //   }
+
+  //   const appointment = new this.appointmentModel(appointmentData)
+  //   return await appointment.save()
+  // }
+
+  // private async generateAppointmentNumber(): Promise<string> {
+  //   const today = new Date()
+  //   const year = today.getFullYear()
+  //   const month = String(today.getMonth() + 1).padStart(2, '0')
+  //   const day = String(today.getDate()).padStart(2, '0')
     
-    const count = await this.appointmentModel.countDocuments({
-      createdAt: {
-        $gte: new Date(year, today.getMonth(), today.getDate()),
-        $lt: new Date(year, today.getMonth(), today.getDate() + 1)
-      }
-    })
+  //   const count = await this.appointmentModel.countDocuments({
+  //     createdAt: {
+  //       $gte: new Date(year, today.getMonth(), today.getDate()),
+  //       $lt: new Date(year, today.getMonth(), today.getDate() + 1)
+  //     }
+  //   })
     
-    return `APT-${year}${month}${day}-${String(count + 1).padStart(3, '0')}`
-  }
+  //   return `APT-${year}${month}${day}-${String(count + 1).padStart(3, '0')}`
+  // }
 
 // Fixed completeAppointment method for AppointmentService
 async completeAppointment(appointmentId: string): Promise<void> {

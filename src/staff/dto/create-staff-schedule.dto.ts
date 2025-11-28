@@ -1,5 +1,5 @@
 // src/modules/staff/dto/create-staff.dto.ts
-import { IsString, IsEmail, IsEnum, IsDateString, IsArray, IsOptional, ValidateNested, IsNumber } from 'class-validator'
+import { IsString, IsEmail, IsEnum, IsDateString, IsArray, IsOptional, ValidateNested, IsNumber, IsBoolean } from 'class-validator'
 import { Type } from 'class-transformer'
 import { Types } from 'mongoose'
 
@@ -70,4 +70,9 @@ export class CreateStaffScheduleDto {
 
   @IsString()
   createdBy: string
+
+    // NEW: Flag for default 24/7 schedule
+  @IsBoolean()
+  @IsOptional()
+  isDefault24_7?: boolean
 }

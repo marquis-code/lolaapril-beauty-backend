@@ -11,7 +11,6 @@ export declare class TenantService {
     constructor(businessModel: Model<BusinessDocument>, subscriptionModel: Model<SubscriptionDocument>, tenantConfigModel: Model<TenantConfigDocument>, userModel: Model<UserDocument>);
     isSubdomainAvailable(subdomain: string): Promise<boolean>;
     getBusinessBySubdomain(subdomain: string): Promise<BusinessDocument>;
-    getBusinessById(businessId: string): Promise<any>;
     updateBusiness(businessId: string, updateData: any): Promise<BusinessDocument>;
     getBusinessesByOwner(ownerId: string): Promise<BusinessDocument[]>;
     getBusinessesByUser(userId: string): Promise<BusinessDocument[]>;
@@ -24,13 +23,14 @@ export declare class TenantService {
     removeStaffMember(businessId: string, staffId: string): Promise<void>;
     addBusinessAdmin(businessId: string, adminId: string): Promise<void>;
     removeBusinessAdmin(businessId: string, adminId: string): Promise<void>;
-    checkSubscriptionLimits(businessId: string): Promise<{
+    checkSubscriptionLimits(businessId: string, context?: 'booking' | 'staff' | 'service'): Promise<{
         isValid: boolean;
         limits: any;
         usage: any;
         warnings: string[];
     }>;
     getTenantConfig(businessId: string): Promise<TenantConfigDocument>;
+    getBusinessById(businessId: string): Promise<any>;
     updateTenantConfig(businessId: string, configData: any): Promise<TenantConfigDocument>;
     suspendBusiness(businessId: string, reason: string): Promise<void>;
     reactivateBusiness(businessId: string): Promise<void>;
