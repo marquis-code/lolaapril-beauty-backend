@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateServiceDto = exports.ServiceSettingsDto = exports.OnlineBookingDto = exports.PricingAndDurationDto = exports.ExtraTimeOptionsDto = exports.ServiceDurationDto = exports.PriceDto = exports.ResourcesDto = exports.TeamMembersDto = exports.TeamMemberDto = exports.BasicDetailsDto = exports.TimeValueDto = void 0;
+exports.CreateServiceDto = exports.ServiceVariantDto = exports.ServiceVariantSettingsDto = exports.VariantPricingDto = exports.ServiceSettingsDto = exports.OnlineBookingDto = exports.PricingAndDurationDto = exports.ExtraTimeOptionsDto = exports.ServiceDurationDto = exports.PriceDto = exports.ResourcesDto = exports.TeamMembersDto = exports.TeamMemberDto = exports.BasicDetailsDto = exports.TimeValueDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
@@ -41,7 +41,10 @@ __decorate([
     __metadata("design:type", String)
 ], BasicDetailsDto.prototype, "serviceType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "64a1b2c3d4e5f6789012345a", description: "ServiceCategory ObjectId" }),
+    (0, swagger_1.ApiProperty)({
+        example: "64a1b2c3d4e5f6789012345a",
+        description: "ServiceCategory ObjectId",
+    }),
     (0, class_validator_1.IsMongoId)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
@@ -58,7 +61,10 @@ exports.BasicDetailsDto = BasicDetailsDto;
 class TeamMemberDto {
 }
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "64a1b2c3d4e5f6789012345b", description: "User ObjectId" }),
+    (0, swagger_1.ApiProperty)({
+        example: "64a1b2c3d4e5f6789012345b",
+        description: "User ObjectId",
+    }),
     (0, class_validator_1.IsMongoId)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
@@ -107,7 +113,7 @@ __decorate([
     (0, swagger_1.ApiProperty)({
         type: [String],
         example: ["64a1b2c3d4e5f6789012345c", "64a1b2c3d4e5f6789012345d"],
-        description: "Array of Resource ObjectIds"
+        description: "Array of Resource ObjectIds",
     }),
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsMongoId)({ each: true }),
@@ -158,19 +164,25 @@ exports.ServiceDurationDto = ServiceDurationDto;
 class ExtraTimeOptionsDto {
 }
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: "Team member becomes available during processing time" }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: "Team member becomes available during processing time",
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ExtraTimeOptionsDto.prototype, "processingTime", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: "Team member remains occupied during blocked time" }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: "Team member remains occupied during blocked time",
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ExtraTimeOptionsDto.prototype, "blockedTime", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: "Team member remains occupied during servicing time" }),
+    (0, swagger_1.ApiPropertyOptional)({
+        example: "Team member remains occupied during servicing time",
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
@@ -228,7 +240,7 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         type: [String],
         example: ["64a1b2c3d4e5f6789012345e", "64a1b2c3d4e5f6789012345f"],
-        description: "Array of Form ObjectIds"
+        description: "Array of Form ObjectIds",
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
@@ -239,7 +251,7 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         type: [String],
         example: ["64a1b2c3d4e5f6789012345g", "64a1b2c3d4e5f6789012345h"],
-        description: "Array of Commission ObjectIds"
+        description: "Array of Commission ObjectIds",
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
@@ -250,12 +262,71 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         type: "object",
         additionalProperties: true,
-        example: {}
+        example: {},
     }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
 ], ServiceSettingsDto.prototype, "generalSettings", void 0);
 exports.ServiceSettingsDto = ServiceSettingsDto;
+class VariantPricingDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "Fixed", enum: ["Fixed", "Free", "From"] }),
+    (0, class_validator_1.IsEnum)(["Fixed", "Free", "From"]),
+    __metadata("design:type", String)
+], VariantPricingDto.prototype, "priceType", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: PriceDto }),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => PriceDto),
+    __metadata("design:type", PriceDto)
+], VariantPricingDto.prototype, "price", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: TimeValueDto }),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => TimeValueDto),
+    __metadata("design:type", TimeValueDto)
+], VariantPricingDto.prototype, "duration", void 0);
+exports.VariantPricingDto = VariantPricingDto;
+class ServiceVariantSettingsDto {
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: "HCUT-BASIC-30" }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ServiceVariantSettingsDto.prototype, "sku", void 0);
+exports.ServiceVariantSettingsDto = ServiceVariantSettingsDto;
+class ServiceVariantDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "Basic 30-min Cut" }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], ServiceVariantDto.prototype, "variantName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: "Quick 30-minute haircut for regular maintenance.",
+    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], ServiceVariantDto.prototype, "variantDescription", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: VariantPricingDto }),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => VariantPricingDto),
+    __metadata("design:type", VariantPricingDto)
+], ServiceVariantDto.prototype, "pricing", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: ServiceVariantSettingsDto }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => ServiceVariantSettingsDto),
+    __metadata("design:type", ServiceVariantSettingsDto)
+], ServiceVariantDto.prototype, "settings", void 0);
+exports.ServiceVariantDto = ServiceVariantDto;
 class CreateServiceDto {
 }
 __decorate([
@@ -287,7 +358,7 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         type: [String],
         example: ["64a1b2c3d4e5f6789012345i", "64a1b2c3d4e5f6789012345j"],
-        description: "Array of ServiceAddOn ObjectIds"
+        description: "Array of ServiceAddOn ObjectIds",
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
@@ -301,5 +372,13 @@ __decorate([
     (0, class_transformer_1.Type)(() => ServiceSettingsDto),
     __metadata("design:type", ServiceSettingsDto)
 ], CreateServiceDto.prototype, "settings", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: [ServiceVariantDto] }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => ServiceVariantDto),
+    __metadata("design:type", Array)
+], CreateServiceDto.prototype, "variants", void 0);
 exports.CreateServiceDto = CreateServiceDto;
 //# sourceMappingURL=create-service.dto.js.map

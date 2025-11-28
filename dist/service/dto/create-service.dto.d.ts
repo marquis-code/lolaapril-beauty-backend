@@ -53,6 +53,20 @@ export declare class ServiceSettingsDto {
     commissions?: string[];
     generalSettings?: Record<string, any>;
 }
+export declare class VariantPricingDto {
+    priceType: string;
+    price: PriceDto;
+    duration: TimeValueDto;
+}
+export declare class ServiceVariantSettingsDto {
+    sku?: string;
+}
+export declare class ServiceVariantDto {
+    variantName: string;
+    variantDescription: string;
+    pricing: VariantPricingDto;
+    settings?: ServiceVariantSettingsDto;
+}
 export declare class CreateServiceDto {
     basicDetails: BasicDetailsDto;
     teamMembers: TeamMembersDto;
@@ -60,4 +74,5 @@ export declare class CreateServiceDto {
     pricingAndDuration: PricingAndDurationDto;
     serviceAddOns?: string[];
     settings?: ServiceSettingsDto;
+    variants?: ServiceVariantDto[];
 }
