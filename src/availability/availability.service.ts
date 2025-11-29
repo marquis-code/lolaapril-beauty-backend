@@ -20,6 +20,16 @@ export interface AvailabilitySlot {
   isBookable: boolean
 }
 
+// Add these interfaces at the top of your service class
+interface ServiceDetails {
+  _id: Types.ObjectId
+  name: string
+  duration: number
+  bufferTime?: number
+  requiresSpecificStaff?: boolean
+  eligibleStaffIds?: Types.ObjectId[]
+}
+
 // ADD THIS INTERFACE AT THE TOP OF THE METHOD OR CLASS
 interface StaffAvailabilityLean {
   _id: any
@@ -45,40 +55,40 @@ export class AvailabilityService {
     private staffAvailabilityModel: Model<StaffAvailabilityDocument>,
   ) {}
 
-  async getAvailableSlots(dto: GetAvailableSlotsDto & { bufferTime?: number }): Promise<AvailabilitySlot[]> {
-  if (!dto.businessId) {
-    throw new BadRequestException('Business ID is required')
-  }
+//   async getAvailableSlots(dto: GetAvailableSlotsDto & { bufferTime?: number }): Promise<AvailabilitySlot[]> {
+//   if (!dto.businessId) {
+//     throw new BadRequestException('Business ID is required')
+//   }
 
-  await this.ensureAllStaffAvailability(dto.businessId, 90)
+//   await this.ensureAllStaffAvailability(dto.businessId, 90)
 
-  const date = this.parseDate(dto.date)
-  const businessHours = await this.getBusinessHours(dto.businessId, date)
+//   const date = this.parseDate(dto.date)
+//   const businessHours = await this.getBusinessHours(dto.businessId, date)
   
-  if (!businessHours || businessHours.length === 0) {
-    return []
-  }
+//   if (!businessHours || businessHours.length === 0) {
+//     return []
+//   }
 
-  const bufferTime = dto.bufferTime || 0
-  const totalDuration = dto.duration + bufferTime
+//   const bufferTime = dto.bufferTime || 0
+//   const totalDuration = dto.duration + bufferTime
 
-  // Get ALL staff availability for the business
-  const normalizedDate = this.normalizeDate(date)
-  const staffAvailability = await this.staffAvailabilityModel
-    .find({
-      businessId: new Types.ObjectId(dto.businessId),
-      date: normalizedDate,
-      status: { $ne: 'unavailable' }
-    })
-    .lean<StaffAvailabilityDocument[]>()
-    .exec()
+//   // Get ALL staff availability for the business
+//   const normalizedDate = this.normalizeDate(date)
+//   const staffAvailability = await this.staffAvailabilityModel
+//     .find({
+//       businessId: new Types.ObjectId(dto.businessId),
+//       date: normalizedDate,
+//       status: { $ne: 'unavailable' }
+//     })
+//     .lean<StaffAvailabilityDocument[]>()
+//     .exec()
 
-  return this.generateAvailableSlots(
-    businessHours,
-    staffAvailability,
-    totalDuration
-  )
-}
+//   return this.generateAvailableSlots(
+//     businessHours,
+//     staffAvailability,
+//     totalDuration
+//   )
+// }
 
 //   async checkSlotAvailability(dto: CheckAvailabilityDto & { bufferTime?: number }): Promise<boolean> {
 //   if (!dto.businessId) {
@@ -128,6 +138,336 @@ export class AvailabilityService {
 //     return isSlotAvailable && isNotBlocked
 //   })
 // }
+
+async getAvailableSlots(dto: GetAvailableSlotsDto): Promise<AvailabilitySlot[]> {
+  if (!dto.businessId) {
+    throw new BadRequestException('Business ID is required')
+  }
+
+  if (!dto.serviceIds || dto.serviceIds.length === 0) {
+    throw new BadRequestException('At least one service must be selected')
+  }
+
+  await this.ensureAllStaffAvailability(dto.businessId, 90)
+
+  const date = this.parseDate(dto.date)
+  const businessHours = await this.getBusinessHours(dto.businessId, date)
+  
+  if (!businessHours || businessHours.length === 0) {
+    return []
+  }
+
+  // Fetch all selected services to get their durations
+  const services = await this.getServicesByIds(dto.serviceIds)
+  
+  if (services.length === 0) {
+    throw new BadRequestException('No valid services found')
+  }
+
+  // Calculate total duration based on booking type
+  // Use durationOverride if provided, otherwise calculate from services
+  const calculatedDuration = this.calculateTotalDuration(
+    services, 
+    dto.bookingType || 'sequential',
+    dto.bufferTime || 0
+  )
+  
+  const totalDuration = dto.durationOverride || calculatedDuration
+
+  console.log(`📋 Multi-service booking:`, {
+    serviceCount: services.length,
+    services: services.map(s => s.name),
+    calculatedDuration,
+    totalDuration,
+    bookingType: dto.bookingType,
+    durationOverride: dto.durationOverride
+  })
+
+  // Get staff availability
+  const normalizedDate = this.normalizeDate(date)
+  const staffAvailability = await this.staffAvailabilityModel
+    .find({
+      businessId: new Types.ObjectId(dto.businessId),
+      date: normalizedDate,
+      status: { $ne: 'unavailable' }
+    })
+    .lean<StaffAvailabilityDocument[]>()
+    .exec()
+
+  // Filter staff who can perform ALL selected services
+  const eligibleStaff = await this.getEligibleStaffForServices(
+    staffAvailability,
+    services
+  )
+
+  return this.generateAvailableSlots(
+    businessHours,
+    eligibleStaff,
+    totalDuration
+  )
+}
+
+private async getServicesByIds(serviceIds: string[]): Promise<ServiceDetails[]> {
+  // TEMPORARY MOCK - Replace with your actual Service model query
+  // TODO: Inject Service model and fetch from database
+  
+  // For now, returning mock data with default 30-minute duration
+  console.warn('⚠️ Using mock service data - implement getServicesByIds with real Service model')
+  
+  return serviceIds.map(id => ({
+    _id: new Types.ObjectId(id),
+    name: 'Service', // Replace with actual service name from DB
+    duration: 30, // Replace with actual duration from DB
+    bufferTime: 0,
+    requiresSpecificStaff: false,
+    eligibleStaffIds: []
+  }))
+  
+  /* 
+  // REAL IMPLEMENTATION - Uncomment when Service model is available:
+  
+  const services = await this.serviceModel
+    .find({ 
+      _id: { $in: serviceIds.map(id => new Types.ObjectId(id)) },
+      isActive: true
+    })
+    .lean()
+    .exec()
+
+  if (services.length === 0) {
+    throw new BadRequestException('No valid services found')
+  }
+
+  return services.map(service => ({
+    _id: service._id,
+    name: service.name,
+    duration: service.duration,
+    bufferTime: service.bufferTime || 0,
+    requiresSpecificStaff: service.requiresSpecificStaff || false,
+    eligibleStaffIds: service.eligibleStaffIds || []
+  }))
+  */
+}
+
+// ============================================
+// NEW: Calculate total duration
+// ============================================
+private calculateTotalDuration(
+  services: ServiceDetails[],
+  bookingType: 'sequential' | 'parallel',
+  additionalBuffer: number = 0
+): number {
+  if (bookingType === 'parallel') {
+    // For parallel services, use the longest duration
+    const maxDuration = Math.max(...services.map(s => s.duration))
+    const maxBuffer = Math.max(...services.map(s => s.bufferTime || 0))
+    return maxDuration + maxBuffer + additionalBuffer
+  } else {
+    // For sequential services, add all durations
+    const totalServiceDuration = services.reduce((sum, s) => sum + s.duration, 0)
+    const totalServiceBuffer = services.reduce((sum, s) => sum + (s.bufferTime || 0), 0)
+    return totalServiceDuration + totalServiceBuffer + additionalBuffer
+  }
+}
+
+// ============================================
+// NEW: Get staff who can perform all services
+// ============================================
+// private async getEligibleStaffForServices(
+//   staffAvailability: StaffAvailabilityDocument[],
+//   services: ServiceDetails[]
+// ): Promise<StaffAvailabilityDocument[]> {
+//   // If no specific staff requirements, return all available staff
+//   const servicesWithStaffReqs = services.filter(s => s.requiresSpecificStaff)
+  
+//   if (servicesWithStaffReqs.length === 0) {
+//     return staffAvailability
+//   }
+
+//   // Filter staff who can perform ALL required services
+//   return staffAvailability.filter(avail => {
+//     return servicesWithStaffReqs.every(service => {
+//       if (!service.eligibleStaffIds || service.eligibleStaffIds.length === 0) {
+//         return true
+//       }
+      
+//       return service.eligibleStaffIds.some(
+//         eligibleId => eligibleId.toString() === avail.staffId.toString()
+//       )
+//     })
+//   })
+// }
+
+private async getEligibleStaffForServices(
+  staffAvailability: StaffAvailabilityDocument[],
+  services: ServiceDetails[]
+): Promise<StaffAvailabilityDocument[]> {
+  // If no specific staff requirements, return all available staff
+  const servicesWithStaffReqs = services.filter(s => s.requiresSpecificStaff)
+  
+  if (servicesWithStaffReqs.length === 0) {
+    return staffAvailability
+  }
+
+  // @ts-ignore - Suppress complex union type error
+  const eligibleStaff: StaffAvailabilityDocument[] = staffAvailability.filter((avail: any) => {
+    return servicesWithStaffReqs.every((service: any) => {
+      if (!service.eligibleStaffIds || service.eligibleStaffIds.length === 0) {
+        return true
+      }
+      
+      return service.eligibleStaffIds.some(
+        (eligibleId: any) => eligibleId.toString() === avail.staffId.toString()
+      )
+    })
+  })
+
+  return eligibleStaff
+}
+
+// ============================================
+// NEW: Check multi-service availability
+// ============================================
+async checkMultiServiceAvailability(dto: {
+  businessId: string
+  date: string
+  startTime: string
+  serviceIds: string[]
+  bookingType?: 'sequential' | 'parallel'
+  bufferTime?: number
+}): Promise<{
+  isAvailable: boolean
+  totalDuration: number
+  endTime: string
+  availableStaffCount: number
+  services: Array<{
+    serviceId: string
+    serviceName: string
+    startTime: string
+    endTime: string
+  }>
+}> {
+  const date = this.parseDate(dto.date)
+  const services = await this.getServicesByIds(dto.serviceIds)
+  
+  const totalDuration = this.calculateTotalDuration(
+    services,
+    dto.bookingType || 'sequential',
+    dto.bufferTime || 0
+  )
+  
+  const endTime = this.addMinutesToTime(dto.startTime, totalDuration)
+  
+  // Build service timeline
+  const serviceTimeline = this.buildServiceTimeline(
+    services,
+    dto.startTime,
+    dto.bookingType || 'sequential'
+  )
+  
+  // Check if ANY staff can handle all services in this time
+  // const isAvailable = await this.checkSlotAvailability({
+  //   businessId: dto.businessId,
+  //   date: dto.date,
+  //   startTime: dto.startTime,
+  //   duration: totalDuration,
+  //   bufferTime: dto.bufferTime
+  // })
+
+  const isAvailable = await this.checkSlotAvailabilityInternal({
+  businessId: dto.businessId,
+  date: dto.date,
+  startTime: dto.startTime,
+  duration: totalDuration,
+  bufferTime: dto.bufferTime || 0
+})
+  
+  // Count available staff
+  const normalizedDate = this.normalizeDate(date)
+  const availableStaff = await this.staffAvailabilityModel
+    .find({
+      businessId: new Types.ObjectId(dto.businessId),
+      date: normalizedDate,
+      status: { $ne: 'unavailable' }
+    })
+    .exec()
+  
+  const eligibleStaff = availableStaff.filter(avail => {
+    const isSlotAvailable = this.isTimeSlotAvailable(
+      avail.availableSlots,
+      dto.startTime,
+      endTime
+    )
+    const isNotBlocked = !this.isTimeSlotBlocked(
+      avail.blockedSlots || [],
+      dto.startTime,
+      endTime
+    )
+    return isSlotAvailable && isNotBlocked
+  })
+  
+  return {
+    isAvailable,
+    totalDuration,
+    endTime,
+    availableStaffCount: eligibleStaff.length,
+    services: serviceTimeline
+  }
+}
+
+// ============================================
+// NEW: Build service timeline
+// ============================================
+private buildServiceTimeline(
+  services: ServiceDetails[],
+  startTime: string,
+  bookingType: 'sequential' | 'parallel'
+): Array<{
+  serviceId: string
+  serviceName: string
+  startTime: string
+  endTime: string
+}> {
+  const timeline: Array<{
+    serviceId: string
+    serviceName: string
+    startTime: string
+    endTime: string
+  }> = []
+  
+  if (bookingType === 'parallel') {
+    // All services happen at the same time
+    services.forEach(service => {
+      timeline.push({
+        serviceId: service._id.toString(),
+        serviceName: service.name,
+        startTime: startTime,
+        endTime: this.addMinutesToTime(startTime, service.duration)
+      })
+    })
+  } else {
+    // Services happen one after another
+    let currentTime = startTime
+    
+    services.forEach(service => {
+      const serviceEndTime = this.addMinutesToTime(
+        currentTime, 
+        service.duration + (service.bufferTime || 0)
+      )
+      
+      timeline.push({
+        serviceId: service._id.toString(),
+        serviceName: service.name,
+        startTime: currentTime,
+        endTime: serviceEndTime
+      })
+      
+      currentTime = serviceEndTime
+    })
+  }
+  
+  return timeline
+}
 
   async createStaffAvailability(dto: CreateStaffAvailabilityDto): Promise<StaffAvailabilityDocument> {
     if (!dto.businessId) {
@@ -291,6 +631,72 @@ async getAllSlots(dto: GetAllSlotsDto): Promise<{
   }
 
   return allSlots
+}
+
+
+/**
+ * Internal method to check slot availability without requiring serviceId
+ * Used for multi-service bookings where duration is already calculated
+ */
+private async checkSlotAvailabilityInternal(dto: {
+  businessId: string
+  date: string
+  startTime: string
+  duration: number
+  bufferTime?: number
+}): Promise<boolean> {
+  const date = this.parseDate(dto.date)
+  const bufferTime = dto.bufferTime || 0
+  const totalDuration = dto.duration + bufferTime
+  const endTime = this.addMinutesToTime(dto.startTime, totalDuration)
+  
+  // For 24/7 operations, business hours check always passes
+  const businessHours = await this.getBusinessHours(dto.businessId, date)
+  const operates24x7 = businessHours.length > 0 && 
+                       businessHours.some(slot => slot.startTime === '00:00' && slot.endTime === '23:59')
+  
+  if (!operates24x7) {
+    const isWithinBusinessHours = await this.isWithinBusinessHours(
+      dto.businessId, 
+      date, 
+      dto.startTime, 
+      endTime
+    )
+    
+    if (!isWithinBusinessHours) {
+      return false
+    }
+  }
+
+  // Check if ANY staff member is available
+  const normalizedDate = this.normalizeDate(date)
+  
+  const availableStaff = await this.staffAvailabilityModel
+    .find({
+      businessId: new Types.ObjectId(dto.businessId),
+      date: normalizedDate,
+      status: { $ne: 'unavailable' }
+    })
+    .exec()
+
+  if (availableStaff.length === 0) {
+    return false
+  }
+
+  // Check if at least ONE staff member is available
+  return availableStaff.some(avail => {
+    const isSlotAvailable = this.isTimeSlotAvailable(
+      avail.availableSlots, 
+      dto.startTime, 
+      endTime
+    )
+    const isNotBlocked = !this.isTimeSlotBlocked(
+      avail.blockedSlots, 
+      dto.startTime, 
+      endTime
+    )
+    return isSlotAvailable && isNotBlocked
+  })
 }
 
   // Helper method to get day name

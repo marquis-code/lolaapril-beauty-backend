@@ -1,6 +1,8 @@
 export declare class GetAvailableSlotsDto {
     businessId?: string;
-    serviceId: string;
     date: string;
-    duration: number;
+    serviceIds: string[];
+    durationOverride?: number;
+    bufferTime?: number;
+    bookingType?: 'sequential' | 'parallel';
 }

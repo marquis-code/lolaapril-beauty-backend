@@ -18,9 +18,30 @@ export declare class AvailabilityService {
     private businessHoursModel;
     private staffAvailabilityModel;
     constructor(businessHoursModel: Model<BusinessHoursDocument>, staffAvailabilityModel: Model<StaffAvailabilityDocument>);
-    getAvailableSlots(dto: GetAvailableSlotsDto & {
+    getAvailableSlots(dto: GetAvailableSlotsDto): Promise<AvailabilitySlot[]>;
+    private getServicesByIds;
+    private calculateTotalDuration;
+    private getEligibleStaffForServices;
+    checkMultiServiceAvailability(dto: {
+        businessId: string;
+        date: string;
+        startTime: string;
+        serviceIds: string[];
+        bookingType?: 'sequential' | 'parallel';
         bufferTime?: number;
-    }): Promise<AvailabilitySlot[]>;
+    }): Promise<{
+        isAvailable: boolean;
+        totalDuration: number;
+        endTime: string;
+        availableStaffCount: number;
+        services: Array<{
+            serviceId: string;
+            serviceName: string;
+            startTime: string;
+            endTime: string;
+        }>;
+    }>;
+    private buildServiceTimeline;
     createStaffAvailability(dto: CreateStaffAvailabilityDto): Promise<StaffAvailabilityDocument>;
     blockStaffTime(dto: BlockStaffTimeDto): Promise<void>;
     getAllSlots(dto: GetAllSlotsDto): Promise<{
@@ -36,6 +57,7 @@ export declare class AvailabilityService {
             status: string;
         }>;
     }[]>;
+    private checkSlotAvailabilityInternal;
     private getDayName;
     private parseDate;
     private normalizeDate;

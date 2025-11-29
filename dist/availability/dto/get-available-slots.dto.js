@@ -13,24 +13,53 @@ exports.GetAvailableSlotsDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 class GetAvailableSlotsDto {
+    constructor() {
+        this.bufferTime = 0;
+        this.bookingType = 'sequential';
+    }
 }
 __decorate([
-    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], GetAvailableSlotsDto.prototype, "businessId", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], GetAvailableSlotsDto.prototype, "serviceId", void 0);
-__decorate([
     (0, class_validator_1.IsDateString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], GetAvailableSlotsDto.prototype, "date", void 0);
 __decorate([
+    (0, class_validator_1.IsNotEmpty)({ message: 'At least one service must be selected' }),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (typeof value === 'string')
+            return [value];
+        return Array.isArray(value) ? value : [];
+    }),
+    __metadata("design:type", Array)
+], GetAvailableSlotsDto.prototype, "serviceIds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
     (0, class_transformer_1.Type)(() => Number),
+    (0, class_transformer_1.Transform)(({ value }) => value ? parseInt(value, 10) : undefined),
     __metadata("design:type", Number)
-], GetAvailableSlotsDto.prototype, "duration", void 0);
+], GetAvailableSlotsDto.prototype, "durationOverride", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_transformer_1.Transform)(({ value }) => value ? parseInt(value, 10) : 0),
+    __metadata("design:type", Number)
+], GetAvailableSlotsDto.prototype, "bufferTime", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_transformer_1.Transform)(({ value }) => value || 'sequential'),
+    __metadata("design:type", String)
+], GetAvailableSlotsDto.prototype, "bookingType", void 0);
 exports.GetAvailableSlotsDto = GetAvailableSlotsDto;
 //# sourceMappingURL=get-available-slots.dto.js.map

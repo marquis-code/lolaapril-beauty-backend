@@ -122,10 +122,9 @@ let BookingOrchestrator = class BookingOrchestrator {
             if (fullyBookedCheck.isFullyBooked) {
                 const availableSlots = await this.availabilityService.getAvailableSlots({
                     businessId: createBookingDto.businessId,
-                    serviceId: '',
+                    serviceIds: serviceIds,
                     date: dateString,
-                    duration: totalDuration,
-                    bufferTime: totalBufferTime
+                    bookingType: 'sequential'
                 });
                 return {
                     bookingId: '',
@@ -211,7 +210,7 @@ let BookingOrchestrator = class BookingOrchestrator {
     async checkAvailabilityForAllServices(businessId, serviceIds, date, startTime, totalDuration) {
         return await this.availabilityService.checkSlotAvailability({
             businessId,
-            serviceId: serviceIds[0],
+            serviceIds: serviceIds,
             date: this.formatDateForAvailability(date),
             startTime,
             duration: totalDuration

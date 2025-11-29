@@ -1,7 +1,10 @@
 export declare class CheckAvailabilityDto {
     businessId?: string;
-    serviceId: string;
     date: string;
     startTime: string;
-    duration: number;
+    serviceId?: string;
+    serviceIds?: string[];
+    duration?: number;
+    bufferTime?: number;
+    bookingType?: 'sequential' | 'parallel';
 }

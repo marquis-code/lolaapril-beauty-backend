@@ -20,10 +20,6 @@ __decorate([
     __metadata("design:type", String)
 ], CheckAvailabilityDto.prototype, "businessId", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CheckAvailabilityDto.prototype, "serviceId", void 0);
-__decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], CheckAvailabilityDto.prototype, "date", void 0);
@@ -32,9 +28,37 @@ __decorate([
     __metadata("design:type", String)
 ], CheckAvailabilityDto.prototype, "startTime", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CheckAvailabilityDto.prototype, "serviceId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (typeof value === 'string')
+            return [value];
+        return Array.isArray(value) ? value : [];
+    }),
+    __metadata("design:type", Array)
+], CheckAvailabilityDto.prototype, "serviceIds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CheckAvailabilityDto.prototype, "duration", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], CheckAvailabilityDto.prototype, "bufferTime", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CheckAvailabilityDto.prototype, "bookingType", void 0);
 exports.CheckAvailabilityDto = CheckAvailabilityDto;
 //# sourceMappingURL=check-availability.dto.js.map

@@ -27,14 +27,29 @@ let AvailabilityService = class AvailabilityService {
         if (!dto.businessId) {
             throw new common_1.BadRequestException('Business ID is required');
         }
+        if (!dto.serviceIds || dto.serviceIds.length === 0) {
+            throw new common_1.BadRequestException('At least one service must be selected');
+        }
         await this.ensureAllStaffAvailability(dto.businessId, 90);
         const date = this.parseDate(dto.date);
         const businessHours = await this.getBusinessHours(dto.businessId, date);
         if (!businessHours || businessHours.length === 0) {
             return [];
         }
-        const bufferTime = dto.bufferTime || 0;
-        const totalDuration = dto.duration + bufferTime;
+        const services = await this.getServicesByIds(dto.serviceIds);
+        if (services.length === 0) {
+            throw new common_1.BadRequestException('No valid services found');
+        }
+        const calculatedDuration = this.calculateTotalDuration(services, dto.bookingType || 'sequential', dto.bufferTime || 0);
+        const totalDuration = dto.durationOverride || calculatedDuration;
+        console.log(`📋 Multi-service booking:`, {
+            serviceCount: services.length,
+            services: services.map(s => s.name),
+            calculatedDuration,
+            totalDuration,
+            bookingType: dto.bookingType,
+            durationOverride: dto.durationOverride
+        });
         const normalizedDate = this.normalizeDate(date);
         const staffAvailability = await this.staffAvailabilityModel
             .find({
@@ -44,7 +59,107 @@ let AvailabilityService = class AvailabilityService {
         })
             .lean()
             .exec();
-        return this.generateAvailableSlots(businessHours, staffAvailability, totalDuration);
+        const eligibleStaff = await this.getEligibleStaffForServices(staffAvailability, services);
+        return this.generateAvailableSlots(businessHours, eligibleStaff, totalDuration);
+    }
+    async getServicesByIds(serviceIds) {
+        console.warn('⚠️ Using mock service data - implement getServicesByIds with real Service model');
+        return serviceIds.map(id => ({
+            _id: new mongoose_2.Types.ObjectId(id),
+            name: 'Service',
+            duration: 30,
+            bufferTime: 0,
+            requiresSpecificStaff: false,
+            eligibleStaffIds: []
+        }));
+    }
+    calculateTotalDuration(services, bookingType, additionalBuffer = 0) {
+        if (bookingType === 'parallel') {
+            const maxDuration = Math.max(...services.map(s => s.duration));
+            const maxBuffer = Math.max(...services.map(s => s.bufferTime || 0));
+            return maxDuration + maxBuffer + additionalBuffer;
+        }
+        else {
+            const totalServiceDuration = services.reduce((sum, s) => sum + s.duration, 0);
+            const totalServiceBuffer = services.reduce((sum, s) => sum + (s.bufferTime || 0), 0);
+            return totalServiceDuration + totalServiceBuffer + additionalBuffer;
+        }
+    }
+    async getEligibleStaffForServices(staffAvailability, services) {
+        const servicesWithStaffReqs = services.filter(s => s.requiresSpecificStaff);
+        if (servicesWithStaffReqs.length === 0) {
+            return staffAvailability;
+        }
+        const eligibleStaff = staffAvailability.filter((avail) => {
+            return servicesWithStaffReqs.every((service) => {
+                if (!service.eligibleStaffIds || service.eligibleStaffIds.length === 0) {
+                    return true;
+                }
+                return service.eligibleStaffIds.some((eligibleId) => eligibleId.toString() === avail.staffId.toString());
+            });
+        });
+        return eligibleStaff;
+    }
+    async checkMultiServiceAvailability(dto) {
+        const date = this.parseDate(dto.date);
+        const services = await this.getServicesByIds(dto.serviceIds);
+        const totalDuration = this.calculateTotalDuration(services, dto.bookingType || 'sequential', dto.bufferTime || 0);
+        const endTime = this.addMinutesToTime(dto.startTime, totalDuration);
+        const serviceTimeline = this.buildServiceTimeline(services, dto.startTime, dto.bookingType || 'sequential');
+        const isAvailable = await this.checkSlotAvailabilityInternal({
+            businessId: dto.businessId,
+            date: dto.date,
+            startTime: dto.startTime,
+            duration: totalDuration,
+            bufferTime: dto.bufferTime || 0
+        });
+        const normalizedDate = this.normalizeDate(date);
+        const availableStaff = await this.staffAvailabilityModel
+            .find({
+            businessId: new mongoose_2.Types.ObjectId(dto.businessId),
+            date: normalizedDate,
+            status: { $ne: 'unavailable' }
+        })
+            .exec();
+        const eligibleStaff = availableStaff.filter(avail => {
+            const isSlotAvailable = this.isTimeSlotAvailable(avail.availableSlots, dto.startTime, endTime);
+            const isNotBlocked = !this.isTimeSlotBlocked(avail.blockedSlots || [], dto.startTime, endTime);
+            return isSlotAvailable && isNotBlocked;
+        });
+        return {
+            isAvailable,
+            totalDuration,
+            endTime,
+            availableStaffCount: eligibleStaff.length,
+            services: serviceTimeline
+        };
+    }
+    buildServiceTimeline(services, startTime, bookingType) {
+        const timeline = [];
+        if (bookingType === 'parallel') {
+            services.forEach(service => {
+                timeline.push({
+                    serviceId: service._id.toString(),
+                    serviceName: service.name,
+                    startTime: startTime,
+                    endTime: this.addMinutesToTime(startTime, service.duration)
+                });
+            });
+        }
+        else {
+            let currentTime = startTime;
+            services.forEach(service => {
+                const serviceEndTime = this.addMinutesToTime(currentTime, service.duration + (service.bufferTime || 0));
+                timeline.push({
+                    serviceId: service._id.toString(),
+                    serviceName: service.name,
+                    startTime: currentTime,
+                    endTime: serviceEndTime
+                });
+                currentTime = serviceEndTime;
+            });
+        }
+        return timeline;
     }
     async createStaffAvailability(dto) {
         if (!dto.businessId) {
@@ -148,6 +263,37 @@ let AvailabilityService = class AvailabilityService {
             });
         }
         return allSlots;
+    }
+    async checkSlotAvailabilityInternal(dto) {
+        const date = this.parseDate(dto.date);
+        const bufferTime = dto.bufferTime || 0;
+        const totalDuration = dto.duration + bufferTime;
+        const endTime = this.addMinutesToTime(dto.startTime, totalDuration);
+        const businessHours = await this.getBusinessHours(dto.businessId, date);
+        const operates24x7 = businessHours.length > 0 &&
+            businessHours.some(slot => slot.startTime === '00:00' && slot.endTime === '23:59');
+        if (!operates24x7) {
+            const isWithinBusinessHours = await this.isWithinBusinessHours(dto.businessId, date, dto.startTime, endTime);
+            if (!isWithinBusinessHours) {
+                return false;
+            }
+        }
+        const normalizedDate = this.normalizeDate(date);
+        const availableStaff = await this.staffAvailabilityModel
+            .find({
+            businessId: new mongoose_2.Types.ObjectId(dto.businessId),
+            date: normalizedDate,
+            status: { $ne: 'unavailable' }
+        })
+            .exec();
+        if (availableStaff.length === 0) {
+            return false;
+        }
+        return availableStaff.some(avail => {
+            const isSlotAvailable = this.isTimeSlotAvailable(avail.availableSlots, dto.startTime, endTime);
+            const isNotBlocked = !this.isTimeSlotBlocked(avail.blockedSlots, dto.startTime, endTime);
+            return isSlotAvailable && isNotBlocked;
+        });
     }
     getDayName(dayOfWeek) {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
