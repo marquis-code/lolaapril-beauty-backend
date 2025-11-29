@@ -71,4 +71,19 @@ export declare class AvailabilityController {
             currentWorkload: number;
         }[];
     }>;
+    extendStaffAvailability(dto: {
+        businessId: string;
+        staffId?: string;
+        daysAhead?: number;
+    }, req: TenantRequest): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    initializeBusiness(dto: {
+        businessId: string;
+        staffIds: string[];
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

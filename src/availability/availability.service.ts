@@ -9,6 +9,7 @@ import { CheckAvailabilityDto } from './dto/check-availability.dto'
 import { GetAvailableSlotsDto } from './dto/get-available-slots.dto'
 import { BlockStaffTimeDto } from './dto/block-staff-time.dto'
 import { GetAllSlotsDto } from "./dto/get-all-slots.dto"
+import { Cron, CronExpression } from '@nestjs/schedule'
 
 export interface AvailabilitySlot {
   startTime: string
@@ -48,6 +49,8 @@ export class AvailabilityService {
   if (!dto.businessId) {
     throw new BadRequestException('Business ID is required')
   }
+
+  await this.ensureAllStaffAvailability(dto.businessId, 90)
 
   const date = this.parseDate(dto.date)
   const businessHours = await this.getBusinessHours(dto.businessId, date)
@@ -1460,4 +1463,204 @@ async isFullyBookedV3(dto: {
     }))
   }
 }
+
+// Add to availability.service.ts
+
+// /**
+//  * Automatically extends staff availability into the future
+//  * Call this daily via a cron job or when availability is queried
+//  */
+// async ensureStaffAvailabilityExtended(
+//   businessId: string,
+//   staffId: string,
+//   daysAhead: number = 90
+// ): Promise<void> {
+//   const today = new Date()
+//   const futureDate = new Date(today.getTime() + daysAhead * 24 * 60 * 60 * 1000)
+  
+//   // Find the last date with availability
+//   const lastAvailability = await this.staffAvailabilityModel
+//     .findOne({
+//       businessId: new Types.ObjectId(businessId),
+//       staffId: new Types.ObjectId(staffId)
+//     })
+//     .sort({ date: -1 })
+//     .exec()
+  
+//   const startDate = lastAvailability 
+//     ? new Date(lastAvailability.date.getTime() + 24 * 60 * 60 * 1000) // Day after last
+//     : today
+  
+//   // Create availability for each missing day
+//   for (let currentDate = new Date(startDate); currentDate <= futureDate; currentDate.setDate(currentDate.getDate() + 1)) {
+//     const date = new Date(currentDate)
+//     const normalizedDate = this.normalizeDate(date)
+    
+//     // Check if already exists
+//     const exists = await this.staffAvailabilityModel.exists({
+//       businessId: new Types.ObjectId(businessId),
+//       staffId: new Types.ObjectId(staffId),
+//       date: normalizedDate
+//     })
+    
+//     if (!exists) {
+//       await this.staffAvailabilityModel.create({
+//         staffId: new Types.ObjectId(staffId),
+//         businessId: new Types.ObjectId(businessId),
+//         date: normalizedDate,
+//         availableSlots: [
+//           { startTime: '00:00', endTime: '23:59', isBreak: false }
+//         ],
+//         status: 'available',
+//         createdBy: new Types.ObjectId(staffId) // Or admin ID
+//       })
+//     }
+//   }
+  
+//   console.log(`✅ Extended availability for staff ${staffId} through ${futureDate.toISOString().split('T')[0]}`)
+// }
+
+// /**
+//  * Ensures all staff have continuous availability
+//  */
+// async ensureAllStaffAvailability(
+//   businessId: string,
+//   daysAhead: number = 90
+// ): Promise<void> {
+//   // Get all staff for the business (you'll need to query your User/Staff collection)
+//   const allStaff = await this.staffAvailabilityModel
+//     .distinct('staffId', { 
+//       businessId: new Types.ObjectId(businessId) 
+//     })
+//     .exec()
+  
+//   for (const staffId of allStaff) {
+//     await this.ensureStaffAvailabilityExtended(
+//       businessId,
+//       staffId.toString(),
+//       daysAhead
+//     )
+//   }
+// }
+
+// Add these methods to availability.service.ts
+
+/**
+ * Check if a business has availability gaps in the near future
+ */
+async checkAvailabilityGap(
+  businessId: string,
+  checkUntilDate: Date
+): Promise<boolean> {
+  const latestAvailability = await this.staffAvailabilityModel
+    .findOne({
+      businessId: new Types.ObjectId(businessId)
+    })
+    .sort({ date: -1 })
+    .exec()
+  
+  if (!latestAvailability) {
+    return true // No availability at all
+  }
+  
+  // Check if latest availability is before the check date
+  return latestAvailability.date < checkUntilDate
+}
+
+/**
+ * Delete old availability records to keep database clean
+ */
+async deleteOldAvailability(beforeDate: Date): Promise<{ deletedCount: number }> {
+  const result = await this.staffAvailabilityModel
+    .deleteMany({
+      date: { $lt: beforeDate }
+    })
+    .exec()
+  
+  return { deletedCount: result.deletedCount || 0 }
+}
+
+/**
+ * Ensures all staff have continuous availability
+ */
+async ensureAllStaffAvailability(
+  businessId: string,
+  daysAhead: number = 90
+): Promise<void> {
+  // Get all unique staff IDs for this business
+  const allStaffIds = await this.staffAvailabilityModel
+    .distinct('staffId', { 
+      businessId: new Types.ObjectId(businessId) 
+    })
+    .exec()
+  
+  console.log(`📋 Found ${allStaffIds.length} staff members for business ${businessId}`)
+  
+  for (const staffId of allStaffIds) {
+    await this.ensureStaffAvailabilityExtended(
+      businessId,
+      staffId.toString(),
+      daysAhead
+    )
+  }
+}
+
+/**
+ * Extends a single staff member's availability
+ */
+async ensureStaffAvailabilityExtended(
+  businessId: string,
+  staffId: string,
+  daysAhead: number = 90
+): Promise<void> {
+  const today = new Date()
+  const futureDate = new Date(today.getTime() + daysAhead * 24 * 60 * 60 * 1000)
+  
+  // Find the last date with availability
+  const lastAvailability = await this.staffAvailabilityModel
+    .findOne({
+      businessId: new Types.ObjectId(businessId),
+      staffId: new Types.ObjectId(staffId)
+    })
+    .sort({ date: -1 })
+    .exec()
+  
+  const startDate = lastAvailability 
+    ? new Date(lastAvailability.date.getTime() + 24 * 60 * 60 * 1000)
+    : today
+  
+  let createdCount = 0
+  
+  // Create availability for each missing day
+  for (let currentDate = new Date(startDate); currentDate <= futureDate; currentDate.setDate(currentDate.getDate() + 1)) {
+    const date = new Date(currentDate)
+    const normalizedDate = this.normalizeDate(date)
+    
+    // Check if already exists
+    const exists = await this.staffAvailabilityModel.exists({
+      businessId: new Types.ObjectId(businessId),
+      staffId: new Types.ObjectId(staffId),
+      date: normalizedDate
+    })
+    
+    if (!exists) {
+      await this.staffAvailabilityModel.create({
+        staffId: new Types.ObjectId(staffId),
+        businessId: new Types.ObjectId(businessId),
+        date: normalizedDate,
+        availableSlots: [
+          { startTime: '00:00', endTime: '23:59', isBreak: false }
+        ],
+        status: 'available',
+        createdBy: new Types.ObjectId(staffId)
+      })
+      createdCount++
+    }
+  }
+  
+  if (createdCount > 0) {
+    console.log(`✅ Created ${createdCount} availability records for staff ${staffId}`)
+  }
+}
+
 }

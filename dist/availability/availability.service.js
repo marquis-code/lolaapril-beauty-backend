@@ -27,6 +27,7 @@ let AvailabilityService = class AvailabilityService {
         if (!dto.businessId) {
             throw new common_1.BadRequestException('Business ID is required');
         }
+        await this.ensureAllStaffAvailability(dto.businessId, 90);
         const date = this.parseDate(dto.date);
         const businessHours = await this.getBusinessHours(dto.businessId, date);
         if (!businessHours || businessHours.length === 0) {
@@ -579,6 +580,77 @@ let AvailabilityService = class AvailabilityService {
                 currentWorkload: 0
             }))
         };
+    }
+    async checkAvailabilityGap(businessId, checkUntilDate) {
+        const latestAvailability = await this.staffAvailabilityModel
+            .findOne({
+            businessId: new mongoose_2.Types.ObjectId(businessId)
+        })
+            .sort({ date: -1 })
+            .exec();
+        if (!latestAvailability) {
+            return true;
+        }
+        return latestAvailability.date < checkUntilDate;
+    }
+    async deleteOldAvailability(beforeDate) {
+        const result = await this.staffAvailabilityModel
+            .deleteMany({
+            date: { $lt: beforeDate }
+        })
+            .exec();
+        return { deletedCount: result.deletedCount || 0 };
+    }
+    async ensureAllStaffAvailability(businessId, daysAhead = 90) {
+        const allStaffIds = await this.staffAvailabilityModel
+            .distinct('staffId', {
+            businessId: new mongoose_2.Types.ObjectId(businessId)
+        })
+            .exec();
+        console.log(`📋 Found ${allStaffIds.length} staff members for business ${businessId}`);
+        for (const staffId of allStaffIds) {
+            await this.ensureStaffAvailabilityExtended(businessId, staffId.toString(), daysAhead);
+        }
+    }
+    async ensureStaffAvailabilityExtended(businessId, staffId, daysAhead = 90) {
+        const today = new Date();
+        const futureDate = new Date(today.getTime() + daysAhead * 24 * 60 * 60 * 1000);
+        const lastAvailability = await this.staffAvailabilityModel
+            .findOne({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            staffId: new mongoose_2.Types.ObjectId(staffId)
+        })
+            .sort({ date: -1 })
+            .exec();
+        const startDate = lastAvailability
+            ? new Date(lastAvailability.date.getTime() + 24 * 60 * 60 * 1000)
+            : today;
+        let createdCount = 0;
+        for (let currentDate = new Date(startDate); currentDate <= futureDate; currentDate.setDate(currentDate.getDate() + 1)) {
+            const date = new Date(currentDate);
+            const normalizedDate = this.normalizeDate(date);
+            const exists = await this.staffAvailabilityModel.exists({
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                staffId: new mongoose_2.Types.ObjectId(staffId),
+                date: normalizedDate
+            });
+            if (!exists) {
+                await this.staffAvailabilityModel.create({
+                    staffId: new mongoose_2.Types.ObjectId(staffId),
+                    businessId: new mongoose_2.Types.ObjectId(businessId),
+                    date: normalizedDate,
+                    availableSlots: [
+                        { startTime: '00:00', endTime: '23:59', isBreak: false }
+                    ],
+                    status: 'available',
+                    createdBy: new mongoose_2.Types.ObjectId(staffId)
+                });
+                createdCount++;
+            }
+        }
+        if (createdCount > 0) {
+            console.log(`✅ Created ${createdCount} availability records for staff ${staffId}`);
+        }
     }
 };
 AvailabilityService = __decorate([

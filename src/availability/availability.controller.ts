@@ -146,4 +146,67 @@ async checkFullyBooked(@Body() dto: {
   return this.availabilityService.isFullyBooked(dto)
 }
 
+// Add to availability.controller.ts
+
+@Post('extend-availability')
+async extendStaffAvailability(
+  @Body() dto: {
+    businessId: string
+    staffId?: string // Optional: specific staff or all
+    daysAhead?: number
+  },
+  @Req() req: TenantRequest
+) {
+  const businessId = dto.businessId || req.tenant?.businessId
+  
+  if (!businessId) {
+    throw new BadRequestException('Business ID is required')
+  }
+  
+  if (dto.staffId) {
+    await this.availabilityService.ensureStaffAvailabilityExtended(
+      businessId,
+      dto.staffId,
+      dto.daysAhead || 90
+    )
+  } else {
+    await this.availabilityService.ensureAllStaffAvailability(
+      businessId,
+      dto.daysAhead || 90
+    )
+  }
+  
+  return {
+    success: true,
+    message: 'Staff availability extended successfully'
+  }
+}
+
+@Post('initialize-business')
+async initializeBusiness(
+  @Body() dto: {
+    businessId: string
+    staffIds: string[]
+  }
+) {
+  // 1. Create 24/7 business hours
+  await this.availabilityService.createBusinessHours24x7(dto.businessId)
+  
+  // 2. Create 90 days of availability for each staff
+  for (const staffId of dto.staffIds) {
+    await this.availabilityService.setupStaffAvailability24x7(
+      dto.businessId,
+      staffId,
+      new Date(),
+      new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      staffId // or admin ID
+    )
+  }
+  
+  return {
+    success: true,
+    message: 'Business initialized with continuous 24/7 availability'
+  }
+}
+
 }

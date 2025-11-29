@@ -97,6 +97,33 @@ let AvailabilityController = class AvailabilityController {
     async checkFullyBooked(dto) {
         return this.availabilityService.isFullyBooked(dto);
     }
+    async extendStaffAvailability(dto, req) {
+        var _a;
+        const businessId = dto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+        if (!businessId) {
+            throw new common_1.BadRequestException('Business ID is required');
+        }
+        if (dto.staffId) {
+            await this.availabilityService.ensureStaffAvailabilityExtended(businessId, dto.staffId, dto.daysAhead || 90);
+        }
+        else {
+            await this.availabilityService.ensureAllStaffAvailability(businessId, dto.daysAhead || 90);
+        }
+        return {
+            success: true,
+            message: 'Staff availability extended successfully'
+        };
+    }
+    async initializeBusiness(dto) {
+        await this.availabilityService.createBusinessHours24x7(dto.businessId);
+        for (const staffId of dto.staffIds) {
+            await this.availabilityService.setupStaffAvailability24x7(dto.businessId, staffId, new Date(), new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), staffId);
+        }
+        return {
+            success: true,
+            message: 'Business initialized with continuous 24/7 availability'
+        };
+    }
 };
 __decorate([
     (0, common_1.Get)('slots'),
@@ -166,6 +193,21 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AvailabilityController.prototype, "checkFullyBooked", null);
+__decorate([
+    (0, common_1.Post)('extend-availability'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AvailabilityController.prototype, "extendStaffAvailability", null);
+__decorate([
+    (0, common_1.Post)('initialize-business'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AvailabilityController.prototype, "initializeBusiness", null);
 AvailabilityController = __decorate([
     (0, common_1.Controller)('availability'),
     (0, common_1.UseGuards)(tenant_guard_1.TenantGuard),

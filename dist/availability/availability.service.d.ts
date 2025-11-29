@@ -122,4 +122,10 @@ export declare class AvailabilityService {
             currentWorkload: number;
         }>;
     }>;
+    checkAvailabilityGap(businessId: string, checkUntilDate: Date): Promise<boolean>;
+    deleteOldAvailability(beforeDate: Date): Promise<{
+        deletedCount: number;
+    }>;
+    ensureAllStaffAvailability(businessId: string, daysAhead?: number): Promise<void>;
+    ensureStaffAvailabilityExtended(businessId: string, staffId: string, daysAhead?: number): Promise<void>;
 }
