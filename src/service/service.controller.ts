@@ -67,6 +67,7 @@ export class ServiceController {
   @ApiOperation({ summary: 'Get a service by ID' })
   @ApiResponseWrapper(Service)
   findOne(@Param('id') id: string) {
+    console.log(id, 'seevice id')
     return this.serviceService.findOneService(id);
   }
 

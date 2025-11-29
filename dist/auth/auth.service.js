@@ -128,162 +128,6 @@ let AuthService = class AuthService {
                 trialEndsAt: savedBusiness.trialEndsAt,
             } }, tokens);
     }
-    async loginBusiness(loginDto) {
-        const { email, password, subdomain } = loginDto;
-        const user = await this.userModel.findOne({ email });
-        if (!user) {
-            throw new common_1.UnauthorizedException("Invalid credentials");
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            throw new common_1.UnauthorizedException("Invalid credentials");
-        }
-        if (user.status !== "active") {
-            throw new common_1.UnauthorizedException("Account is not active");
-        }
-        if (![user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN].includes(user.role)) {
-            throw new common_1.UnauthorizedException("Not authorized to access business portal");
-        }
-        const businesses = await this.businessModel
-            .find({
-            $or: [{ ownerId: user._id }, { adminIds: user._id }],
-        })
-            .populate("activeSubscription")
-            .lean()
-            .exec();
-        if (!businesses || businesses.length === 0) {
-            throw new common_1.UnauthorizedException("No business account found for this user");
-        }
-        let business;
-        if (subdomain) {
-            business = businesses.find((b) => b.subdomain === subdomain);
-            if (!business) {
-                throw new common_1.UnauthorizedException("Business not found or access denied");
-            }
-        }
-        else {
-            business = businesses[0];
-        }
-        if (business.status === "suspended") {
-            throw new common_1.UnauthorizedException("Business account is suspended");
-        }
-        if (business.status === "expired") {
-            throw new common_1.UnauthorizedException("Business subscription has expired");
-        }
-        await this.userModel.findByIdAndUpdate(user._id, {
-            currentBusinessId: business._id,
-        });
-        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, business._id.toString(), business.subdomain);
-        await this.userModel.findByIdAndUpdate(user._id, {
-            refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-            lastLogin: new Date(),
-        });
-        return Object.assign({ user: {
-                id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                status: user.status,
-            }, business: {
-                id: business._id,
-                businessName: business.businessName,
-                subdomain: business.subdomain,
-                businessType: business.businessType,
-                status: business.status,
-                trialEndsAt: business.trialEndsAt,
-                subscription: business.activeSubscription,
-            }, businesses: businesses.map((b) => ({
-                id: b._id,
-                businessName: b.businessName,
-                subdomain: b.subdomain,
-                status: b.status,
-            })) }, tokens);
-    }
-    async googleAuth(googleAuthDto) {
-        const { idToken, subdomain } = googleAuthDto;
-        try {
-            const ticket = await this.googleClient.verifyIdToken({
-                idToken,
-                audience: this.configService.get("GOOGLE_CLIENT_ID"),
-            });
-            const payload = ticket.getPayload();
-            if (!payload) {
-                throw new common_1.UnauthorizedException("Invalid Google token");
-            }
-            const { email, given_name, family_name, picture, sub: googleId } = payload;
-            let user = await this.userModel.findOne({ $or: [{ email }, { googleId }] });
-            if (!user) {
-                user = new this.userModel({
-                    firstName: given_name || "User",
-                    lastName: family_name || "",
-                    email,
-                    password: await bcrypt.hash(Math.random().toString(36), 12),
-                    role: user_schema_1.UserRole.CLIENT,
-                    status: "active",
-                    profileImage: picture,
-                    emailVerified: true,
-                    googleId,
-                    authProvider: "google",
-                });
-                await user.save();
-            }
-            else if (!user.googleId) {
-                await this.userModel.findByIdAndUpdate(user._id, {
-                    googleId,
-                    profileImage: picture || user.profileImage,
-                    emailVerified: true,
-                });
-            }
-            const businesses = await this.businessModel.find({
-                $or: [{ ownerId: user._id }, { adminIds: user._id }],
-            });
-            let business = null;
-            if (subdomain && businesses.length > 0) {
-                business = businesses.find((b) => b.subdomain === subdomain);
-            }
-            else if (businesses.length > 0) {
-                business = businesses[0];
-            }
-            const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, business === null || business === void 0 ? void 0 : business._id.toString(), business === null || business === void 0 ? void 0 : business.subdomain);
-            await this.userModel.findByIdAndUpdate(user._id, {
-                refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-                lastLogin: new Date(),
-                profileImage: picture || user.profileImage,
-                currentBusinessId: business === null || business === void 0 ? void 0 : business._id,
-            });
-            const response = Object.assign({ user: {
-                    id: user._id,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    role: user.role,
-                    status: user.status,
-                    profileImage: user.profileImage,
-                } }, tokens);
-            if (business) {
-                response.business = {
-                    id: business._id,
-                    businessName: business.businessName,
-                    subdomain: business.subdomain,
-                    businessType: business.businessType,
-                    status: business.status,
-                };
-            }
-            if (businesses.length > 0) {
-                response.businesses = businesses.map((b) => ({
-                    id: b._id,
-                    businessName: b.businessName,
-                    subdomain: b.subdomain,
-                    status: b.status,
-                }));
-            }
-            return response;
-        }
-        catch (error) {
-            throw new common_1.UnauthorizedException("Google authentication failed");
-        }
-    }
     async register(registerDto) {
         const { email, password } = registerDto, userData = __rest(registerDto, ["email", "password"]);
         const existingUser = await this.userModel.findOne({ email });
@@ -296,33 +140,6 @@ let AuthService = class AuthService {
         const tokens = await this.generateTokens(user._id.toString(), user.email, user.role);
         await this.userModel.findByIdAndUpdate(user._id, {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-        });
-        return Object.assign({ user: {
-                id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                status: user.status,
-            } }, tokens);
-    }
-    async login(loginDto) {
-        const { email, password } = loginDto;
-        const user = await this.userModel.findOne({ email });
-        if (!user) {
-            throw new common_1.UnauthorizedException("Invalid credentials");
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            throw new common_1.UnauthorizedException("Invalid credentials");
-        }
-        if (user.status !== "active") {
-            throw new common_1.UnauthorizedException("Account is not active");
-        }
-        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role);
-        await this.userModel.findByIdAndUpdate(user._id, {
-            refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-            lastLogin: new Date(),
         });
         return Object.assign({ user: {
                 id: user._id,
@@ -440,6 +257,212 @@ let AuthService = class AuthService {
             },
         });
         await config.save();
+    }
+    async login(loginDto) {
+        const { email, password } = loginDto;
+        const user = await this.userModel.findOne({ email });
+        if (!user) {
+            throw new common_1.UnauthorizedException("Invalid credentials");
+        }
+        if (user.authProvider !== 'local' && !user.password) {
+            throw new common_1.UnauthorizedException(`This account uses ${user.authProvider} authentication. Please sign in with ${user.authProvider}.`);
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            throw new common_1.UnauthorizedException("Invalid credentials");
+        }
+        if (user.status !== "active") {
+            throw new common_1.UnauthorizedException("Account is not active");
+        }
+        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role);
+        await this.userModel.findByIdAndUpdate(user._id, {
+            refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+            lastLogin: new Date(),
+        });
+        return Object.assign({ user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+                authProvider: user.authProvider,
+            } }, tokens);
+    }
+    async googleAuth(googleAuthDto) {
+        var _a;
+        const { idToken, subdomain } = googleAuthDto;
+        try {
+            const ticket = await this.googleClient.verifyIdToken({
+                idToken,
+                audience: this.configService.get("GOOGLE_CLIENT_ID"),
+            });
+            const payload = ticket.getPayload();
+            if (!payload) {
+                throw new common_1.UnauthorizedException("Invalid Google token");
+            }
+            const { email, given_name, family_name, picture, sub: googleId } = payload;
+            if (!email) {
+                throw new common_1.UnauthorizedException("Email not provided by Google");
+            }
+            let user = await this.userModel.findOne({
+                $or: [{ email }, { googleId }]
+            });
+            if (!user) {
+                const newUser = new this.userModel();
+                newUser.firstName = given_name || "User";
+                newUser.lastName = family_name || "";
+                newUser.email = email;
+                newUser.role = user_schema_1.UserRole.CLIENT;
+                newUser.status = user_schema_1.UserStatus.ACTIVE;
+                newUser.profileImage = picture;
+                newUser.emailVerified = true;
+                newUser.googleId = googleId;
+                newUser.authProvider = "google";
+                user = await newUser.save();
+            }
+            else {
+                const updateData = {
+                    lastLogin: new Date(),
+                };
+                if (!user.googleId) {
+                    updateData.googleId = googleId;
+                    updateData.emailVerified = true;
+                }
+                if (picture && !user.profileImage) {
+                    updateData.profileImage = picture;
+                }
+                await this.userModel.findByIdAndUpdate(user._id, updateData);
+                user = await this.userModel.findById(user._id);
+            }
+            const businesses = await this.businessModel.find({
+                $or: [{ ownerId: user._id }, { adminIds: user._id }],
+            });
+            let business = null;
+            if (subdomain && businesses.length > 0) {
+                const found = businesses.find((b) => b.subdomain === subdomain);
+                if (found) {
+                    business = found;
+                }
+                else {
+                    throw new common_1.UnauthorizedException("Business not found or access denied");
+                }
+            }
+            else if (businesses.length > 0) {
+                business = businesses[0];
+            }
+            const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, (_a = business === null || business === void 0 ? void 0 : business._id) === null || _a === void 0 ? void 0 : _a.toString(), business === null || business === void 0 ? void 0 : business.subdomain);
+            await this.userModel.findByIdAndUpdate(user._id, {
+                refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+                currentBusinessId: business === null || business === void 0 ? void 0 : business._id,
+            });
+            const response = Object.assign({ user: {
+                    id: user._id,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    role: user.role,
+                    status: user.status,
+                    profileImage: user.profileImage,
+                    emailVerified: user.emailVerified,
+                } }, tokens);
+            if (business) {
+                response.business = {
+                    id: business._id,
+                    businessName: business.businessName,
+                    subdomain: business.subdomain,
+                    businessType: business.businessType,
+                    status: business.status,
+                    trialEndsAt: business.trialEndsAt,
+                };
+            }
+            if (businesses.length > 0) {
+                response.businesses = businesses.map((b) => ({
+                    id: b._id,
+                    businessName: b.businessName,
+                    subdomain: b.subdomain,
+                    status: b.status,
+                }));
+            }
+            return response;
+        }
+        catch (error) {
+            if (error instanceof common_1.UnauthorizedException) {
+                throw error;
+            }
+            console.error("Google authentication error:", error);
+            throw new common_1.UnauthorizedException("Google authentication failed");
+        }
+    }
+    async loginBusiness(loginDto) {
+        const { email, password, subdomain } = loginDto;
+        const user = await this.userModel.findOne({ email });
+        if (!user) {
+            throw new common_1.UnauthorizedException("Invalid credentials");
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            throw new common_1.UnauthorizedException("Invalid credentials");
+        }
+        if (user.status !== "active") {
+            throw new common_1.UnauthorizedException("Account is not active");
+        }
+        if (![user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN].includes(user.role)) {
+            throw new common_1.UnauthorizedException("Not authorized to access business portal");
+        }
+        const businesses = await this.businessModel
+            .find({
+            $or: [{ ownerId: user._id }, { adminIds: user._id }],
+        })
+            .populate("activeSubscription");
+        if (!businesses || businesses.length === 0) {
+            throw new common_1.UnauthorizedException("No business account found for this user");
+        }
+        let business;
+        if (subdomain) {
+            business = businesses.find((b) => b.subdomain === subdomain);
+            if (!business) {
+                throw new common_1.UnauthorizedException("Business not found or access denied");
+            }
+        }
+        else {
+            business = businesses[0];
+        }
+        if (business.status === "suspended") {
+            throw new common_1.UnauthorizedException("Business account is suspended");
+        }
+        if (business.status === "expired") {
+            throw new common_1.UnauthorizedException("Business subscription has expired");
+        }
+        await this.userModel.findByIdAndUpdate(user._id, {
+            currentBusinessId: business._id,
+        });
+        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, business._id.toString(), business.subdomain);
+        await this.userModel.findByIdAndUpdate(user._id, {
+            refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+            lastLogin: new Date(),
+        });
+        return Object.assign({ user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+            }, business: {
+                id: business._id,
+                businessName: business.businessName,
+                subdomain: business.subdomain,
+                businessType: business.businessType,
+                status: business.status,
+                trialEndsAt: business.trialEndsAt,
+                subscription: business.activeSubscription,
+            }, businesses: businesses.map((b) => ({
+                id: b._id,
+                businessName: b.businessName,
+                subdomain: b.subdomain,
+                status: b.status,
+            })) }, tokens);
     }
 };
 AuthService = __decorate([

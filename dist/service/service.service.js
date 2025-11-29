@@ -181,11 +181,13 @@ let ServiceService = class ServiceService {
         return services;
     }
     async findOneService(id) {
+        console.log("findOneService called with id:", id);
+        this.validateObjectId(id, "Service");
         try {
-            this.validateObjectId(id, "Service");
             const service = await this.serviceModel
-                .findById(new mongoose_1.Types.ObjectId(id))
+                .findById(id)
                 .populate('basicDetails.category', 'categoryName appointmentColor');
+            console.log("Service found:", !!service);
             if (!service) {
                 throw new common_1.NotFoundException("Service not found");
             }
@@ -195,6 +197,7 @@ let ServiceService = class ServiceService {
             };
         }
         catch (error) {
+            console.error("findOneService error:", error);
             if (error instanceof common_1.NotFoundException) {
                 throw error;
             }

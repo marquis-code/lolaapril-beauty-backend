@@ -52,7 +52,11 @@ __decorate([
 ], User.prototype, "phone", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: "Hashed password" }),
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({
+        required: function () {
+            return this.authProvider === 'local';
+        }
+    }),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
@@ -142,12 +146,12 @@ __decorate([
 ], User.prototype, "refreshToken", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: "Google OAuth ID" }),
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ unique: true, sparse: true }),
     __metadata("design:type", String)
 ], User.prototype, "googleId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: "Facebook OAuth ID" }),
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ unique: true, sparse: true }),
     __metadata("design:type", String)
 ], User.prototype, "facebookId", void 0);
 __decorate([
@@ -184,12 +188,21 @@ User = __decorate([
 ], User);
 exports.User = User;
 exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
-exports.UserSchema.index({ email: 1 });
+exports.UserSchema.index({ email: 1 }, { unique: true });
 exports.UserSchema.index({ role: 1 });
 exports.UserSchema.index({ status: 1 });
 exports.UserSchema.index({ ownedBusinesses: 1 });
 exports.UserSchema.index({ adminBusinesses: 1 });
 exports.UserSchema.index({ staffBusinessId: 1 });
-exports.UserSchema.index({ googleId: 1 });
-exports.UserSchema.index({ facebookId: 1 });
+exports.UserSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+exports.UserSchema.index({ facebookId: 1 }, { unique: true, sparse: true });
+exports.UserSchema.index({ authProvider: 1 });
+exports.UserSchema.pre('save', function (next) {
+    if (this.authProvider === 'local' && !this.password) {
+        next(new Error('Password is required for local authentication'));
+    }
+    else {
+        next();
+    }
+});
 //# sourceMappingURL=user.schema.js.map

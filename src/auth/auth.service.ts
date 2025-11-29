@@ -5,7 +5,7 @@ import { Model, Types } from "mongoose"
 import { JwtService } from "@nestjs/jwt"
 import { ConfigService } from "@nestjs/config"
 import * as bcrypt from "bcryptjs"
-import { User, UserDocument, UserRole } from "./schemas/user.schema"
+import { User, UserDocument, UserRole, UserStatus } from "./schemas/user.schema"
 import { Business, BusinessDocument } from "../tenant/schemas/business.schema"
 import { Subscription, SubscriptionDocument } from "../tenant/schemas/subscription.schema"
 import { TenantConfig, TenantConfigDocument } from "../tenant/schemas/tenant-config.schema"
@@ -124,329 +124,6 @@ export class AuthService {
     }
   }
 
-  // ==================== BUSINESS LOGIN ====================
-  // async loginBusiness(loginDto: BusinessLoginDto) {
-  //   const { email, password, subdomain } = loginDto
-
-  //   // Find user
-  //   const user = await this.userModel.findOne({ email })
-  //   if (!user) {
-  //     throw new UnauthorizedException("Invalid credentials")
-  //   }
-
-  //   // Check password
-  //   const isPasswordValid = await bcrypt.compare(password, user.password)
-  //   if (!isPasswordValid) {
-  //     throw new UnauthorizedException("Invalid credentials")
-  //   }
-
-  //   // Check if user is active
-  //   if (user.status !== "active") {
-  //     throw new UnauthorizedException("Account is not active")
-  //   }
-
-  //   // Check if user is business owner or admin
-  //   if (![UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN].includes(user.role)) {
-  //     throw new UnauthorizedException("Not authorized to access business portal")
-  //   }
-
-  //   // Find businesses owned or managed by user
-  //   const businesses = await this.businessModel
-  //     .find({
-  //       $or: [{ ownerId: user._id }, { adminIds: user._id }],
-  //     })
-  //     .populate("activeSubscription")
-
-  //   if (businesses.length === 0) {
-  //     throw new UnauthorizedException("No business account found for this user")
-  //   }
-
-  //   // If subdomain provided, find specific business
-  //   let business: BusinessDocument
-  //   if (subdomain) {
-  //     business = businesses.find((b) => b.subdomain === subdomain)
-  //     if (!business) {
-  //       throw new UnauthorizedException("Business not found or access denied")
-  //     }
-  //   } else {
-  //     business = businesses[0]
-  //   }
-
-  //   // Check business status
-  //   if (business.status === "suspended") {
-  //     throw new UnauthorizedException("Business account is suspended")
-  //   }
-
-  //   if (business.status === "expired") {
-  //     throw new UnauthorizedException("Business subscription has expired")
-  //   }
-
-  //   // Update user's current business context
-  //   await this.userModel.findByIdAndUpdate(user._id, {
-  //     currentBusinessId: business._id,
-  //   })
-
-  //   // Generate tokens
-  //   const tokens = await this.generateTokens(
-  //     user._id.toString(),
-  //     user.email,
-  //     user.role,
-  //     business._id.toString(),
-  //     business.subdomain
-  //   )
-
-  //   // Update user
-  //   await this.userModel.findByIdAndUpdate(user._id, {
-  //     refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-  //     lastLogin: new Date(),
-  //   })
-
-  //   return {
-  //     user: {
-  //       id: user._id,
-  //       firstName: user.firstName,
-  //       lastName: user.lastName,
-  //       email: user.email,
-  //       role: user.role,
-  //       status: user.status,
-  //     },
-  //     business: {
-  //       id: business._id,
-  //       businessName: business.businessName,
-  //       subdomain: business.subdomain,
-  //       businessType: business.businessType,
-  //       status: business.status,
-  //       trialEndsAt: business.trialEndsAt,
-  //       subscription: business.activeSubscription,
-  //     },
-  //     businesses: businesses.map((b) => ({
-  //       id: b._id,
-  //       businessName: b.businessName,
-  //       subdomain: b.subdomain,
-  //       status: b.status,
-  //     })),
-  //     ...tokens,
-  //   }
-  // }
-
-  // Replace the loginBusiness method in auth.service.ts with this:
-
-async loginBusiness(loginDto: BusinessLoginDto) {
-  const { email, password, subdomain } = loginDto
-
-  // Find user
-  const user = await this.userModel.findOne({ email })
-  if (!user) {
-    throw new UnauthorizedException("Invalid credentials")
-  }
-
-  // Check password
-  const isPasswordValid = await bcrypt.compare(password, user.password)
-  if (!isPasswordValid) {
-    throw new UnauthorizedException("Invalid credentials")
-  }
-
-  // Check if user is active
-  if (user.status !== "active") {
-    throw new UnauthorizedException("Account is not active")
-  }
-
-  // Check if user is business owner or admin
-  if (![UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN].includes(user.role)) {
-    throw new UnauthorizedException("Not authorized to access business portal")
-  }
-
-  // @ts-ignore - Bypass TypeScript for complex Mongoose query
-  const businesses: any[] = await this.businessModel
-    .find({
-      $or: [{ ownerId: user._id }, { adminIds: user._id }],
-    })
-    .populate("activeSubscription")
-    .lean()
-    .exec()
-
-  if (!businesses || businesses.length === 0) {
-    throw new UnauthorizedException("No business account found for this user")
-  }
-
-  // If subdomain provided, find specific business
-  let business: any
-  if (subdomain) {
-    business = businesses.find((b) => b.subdomain === subdomain)
-    if (!business) {
-      throw new UnauthorizedException("Business not found or access denied")
-    }
-  } else {
-    business = businesses[0]
-  }
-
-  // Check business status
-  if (business.status === "suspended") {
-    throw new UnauthorizedException("Business account is suspended")
-  }
-
-  if (business.status === "expired") {
-    throw new UnauthorizedException("Business subscription has expired")
-  }
-
-  // Update user's current business context
-  await this.userModel.findByIdAndUpdate(user._id, {
-    currentBusinessId: business._id,
-  })
-
-  // Generate tokens
-  const tokens = await this.generateTokens(
-    user._id.toString(),
-    user.email,
-    user.role,
-    business._id.toString(),
-    business.subdomain
-  )
-
-  // Update user
-  await this.userModel.findByIdAndUpdate(user._id, {
-    refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-    lastLogin: new Date(),
-  })
-
-  return {
-    user: {
-      id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-    },
-    business: {
-      id: business._id,
-      businessName: business.businessName,
-      subdomain: business.subdomain,
-      businessType: business.businessType,
-      status: business.status,
-      trialEndsAt: business.trialEndsAt,
-      subscription: business.activeSubscription,
-    },
-    businesses: businesses.map((b) => ({
-      id: b._id,
-      businessName: b.businessName,
-      subdomain: b.subdomain,
-      status: b.status,
-    })),
-    ...tokens,
-  }
-}
-
-  // ==================== GOOGLE OAUTH ====================
-  async googleAuth(googleAuthDto: GoogleAuthDto) {
-    const { idToken, subdomain } = googleAuthDto
-
-    try {
-      const ticket = await this.googleClient.verifyIdToken({
-        idToken,
-        audience: this.configService.get<string>("GOOGLE_CLIENT_ID"),
-      })
-
-      const payload = ticket.getPayload()
-      if (!payload) {
-        throw new UnauthorizedException("Invalid Google token")
-      }
-
-      const { email, given_name, family_name, picture, sub: googleId } = payload
-
-      // Find or create user
-      let user = await this.userModel.findOne({ $or: [{ email }, { googleId }] })
-
-      if (!user) {
-        // Create new user
-        user = new this.userModel({
-          firstName: given_name || "User",
-          lastName: family_name || "",
-          email,
-          password: await bcrypt.hash(Math.random().toString(36), 12),
-          role: UserRole.CLIENT, // Default to client
-          status: "active",
-          profileImage: picture,
-          emailVerified: true,
-          googleId,
-          authProvider: "google",
-        })
-        await user.save()
-      } else if (!user.googleId) {
-        // Link Google account to existing user
-        await this.userModel.findByIdAndUpdate(user._id, {
-          googleId,
-          profileImage: picture || user.profileImage,
-          emailVerified: true,
-        })
-      }
-
-      // Find businesses for this user
-      const businesses = await this.businessModel.find({
-        $or: [{ ownerId: user._id }, { adminIds: user._id }],
-      })
-
-      let business: BusinessDocument | null = null
-      if (subdomain && businesses.length > 0) {
-        business = businesses.find((b) => b.subdomain === subdomain)
-      } else if (businesses.length > 0) {
-        business = businesses[0]
-      }
-
-      // Generate tokens
-      const tokens = await this.generateTokens(
-        user._id.toString(),
-        user.email,
-        user.role,
-        business?._id.toString(),
-        business?.subdomain
-      )
-
-      // Update user
-      await this.userModel.findByIdAndUpdate(user._id, {
-        refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-        lastLogin: new Date(),
-        profileImage: picture || user.profileImage,
-        currentBusinessId: business?._id,
-      })
-
-      const response: any = {
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          status: user.status,
-          profileImage: user.profileImage,
-        },
-        ...tokens,
-      }
-
-      if (business) {
-        response.business = {
-          id: business._id,
-          businessName: business.businessName,
-          subdomain: business.subdomain,
-          businessType: business.businessType,
-          status: business.status,
-        }
-      }
-
-      if (businesses.length > 0) {
-        response.businesses = businesses.map((b) => ({
-          id: b._id,
-          businessName: b.businessName,
-          subdomain: b.subdomain,
-          status: b.status,
-        }))
-      }
-
-      return response
-    } catch (error) {
-      throw new UnauthorizedException("Google authentication failed")
-    }
-  }
 
   // ==================== STANDARD USER AUTH ====================
   async register(registerDto: RegisterDto) {
@@ -487,42 +164,6 @@ async loginBusiness(loginDto: BusinessLoginDto) {
     }
   }
 
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto
-
-    const user = await this.userModel.findOne({ email })
-    if (!user) {
-      throw new UnauthorizedException("Invalid credentials")
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password)
-    if (!isPasswordValid) {
-      throw new UnauthorizedException("Invalid credentials")
-    }
-
-    if (user.status !== "active") {
-      throw new UnauthorizedException("Account is not active")
-    }
-
-    const tokens = await this.generateTokens(user._id.toString(), user.email, user.role)
-
-    await this.userModel.findByIdAndUpdate(user._id, {
-      refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-      lastLogin: new Date(),
-    })
-
-    return {
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-      },
-      ...tokens,
-    }
-  }
 
   // ==================== TOKEN MANAGEMENT ====================
   async refreshTokens(userId: string, refreshToken: string) {
@@ -657,4 +298,548 @@ async loginBusiness(loginDto: BusinessLoginDto) {
 
     await config.save()
   }
+
+  // Updated sections of auth.service.ts
+
+// // ==================== GOOGLE OAUTH ====================
+// async googleAuth(googleAuthDto: GoogleAuthDto) {
+//   const { idToken, subdomain } = googleAuthDto
+
+//   try {
+//     const ticket = await this.googleClient.verifyIdToken({
+//       idToken,
+//       audience: this.configService.get<string>("GOOGLE_CLIENT_ID"),
+//     })
+
+//     const payload = ticket.getPayload()
+//     if (!payload) {
+//       throw new UnauthorizedException("Invalid Google token")
+//     }
+
+//     const { email, given_name, family_name, picture, sub: googleId } = payload
+
+//     if (!email) {
+//       throw new UnauthorizedException("Email not provided by Google")
+//     }
+
+//     // Find user by email or googleId
+//     let user = await this.userModel.findOne({ 
+//       $or: [{ email }, { googleId }] 
+//     })
+
+//     if (!user) {
+//       // ✅ CREATE NEW USER - No password for Google OAuth users
+//       user = new this.userModel({
+//         firstName: given_name || "User",
+//         lastName: family_name || "",
+//         email,
+//         // ✅ NO PASSWORD FIELD - It's optional for OAuth users
+//         role: UserRole.CLIENT,
+//         status: "active",
+//         profileImage: picture,
+//         emailVerified: true, // Google emails are pre-verified
+//         googleId,
+//         authProvider: "google",
+//       })
+//       await user.save()
+//     } else {
+//       // USER EXISTS - Link Google account if not already linked
+//       const updateData: any = {
+//         lastLogin: new Date(),
+//       }
+
+//       // Link Google account to existing user
+//       if (!user.googleId) {
+//         updateData.googleId = googleId
+//         updateData.emailVerified = true
+        
+//         // ✅ If user was local auth, now they can use both
+//         if (user.authProvider === 'local') {
+//           updateData.authProvider = 'google' // or keep as 'local' if you want dual login
+//         }
+//       }
+
+//       // Update profile image if user doesn't have one
+//       if (picture && !user.profileImage) {
+//         updateData.profileImage = picture
+//       }
+
+//       await this.userModel.findByIdAndUpdate(user._id, updateData)
+      
+//       // Refresh user object
+//       user = await this.userModel.findById(user._id)
+//     }
+
+//     // Find businesses for this user
+//     const businesses = await this.businessModel.find({
+//       $or: [{ ownerId: user._id }, { adminIds: user._id }],
+//     })
+
+//     let business: BusinessDocument | null = null
+//     if (subdomain && businesses.length > 0) {
+//       business = businesses.find((b) => b.subdomain === subdomain) || null
+//       if (subdomain && !business) {
+//         throw new UnauthorizedException("Business not found or access denied")
+//       }
+//     } else if (businesses.length > 0) {
+//       business = businesses[0]
+//     }
+
+//     // Generate tokens
+//     const tokens = await this.generateTokens(
+//       user._id.toString(),
+//       user.email,
+//       user.role,
+//       business?._id.toString(),
+//       business?.subdomain
+//     )
+
+//     // Update user with refresh token
+//     await this.userModel.findByIdAndUpdate(user._id, {
+//       refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+//       currentBusinessId: business?._id,
+//     })
+
+//     const response: any = {
+//       user: {
+//         id: user._id,
+//         firstName: user.firstName,
+//         lastName: user.lastName,
+//         email: user.email,
+//         role: user.role,
+//         status: user.status,
+//         profileImage: user.profileImage,
+//         emailVerified: user.emailVerified,
+//         authProvider: user.authProvider,
+//       },
+//       ...tokens,
+//     }
+
+//     if (business) {
+//       response.business = {
+//         id: business._id,
+//         businessName: business.businessName,
+//         subdomain: business.subdomain,
+//         businessType: business.businessType,
+//         status: business.status,
+//         trialEndsAt: business.trialEndsAt,
+//       }
+//     }
+
+//     if (businesses.length > 0) {
+//       response.businesses = businesses.map((b) => ({
+//         id: b._id,
+//         businessName: b.businessName,
+//         subdomain: b.subdomain,
+//         status: b.status,
+//       }))
+//     }
+
+//     return response
+//   } catch (error) {
+//     if (error instanceof UnauthorizedException) {
+//       throw error
+//     }
+    
+//     console.error("Google authentication error:", error)
+//     throw new UnauthorizedException("Google authentication failed")
+//   }
+// }
+
+
+
+// ==================== STANDARD USER LOGIN ====================
+// ✅ UPDATED: Add check for OAuth users trying to login with password
+async login(loginDto: LoginDto) {
+  const { email, password } = loginDto
+
+  const user = await this.userModel.findOne({ email })
+  if (!user) {
+    throw new UnauthorizedException("Invalid credentials")
+  }
+
+  // ✅ Check if user registered with OAuth
+  if (user.authProvider !== 'local' && !user.password) {
+    throw new UnauthorizedException(
+      `This account uses ${user.authProvider} authentication. Please sign in with ${user.authProvider}.`
+    )
+  }
+
+  // Check password
+  const isPasswordValid = await bcrypt.compare(password, user.password)
+  if (!isPasswordValid) {
+    throw new UnauthorizedException("Invalid credentials")
+  }
+
+  if (user.status !== "active") {
+    throw new UnauthorizedException("Account is not active")
+  }
+
+  const tokens = await this.generateTokens(user._id.toString(), user.email, user.role)
+
+  await this.userModel.findByIdAndUpdate(user._id, {
+    refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+    lastLogin: new Date(),
+  })
+
+  return {
+    user: {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      authProvider: user.authProvider,
+    },
+    ...tokens,
+  }
+}
+
+// ==================== BUSINESS LOGIN ====================
+// ✅ UPDATED: Add OAuth check here too
+// async loginBusiness(loginDto: BusinessLoginDto) {
+//   const { email, password, subdomain } = loginDto
+
+//   const user = await this.userModel.findOne({ email })
+//   if (!user) {
+//     throw new UnauthorizedException("Invalid credentials")
+//   }
+
+//   // ✅ Check if user registered with OAuth
+//   if (user.authProvider !== 'local' && !user.password) {
+//     throw new UnauthorizedException(
+//       `This account uses ${user.authProvider} authentication. Please sign in with ${user.authProvider}.`
+//     )
+//   }
+
+//   const isPasswordValid = await bcrypt.compare(password, user.password)
+//   if (!isPasswordValid) {
+//     throw new UnauthorizedException("Invalid credentials")
+//   }
+
+//   if (user.status !== "active") {
+//     throw new UnauthorizedException("Account is not active")
+//   }
+
+//   if (![UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN].includes(user.role)) {
+//     throw new UnauthorizedException("Not authorized to access business portal")
+//   }
+
+//   const businesses: any[] = await this.businessModel
+//     .find({
+//       $or: [{ ownerId: user._id }, { adminIds: user._id }],
+//     })
+//     .populate("activeSubscription")
+//     .lean()
+//     .exec()
+
+//   if (!businesses || businesses.length === 0) {
+//     throw new UnauthorizedException("No business account found for this user")
+//   }
+
+//   let business: any
+//   if (subdomain) {
+//     business = businesses.find((b) => b.subdomain === subdomain)
+//     if (!business) {
+//       throw new UnauthorizedException("Business not found or access denied")
+//     }
+//   } else {
+//     business = businesses[0]
+//   }
+
+//   if (business.status === "suspended") {
+//     throw new UnauthorizedException("Business account is suspended")
+//   }
+
+//   if (business.status === "expired") {
+//     throw new UnauthorizedException("Business subscription has expired")
+//   }
+
+//   await this.userModel.findByIdAndUpdate(user._id, {
+//     currentBusinessId: business._id,
+//   })
+
+//   const tokens = await this.generateTokens(
+//     user._id.toString(),
+//     user.email,
+//     user.role,
+//     business._id.toString(),
+//     business.subdomain
+//   )
+
+//   await this.userModel.findByIdAndUpdate(user._id, {
+//     refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+//     lastLogin: new Date(),
+//   })
+
+//   return {
+//     user: {
+//       id: user._id,
+//       firstName: user.firstName,
+//       lastName: user.lastName,
+//       email: user.email,
+//       role: user.role,
+//       status: user.status,
+//       authProvider: user.authProvider,
+//     },
+//     business: {
+//       id: business._id,
+//       businessName: business.businessName,
+//       subdomain: business.subdomain,
+//       businessType: business.businessType,
+//       status: business.status,
+//       trialEndsAt: business.trialEndsAt,
+//       subscription: business.activeSubscription,
+//     },
+//     businesses: businesses.map((b) => ({
+//       id: b._id,
+//       businessName: b.businessName,
+//       subdomain: b.subdomain,
+//       status: b.status,
+//     })),
+//     ...tokens,
+//   }
+// }
+// ==================== GOOGLE OAUTH - COMPLETE FIXED VERSION ====================
+async googleAuth(googleAuthDto: GoogleAuthDto) {
+  const { idToken, subdomain } = googleAuthDto
+
+  try {
+    const ticket = await this.googleClient.verifyIdToken({
+      idToken,
+      audience: this.configService.get<string>("GOOGLE_CLIENT_ID"),
+    })
+
+    const payload = ticket.getPayload()
+    if (!payload) {
+      throw new UnauthorizedException("Invalid Google token")
+    }
+
+    const { email, given_name, family_name, picture, sub: googleId } = payload
+
+    if (!email) {
+      throw new UnauthorizedException("Email not provided by Google")
+    }
+
+    // Find user by email or googleId
+    let user: any = await this.userModel.findOne({ 
+      $or: [{ email }, { googleId }] 
+    })
+
+    if (!user) {
+      // Create new user
+      const newUser = new this.userModel()
+      newUser.firstName = given_name || "User"
+      newUser.lastName = family_name || ""
+      newUser.email = email
+      newUser.role = UserRole.CLIENT
+      newUser.status = UserStatus.ACTIVE  // ✅ FIXED: Use enum value
+      newUser.profileImage = picture
+      newUser.emailVerified = true
+      newUser.googleId = googleId
+      newUser.authProvider = "google"
+      
+      user = await newUser.save()
+    } else {
+      // USER EXISTS - Update Google info
+      const updateData: any = {
+        lastLogin: new Date(),
+      }
+
+      if (!user.googleId) {
+        updateData.googleId = googleId
+        updateData.emailVerified = true
+      }
+
+      if (picture && !user.profileImage) {
+        updateData.profileImage = picture
+      }
+
+      await this.userModel.findByIdAndUpdate(user._id, updateData)
+      user = await this.userModel.findById(user._id)
+    }
+
+    // ✅ NUCLEAR FIX: Cast to any
+    const businesses: any[] = await this.businessModel.find({
+      $or: [{ ownerId: user._id }, { adminIds: user._id }],
+    }) as any
+
+    let business: any = null
+    
+    if (subdomain && businesses.length > 0) {
+      const found = businesses.find((b) => b.subdomain === subdomain)
+      if (found) {
+        business = found
+      } else {
+        throw new UnauthorizedException("Business not found or access denied")
+      }
+    } else if (businesses.length > 0) {
+      business = businesses[0]
+    }
+
+    // Generate tokens
+    const tokens = await this.generateTokens(
+      user._id.toString(),
+      user.email,
+      user.role,
+      business?._id?.toString(),
+      business?.subdomain
+    )
+
+    // Update user with refresh token
+    await this.userModel.findByIdAndUpdate(user._id, {
+      refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+      currentBusinessId: business?._id,
+    })
+
+    const response: any = {
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        profileImage: user.profileImage,
+        emailVerified: user.emailVerified,
+      },
+      ...tokens,
+    }
+
+    if (business) {
+      response.business = {
+        id: business._id,
+        businessName: business.businessName,
+        subdomain: business.subdomain,
+        businessType: business.businessType,
+        status: business.status,
+        trialEndsAt: business.trialEndsAt,
+      }
+    }
+
+    if (businesses.length > 0) {
+      response.businesses = businesses.map((b) => ({
+        id: b._id,
+        businessName: b.businessName,
+        subdomain: b.subdomain,
+        status: b.status,
+      }))
+    }
+
+    return response
+  } catch (error) {
+    if (error instanceof UnauthorizedException) {
+      throw error
+    }
+    
+    console.error("Google authentication error:", error)
+    throw new UnauthorizedException("Google authentication failed")
+  }
+}
+
+// ==================== BUSINESS LOGIN - FIXED VERSION ====================
+async loginBusiness(loginDto: BusinessLoginDto) {
+  const { email, password, subdomain } = loginDto
+
+  // Find user
+  const user = await this.userModel.findOne({ email })
+  if (!user) {
+    throw new UnauthorizedException("Invalid credentials")
+  }
+
+  // Check password
+  const isPasswordValid = await bcrypt.compare(password, user.password)
+  if (!isPasswordValid) {
+    throw new UnauthorizedException("Invalid credentials")
+  }
+
+  // Check if user is active
+  if (user.status !== "active") {
+    throw new UnauthorizedException("Account is not active")
+  }
+
+  // Check if user is business owner or admin
+  if (![UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN].includes(user.role)) {
+    throw new UnauthorizedException("Not authorized to access business portal")
+  }
+
+  // ✅ FIXED: Cast entire query to any
+  const businesses: any[] = await this.businessModel
+    .find({
+      $or: [{ ownerId: user._id }, { adminIds: user._id }],
+    })
+    .populate("activeSubscription") as any
+
+  if (!businesses || businesses.length === 0) {
+    throw new UnauthorizedException("No business account found for this user")
+  }
+
+  // If subdomain provided, find specific business
+  let business: any
+  if (subdomain) {
+    business = businesses.find((b) => b.subdomain === subdomain)
+    if (!business) {
+      throw new UnauthorizedException("Business not found or access denied")
+    }
+  } else {
+    business = businesses[0]
+  }
+
+  // Check business status
+  if (business.status === "suspended") {
+    throw new UnauthorizedException("Business account is suspended")
+  }
+
+  if (business.status === "expired") {
+    throw new UnauthorizedException("Business subscription has expired")
+  }
+
+  // Update user's current business context
+  await this.userModel.findByIdAndUpdate(user._id, {
+    currentBusinessId: business._id,
+  })
+
+  // Generate tokens
+  const tokens = await this.generateTokens(
+    user._id.toString(),
+    user.email,
+    user.role,
+    business._id.toString(),
+    business.subdomain
+  )
+
+  // Update user
+  await this.userModel.findByIdAndUpdate(user._id, {
+    refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+    lastLogin: new Date(),
+  })
+
+  return {
+    user: {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    },
+    business: {
+      id: business._id,
+      businessName: business.businessName,
+      subdomain: business.subdomain,
+      businessType: business.businessType,
+      status: business.status,
+      trialEndsAt: business.trialEndsAt,
+      subscription: business.activeSubscription,
+    },
+    businesses: businesses.map((b) => ({
+      id: b._id,
+      businessName: b.businessName,
+      subdomain: b.subdomain,
+      status: b.status,
+    })),
+    ...tokens,
+  }
+}
 }

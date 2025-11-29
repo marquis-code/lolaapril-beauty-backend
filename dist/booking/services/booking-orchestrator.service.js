@@ -43,92 +43,6 @@ let BookingOrchestrator = class BookingOrchestrator {
             return total + (service.bufferTime || 0);
         }, 0);
     }
-    async handlePaymentAndComplete(bookingId, transactionReference, paymentData) {
-        try {
-            console.log('💳 Processing payment...');
-            console.log('  - Booking ID:', bookingId);
-            console.log('  - Transaction Reference:', transactionReference);
-            console.log('  - Amount:', paymentData.amount);
-            console.log('  - Method:', paymentData.method);
-            console.log('  - Gateway:', paymentData.gateway);
-            const booking = await this.bookingService.getBookingById(bookingId);
-            if (!booking) {
-                throw new common_1.NotFoundException('Booking not found');
-            }
-            if (booking.status !== 'pending') {
-                throw new common_1.BadRequestException(`Booking is not in pending status. Current status: ${booking.status}`);
-            }
-            if (paymentData.amount !== booking.estimatedTotal) {
-                throw new common_1.BadRequestException(`Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`);
-            }
-            const bookingDate = this.parseDate(booking.preferredDate);
-            const isStillAvailable = await this.checkAvailabilityForAllServices(booking.businessId.toString(), booking.services.map(s => s.serviceId.toString()), bookingDate, booking.preferredStartTime, booking.totalDuration);
-            if (!isStillAvailable) {
-                console.warn('⚠️ Time slot is no longer available');
-                await this.handleUnavailableSlot(booking, transactionReference);
-                throw new common_1.BadRequestException('Time slot is no longer available. Payment will be refunded.');
-            }
-            console.log('📅 Creating appointment from booking...');
-            const appointmentResult = await this.confirmBookingAndCreateAppointment(bookingId);
-            console.log('💾 Creating payment record...');
-            const payment = await this.paymentService.createPaymentFromBooking(booking, transactionReference, {
-                paymentMethod: paymentData.method,
-                gateway: paymentData.gateway,
-                status: 'completed'
-            });
-            console.log('✅ Updating payment status...');
-            await this.paymentService.updatePaymentStatus(payment._id.toString(), 'completed', transactionReference);
-            await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString());
-            const appointmentDate = this.parseDate(appointmentResult.appointment.scheduledDate);
-            try {
-                await this.notificationService.notifyPaymentConfirmation(payment._id.toString(), paymentData.clientId, paymentData.businessId, {
-                    clientName: booking.clientName,
-                    amount: paymentData.amount,
-                    method: paymentData.method,
-                    gateway: paymentData.gateway,
-                    transactionId: transactionReference,
-                    serviceName: booking.services.map(s => s.serviceName).join(', '),
-                    appointmentDate: appointmentDate.toDateString(),
-                    businessName: booking.businessName,
-                    receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
-                    clientEmail: booking.clientEmail,
-                    clientPhone: booking.clientPhone
-                });
-                console.log('✅ Payment confirmation notification sent');
-            }
-            catch (notificationError) {
-                console.warn('⚠️ Notification failed (continuing):', notificationError.message);
-            }
-            this.eventEmitter.emit('payment.completed', {
-                payment,
-                booking,
-                appointment: appointmentResult.appointment
-            });
-            console.log('✅ PAYMENT PROCESSING COMPLETE');
-            return {
-                paymentId: payment._id.toString(),
-                success: true,
-                message: 'Payment successful! Your appointment has been confirmed automatically.',
-                transactionReference,
-                amount: paymentData.amount,
-                method: paymentData.method,
-                gateway: paymentData.gateway,
-                status: 'completed',
-                payment,
-                appointment: appointmentResult.appointment
-            };
-        }
-        catch (error) {
-            console.error('❌ Payment processing failed:', error.message);
-            try {
-                await this.handlePaymentFailure(bookingId, transactionReference, error.message);
-            }
-            catch (failureError) {
-                console.error('❌ Failed to handle payment failure:', failureError.message);
-            }
-            throw error;
-        }
-    }
     async sendConfirmationNotifications(booking, appointment, staffAssignments) {
         const bookingDate = this.parseDate(booking.preferredDate);
         await this.notificationService.notifyBookingConfirmation(booking._id.toString(), booking.clientId.toString(), booking.businessId.toString(), {
@@ -375,11 +289,217 @@ let BookingOrchestrator = class BookingOrchestrator {
         const availableMembers = service.teamMembers.selectedMembers.filter(m => m.selected);
         return availableMembers.length > 0 ? availableMembers[0].id : undefined;
     }
+    async handlePaymentAndComplete(bookingId, transactionReference, paymentData) {
+        try {
+            console.log('💳 Processing payment...');
+            console.log('  - Booking ID:', bookingId);
+            console.log('  - Transaction Reference:', transactionReference);
+            console.log('  - Amount:', paymentData.amount);
+            console.log('  - Method:', paymentData.method);
+            console.log('  - Gateway:', paymentData.gateway);
+            const booking = await this.bookingService.getBookingById(bookingId);
+            if (!booking) {
+                throw new common_1.NotFoundException('Booking not found');
+            }
+            const allowedStatuses = ['pending', 'payment_failed'];
+            if (!allowedStatuses.includes(booking.status)) {
+                throw new common_1.BadRequestException(`Cannot process payment for booking with status '${booking.status}'. ` +
+                    `Payment can only be processed for bookings with status 'pending' or 'payment_failed'.`);
+            }
+            if (booking.status === 'payment_failed') {
+                console.log('🔄 This is a payment retry - resetting booking status to pending');
+                await this.bookingService.updateBookingStatus(bookingId, 'pending');
+            }
+            if (paymentData.amount !== booking.estimatedTotal) {
+                throw new common_1.BadRequestException(`Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`);
+            }
+            const bookingDate = this.parseDate(booking.preferredDate);
+            const isStillAvailable = await this.checkAvailabilityForAllServices(booking.businessId.toString(), booking.services.map(s => s.serviceId.toString()), bookingDate, booking.preferredStartTime, booking.totalDuration);
+            if (!isStillAvailable) {
+                console.warn('⚠️ Time slot is no longer available');
+                await this.handleUnavailableSlot(booking, transactionReference);
+                throw new common_1.BadRequestException('Time slot is no longer available. Payment will be refunded.');
+            }
+            console.log('📅 Creating appointment from booking (without staff assignment)...');
+            const appointmentResult = await this.confirmBookingWithoutStaff(bookingId);
+            if (!appointmentResult || !appointmentResult.appointment) {
+                throw new Error('Failed to create appointment from booking');
+            }
+            console.log('✅ Appointment created:', appointmentResult.appointmentNumber);
+            console.log('💾 Creating payment record...');
+            const payment = await this.paymentService.createPaymentFromBooking(booking, transactionReference, {
+                paymentMethod: paymentData.method,
+                gateway: paymentData.gateway,
+                status: 'completed'
+            });
+            console.log('✅ Updating payment status...');
+            await this.paymentService.updatePaymentStatus(payment._id.toString(), 'completed', transactionReference);
+            await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString());
+            const appointmentDate = this.parseDate(booking.preferredDate);
+            console.log('📧 Preparing to send payment confirmation notification');
+            console.log('Notification data:', {
+                clientName: booking.clientName,
+                appointmentDate: appointmentDate.toDateString(),
+                amount: paymentData.amount
+            });
+            try {
+                await this.notificationService.notifyPaymentConfirmation(payment._id.toString(), paymentData.clientId, paymentData.businessId, {
+                    clientName: booking.clientName,
+                    amount: paymentData.amount,
+                    method: paymentData.method,
+                    gateway: paymentData.gateway,
+                    transactionId: transactionReference,
+                    serviceName: booking.services.map(s => s.serviceName).join(', '),
+                    appointmentDate: appointmentDate.toDateString(),
+                    businessName: booking.businessName,
+                    receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
+                    clientEmail: booking.clientEmail,
+                    clientPhone: booking.clientPhone
+                });
+                console.log('✅ Payment confirmation notification sent');
+            }
+            catch (notificationError) {
+                console.warn('⚠️ Notification failed (continuing):', notificationError.message);
+            }
+            this.eventEmitter.emit('payment.completed', {
+                payment,
+                booking,
+                appointment: appointmentResult.appointment
+            });
+            console.log('✅ PAYMENT PROCESSING COMPLETE');
+            return {
+                paymentId: payment._id.toString(),
+                success: true,
+                message: booking.status === 'payment_failed'
+                    ? 'Payment retry successful! Your appointment has been confirmed. Staff will be assigned shortly.'
+                    : 'Payment successful! Your appointment has been confirmed. Staff will be assigned shortly.',
+                transactionReference,
+                amount: paymentData.amount,
+                method: paymentData.method,
+                gateway: paymentData.gateway,
+                status: 'completed',
+                payment,
+                appointment: appointmentResult.appointment
+            };
+        }
+        catch (error) {
+            console.error('❌ Payment processing failed:', error.message);
+            try {
+                await this.handlePaymentFailure(bookingId, transactionReference, error.message);
+            }
+            catch (failureError) {
+                console.error('❌ Failed to handle payment failure:', failureError.message);
+            }
+            throw error;
+        }
+    }
+    async resetBookingForPaymentRetry(bookingId) {
+        const booking = await this.bookingService.getBookingById(bookingId);
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        if (booking.status !== 'payment_failed') {
+            throw new common_1.BadRequestException(`Cannot reset booking. Only bookings with 'payment_failed' status can be reset. Current status: ${booking.status}`);
+        }
+        if (booking.expiresAt && new Date() > new Date(booking.expiresAt)) {
+            throw new common_1.BadRequestException('Booking has expired. Please create a new booking.');
+        }
+        await this.bookingService.updateBookingStatus(bookingId, 'pending');
+        console.log(`✅ Booking ${booking.bookingNumber} reset to pending for payment retry`);
+    }
+    async confirmBookingWithoutStaff(bookingId) {
+        var _a;
+        console.log('=== ORCHESTRATOR: CONFIRM BOOKING WITHOUT STAFF ===');
+        console.log('BookingId:', bookingId);
+        try {
+            const booking = await this.bookingService.getBookingById(bookingId);
+            console.log('✅ Booking found:', booking.bookingNumber);
+            console.log('Current status:', booking.status);
+            const allowedStatuses = ['pending', 'payment_failed'];
+            if (!allowedStatuses.includes(booking.status)) {
+                throw new common_1.BadRequestException(`Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' or 'payment_failed' bookings can be confirmed. ` +
+                    `This booking may have already been confirmed or expired.`);
+            }
+            console.log('📝 Updating booking status to confirmed...');
+            await this.bookingService.updateBookingStatus(bookingId, 'confirmed');
+            console.log('✅ Booking status updated to confirmed');
+            console.log('📅 Creating appointment from booking...');
+            const appointment = await this.appointmentService.createFromBooking(booking);
+            if (!appointment) {
+                throw new Error('Failed to create appointment');
+            }
+            console.log('✅ Appointment created:', appointment.appointmentNumber);
+            console.log('Appointment details:', {
+                id: appointment._id,
+                number: appointment.appointmentNumber,
+                date: appointment.selectedDate || appointment.scheduledDate,
+                time: appointment.selectedTime || appointment.scheduledTime
+            });
+            console.log('📧 Sending confirmation notifications');
+            try {
+                await this.sendClientConfirmationOnly(booking, appointment);
+                console.log('✅ Client notification sent successfully');
+            }
+            catch (notificationError) {
+                console.warn('⚠️ Notification sending failed (continuing):', notificationError.message);
+            }
+            console.log('📡 Emitting booking events');
+            this.eventEmitter.emit('booking.confirmed', {
+                booking,
+                appointment,
+                staffAssigned: false
+            });
+            this.eventEmitter.emit('appointment.created', {
+                appointment,
+                booking,
+                staffAssigned: false
+            });
+            console.log('✅ BOOKING CONFIRMATION COMPLETE (Staff assignment pending)');
+            return {
+                appointmentId: appointment._id.toString(),
+                appointmentNumber: appointment.appointmentNumber,
+                scheduledDate: appointment.selectedDate || appointment.scheduledDate || booking.preferredDate,
+                scheduledTime: appointment.selectedTime || appointment.scheduledTime || booking.preferredStartTime,
+                status: appointment.status,
+                clientId: appointment.clientId.toString(),
+                businessId: ((_a = appointment.businessInfo) === null || _a === void 0 ? void 0 : _a.businessId) || booking.businessId.toString(),
+                booking: booking,
+                message: 'Booking confirmed successfully. Staff will be assigned shortly.',
+                appointment,
+                assignment: null,
+                assignments: []
+            };
+        }
+        catch (error) {
+            console.error('❌ BOOKING CONFIRMATION FAILED:', error.message);
+            console.error('Stack:', error.stack);
+            throw error;
+        }
+    }
+    async sendClientConfirmationOnly(booking, appointment) {
+        const bookingDate = this.parseDate(booking.preferredDate);
+        await this.notificationService.notifyBookingConfirmation(booking._id.toString(), booking.clientId.toString(), booking.businessId.toString(), {
+            clientName: booking.clientName,
+            serviceName: booking.services.map(s => s.serviceName).join(', '),
+            date: bookingDate.toDateString(),
+            time: booking.preferredStartTime,
+            businessName: booking.businessName,
+            businessAddress: booking.businessAddress || 'N/A',
+            appointmentNumber: appointment.appointmentNumber,
+            clientEmail: booking.clientEmail,
+            clientPhone: booking.clientPhone,
+            staffCount: 0
+        });
+    }
     async confirmBookingAndCreateAppointment(bookingId, staffId, staffAssignments) {
         console.log('=== ORCHESTRATOR: CONFIRM BOOKING START ===');
         console.log('BookingId:', bookingId);
         console.log('Single StaffId:', staffId);
         console.log('Staff Assignments:', (staffAssignments === null || staffAssignments === void 0 ? void 0 : staffAssignments.length) || 0);
+        if (!staffId && (!staffAssignments || staffAssignments.length === 0)) {
+            console.log('⚠️ No staff provided - using confirmation without staff assignment');
+            return await this.confirmBookingWithoutStaff(bookingId);
+        }
         try {
             const booking = await this.bookingService.getBookingById(bookingId);
             console.log('✅ Booking found:', booking.bookingNumber);
@@ -387,9 +507,6 @@ let BookingOrchestrator = class BookingOrchestrator {
             if (booking.status !== 'pending') {
                 throw new common_1.BadRequestException(`Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' bookings can be confirmed. ` +
                     `This booking may have already been confirmed or expired.`);
-            }
-            if (!staffId && (!staffAssignments || staffAssignments.length === 0)) {
-                throw new common_1.BadRequestException('Staff assignment is required. Provide either staffId or staffAssignments.');
             }
             const bookingDate = this.parseDate(booking.preferredDate);
             const dateString = this.formatDateForAvailability(bookingDate);

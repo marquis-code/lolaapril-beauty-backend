@@ -48,13 +48,6 @@ export declare class BookingOrchestrator {
     private readonly eventEmitter;
     constructor(logger: Logger, bookingService: BookingService, appointmentService: AppointmentService, paymentService: PaymentService, availabilityService: AvailabilityService, notificationService: NotificationService, staffService: StaffService, tenantService: TenantService, serviceService: ServiceService, eventEmitter: EventEmitter2);
     private calculateTotalBufferTime;
-    handlePaymentAndComplete(bookingId: string, transactionReference: string, paymentData: {
-        amount: number;
-        method: string;
-        gateway: string;
-        clientId: string;
-        businessId: string;
-    }): Promise<PaymentResult>;
     private sendConfirmationNotifications;
     createBookingWithValidation(createBookingDto: CreateBookingDto): Promise<BookingResult>;
     private parseDate;
@@ -68,6 +61,16 @@ export declare class BookingOrchestrator {
     private getServiceDurationInMinutes;
     private addMinutesToTime;
     private getPreferredStaff;
+    handlePaymentAndComplete(bookingId: string, transactionReference: string, paymentData: {
+        amount: number;
+        method: string;
+        gateway: string;
+        clientId: string;
+        businessId: string;
+    }): Promise<PaymentResult>;
+    resetBookingForPaymentRetry(bookingId: string): Promise<void>;
+    confirmBookingWithoutStaff(bookingId: string): Promise<AppointmentResult>;
+    private sendClientConfirmationOnly;
     confirmBookingAndCreateAppointment(bookingId: string, staffId?: string, staffAssignments?: Array<{
         staffId: string;
         serviceId: string;

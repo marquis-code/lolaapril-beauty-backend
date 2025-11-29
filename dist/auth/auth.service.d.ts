@@ -26,7 +26,7 @@
 import { Model } from "mongoose";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { User, UserDocument, UserRole } from "./schemas/user.schema";
+import { User, UserDocument, UserRole, UserStatus } from "./schemas/user.schema";
 import { BusinessDocument } from "../tenant/schemas/business.schema";
 import { SubscriptionDocument } from "../tenant/schemas/subscription.schema";
 import { TenantConfigDocument } from "../tenant/schemas/tenant-config.schema";
@@ -51,7 +51,7 @@ export declare class AuthService {
             lastName: string;
             email: string;
             role: UserRole;
-            status: import("./schemas/user.schema").UserStatus;
+            status: UserStatus;
         };
         business: {
             id: unknown;
@@ -62,34 +62,6 @@ export declare class AuthService {
             trialEndsAt: Date;
         };
     }>;
-    loginBusiness(loginDto: BusinessLoginDto): Promise<{
-        accessToken: string;
-        refreshToken: string;
-        user: {
-            id: unknown;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: UserRole;
-            status: import("./schemas/user.schema").UserStatus.ACTIVE;
-        };
-        business: {
-            id: any;
-            businessName: any;
-            subdomain: any;
-            businessType: any;
-            status: any;
-            trialEndsAt: any;
-            subscription: any;
-        };
-        businesses: {
-            id: any;
-            businessName: any;
-            subdomain: any;
-            status: any;
-        }[];
-    }>;
-    googleAuth(googleAuthDto: GoogleAuthDto): Promise<any>;
     register(registerDto: RegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -99,19 +71,7 @@ export declare class AuthService {
             lastName: string;
             email: string;
             role: UserRole;
-            status: import("./schemas/user.schema").UserStatus;
-        };
-    }>;
-    login(loginDto: LoginDto): Promise<{
-        accessToken: string;
-        refreshToken: string;
-        user: {
-            id: unknown;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: UserRole;
-            status: import("./schemas/user.schema").UserStatus.ACTIVE;
+            status: UserStatus;
         };
     }>;
     refreshTokens(userId: string, refreshToken: string): Promise<{
@@ -129,4 +89,45 @@ export declare class AuthService {
     }>;
     private createTrialSubscription;
     private createDefaultTenantConfig;
+    login(loginDto: LoginDto): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        user: {
+            id: unknown;
+            firstName: string;
+            lastName: string;
+            email: string;
+            role: UserRole;
+            status: UserStatus.ACTIVE;
+            authProvider: string;
+        };
+    }>;
+    googleAuth(googleAuthDto: GoogleAuthDto): Promise<any>;
+    loginBusiness(loginDto: BusinessLoginDto): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        user: {
+            id: unknown;
+            firstName: string;
+            lastName: string;
+            email: string;
+            role: UserRole;
+            status: UserStatus.ACTIVE;
+        };
+        business: {
+            id: any;
+            businessName: any;
+            subdomain: any;
+            businessType: any;
+            status: any;
+            trialEndsAt: any;
+            subscription: any;
+        };
+        businesses: {
+            id: any;
+            businessName: any;
+            subdomain: any;
+            status: any;
+        }[];
+    }>;
 }

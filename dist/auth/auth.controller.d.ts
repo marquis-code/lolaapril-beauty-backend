@@ -85,6 +85,7 @@ export declare class AuthController {
             email: string;
             role: import("./schemas/user.schema").UserRole;
             status: import("./schemas/user.schema").UserStatus.ACTIVE;
+            authProvider: string;
         };
     }>;
     logout(req: RequestWithUser): Promise<{

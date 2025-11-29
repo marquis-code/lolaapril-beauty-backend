@@ -83,156 +83,343 @@ private calculateTotalBufferTime(services: ServiceBookingDto[]): number {
   }, 0)
 }
 
-  async handlePaymentAndComplete(
-  bookingId: string,
-  transactionReference: string,
-  paymentData: {
-    amount: number
-    method: string
-    gateway: string
-    clientId: string
-    businessId: string
-  }
-): Promise<PaymentResult> {
-  try {
-    console.log('💳 Processing payment...')
-    console.log('  - Booking ID:', bookingId)
-    console.log('  - Transaction Reference:', transactionReference)
-    console.log('  - Amount:', paymentData.amount)
-    console.log('  - Method:', paymentData.method)
-    console.log('  - Gateway:', paymentData.gateway)
+//   async handlePaymentAndComplete(
+//   bookingId: string,
+//   transactionReference: string,
+//   paymentData: {
+//     amount: number
+//     method: string
+//     gateway: string
+//     clientId: string
+//     businessId: string
+//   }
+// ): Promise<PaymentResult> {
+//   try {
+//     console.log('💳 Processing payment...')
+//     console.log('  - Booking ID:', bookingId)
+//     console.log('  - Transaction Reference:', transactionReference)
+//     console.log('  - Amount:', paymentData.amount)
+//     console.log('  - Method:', paymentData.method)
+//     console.log('  - Gateway:', paymentData.gateway)
 
-    // 1. Get booking details
-    const booking = await this.bookingService.getBookingById(bookingId)
+//     // 1. Get booking details
+//     const booking = await this.bookingService.getBookingById(bookingId)
     
-    if (!booking) {
-      throw new NotFoundException('Booking not found')
-    }
+//     if (!booking) {
+//       throw new NotFoundException('Booking not found')
+//     }
 
-    if (booking.status !== 'pending') {
-      throw new BadRequestException(
-        `Booking is not in pending status. Current status: ${booking.status}`
-      )
-    }
+//     if (booking.status !== 'pending') {
+//       throw new BadRequestException(
+//         `Booking is not in pending status. Current status: ${booking.status}`
+//       )
+//     }
 
-    // 2. Verify payment amount matches booking total
-    if (paymentData.amount !== booking.estimatedTotal) {
-      throw new BadRequestException(
-        `Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`
-      )
-    }
+//     // 2. Verify payment amount matches booking total
+//     if (paymentData.amount !== booking.estimatedTotal) {
+//       throw new BadRequestException(
+//         `Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`
+//       )
+//     }
 
-    // 3. Re-check availability before confirming (prevent double booking)
-    const bookingDate = this.parseDate(booking.preferredDate)
+//     // 3. Re-check availability before confirming (prevent double booking)
+//     const bookingDate = this.parseDate(booking.preferredDate)
     
-    const isStillAvailable = await this.checkAvailabilityForAllServices(
-      booking.businessId.toString(),
-      booking.services.map(s => s.serviceId.toString()),
-      bookingDate,
-      booking.preferredStartTime,
-      booking.totalDuration
-    )
+//     const isStillAvailable = await this.checkAvailabilityForAllServices(
+//       booking.businessId.toString(),
+//       booking.services.map(s => s.serviceId.toString()),
+//       bookingDate,
+//       booking.preferredStartTime,
+//       booking.totalDuration
+//     )
 
-    if (!isStillAvailable) {
-      console.warn('⚠️ Time slot is no longer available')
-      // Handle unavailable slot with refund
-      await this.handleUnavailableSlot(booking, transactionReference)
-      throw new BadRequestException(
-        'Time slot is no longer available. Payment will be refunded.'
-      )
-    }
+//     if (!isStillAvailable) {
+//       console.warn('⚠️ Time slot is no longer available')
+//       // Handle unavailable slot with refund
+//       await this.handleUnavailableSlot(booking, transactionReference)
+//       throw new BadRequestException(
+//         'Time slot is no longer available. Payment will be refunded.'
+//       )
+//     }
 
-    // 4. AUTOMATED FLOW: Payment successful → Create appointment automatically
-    console.log('📅 Creating appointment from booking...')
-    const appointmentResult = await this.confirmBookingAndCreateAppointment(bookingId)
+//     // 4. AUTOMATED FLOW: Payment successful → Create appointment automatically
+//     console.log('📅 Creating appointment from booking...')
+//     const appointmentResult = await this.confirmBookingAndCreateAppointment(bookingId)
 
-    // 5. Create payment record with proper method mapping
-    console.log('💾 Creating payment record...')
-    const payment = await this.paymentService.createPaymentFromBooking(
-      booking,
-      transactionReference,
-      {
-        paymentMethod: paymentData.method, // 'card', 'bank_transfer', etc
-        gateway: paymentData.gateway,      // 'paystack', 'stripe', etc
-        status: 'completed'
-      }
-    )
+//     // 5. Create payment record with proper method mapping
+//     console.log('💾 Creating payment record...')
+//     const payment = await this.paymentService.createPaymentFromBooking(
+//       booking,
+//       transactionReference,
+//       {
+//         paymentMethod: paymentData.method, // 'card', 'bank_transfer', etc
+//         gateway: paymentData.gateway,      // 'paystack', 'stripe', etc
+//         status: 'completed'
+//       }
+//     )
 
-    // 6. Update payment status
-    console.log('✅ Updating payment status...')
-    await this.paymentService.updatePaymentStatus(
-      payment._id.toString(),
-      'completed',
-      transactionReference
-    )
+//     // 6. Update payment status
+//     console.log('✅ Updating payment status...')
+//     await this.paymentService.updatePaymentStatus(
+//       payment._id.toString(),
+//       'completed',
+//       transactionReference
+//     )
 
-    // 7. Link appointment to booking
-    await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString())
+//     // 7. Link appointment to booking
+//     await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString())
 
-    // 8. Send payment confirmation
-    const appointmentDate = this.parseDate(appointmentResult.appointment.scheduledDate)
+//     // 8. Send payment confirmation
+//     const appointmentDate = this.parseDate(appointmentResult.appointment.scheduledDate)
     
-    try {
-      await this.notificationService.notifyPaymentConfirmation(
-        payment._id.toString(),
-        paymentData.clientId,
-        paymentData.businessId,
-        {
-          clientName: booking.clientName,
-          amount: paymentData.amount,
-          method: paymentData.method,
-          gateway: paymentData.gateway,
-          transactionId: transactionReference,
-          serviceName: booking.services.map(s => s.serviceName).join(', '),
-          appointmentDate: appointmentDate.toDateString(),
-          businessName: booking.businessName,
-          receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
-          clientEmail: booking.clientEmail,
-          clientPhone: booking.clientPhone
-        }
-      )
-      console.log('✅ Payment confirmation notification sent')
-    } catch (notificationError) {
-      console.warn('⚠️ Notification failed (continuing):', notificationError.message)
-      // Don't fail payment if notification fails
-    }
+//     try {
+//       await this.notificationService.notifyPaymentConfirmation(
+//         payment._id.toString(),
+//         paymentData.clientId,
+//         paymentData.businessId,
+//         {
+//           clientName: booking.clientName,
+//           amount: paymentData.amount,
+//           method: paymentData.method,
+//           gateway: paymentData.gateway,
+//           transactionId: transactionReference,
+//           serviceName: booking.services.map(s => s.serviceName).join(', '),
+//           appointmentDate: appointmentDate.toDateString(),
+//           businessName: booking.businessName,
+//           receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
+//           clientEmail: booking.clientEmail,
+//           clientPhone: booking.clientPhone
+//         }
+//       )
+//       console.log('✅ Payment confirmation notification sent')
+//     } catch (notificationError) {
+//       console.warn('⚠️ Notification failed (continuing):', notificationError.message)
+//       // Don't fail payment if notification fails
+//     }
 
-    // 9. Emit completion event
-    this.eventEmitter.emit('payment.completed', { 
-      payment, 
-      booking, 
-      appointment: appointmentResult.appointment 
-    })
+//     // 9. Emit completion event
+//     this.eventEmitter.emit('payment.completed', { 
+//       payment, 
+//       booking, 
+//       appointment: appointmentResult.appointment 
+//     })
 
-    console.log('✅ PAYMENT PROCESSING COMPLETE')
+//     console.log('✅ PAYMENT PROCESSING COMPLETE')
 
-    // Return properly formatted PaymentResult
-    return {
-      paymentId: payment._id.toString(),
-      success: true,
-      message: 'Payment successful! Your appointment has been confirmed automatically.',
-      transactionReference,
-      amount: paymentData.amount,
-      method: paymentData.method,
-      gateway: paymentData.gateway,
-      status: 'completed',
-      payment, 
-      appointment: appointmentResult.appointment
-    }
+//     // Return properly formatted PaymentResult
+//     return {
+//       paymentId: payment._id.toString(),
+//       success: true,
+//       message: 'Payment successful! Your appointment has been confirmed automatically.',
+//       transactionReference,
+//       amount: paymentData.amount,
+//       method: paymentData.method,
+//       gateway: paymentData.gateway,
+//       status: 'completed',
+//       payment, 
+//       appointment: appointmentResult.appointment
+//     }
 
-  } catch (error) {
-    console.error('❌ Payment processing failed:', error.message)
+//   } catch (error) {
+//     console.error('❌ Payment processing failed:', error.message)
     
-    // Handle payment failure
-    try {
-      await this.handlePaymentFailure(bookingId, transactionReference, error.message)
-    } catch (failureError) {
-      console.error('❌ Failed to handle payment failure:', failureError.message)
-    }
+//     // Handle payment failure
+//     try {
+//       await this.handlePaymentFailure(bookingId, transactionReference, error.message)
+//     } catch (failureError) {
+//       console.error('❌ Failed to handle payment failure:', failureError.message)
+//     }
     
-    throw error
-  }
-}
+//     throw error
+//   }
+// }
+
+// UPDATE THIS METHOD in booking-orchestrator.service.ts
+
+// async handlePaymentAndComplete(
+//   bookingId: string,
+//   transactionReference: string,
+//   paymentData: {
+//     amount: number
+//     method: string
+//     gateway: string
+//     clientId: string
+//     businessId: string
+//   }
+// ): Promise<PaymentResult> {
+//   try {
+//     console.log('💳 Processing payment...')
+//     console.log('  - Booking ID:', bookingId)
+//     console.log('  - Transaction Reference:', transactionReference)
+//     console.log('  - Amount:', paymentData.amount)
+//     console.log('  - Method:', paymentData.method)
+//     console.log('  - Gateway:', paymentData.gateway)
+
+//     // 1. Get booking details
+//     const booking = await this.bookingService.getBookingById(bookingId)
+    
+//     if (!booking) {
+//       throw new NotFoundException('Booking not found')
+//     }
+
+//     // FIX: Allow both 'pending' and 'payment_failed' statuses for retry
+//     const allowedStatuses = ['pending', 'payment_failed']
+//     if (!allowedStatuses.includes(booking.status)) {
+//       throw new BadRequestException(
+//         `Cannot process payment for booking with status '${booking.status}'. ` +
+//         `Payment can only be processed for bookings with status 'pending' or 'payment_failed'.`
+//       )
+//     }
+
+//     // If this is a retry (payment_failed status), reset to pending
+//     if (booking.status === 'payment_failed') {
+//       console.log('🔄 This is a payment retry - resetting booking status to pending')
+//       await this.bookingService.updateBookingStatus(bookingId, 'pending')
+//     }
+
+//     // 2. Verify payment amount matches booking total
+//     if (paymentData.amount !== booking.estimatedTotal) {
+//       throw new BadRequestException(
+//         `Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`
+//       )
+//     }
+
+//     // 3. Re-check availability before confirming (prevent double booking)
+//     const bookingDate = this.parseDate(booking.preferredDate)
+    
+//     const isStillAvailable = await this.checkAvailabilityForAllServices(
+//       booking.businessId.toString(),
+//       booking.services.map(s => s.serviceId.toString()),
+//       bookingDate,
+//       booking.preferredStartTime,
+//       booking.totalDuration
+//     )
+
+//     if (!isStillAvailable) {
+//       console.warn('⚠️ Time slot is no longer available')
+//       // Handle unavailable slot with refund
+//       await this.handleUnavailableSlot(booking, transactionReference)
+//       throw new BadRequestException(
+//         'Time slot is no longer available. Payment will be refunded.'
+//       )
+//     }
+
+//     // 4. AUTOMATED FLOW: Payment successful → Create appointment automatically
+//     console.log('📅 Creating appointment from booking...')
+//     const appointmentResult = await this.confirmBookingAndCreateAppointment(bookingId)
+
+//     // 5. Create payment record with proper method mapping
+//     console.log('💾 Creating payment record...')
+//     const payment = await this.paymentService.createPaymentFromBooking(
+//       booking,
+//       transactionReference,
+//       {
+//         paymentMethod: paymentData.method,
+//         gateway: paymentData.gateway,
+//         status: 'completed'
+//       }
+//     )
+
+//     // 6. Update payment status
+//     console.log('✅ Updating payment status...')
+//     await this.paymentService.updatePaymentStatus(
+//       payment._id.toString(),
+//       'completed',
+//       transactionReference
+//     )
+
+//     // 7. Link appointment to booking
+//     await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString())
+
+//     // 8. Send payment confirmation
+//     const appointmentDate = this.parseDate(appointmentResult.appointment.scheduledDate)
+    
+//     try {
+//       await this.notificationService.notifyPaymentConfirmation(
+//         payment._id.toString(),
+//         paymentData.clientId,
+//         paymentData.businessId,
+//         {
+//           clientName: booking.clientName,
+//           amount: paymentData.amount,
+//           method: paymentData.method,
+//           gateway: paymentData.gateway,
+//           transactionId: transactionReference,
+//           serviceName: booking.services.map(s => s.serviceName).join(', '),
+//           appointmentDate: appointmentDate.toDateString(),
+//           businessName: booking.businessName,
+//           receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
+//           clientEmail: booking.clientEmail,
+//           clientPhone: booking.clientPhone
+//         }
+//       )
+//       console.log('✅ Payment confirmation notification sent')
+//     } catch (notificationError) {
+//       console.warn('⚠️ Notification failed (continuing):', notificationError.message)
+//     }
+
+//     // 9. Emit completion event
+//     this.eventEmitter.emit('payment.completed', { 
+//       payment, 
+//       booking, 
+//       appointment: appointmentResult.appointment 
+//     })
+
+//     console.log('✅ PAYMENT PROCESSING COMPLETE')
+
+//     return {
+//       paymentId: payment._id.toString(),
+//       success: true,
+//       message: booking.status === 'payment_failed' 
+//         ? 'Payment retry successful! Your appointment has been confirmed.'
+//         : 'Payment successful! Your appointment has been confirmed automatically.',
+//       transactionReference,
+//       amount: paymentData.amount,
+//       method: paymentData.method,
+//       gateway: paymentData.gateway,
+//       status: 'completed',
+//       payment, 
+//       appointment: appointmentResult.appointment
+//     }
+
+//   } catch (error) {
+//     console.error('❌ Payment processing failed:', error.message)
+    
+//     // Handle payment failure
+//     try {
+//       await this.handlePaymentFailure(bookingId, transactionReference, error.message)
+//     } catch (failureError) {
+//       console.error('❌ Failed to handle payment failure:', failureError.message)
+//     }
+    
+//     throw error
+//   }
+// }
+
+// OPTIONAL: Add a method to manually reset booking status for retry
+// async resetBookingForPaymentRetry(bookingId: string): Promise<void> {
+//   const booking = await this.bookingService.getBookingById(bookingId)
+  
+//   if (!booking) {
+//     throw new NotFoundException('Booking not found')
+//   }
+
+//   if (booking.status !== 'payment_failed') {
+//     throw new BadRequestException(
+//       `Cannot reset booking. Only bookings with 'payment_failed' status can be reset. Current status: ${booking.status}`
+//     )
+//   }
+
+//   // Check if booking hasn't expired
+//   if (booking.expiresAt && new Date() > new Date(booking.expiresAt)) {
+//     throw new BadRequestException('Booking has expired. Please create a new booking.')
+//   }
+
+//   // Reset to pending
+//   await this.bookingService.updateBookingStatus(bookingId, 'pending')
+  
+//   console.log(`✅ Booking ${booking.bookingNumber} reset to pending for payment retry`)
+// }
 
   private async sendConfirmationNotifications(
   booking: any, 
@@ -596,6 +783,1164 @@ private formatDateForAvailability(date: Date): string {
 
 // ISSUE 1: Booking status is 'confirmed' on second attempt
 // FIX: Check status BEFORE updating
+// async confirmBookingAndCreateAppointment(
+//   bookingId: string,
+//   staffId?: string,
+//   staffAssignments?: Array<{ staffId: string; serviceId: string; staffName?: string }>
+// ): Promise<AppointmentResult> {
+//   console.log('=== ORCHESTRATOR: CONFIRM BOOKING START ===')
+//   console.log('BookingId:', bookingId)
+//   console.log('Single StaffId:', staffId)
+//   console.log('Staff Assignments:', staffAssignments?.length || 0)
+  
+//   try {
+//     // STEP 1: Get booking
+//     const booking = await this.bookingService.getBookingById(bookingId)
+//     console.log('✅ Booking found:', booking.bookingNumber)
+//     console.log('Current status:', booking.status)
+    
+//     // FIX: Better status validation with specific error message
+//     if (booking.status !== 'pending') {
+//       throw new BadRequestException(
+//         `Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' bookings can be confirmed. ` +
+//         `This booking may have already been confirmed or expired.`
+//       )
+//     }
+    
+//     // STEP 2: Validate that we have staff assignments (either single or multiple)
+//     if (!staffId && (!staffAssignments || staffAssignments.length === 0)) {
+//       throw new BadRequestException(
+//         'Staff assignment is required. Provide either staffId or staffAssignments.'
+//       )
+//     }
+    
+//     // STEP 3: Validate staff availability for each service
+//     const bookingDate = this.parseDate(booking.preferredDate)
+//     const dateString = this.formatDateForAvailability(bookingDate)
+    
+//     let staffToValidate: Array<{ staffId: string; serviceId: string }> = []
+    
+//     if (staffAssignments && staffAssignments.length > 0) {
+//       staffToValidate = staffAssignments.map(a => ({
+//         staffId: a.staffId,
+//         serviceId: a.serviceId
+//       }))
+//     } else if (staffId) {
+//       // Legacy single staff for all services
+//       staffToValidate = booking.services.map(s => ({
+//         staffId: staffId,
+//         serviceId: s.serviceId.toString()
+//       }))
+//     }
+    
+//     // Validate each staff member's availability
+//     console.log(`🔍 Validating ${staffToValidate.length} staff assignments`)
+    
+//     const unavailableStaff: Array<{ staffId: string; serviceName: string; reason: string }> = []
+    
+//     for (const assignment of staffToValidate) {
+//       const service = booking.services.find(s => s.serviceId.toString() === assignment.serviceId)
+      
+//       if (!service) {
+//         throw new BadRequestException(`Service ${assignment.serviceId} not found in booking`)
+//       }
+      
+//       const duration = service.duration + (service.bufferTime || 0)
+//       const endTime = this.addMinutesToTime(booking.preferredStartTime, duration)
+      
+//       const isAvailable = await this.availabilityService.checkSlotAvailability({
+//         businessId: booking.businessId.toString(),
+//         serviceId: assignment.serviceId,
+//         date: dateString,
+//         startTime: booking.preferredStartTime,
+//         duration: duration
+//       })
+      
+//       if (!isAvailable) {
+//         unavailableStaff.push({
+//           staffId: assignment.staffId,
+//           serviceName: service.serviceName,
+//           reason: `Not available on ${dateString} from ${booking.preferredStartTime} to ${endTime}`
+//         })
+//         console.warn(`⚠️ Staff ${assignment.staffId} NOT available for service ${service.serviceName}`)
+//       } else {
+//         console.log(`✅ Staff ${assignment.staffId} available for service ${assignment.serviceId}`)
+//       }
+//     }
+    
+//     // FIX: Return detailed error if any staff is unavailable
+//     if (unavailableStaff.length > 0) {
+//       const errorDetails = unavailableStaff
+//         .map(s => `${s.staffId}: ${s.serviceName} (${s.reason})`)
+//         .join('; ')
+      
+//       throw new BadRequestException(
+//         `The following staff members are not available for the requested time slot: ${errorDetails}. ` +
+//         `Please try different staff or time slots.`
+//       )
+//     }
+    
+//     // STEP 4: Update booking status to confirmed (DO THIS FIRST before any other operations)
+//     console.log('📝 Updating booking status to confirmed...')
+//     await this.bookingService.updateBookingStatus(bookingId, 'confirmed', staffId)
+//     console.log('✅ Booking status updated to confirmed')
+    
+//     // STEP 5: Create appointment
+//     console.log('📅 Creating appointment from booking...')
+//     const appointment = await this.appointmentService.createFromBooking(booking)
+//     console.log('✅ Appointment created:', appointment.appointmentNumber)
+    
+//     // STEP 6: Create staff assignments
+//     let staffAssignmentResults: any[] = []
+    
+//     if (staffAssignments && staffAssignments.length > 0) {
+//       // Multiple staff assignments
+//       console.log(`📋 Creating ${staffAssignments.length} staff assignments`)
+      
+//       for (const assignment of staffAssignments) {
+//         try {
+//           const service = booking.services.find(
+//             s => s.serviceId.toString() === assignment.serviceId
+//           )
+          
+//           if (!service) {
+//             console.warn(`⚠️ Service ${assignment.serviceId} not found`)
+//             continue
+//           }
+          
+//           const duration = service.duration
+//           const endTime = this.addMinutesToTime(booking.preferredStartTime, duration)
+          
+//           console.log(`📌 Assigning staff ${assignment.staffId} to service ${service.serviceName}`)
+//           console.log(`   Time: ${booking.preferredStartTime} - ${endTime} (${duration} mins)`)
+          
+//           const result = await this.staffService.assignStaffToAppointment({
+//             staffId: assignment.staffId,
+//             businessId: booking.businessId.toString(),
+//             appointmentId: appointment._id.toString(),
+//             clientId: booking.clientId.toString(),
+//             assignmentDate: bookingDate,
+//             assignmentDetails: {
+//               startTime: booking.preferredStartTime,
+//               endTime: endTime,
+//               assignmentType: 'primary',
+//               estimatedDuration: duration,
+//               serviceId: assignment.serviceId,
+//               serviceName: service.serviceName,
+//               specialInstructions: booking.specialRequests || '',
+//               roomNumber: '',
+//               requiredEquipment: [],
+//               clientPreferences: '',
+//               setupTimeMinutes: 0,
+//               cleanupTimeMinutes: 0
+//             },
+//             assignedBy: staffId || assignment.staffId,
+//             assignmentMethod: 'manual'
+//           })
+          
+//           staffAssignmentResults.push({
+//             staffId: assignment.staffId,
+//             serviceId: assignment.serviceId,
+//             staffName: assignment.staffName,
+//             status: 'assigned',
+//             ...result
+//           })
+          
+//           console.log(`✅ Successfully assigned staff ${assignment.staffId}`)
+//         } catch (error) {
+//           console.error(`❌ Failed to assign staff ${assignment.staffId}:`, error.message)
+          
+//           // Log the error but continue with other staff
+//           staffAssignmentResults.push({
+//             staffId: assignment.staffId,
+//             serviceId: assignment.serviceId,
+//             staffName: assignment.staffName,
+//             error: error.message,
+//             status: 'failed'
+//           })
+//         }
+//       }
+//     } else if (staffId) {
+//       // Single staff assignment (legacy)
+//       console.log(`📋 Single staff assignment: ${staffId}`)
+      
+//       try {
+//         const result = await this.staffService.autoAssignStaff(
+//           booking.businessId.toString(),
+//           appointment._id.toString(),
+//           booking.clientId.toString(),
+//           booking.services[0].serviceId.toString(),
+//           bookingDate,
+//           booking.preferredStartTime,
+//           booking.estimatedEndTime
+//         )
+        
+//         staffAssignmentResults.push(result)
+//         console.log(`✅ Single staff assignment completed`)
+//       } catch (error) {
+//         console.error(`❌ Single staff assignment failed:`, error.message)
+//         staffAssignmentResults.push({
+//           staffId: staffId,
+//           error: error.message,
+//           status: 'failed'
+//         })
+//       }
+//     }
+    
+//     // STEP 7: Send notifications (wrap in try-catch to not fail the whole operation)
+//     console.log('📧 Sending confirmation notifications')
+//     try {
+//       await this.sendConfirmationNotifications(booking, appointment, staffAssignmentResults)
+//       console.log('✅ Notifications sent successfully')
+//     } catch (notificationError) {
+//       console.warn('⚠️ Notification sending failed (continuing):', notificationError.message)
+//       // Don't throw - notifications failing shouldn't fail the booking
+//     }
+    
+//     // STEP 8: Emit events
+//     console.log('📡 Emitting booking events')
+//     this.eventEmitter.emit('booking.confirmed', { 
+//       booking, 
+//       staffId, 
+//       staffAssignments: staffAssignmentResults,
+//       appointment 
+//     })
+    
+//     this.eventEmitter.emit('appointment.created', { 
+//       appointment, 
+//       booking, 
+//       staffAssignments: staffAssignmentResults 
+//     })
+    
+//     console.log('✅ BOOKING CONFIRMATION COMPLETE')
+    
+//     // STEP 9: Return success response
+//     return {
+//       appointmentId: appointment._id.toString(),
+//       appointmentNumber: appointment.appointmentNumber,
+//       scheduledDate: appointment.selectedDate,
+//       scheduledTime: appointment.selectedTime,
+//       status: appointment.status,
+//       clientId: appointment.clientId.toString(),
+//       businessId: appointment.businessInfo.businessId,
+//       booking: booking,
+//       message: `Booking confirmed with ${staffAssignmentResults.filter(s => s.status === 'assigned').length} staff member(s) assigned`,
+//       appointment,
+//       assignment: staffAssignmentResults.length === 1 ? staffAssignmentResults[0] : null,
+//       assignments: staffAssignmentResults
+//     }
+//   } catch (error) {
+//     console.error('❌ BOOKING CONFIRMATION FAILED:', error.message)
+//     console.error('Stack:', error.stack)
+//     throw error
+//   }
+// }
+
+// UPDATED booking-orchestrator.service.ts - PAYMENT RETRY FIX
+
+/**
+ * WORKFLOW EXPLANATION:
+ * 
+ * 1. CREATE BOOKING (createBookingWithValidation)
+ *    - Status: 'pending'
+ *    - No staff assigned yet
+ *    - Awaits payment
+ * 
+ * 2. PROCESS PAYMENT (handlePaymentAndComplete)
+ *    - Accepts: 'pending' OR 'payment_failed' bookings
+ *    - If payment_failed: Auto-resets to 'pending'
+ *    - On success: Creates appointment (WITHOUT staff)
+ *    - Status: 'confirmed'
+ * 
+ * 3. ASSIGN STAFF (separate flow - done via admin/staff dashboard)
+ *    - Use confirmBookingAndCreateAppointment() WITH staffId/staffAssignments
+ *    - Or use separate staff assignment endpoint
+ * 
+ * PAYMENT RETRY: Users can retry failed payments infinitely until booking expires
+ */
+
+// async handlePaymentAndComplete(
+//   bookingId: string,
+//   transactionReference: string,
+//   paymentData: {
+//     amount: number
+//     method: string
+//     gateway: string
+//     clientId: string
+//     businessId: string
+//   }
+// ): Promise<PaymentResult> {
+//   try {
+//     console.log('💳 Processing payment...')
+//     console.log('  - Booking ID:', bookingId)
+//     console.log('  - Transaction Reference:', transactionReference)
+//     console.log('  - Amount:', paymentData.amount)
+//     console.log('  - Method:', paymentData.method)
+//     console.log('  - Gateway:', paymentData.gateway)
+
+//     // 1. Get booking details
+//     const booking = await this.bookingService.getBookingById(bookingId)
+    
+//     if (!booking) {
+//       throw new NotFoundException('Booking not found')
+//     }
+
+//     // FIX: Allow both 'pending' and 'payment_failed' statuses for retry
+//     const allowedStatuses = ['pending', 'payment_failed']
+//     if (!allowedStatuses.includes(booking.status)) {
+//       throw new BadRequestException(
+//         `Cannot process payment for booking with status '${booking.status}'. ` +
+//         `Payment can only be processed for bookings with status 'pending' or 'payment_failed'.`
+//       )
+//     }
+
+//     // If this is a retry (payment_failed status), reset to pending
+//     if (booking.status === 'payment_failed') {
+//       console.log('🔄 This is a payment retry - resetting booking status to pending')
+//       await this.bookingService.updateBookingStatus(bookingId, 'pending')
+//     }
+
+//     // 2. Verify payment amount matches booking total
+//     if (paymentData.amount !== booking.estimatedTotal) {
+//       throw new BadRequestException(
+//         `Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`
+//       )
+//     }
+
+//     // 3. Re-check availability before confirming (prevent double booking)
+//     const bookingDate = this.parseDate(booking.preferredDate)
+    
+//     const isStillAvailable = await this.checkAvailabilityForAllServices(
+//       booking.businessId.toString(),
+//       booking.services.map(s => s.serviceId.toString()),
+//       bookingDate,
+//       booking.preferredStartTime,
+//       booking.totalDuration
+//     )
+
+//     if (!isStillAvailable) {
+//       console.warn('⚠️ Time slot is no longer available')
+//       // Handle unavailable slot with refund
+//       await this.handleUnavailableSlot(booking, transactionReference)
+//       throw new BadRequestException(
+//         'Time slot is no longer available. Payment will be refunded.'
+//       )
+//     }
+
+//     // 4. AUTOMATED FLOW: Payment successful → Create appointment automatically
+//     // Staff assignment is optional and done separately after confirmation
+//     console.log('📅 Creating appointment from booking (without staff assignment)...')
+//     const appointmentResult = await this.confirmBookingWithoutStaff(bookingId)
+
+//     // 5. Create payment record with proper method mapping
+//     console.log('💾 Creating payment record...')
+//     const payment = await this.paymentService.createPaymentFromBooking(
+//       booking,
+//       transactionReference,
+//       {
+//         paymentMethod: paymentData.method,
+//         gateway: paymentData.gateway,
+//         status: 'completed'
+//       }
+//     )
+
+//     // 6. Update payment status
+//     console.log('✅ Updating payment status...')
+//     await this.paymentService.updatePaymentStatus(
+//       payment._id.toString(),
+//       'completed',
+//       transactionReference
+//     )
+
+//     // 7. Link appointment to booking
+//     await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString())
+
+//     // 8. Send payment confirmation
+//     const appointmentDate = this.parseDate(appointmentResult.appointment.scheduledDate)
+    
+//     try {
+//       await this.notificationService.notifyPaymentConfirmation(
+//         payment._id.toString(),
+//         paymentData.clientId,
+//         paymentData.businessId,
+//         {
+//           clientName: booking.clientName,
+//           amount: paymentData.amount,
+//           method: paymentData.method,
+//           gateway: paymentData.gateway,
+//           transactionId: transactionReference,
+//           serviceName: booking.services.map(s => s.serviceName).join(', '),
+//           appointmentDate: appointmentDate.toDateString(),
+//           businessName: booking.businessName,
+//           receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
+//           clientEmail: booking.clientEmail,
+//           clientPhone: booking.clientPhone
+//         }
+//       )
+//       console.log('✅ Payment confirmation notification sent')
+//     } catch (notificationError) {
+//       console.warn('⚠️ Notification failed (continuing):', notificationError.message)
+//     }
+
+//     // 9. Emit completion event
+//     this.eventEmitter.emit('payment.completed', { 
+//       payment, 
+//       booking, 
+//       appointment: appointmentResult.appointment 
+//     })
+
+//     console.log('✅ PAYMENT PROCESSING COMPLETE')
+
+//     return {
+//       paymentId: payment._id.toString(),
+//       success: true,
+//       message: booking.status === 'payment_failed' 
+//         ? 'Payment retry successful! Your appointment has been confirmed. Staff will be assigned shortly.'
+//         : 'Payment successful! Your appointment has been confirmed. Staff will be assigned shortly.',
+//       transactionReference,
+//       amount: paymentData.amount,
+//       method: paymentData.method,
+//       gateway: paymentData.gateway,
+//       status: 'completed',
+//       payment, 
+//       appointment: appointmentResult.appointment
+//     }
+
+//   } catch (error) {
+//     console.error('❌ Payment processing failed:', error.message)
+    
+//     // Handle payment failure
+//     try {
+//       await this.handlePaymentFailure(bookingId, transactionReference, error.message)
+//     } catch (failureError) {
+//       console.error('❌ Failed to handle payment failure:', failureError.message)
+//     }
+    
+//     throw error
+//   }
+// }
+
+// OPTIONAL: Add a method to manually reset booking status for retry
+// async resetBookingForPaymentRetry(bookingId: string): Promise<void> {
+//   const booking = await this.bookingService.getBookingById(bookingId)
+  
+//   if (!booking) {
+//     throw new NotFoundException('Booking not found')
+//   }
+
+//   if (booking.status !== 'payment_failed') {
+//     throw new BadRequestException(
+//       `Cannot reset booking. Only bookings with 'payment_failed' status can be reset. Current status: ${booking.status}`
+//     )
+//   }
+
+//   // Check if booking hasn't expired
+//   if (booking.expiresAt && new Date() > new Date(booking.expiresAt)) {
+//     throw new BadRequestException('Booking has expired. Please create a new booking.')
+//   }
+
+//   // Reset to pending
+//   await this.bookingService.updateBookingStatus(bookingId, 'pending')
+  
+//   console.log(`✅ Booking ${booking.bookingNumber} reset to pending for payment retry`)
+// }
+
+// NEW METHOD: Confirm booking and create appointment WITHOUT staff assignment
+// Staff assignment is done separately after payment confirmation
+// async confirmBookingWithoutStaff(bookingId: string): Promise<AppointmentResult> {
+//   console.log('=== ORCHESTRATOR: CONFIRM BOOKING WITHOUT STAFF ===')
+//   console.log('BookingId:', bookingId)
+  
+//   try {
+//     // STEP 1: Get booking
+//     const booking = await this.bookingService.getBookingById(bookingId)
+//     console.log('✅ Booking found:', booking.bookingNumber)
+//     console.log('Current status:', booking.status)
+    
+//     // FIX: Accept both 'pending' and 'payment_failed' statuses
+//     const allowedStatuses = ['pending', 'payment_failed']
+//     if (!allowedStatuses.includes(booking.status)) {
+//       throw new BadRequestException(
+//         `Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' or 'payment_failed' bookings can be confirmed. ` +
+//         `This booking may have already been confirmed or expired.`
+//       )
+//     }
+    
+//     // STEP 2: Update booking status to confirmed
+//     console.log('📝 Updating booking status to confirmed...')
+//     await this.bookingService.updateBookingStatus(bookingId, 'confirmed')
+//     console.log('✅ Booking status updated to confirmed')
+    
+//     // STEP 3: Create appointment (without staff assignment)
+//     console.log('📅 Creating appointment from booking...')
+//     const appointment = await this.appointmentService.createFromBooking(booking)
+//     console.log('✅ Appointment created:', appointment.appointmentNumber)
+    
+//     // STEP 4: Send notifications (without staff notifications since no staff assigned yet)
+//     console.log('📧 Sending confirmation notifications')
+//     try {
+//       await this.sendClientConfirmationOnly(booking, appointment)
+//       console.log('✅ Client notification sent successfully')
+//     } catch (notificationError) {
+//       console.warn('⚠️ Notification sending failed (continuing):', notificationError.message)
+//     }
+    
+//     // STEP 5: Emit events
+//     console.log('📡 Emitting booking events')
+//     this.eventEmitter.emit('booking.confirmed', { 
+//       booking, 
+//       appointment,
+//       staffAssigned: false // Indicates staff assignment pending
+//     })
+    
+//     this.eventEmitter.emit('appointment.created', { 
+//       appointment, 
+//       booking,
+//       staffAssigned: false
+//     })
+    
+//     console.log('✅ BOOKING CONFIRMATION COMPLETE (Staff assignment pending)')
+    
+//     // STEP 6: Return success response
+//     return {
+//       appointmentId: appointment._id.toString(),
+//       appointmentNumber: appointment.appointmentNumber,
+//       scheduledDate: appointment.selectedDate,
+//       scheduledTime: appointment.selectedTime,
+//       status: appointment.status,
+//       clientId: appointment.clientId.toString(),
+//       businessId: appointment.businessInfo.businessId,
+//       booking: booking,
+//       message: 'Booking confirmed successfully. Staff will be assigned shortly.',
+//       appointment,
+//       assignment: null, // No staff assigned yet
+//       assignments: [] // Empty array - staff to be assigned later
+//     }
+//   } catch (error) {
+//     console.error('❌ BOOKING CONFIRMATION FAILED:', error.message)
+//     console.error('Stack:', error.stack)
+//     throw error
+//   }
+// }
+
+// // Helper method: Send confirmation to client only (no staff notifications)
+// private async sendClientConfirmationOnly(booking: any, appointment: any): Promise<void> {
+//   const bookingDate = this.parseDate(booking.preferredDate)
+  
+//   // Notify client about booking confirmation
+//   await this.notificationService.notifyBookingConfirmation(
+//     booking._id.toString(),
+//     booking.clientId.toString(),
+//     booking.businessId.toString(),
+//     {
+//       clientName: booking.clientName,
+//       serviceName: booking.services.map(s => s.serviceName).join(', '),
+//       date: bookingDate.toDateString(),
+//       time: booking.preferredStartTime,
+//       businessName: booking.businessName,
+//       businessAddress: booking.businessAddress || 'N/A',
+//       appointmentNumber: appointment.appointmentNumber,
+//       clientEmail: booking.clientEmail,
+//       clientPhone: booking.clientPhone,
+//       staffCount: 0 // No staff assigned yet
+//     }
+//   )
+// }
+
+// UPDATED: Make staff assignment truly optional
+// async confirmBookingAndCreateAppointment(
+//   bookingId: string,
+//   staffId?: string,
+//   staffAssignments?: Array<{ staffId: string; serviceId: string; staffName?: string }>
+// ): Promise<AppointmentResult> {
+//   console.log('=== ORCHESTRATOR: CONFIRM BOOKING START ===')
+//   console.log('BookingId:', bookingId)
+//   console.log('Single StaffId:', staffId)
+//   console.log('Staff Assignments:', staffAssignments?.length || 0)
+  
+//   // If no staff provided, use the simpler confirmation flow
+//   if (!staffId && (!staffAssignments || staffAssignments.length === 0)) {
+//     console.log('⚠️ No staff provided - using confirmation without staff assignment')
+//     return await this.confirmBookingWithoutStaff(bookingId)
+//   }
+  
+//   try {
+//     // STEP 1: Get booking
+//     const booking = await this.bookingService.getBookingById(bookingId)
+//     console.log('✅ Booking found:', booking.bookingNumber)
+//     console.log('Current status:', booking.status)
+    
+//     // FIX: Better status validation with specific error message
+//     if (booking.status !== 'pending') {
+//       throw new BadRequestException(
+//         `Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' bookings can be confirmed. ` +
+//         `This booking may have already been confirmed or expired.`
+//       )
+//     }
+    
+//     // STEP 2: Validate that we have staff assignments (either single or multiple)
+//     // REMOVED: This validation is now handled earlier by checking and redirecting to confirmBookingWithoutStaff
+    
+//     // STEP 3: Validate staff availability for each service
+//     const bookingDate = this.parseDate(booking.preferredDate)
+//     const dateString = this.formatDateForAvailability(bookingDate)
+    
+//     let staffToValidate: Array<{ staffId: string; serviceId: string }> = []
+    
+//     if (staffAssignments && staffAssignments.length > 0) {
+//       staffToValidate = staffAssignments.map(a => ({
+//         staffId: a.staffId,
+//         serviceId: a.serviceId
+//       }))
+//     } else if (staffId) {
+//       // Legacy single staff for all services
+//       staffToValidate = booking.services.map(s => ({
+//         staffId: staffId,
+//         serviceId: s.serviceId.toString()
+//       }))
+//     }
+    
+//     // Validate each staff member's availability
+//     console.log(`🔍 Validating ${staffToValidate.length} staff assignments`)
+    
+//     const unavailableStaff: Array<{ staffId: string; serviceName: string; reason: string }> = []
+    
+//     for (const assignment of staffToValidate) {
+//       const service = booking.services.find(s => s.serviceId.toString() === assignment.serviceId)
+      
+//       if (!service) {
+//         throw new BadRequestException(`Service ${assignment.serviceId} not found in booking`)
+//       }
+      
+//       const duration = service.duration + (service.bufferTime || 0)
+//       const endTime = this.addMinutesToTime(booking.preferredStartTime, duration)
+      
+//       const isAvailable = await this.availabilityService.checkSlotAvailability({
+//         businessId: booking.businessId.toString(),
+//         serviceId: assignment.serviceId,
+//         date: dateString,
+//         startTime: booking.preferredStartTime,
+//         duration: duration
+//       })
+      
+//       if (!isAvailable) {
+//         unavailableStaff.push({
+//           staffId: assignment.staffId,
+//           serviceName: service.serviceName,
+//           reason: `Not available on ${dateString} from ${booking.preferredStartTime} to ${endTime}`
+//         })
+//         console.warn(`⚠️ Staff ${assignment.staffId} NOT available for service ${service.serviceName}`)
+//       } else {
+//         console.log(`✅ Staff ${assignment.staffId} available for service ${assignment.serviceId}`)
+//       }
+//     }
+    
+//     // FIX: Return detailed error if any staff is unavailable
+//     if (unavailableStaff.length > 0) {
+//       const errorDetails = unavailableStaff
+//         .map(s => `${s.staffId}: ${s.serviceName} (${s.reason})`)
+//         .join('; ')
+      
+//       throw new BadRequestException(
+//         `The following staff members are not available for the requested time slot: ${errorDetails}. ` +
+//         `Please try different staff or time slots.`
+//       )
+//     }
+    
+//     // STEP 4: Update booking status to confirmed (DO THIS FIRST before any other operations)
+//     console.log('📝 Updating booking status to confirmed...')
+//     await this.bookingService.updateBookingStatus(bookingId, 'confirmed', staffId)
+//     console.log('✅ Booking status updated to confirmed')
+    
+//     // STEP 5: Create appointment
+//     console.log('📅 Creating appointment from booking...')
+//     const appointment = await this.appointmentService.createFromBooking(booking)
+//     console.log('✅ Appointment created:', appointment.appointmentNumber)
+    
+//     // STEP 6: Create staff assignments
+//     let staffAssignmentResults: any[] = []
+    
+//     if (staffAssignments && staffAssignments.length > 0) {
+//       // Multiple staff assignments
+//       console.log(`📋 Creating ${staffAssignments.length} staff assignments`)
+      
+//       for (const assignment of staffAssignments) {
+//         try {
+//           const service = booking.services.find(
+//             s => s.serviceId.toString() === assignment.serviceId
+//           )
+          
+//           if (!service) {
+//             console.warn(`⚠️ Service ${assignment.serviceId} not found`)
+//             continue
+//           }
+          
+//           const duration = service.duration
+//           const endTime = this.addMinutesToTime(booking.preferredStartTime, duration)
+          
+//           console.log(`📌 Assigning staff ${assignment.staffId} to service ${service.serviceName}`)
+//           console.log(`   Time: ${booking.preferredStartTime} - ${endTime} (${duration} mins)`)
+          
+//           const result = await this.staffService.assignStaffToAppointment({
+//             staffId: assignment.staffId,
+//             businessId: booking.businessId.toString(),
+//             appointmentId: appointment._id.toString(),
+//             clientId: booking.clientId.toString(),
+//             assignmentDate: bookingDate,
+//             assignmentDetails: {
+//               startTime: booking.preferredStartTime,
+//               endTime: endTime,
+//               assignmentType: 'primary',
+//               estimatedDuration: duration,
+//               serviceId: assignment.serviceId,
+//               serviceName: service.serviceName,
+//               specialInstructions: booking.specialRequests || '',
+//               roomNumber: '',
+//               requiredEquipment: [],
+//               clientPreferences: '',
+//               setupTimeMinutes: 0,
+//               cleanupTimeMinutes: 0
+//             },
+//             assignedBy: staffId || assignment.staffId,
+//             assignmentMethod: 'manual'
+//           })
+          
+//           staffAssignmentResults.push({
+//             staffId: assignment.staffId,
+//             serviceId: assignment.serviceId,
+//             staffName: assignment.staffName,
+//             status: 'assigned',
+//             ...result
+//           })
+          
+//           console.log(`✅ Successfully assigned staff ${assignment.staffId}`)
+//         } catch (error) {
+//           console.error(`❌ Failed to assign staff ${assignment.staffId}:`, error.message)
+          
+//           // Log the error but continue with other staff
+//           staffAssignmentResults.push({
+//             staffId: assignment.staffId,
+//             serviceId: assignment.serviceId,
+//             staffName: assignment.staffName,
+//             error: error.message,
+//             status: 'failed'
+//           })
+//         }
+//       }
+//     } else if (staffId) {
+//       // Single staff assignment (legacy)
+//       console.log(`📋 Single staff assignment: ${staffId}`)
+      
+//       try {
+//         const result = await this.staffService.autoAssignStaff(
+//           booking.businessId.toString(),
+//           appointment._id.toString(),
+//           booking.clientId.toString(),
+//           booking.services[0].serviceId.toString(),
+//           bookingDate,
+//           booking.preferredStartTime,
+//           booking.estimatedEndTime
+//         )
+        
+//         staffAssignmentResults.push(result)
+//         console.log(`✅ Single staff assignment completed`)
+//       } catch (error) {
+//         console.error(`❌ Single staff assignment failed:`, error.message)
+//         staffAssignmentResults.push({
+//           staffId: staffId,
+//           error: error.message,
+//           status: 'failed'
+//         })
+//       }
+//     }
+    
+//     // STEP 7: Send notifications (wrap in try-catch to not fail the whole operation)
+//     console.log('📧 Sending confirmation notifications')
+//     try {
+//       await this.sendConfirmationNotifications(booking, appointment, staffAssignmentResults)
+//       console.log('✅ Notifications sent successfully')
+//     } catch (notificationError) {
+//       console.warn('⚠️ Notification sending failed (continuing):', notificationError.message)
+//       // Don't throw - notifications failing shouldn't fail the booking
+//     }
+    
+//     // STEP 8: Emit events
+//     console.log('📡 Emitting booking events')
+//     this.eventEmitter.emit('booking.confirmed', { 
+//       booking, 
+//       staffId, 
+//       staffAssignments: staffAssignmentResults,
+//       appointment 
+//     })
+    
+//     this.eventEmitter.emit('appointment.created', { 
+//       appointment, 
+//       booking, 
+//       staffAssignments: staffAssignmentResults 
+//     })
+    
+//     console.log('✅ BOOKING CONFIRMATION COMPLETE')
+    
+//     // STEP 9: Return success response
+//     return {
+//       appointmentId: appointment._id.toString(),
+//       appointmentNumber: appointment.appointmentNumber,
+//       scheduledDate: appointment.selectedDate,
+//       scheduledTime: appointment.selectedTime,
+//       status: appointment.status,
+//       clientId: appointment.clientId.toString(),
+//       businessId: appointment.businessInfo.businessId,
+//       booking: booking,
+//       message: `Booking confirmed with ${staffAssignmentResults.filter(s => s.status === 'assigned').length} staff member(s) assigned`,
+//       appointment,
+//       assignment: staffAssignmentResults.length === 1 ? staffAssignmentResults[0] : null,
+//       assignments: staffAssignmentResults
+//     }
+//   } catch (error) {
+//     console.error('❌ BOOKING CONFIRMATION FAILED:', error.message)
+//     console.error('Stack:', error.stack)
+//     throw error
+//   }
+// }
+
+// UPDATED booking-orchestrator.service.ts - PAYMENT RETRY FIX
+
+/**
+ * WORKFLOW EXPLANATION:
+ * 
+ * 1. CREATE BOOKING (createBookingWithValidation)
+ *    - Status: 'pending'
+ *    - No staff assigned yet
+ *    - Awaits payment
+ * 
+ * 2. PROCESS PAYMENT (handlePaymentAndComplete)
+ *    - Accepts: 'pending' OR 'payment_failed' bookings
+ *    - If payment_failed: Auto-resets to 'pending'
+ *    - On success: Creates appointment (WITHOUT staff)
+ *    - Status: 'confirmed'
+ * 
+ * 3. ASSIGN STAFF (separate flow - done via admin/staff dashboard)
+ *    - Use confirmBookingAndCreateAppointment() WITH staffId/staffAssignments
+ *    - Or use separate staff assignment endpoint
+ * 
+ * PAYMENT RETRY: Users can retry failed payments infinitely until booking expires
+ */
+
+async handlePaymentAndComplete(
+  bookingId: string,
+  transactionReference: string,
+  paymentData: {
+    amount: number
+    method: string
+    gateway: string
+    clientId: string
+    businessId: string
+  }
+): Promise<PaymentResult> {
+  try {
+    console.log('💳 Processing payment...')
+    console.log('  - Booking ID:', bookingId)
+    console.log('  - Transaction Reference:', transactionReference)
+    console.log('  - Amount:', paymentData.amount)
+    console.log('  - Method:', paymentData.method)
+    console.log('  - Gateway:', paymentData.gateway)
+
+    // 1. Get booking details
+    const booking = await this.bookingService.getBookingById(bookingId)
+    
+    if (!booking) {
+      throw new NotFoundException('Booking not found')
+    }
+
+    // FIX: Allow both 'pending' and 'payment_failed' statuses for retry
+    const allowedStatuses = ['pending', 'payment_failed']
+    if (!allowedStatuses.includes(booking.status)) {
+      throw new BadRequestException(
+        `Cannot process payment for booking with status '${booking.status}'. ` +
+        `Payment can only be processed for bookings with status 'pending' or 'payment_failed'.`
+      )
+    }
+
+    // If this is a retry (payment_failed status), reset to pending
+    if (booking.status === 'payment_failed') {
+      console.log('🔄 This is a payment retry - resetting booking status to pending')
+      await this.bookingService.updateBookingStatus(bookingId, 'pending')
+    }
+
+    // 2. Verify payment amount matches booking total
+    if (paymentData.amount !== booking.estimatedTotal) {
+      throw new BadRequestException(
+        `Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`
+      )
+    }
+
+    // 3. Re-check availability before confirming (prevent double booking)
+    const bookingDate = this.parseDate(booking.preferredDate)
+    
+    const isStillAvailable = await this.checkAvailabilityForAllServices(
+      booking.businessId.toString(),
+      booking.services.map(s => s.serviceId.toString()),
+      bookingDate,
+      booking.preferredStartTime,
+      booking.totalDuration
+    )
+
+    if (!isStillAvailable) {
+      console.warn('⚠️ Time slot is no longer available')
+      // Handle unavailable slot with refund
+      await this.handleUnavailableSlot(booking, transactionReference)
+      throw new BadRequestException(
+        'Time slot is no longer available. Payment will be refunded.'
+      )
+    }
+
+    // 4. AUTOMATED FLOW: Payment successful → Create appointment automatically
+    // Staff assignment is optional and done separately after confirmation
+    console.log('📅 Creating appointment from booking (without staff assignment)...')
+    const appointmentResult = await this.confirmBookingWithoutStaff(bookingId)
+    
+    // Validate appointment was created successfully
+    if (!appointmentResult || !appointmentResult.appointment) {
+      throw new Error('Failed to create appointment from booking')
+    }
+    
+    console.log('✅ Appointment created:', appointmentResult.appointmentNumber)
+
+    // 5. Create payment record with proper method mapping
+    console.log('💾 Creating payment record...')
+    const payment = await this.paymentService.createPaymentFromBooking(
+      booking,
+      transactionReference,
+      {
+        paymentMethod: paymentData.method,
+        gateway: paymentData.gateway,
+        status: 'completed'
+      }
+    )
+
+    // 6. Update payment status
+    console.log('✅ Updating payment status...')
+    await this.paymentService.updatePaymentStatus(
+      payment._id.toString(),
+      'completed',
+      transactionReference
+    )
+
+    // 7. Link appointment to booking
+    await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString())
+
+    // 8. Send payment confirmation
+    // FIX: Use booking's preferredDate instead of appointment.scheduledDate
+    const appointmentDate = this.parseDate(booking.preferredDate)
+    
+    console.log('📧 Preparing to send payment confirmation notification')
+    console.log('Notification data:', {
+      clientName: booking.clientName,
+      appointmentDate: appointmentDate.toDateString(),
+      amount: paymentData.amount
+    })
+    
+    try {
+      await this.notificationService.notifyPaymentConfirmation(
+        payment._id.toString(),
+        paymentData.clientId,
+        paymentData.businessId,
+        {
+          clientName: booking.clientName,
+          amount: paymentData.amount,
+          method: paymentData.method,
+          gateway: paymentData.gateway,
+          transactionId: transactionReference,
+          serviceName: booking.services.map(s => s.serviceName).join(', '),
+          appointmentDate: appointmentDate.toDateString(),
+          businessName: booking.businessName,
+          receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
+          clientEmail: booking.clientEmail,
+          clientPhone: booking.clientPhone
+        }
+      )
+      console.log('✅ Payment confirmation notification sent')
+    } catch (notificationError) {
+      console.warn('⚠️ Notification failed (continuing):', notificationError.message)
+    }
+
+    // 9. Emit completion event
+    this.eventEmitter.emit('payment.completed', { 
+      payment, 
+      booking, 
+      appointment: appointmentResult.appointment 
+    })
+
+    console.log('✅ PAYMENT PROCESSING COMPLETE')
+
+    return {
+      paymentId: payment._id.toString(),
+      success: true,
+      message: booking.status === 'payment_failed' 
+        ? 'Payment retry successful! Your appointment has been confirmed. Staff will be assigned shortly.'
+        : 'Payment successful! Your appointment has been confirmed. Staff will be assigned shortly.',
+      transactionReference,
+      amount: paymentData.amount,
+      method: paymentData.method,
+      gateway: paymentData.gateway,
+      status: 'completed',
+      payment, 
+      appointment: appointmentResult.appointment
+    }
+
+  } catch (error) {
+    console.error('❌ Payment processing failed:', error.message)
+    
+    // Handle payment failure
+    try {
+      await this.handlePaymentFailure(bookingId, transactionReference, error.message)
+    } catch (failureError) {
+      console.error('❌ Failed to handle payment failure:', failureError.message)
+    }
+    
+    throw error
+  }
+}
+
+// OPTIONAL: Add a method to manually reset booking status for retry
+async resetBookingForPaymentRetry(bookingId: string): Promise<void> {
+  const booking = await this.bookingService.getBookingById(bookingId)
+  
+  if (!booking) {
+    throw new NotFoundException('Booking not found')
+  }
+
+  if (booking.status !== 'payment_failed') {
+    throw new BadRequestException(
+      `Cannot reset booking. Only bookings with 'payment_failed' status can be reset. Current status: ${booking.status}`
+    )
+  }
+
+  // Check if booking hasn't expired
+  if (booking.expiresAt && new Date() > new Date(booking.expiresAt)) {
+    throw new BadRequestException('Booking has expired. Please create a new booking.')
+  }
+
+  // Reset to pending
+  await this.bookingService.updateBookingStatus(bookingId, 'pending')
+  
+  console.log(`✅ Booking ${booking.bookingNumber} reset to pending for payment retry`)
+}
+
+// NEW METHOD: Confirm booking and create appointment WITHOUT staff assignment
+// Staff assignment is done separately after payment confirmation
+async confirmBookingWithoutStaff(bookingId: string): Promise<AppointmentResult> {
+  console.log('=== ORCHESTRATOR: CONFIRM BOOKING WITHOUT STAFF ===')
+  console.log('BookingId:', bookingId)
+  
+  try {
+    // STEP 1: Get booking
+    const booking = await this.bookingService.getBookingById(bookingId)
+    console.log('✅ Booking found:', booking.bookingNumber)
+    console.log('Current status:', booking.status)
+    
+    // FIX: Accept both 'pending' and 'payment_failed' statuses
+    const allowedStatuses = ['pending', 'payment_failed']
+    if (!allowedStatuses.includes(booking.status)) {
+      throw new BadRequestException(
+        `Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' or 'payment_failed' bookings can be confirmed. ` +
+        `This booking may have already been confirmed or expired.`
+      )
+    }
+    
+    // STEP 2: Update booking status to confirmed
+    console.log('📝 Updating booking status to confirmed...')
+    await this.bookingService.updateBookingStatus(bookingId, 'confirmed')
+    console.log('✅ Booking status updated to confirmed')
+    
+    // STEP 3: Create appointment (without staff assignment)
+    console.log('📅 Creating appointment from booking...')
+    const appointment = await this.appointmentService.createFromBooking(booking)
+    
+    if (!appointment) {
+      throw new Error('Failed to create appointment')
+    }
+    
+    console.log('✅ Appointment created:', appointment.appointmentNumber)
+    console.log('Appointment details:', {
+      id: appointment._id,
+      number: appointment.appointmentNumber,
+      date: appointment.selectedDate || appointment.scheduledDate,
+      time: appointment.selectedTime || appointment.scheduledTime
+    })
+    
+    // STEP 4: Send notifications (without staff notifications since no staff assigned yet)
+    console.log('📧 Sending confirmation notifications')
+    try {
+      await this.sendClientConfirmationOnly(booking, appointment)
+      console.log('✅ Client notification sent successfully')
+    } catch (notificationError) {
+      console.warn('⚠️ Notification sending failed (continuing):', notificationError.message)
+    }
+    
+    // STEP 5: Emit events
+    console.log('📡 Emitting booking events')
+    this.eventEmitter.emit('booking.confirmed', { 
+      booking, 
+      appointment,
+      staffAssigned: false // Indicates staff assignment pending
+    })
+    
+    this.eventEmitter.emit('appointment.created', { 
+      appointment, 
+      booking,
+      staffAssigned: false
+    })
+    
+    console.log('✅ BOOKING CONFIRMATION COMPLETE (Staff assignment pending)')
+    
+    // STEP 6: Return success response
+    return {
+      appointmentId: appointment._id.toString(),
+      appointmentNumber: appointment.appointmentNumber,
+      scheduledDate: appointment.selectedDate || appointment.scheduledDate || booking.preferredDate,
+      scheduledTime: appointment.selectedTime || appointment.scheduledTime || booking.preferredStartTime,
+      status: appointment.status,
+      clientId: appointment.clientId.toString(),
+      businessId: appointment.businessInfo?.businessId || booking.businessId.toString(),
+      booking: booking,
+      message: 'Booking confirmed successfully. Staff will be assigned shortly.',
+      appointment,
+      assignment: null, // No staff assigned yet
+      assignments: [] // Empty array - staff to be assigned later
+    }
+  } catch (error) {
+    console.error('❌ BOOKING CONFIRMATION FAILED:', error.message)
+    console.error('Stack:', error.stack)
+    throw error
+  }
+}
+
+// Helper method: Send confirmation to client only (no staff notifications)
+private async sendClientConfirmationOnly(booking: any, appointment: any): Promise<void> {
+  const bookingDate = this.parseDate(booking.preferredDate)
+  
+  // Notify client about booking confirmation
+  await this.notificationService.notifyBookingConfirmation(
+    booking._id.toString(),
+    booking.clientId.toString(),
+    booking.businessId.toString(),
+    {
+      clientName: booking.clientName,
+      serviceName: booking.services.map(s => s.serviceName).join(', '),
+      date: bookingDate.toDateString(),
+      time: booking.preferredStartTime,
+      businessName: booking.businessName,
+      businessAddress: booking.businessAddress || 'N/A',
+      appointmentNumber: appointment.appointmentNumber,
+      clientEmail: booking.clientEmail,
+      clientPhone: booking.clientPhone,
+      staffCount: 0 // No staff assigned yet
+    }
+  )
+}
+
+// UPDATED: Make staff assignment truly optional
 async confirmBookingAndCreateAppointment(
   bookingId: string,
   staffId?: string,
@@ -605,6 +1950,12 @@ async confirmBookingAndCreateAppointment(
   console.log('BookingId:', bookingId)
   console.log('Single StaffId:', staffId)
   console.log('Staff Assignments:', staffAssignments?.length || 0)
+  
+  // If no staff provided, use the simpler confirmation flow
+  if (!staffId && (!staffAssignments || staffAssignments.length === 0)) {
+    console.log('⚠️ No staff provided - using confirmation without staff assignment')
+    return await this.confirmBookingWithoutStaff(bookingId)
+  }
   
   try {
     // STEP 1: Get booking
@@ -621,11 +1972,7 @@ async confirmBookingAndCreateAppointment(
     }
     
     // STEP 2: Validate that we have staff assignments (either single or multiple)
-    if (!staffId && (!staffAssignments || staffAssignments.length === 0)) {
-      throw new BadRequestException(
-        'Staff assignment is required. Provide either staffId or staffAssignments.'
-      )
-    }
+    // REMOVED: This validation is now handled earlier by checking and redirecting to confirmBookingWithoutStaff
     
     // STEP 3: Validate staff availability for each service
     const bookingDate = this.parseDate(booking.preferredDate)

@@ -288,29 +288,59 @@ async getServicesByIds(serviceIds: string[]): Promise<ServiceDocument[]> {
   return services
 }
 
+  // async findOneService(id: string): Promise<ApiResponse<Service>> {
+  //   try {
+  //     this.validateObjectId(id, "Service")
+
+  //     const service = await this.serviceModel
+  //       .findById(new Types.ObjectId(id))
+  //       .populate('basicDetails.category', 'categoryName appointmentColor')
+
+  //     if (!service) {
+  //       throw new NotFoundException("Service not found")
+  //     }
+
+  //     return {
+  //       success: true,
+  //       data: service,
+  //     }
+  //   } catch (error) {
+  //     if (error instanceof NotFoundException) {
+  //       throw error
+  //     }
+  //     throw new Error(`Failed to fetch service: ${error.message}`)
+  //   }
+  // }
+
   async findOneService(id: string): Promise<ApiResponse<Service>> {
-    try {
-      this.validateObjectId(id, "Service")
+  console.log("findOneService called with id:", id)
 
-      const service = await this.serviceModel
-        .findById(new Types.ObjectId(id))
-        .populate('basicDetails.category', 'categoryName appointmentColor')
+  this.validateObjectId(id, "Service")
 
-      if (!service) {
-        throw new NotFoundException("Service not found")
-      }
+  try {
+    const service = await this.serviceModel
+      .findById(id)
+      .populate('basicDetails.category', 'categoryName appointmentColor')
 
-      return {
-        success: true,
-        data: service,
-      }
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error
-      }
-      throw new Error(`Failed to fetch service: ${error.message}`)
+    console.log("Service found:", !!service)
+
+    if (!service) {
+      throw new NotFoundException("Service not found")
     }
+
+    return {
+      success: true,
+      data: service,
+    }
+  } catch (error) {
+    console.error("findOneService error:", error)
+    if (error instanceof NotFoundException) {
+      throw error
+    }
+    throw new Error(`Failed to fetch service: ${error.message}`)
   }
+}
+
 
   async updateService(id: string, updateServiceDto: UpdateServiceDto): Promise<ApiResponse<Service>> {
     try {

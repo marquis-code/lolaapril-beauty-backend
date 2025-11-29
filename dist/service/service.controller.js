@@ -51,6 +51,7 @@ let ServiceController = class ServiceController {
         return this.serviceService.getServiceStats();
     }
     findOne(id) {
+        console.log(id, 'seevice id');
         return this.serviceService.findOneService(id);
     }
     update(id, updateServiceDto) {
