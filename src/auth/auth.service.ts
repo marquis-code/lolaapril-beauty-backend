@@ -165,6 +165,126 @@ export class AuthService {
   }
 
 
+  // Add this method to your AuthService class (auth.service.ts)
+
+// ==================== GOOGLE OAUTH CALLBACK HANDLER ====================
+async handleGoogleCallback(googleUser: any, subdomain?: string) {
+  const { googleId, email, firstName, lastName, picture } = googleUser
+
+  if (!email) {
+    throw new UnauthorizedException("Email not provided by Google")
+  }
+
+  // Find user by email or googleId
+  let user: any = await this.userModel.findOne({ 
+    $or: [{ email }, { googleId }] 
+  })
+
+  if (!user) {
+    // Create new user
+    const newUser = new this.userModel()
+    newUser.firstName = firstName || "User"
+    newUser.lastName = lastName || ""
+    newUser.email = email
+    newUser.role = UserRole.CLIENT
+    newUser.status = UserStatus.ACTIVE
+    newUser.profileImage = picture
+    newUser.emailVerified = true
+    newUser.googleId = googleId
+    newUser.authProvider = "google"
+    
+    user = await newUser.save()
+  } else {
+    // Update existing user with Google info
+    const updateData: any = {
+      lastLogin: new Date(),
+    }
+
+    if (!user.googleId) {
+      updateData.googleId = googleId
+      updateData.emailVerified = true
+    }
+
+    if (picture && !user.profileImage) {
+      updateData.profileImage = picture
+    }
+
+    await this.userModel.findByIdAndUpdate(user._id, updateData)
+    user = await this.userModel.findById(user._id)
+  }
+
+  // Find businesses for this user
+  const businesses: any[] = await this.businessModel.find({
+    $or: [{ ownerId: user._id }, { adminIds: user._id }],
+  }) as any
+
+  let business: any = null
+  
+  if (subdomain && businesses.length > 0) {
+    const found = businesses.find((b) => b.subdomain === subdomain)
+    if (found) {
+      business = found
+    } else {
+      throw new UnauthorizedException("Business not found or access denied")
+    }
+  } else if (businesses.length > 0) {
+    business = businesses[0]
+  }
+
+  // Generate tokens
+  const tokens = await this.generateTokens(
+    user._id.toString(),
+    user.email,
+    user.role,
+    business?._id?.toString(),
+    business?.subdomain
+  )
+
+  // Update user with refresh token
+  await this.userModel.findByIdAndUpdate(user._id, {
+    refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+    currentBusinessId: business?._id,
+  })
+
+  const response: any = {
+    user: {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      profileImage: user.profileImage,
+      emailVerified: user.emailVerified,
+      authProvider: user.authProvider,
+    },
+    ...tokens,
+  }
+
+  if (business) {
+    response.business = {
+      id: business._id,
+      businessName: business.businessName,
+      subdomain: business.subdomain,
+      businessType: business.businessType,
+      status: business.status,
+      trialEndsAt: business.trialEndsAt,
+    }
+  }
+
+  if (businesses.length > 0) {
+    response.businesses = businesses.map((b) => ({
+      id: b._id,
+      businessName: b.businessName,
+      subdomain: b.subdomain,
+      status: b.status,
+    }))
+  }
+
+  return response
+}
+
+
   // ==================== TOKEN MANAGEMENT ====================
   async refreshTokens(userId: string, refreshToken: string) {
     const user = await this.userModel.findById(userId)
