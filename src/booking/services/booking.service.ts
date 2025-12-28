@@ -138,6 +138,8 @@ private async generateBookingNumber(businessId: string): Promise<string> {
   //   return booking
   // }
 
+  
+
   async getBookingById(bookingId: string): Promise<BookingDocument> {
   try {
     console.log('🔍 Looking for booking:', bookingId)
@@ -162,55 +164,154 @@ private async generateBookingNumber(businessId: string): Promise<string> {
   }
 }
 
-  async getBookings(query: GetBookingsDto & { businessId: string }): Promise<{
-    bookings: BookingDocument[]
-    total: number
-    page: number
-    limit: number
-  }> {
-    const filter: any = {
-      businessId: new Types.ObjectId(query.businessId)
-    }
 
-    if (query.clientId) {
-      filter.clientId = new Types.ObjectId(query.clientId)
-    }
+// Replace the getBookings method in booking.service.ts
 
-    if (query.status) {
-      filter.status = query.status
-    }
+async getBookings(query: GetBookingsDto & { businessId: string }): Promise<{
+  bookings: BookingDocument[]
+  total: number
+  page: number
+  limit: number
+}> {
+  const filter: any = {
+    businessId: new Types.ObjectId(query.businessId)
+  }
 
-    if (query.startDate && query.endDate) {
-      filter.preferredDate = {
-        $gte: new Date(query.startDate),
-        $lte: new Date(query.endDate)
-      }
-    }
+  if (query.clientId) {
+    filter.clientId = new Types.ObjectId(query.clientId)
+  }
 
-    const limit = parseInt(query.limit) || 50
-    const offset = parseInt(query.offset) || 0
-    const page = Math.floor(offset / limit) + 1
+  if (query.status) {
+    filter.status = query.status
+  }
 
-    // Execute queries sequentially to avoid complex union type
-    const bookings = await this.bookingModel
-      .find(filter)
-      .populate('services.serviceId', 'basicDetails pricingAndDuration')
-      .populate('services.preferredStaffId', 'firstName lastName')
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip(offset)
-      .lean<BookingDocument[]>()
-      .exec()
-
-    const total = await this.bookingModel.countDocuments(filter).exec()
-
-    return {
-      bookings,
-      total,
-      page,
-      limit
+  if (query.startDate && query.endDate) {
+    filter.preferredDate = {
+      $gte: new Date(query.startDate),
+      $lte: new Date(query.endDate)
     }
   }
+
+  const limit = parseInt(query.limit) || 50
+  const offset = parseInt(query.offset) || 0
+  const page = Math.floor(offset / limit) + 1
+
+  // Execute queries - removed services.preferredStaffId populate
+  const bookings = await this.bookingModel
+    .find(filter)
+    .populate('services.serviceId', 'basicDetails pricingAndDuration')
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(offset)
+    .lean<BookingDocument[]>()
+    .exec()
+
+  const total = await this.bookingModel.countDocuments(filter).exec()
+
+  return {
+    bookings,
+    total,
+    page,
+    limit
+  }
+}
+
+// Also fix getTodayBookings method
+async getTodayBookings(businessId: string): Promise<BookingDocument[]> {
+  const today = new Date()
+  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+
+  const bookings = await this.bookingModel
+    .find({
+      businessId: new Types.ObjectId(businessId),
+      preferredDate: {
+        $gte: startOfDay,
+        $lt: endOfDay
+      }
+    })
+    .populate('services.serviceId', 'basicDetails pricingAndDuration')
+    .sort({ preferredStartTime: 1 })
+    .lean<BookingDocument[]>()
+    .exec()
+
+  return bookings
+}
+
+// Fix getUpcomingBookings method
+async getUpcomingBookings(
+  businessId: string,
+  days: number = 7
+): Promise<BookingDocument[]> {
+  const startDate = new Date()
+  const endDate = new Date()
+  endDate.setDate(endDate.getDate() + days)
+
+  const bookings = await this.bookingModel
+    .find({
+      businessId: new Types.ObjectId(businessId),
+      status: { $in: ['confirmed', 'pending'] },
+      preferredDate: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    })
+    .populate('services.serviceId', 'basicDetails pricingAndDuration')
+    .sort({ preferredDate: 1, preferredStartTime: 1 })
+    .lean<BookingDocument[]>()
+    .exec()
+
+  return bookings
+}
+  // async getBookings(query: GetBookingsDto & { businessId: string }): Promise<{
+  //   bookings: BookingDocument[]
+  //   total: number
+  //   page: number
+  //   limit: number
+  // }> {
+  //   const filter: any = {
+  //     businessId: new Types.ObjectId(query.businessId)
+  //   }
+
+  //   if (query.clientId) {
+  //     filter.clientId = new Types.ObjectId(query.clientId)
+  //   }
+
+  //   if (query.status) {
+  //     filter.status = query.status
+  //   }
+
+  //   if (query.startDate && query.endDate) {
+  //     filter.preferredDate = {
+  //       $gte: new Date(query.startDate),
+  //       $lte: new Date(query.endDate)
+  //     }
+  //   }
+
+  //   const limit = parseInt(query.limit) || 50
+  //   const offset = parseInt(query.offset) || 0
+  //   const page = Math.floor(offset / limit) + 1
+
+  //   // Execute queries sequentially to avoid complex union type
+  //   const bookings = await this.bookingModel
+  //     .find(filter)
+  //     .populate('services.serviceId', 'basicDetails pricingAndDuration')
+  //     .populate('services.preferredStaffId', 'firstName lastName')
+  //     .sort({ createdAt: -1 })
+  //     .limit(limit)
+  //     .skip(offset)
+  //     .lean<BookingDocument[]>()
+  //     .exec()
+
+  //   const total = await this.bookingModel.countDocuments(filter).exec()
+
+  //   return {
+  //     bookings,
+  //     total,
+  //     page,
+  //     limit
+  //   }
+  // }
 
   async updateBookingStatus(
     bookingId: string, 
@@ -388,27 +489,27 @@ private async generateBookingNumber(businessId: string): Promise<string> {
     return bookings
   }
 
-  async getTodayBookings(businessId: string): Promise<BookingDocument[]> {
-    const today = new Date()
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+  // async getTodayBookings(businessId: string): Promise<BookingDocument[]> {
+  //   const today = new Date()
+  //   const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  //   const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
 
-    const bookings = await this.bookingModel
-      .find({
-        businessId: new Types.ObjectId(businessId),
-        preferredDate: {
-          $gte: startOfDay,
-          $lt: endOfDay
-        }
-      })
-      .populate('services.serviceId', 'basicDetails pricingAndDuration')
-      .populate('services.preferredStaffId', 'firstName lastName')
-      .sort({ preferredStartTime: 1 })
-      .lean<BookingDocument[]>()
-      .exec()
+  //   const bookings = await this.bookingModel
+  //     .find({
+  //       businessId: new Types.ObjectId(businessId),
+  //       preferredDate: {
+  //         $gte: startOfDay,
+  //         $lt: endOfDay
+  //       }
+  //     })
+  //     .populate('services.serviceId', 'basicDetails pricingAndDuration')
+  //     .populate('services.preferredStaffId', 'firstName lastName')
+  //     .sort({ preferredStartTime: 1 })
+  //     .lean<BookingDocument[]>()
+  //     .exec()
 
-    return bookings
-  }
+  //   return bookings
+  // }
 
   async getPendingBookings(businessId: string): Promise<BookingDocument[]> {
     const bookings = await this.bookingModel
@@ -425,30 +526,30 @@ private async generateBookingNumber(businessId: string): Promise<string> {
     return bookings
   }
 
-  async getUpcomingBookings(
-    businessId: string,
-    days: number = 7
-  ): Promise<BookingDocument[]> {
-    const startDate = new Date()
-    const endDate = new Date()
-    endDate.setDate(endDate.getDate() + days)
+  // async getUpcomingBookings(
+  //   businessId: string,
+  //   days: number = 7
+  // ): Promise<BookingDocument[]> {
+  //   const startDate = new Date()
+  //   const endDate = new Date()
+  //   endDate.setDate(endDate.getDate() + days)
 
-    const bookings = await this.bookingModel
-      .find({
-        businessId: new Types.ObjectId(businessId),
-        status: { $in: ['confirmed', 'pending'] },
-        preferredDate: {
-          $gte: startDate,
-          $lte: endDate
-        }
-      })
-      .populate('services.serviceId', 'basicDetails pricingAndDuration')
-      .sort({ preferredDate: 1, preferredStartTime: 1 })
-      .lean<BookingDocument[]>()
-      .exec()
+  //   const bookings = await this.bookingModel
+  //     .find({
+  //       businessId: new Types.ObjectId(businessId),
+  //       status: { $in: ['confirmed', 'pending'] },
+  //       preferredDate: {
+  //         $gte: startDate,
+  //         $lte: endDate
+  //       }
+  //     })
+  //     .populate('services.serviceId', 'basicDetails pricingAndDuration')
+  //     .sort({ preferredDate: 1, preferredStartTime: 1 })
+  //     .lean<BookingDocument[]>()
+  //     .exec()
 
-    return bookings
-  }
+  //   return bookings
+  // }
 
   async linkAppointment(bookingId: string, appointmentId: string): Promise<void> {
     await this.bookingModel.findByIdAndUpdate(bookingId, {

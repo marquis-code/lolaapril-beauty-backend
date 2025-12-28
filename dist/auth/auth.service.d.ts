@@ -74,6 +74,7 @@ export declare class AuthService {
             status: UserStatus;
         };
     }>;
+    handleGoogleCallback(googleUser: any, subdomain?: string): Promise<any>;
     refreshTokens(userId: string, refreshToken: string): Promise<{
         accessToken: string;
         refreshToken: string;

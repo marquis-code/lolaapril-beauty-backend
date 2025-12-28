@@ -1,3 +1,4 @@
+import { Response } from "express";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
@@ -9,12 +10,19 @@ interface RequestWithUser extends Request {
         role: string;
         businessId?: string;
         subdomain?: string;
+        googleId?: string;
+        firstName?: string;
+        lastName?: string;
+        picture?: string;
         [key: string]: any;
     };
 }
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
+    googleLogin(): Promise<void>;
+    googleCallback(req: RequestWithUser, res: Response, subdomain?: string): Promise<void>;
+    googleTokenAuth(googleAuthDto: GoogleAuthDto): Promise<any>;
     registerBusiness(registerDto: BusinessRegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -62,7 +70,6 @@ export declare class AuthController {
             status: any;
         }[];
     }>;
-    googleAuth(googleAuthDto: GoogleAuthDto): Promise<any>;
     register(registerDto: RegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;

@@ -20,18 +20,33 @@ const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
 const business_register_dto_1 = require("./dto/business-register.dto");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
+const google_auth_guard_1 = require("./guards/google-auth.guard");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
+    }
+    async googleLogin() {
+    }
+    async googleCallback(req, res, subdomain) {
+        try {
+            const result = await this.authService.handleGoogleCallback(req.user, subdomain);
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+            const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
+            return res.redirect(redirectUrl);
+        }
+        catch (error) {
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+            return res.redirect(`${frontendUrl}/auth/error?message=${encodeURIComponent(error.message)}`);
+        }
+    }
+    async googleTokenAuth(googleAuthDto) {
+        return this.authService.googleAuth(googleAuthDto);
     }
     async registerBusiness(registerDto) {
         return this.authService.registerBusiness(registerDto);
     }
     async loginBusiness(loginDto) {
         return this.authService.loginBusiness(loginDto);
-    }
-    async googleAuth(googleAuthDto) {
-        return this.authService.googleAuth(googleAuthDto);
     }
     async register(registerDto) {
         return this.authService.register(registerDto);
@@ -58,6 +73,37 @@ let AuthController = class AuthController {
     }
 };
 __decorate([
+    (0, common_1.Get)("google"),
+    (0, common_1.UseGuards)(google_auth_guard_1.GoogleAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: "Initiate Google OAuth login" }),
+    (0, swagger_1.ApiResponse)({ status: 302, description: "Redirects to Google login page" }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleLogin", null);
+__decorate([
+    (0, common_1.Get)("google/callback"),
+    (0, common_1.UseGuards)(google_auth_guard_1.GoogleAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: "Google OAuth callback" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Google authentication successful" }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __param(2, (0, common_1.Query)('subdomain')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, String]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleCallback", null);
+__decorate([
+    (0, common_1.Post)("google/token"),
+    (0, swagger_1.ApiOperation)({ summary: "Authenticate with Google ID Token (for mobile/SPA)" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Google authentication successful" }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: "Google authentication failed" }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [business_register_dto_1.GoogleAuthDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleTokenAuth", null);
+__decorate([
     (0, common_1.Post)("business/register"),
     (0, swagger_1.ApiOperation)({ summary: "Register a new business with owner account" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Business registered successfully" }),
@@ -77,16 +123,6 @@ __decorate([
     __metadata("design:paramtypes", [business_register_dto_1.BusinessLoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "loginBusiness", null);
-__decorate([
-    (0, common_1.Post)("google"),
-    (0, swagger_1.ApiOperation)({ summary: "Authenticate with Google OAuth" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Google authentication successful" }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: "Google authentication failed" }),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [business_register_dto_1.GoogleAuthDto]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "googleAuth", null);
 __decorate([
     (0, common_1.Post)("register"),
     (0, swagger_1.ApiOperation)({ summary: "Register a new user" }),

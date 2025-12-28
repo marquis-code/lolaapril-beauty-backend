@@ -150,6 +150,94 @@ let AuthService = class AuthService {
                 status: user.status,
             } }, tokens);
     }
+    async handleGoogleCallback(googleUser, subdomain) {
+        var _a;
+        const { googleId, email, firstName, lastName, picture } = googleUser;
+        if (!email) {
+            throw new common_1.UnauthorizedException("Email not provided by Google");
+        }
+        let user = await this.userModel.findOne({
+            $or: [{ email }, { googleId }]
+        });
+        if (!user) {
+            const newUser = new this.userModel();
+            newUser.firstName = firstName || "User";
+            newUser.lastName = lastName || "";
+            newUser.email = email;
+            newUser.role = user_schema_1.UserRole.CLIENT;
+            newUser.status = user_schema_1.UserStatus.ACTIVE;
+            newUser.profileImage = picture;
+            newUser.emailVerified = true;
+            newUser.googleId = googleId;
+            newUser.authProvider = "google";
+            user = await newUser.save();
+        }
+        else {
+            const updateData = {
+                lastLogin: new Date(),
+            };
+            if (!user.googleId) {
+                updateData.googleId = googleId;
+                updateData.emailVerified = true;
+            }
+            if (picture && !user.profileImage) {
+                updateData.profileImage = picture;
+            }
+            await this.userModel.findByIdAndUpdate(user._id, updateData);
+            user = await this.userModel.findById(user._id);
+        }
+        const businesses = await this.businessModel.find({
+            $or: [{ ownerId: user._id }, { adminIds: user._id }],
+        });
+        let business = null;
+        if (subdomain && businesses.length > 0) {
+            const found = businesses.find((b) => b.subdomain === subdomain);
+            if (found) {
+                business = found;
+            }
+            else {
+                throw new common_1.UnauthorizedException("Business not found or access denied");
+            }
+        }
+        else if (businesses.length > 0) {
+            business = businesses[0];
+        }
+        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, (_a = business === null || business === void 0 ? void 0 : business._id) === null || _a === void 0 ? void 0 : _a.toString(), business === null || business === void 0 ? void 0 : business.subdomain);
+        await this.userModel.findByIdAndUpdate(user._id, {
+            refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+            currentBusinessId: business === null || business === void 0 ? void 0 : business._id,
+        });
+        const response = Object.assign({ user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+                profileImage: user.profileImage,
+                emailVerified: user.emailVerified,
+                authProvider: user.authProvider,
+            } }, tokens);
+        if (business) {
+            response.business = {
+                id: business._id,
+                businessName: business.businessName,
+                subdomain: business.subdomain,
+                businessType: business.businessType,
+                status: business.status,
+                trialEndsAt: business.trialEndsAt,
+            };
+        }
+        if (businesses.length > 0) {
+            response.businesses = businesses.map((b) => ({
+                id: b._id,
+                businessName: b.businessName,
+                subdomain: b.subdomain,
+                status: b.status,
+            }));
+        }
+        return response;
+    }
     async refreshTokens(userId, refreshToken) {
         const user = await this.userModel.findById(userId);
         if (!user || !user.refreshToken) {
