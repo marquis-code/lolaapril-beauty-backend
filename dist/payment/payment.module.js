@@ -13,13 +13,14 @@ const payment_service_1 = require("./payment.service");
 const config_1 = require("@nestjs/config");
 const payment_controller_1 = require("./payment.controller");
 const payment_schema_1 = require("./schemas/payment.schema");
+const booking_schema_1 = require("../booking/schemas/booking.schema");
 const audit_module_1 = require("../audit/audit.module");
 const notification_module_1 = require("../notification/notification.module");
 let PaymentModule = class PaymentModule {
 };
 PaymentModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: payment_schema_1.Payment.name, schema: payment_schema_1.PaymentSchema }]),
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: payment_schema_1.Payment.name, schema: payment_schema_1.PaymentSchema }, { name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema }]),
             config_1.ConfigModule,
             (0, common_1.forwardRef)(() => notification_module_1.NotificationModule),
             audit_module_1.AuditModule

@@ -141,7 +141,6 @@ let BookingService = BookingService_1 = class BookingService {
         const bookings = await this.bookingModel
             .find(filter)
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
-            .populate('services.preferredStaffId', 'firstName lastName')
             .sort({ createdAt: -1 })
             .limit(limit)
             .skip(offset)
@@ -154,6 +153,43 @@ let BookingService = BookingService_1 = class BookingService {
             page,
             limit
         };
+    }
+    async getTodayBookings(businessId) {
+        const today = new Date();
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+        const bookings = await this.bookingModel
+            .find({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            preferredDate: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            }
+        })
+            .populate('services.serviceId', 'basicDetails pricingAndDuration')
+            .sort({ preferredStartTime: 1 })
+            .lean()
+            .exec();
+        return bookings;
+    }
+    async getUpcomingBookings(businessId, days = 7) {
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + days);
+        const bookings = await this.bookingModel
+            .find({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            status: { $in: ['confirmed', 'pending'] },
+            preferredDate: {
+                $gte: startDate,
+                $lte: endDate
+            }
+        })
+            .populate('services.serviceId', 'basicDetails pricingAndDuration')
+            .sort({ preferredDate: 1, preferredStartTime: 1 })
+            .lean()
+            .exec();
+        return bookings;
     }
     async updateBookingStatus(bookingId, status, updatedBy, reason) {
         const updateData = {
@@ -280,25 +316,6 @@ let BookingService = BookingService_1 = class BookingService {
             .exec();
         return bookings;
     }
-    async getTodayBookings(businessId) {
-        const today = new Date();
-        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-        const bookings = await this.bookingModel
-            .find({
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            preferredDate: {
-                $gte: startOfDay,
-                $lt: endOfDay
-            }
-        })
-            .populate('services.serviceId', 'basicDetails pricingAndDuration')
-            .populate('services.preferredStaffId', 'firstName lastName')
-            .sort({ preferredStartTime: 1 })
-            .lean()
-            .exec();
-        return bookings;
-    }
     async getPendingBookings(businessId) {
         const bookings = await this.bookingModel
             .find({
@@ -308,25 +325,6 @@ let BookingService = BookingService_1 = class BookingService {
         })
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
             .sort({ createdAt: 1 })
-            .lean()
-            .exec();
-        return bookings;
-    }
-    async getUpcomingBookings(businessId, days = 7) {
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + days);
-        const bookings = await this.bookingModel
-            .find({
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            status: { $in: ['confirmed', 'pending'] },
-            preferredDate: {
-                $gte: startDate,
-                $lte: endDate
-            }
-        })
-            .populate('services.serviceId', 'basicDetails pricingAndDuration')
-            .sort({ preferredDate: 1, preferredStartTime: 1 })
             .lean()
             .exec();
         return bookings;

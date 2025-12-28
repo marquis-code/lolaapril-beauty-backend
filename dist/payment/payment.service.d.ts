@@ -1,5 +1,6 @@
 import { Model } from "mongoose";
 import { Payment, PaymentDocument } from "./schemas/payment.schema";
+import { BookingDocument } from "../booking/schemas/booking.schema";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 import { ApiResponse } from "../common/interfaces/common.interface";
 import { PaymentQueryDto } from "./dto/payment-query.dto";
@@ -8,11 +9,12 @@ import { NotificationService } from '../notification/notification.service';
 import { ConfigService } from '@nestjs/config';
 export declare class PaymentService {
     private paymentModel;
+    private bookingModel;
     private notificationService;
     private configService;
     private readonly paystackSecretKey;
     private readonly paystackBaseUrl;
-    constructor(paymentModel: Model<PaymentDocument>, notificationService: NotificationService, configService: ConfigService);
+    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, notificationService: NotificationService, configService: ConfigService);
     initializePayment(data: {
         email: string;
         amount: number;

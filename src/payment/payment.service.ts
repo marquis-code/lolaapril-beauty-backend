@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
 import { Model, Types } from "mongoose"
 import { Payment, PaymentDocument } from "./schemas/payment.schema"
+import { Booking, BookingDocument } from "../booking/schemas/booking.schema"
 import { CreatePaymentDto } from "./dto/create-payment.dto"
 import { ApiResponse } from "../common/interfaces/common.interface"
 import { PaymentQueryDto } from "./dto/payment-query.dto"
@@ -17,7 +18,10 @@ export class PaymentService {
 
   constructor(
     @InjectModel(Payment.name) 
+     @InjectModel(Payment.name) 
     private paymentModel: Model<PaymentDocument>,
+    @InjectModel(Booking.name)
+    private bookingModel: Model<BookingDocument>,
     private notificationService: NotificationService,
     private configService: ConfigService,
   ) {
@@ -213,6 +217,122 @@ async initializePayment(data: {
 /**
  * Verify payment with Paystack - UPDATED to preserve IDs
  */
+// async verifyPayment(reference: string): Promise<ApiResponse<Payment>> {
+//   try {
+//     // Verify transaction with Paystack
+//     const response = await axios.get(
+//       `${this.paystackBaseUrl}/transaction/verify/${reference}`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${this.paystackSecretKey}`
+//         }
+//       }
+//     )
+
+//     if (!response.data.status) {
+//       throw new BadRequestException('Payment verification failed')
+//     }
+
+//     const transactionData = response.data.data
+
+//     // Find payment by reference
+//     const payment = await this.paymentModel.findOne({ paymentReference: reference })
+
+//     if (!payment) {
+//       throw new NotFoundException('Payment record not found')
+//     }
+
+//     console.log('🔍 Verifying payment:', {
+//       reference,
+//       paymentId: payment._id,
+//       existingClientId: payment.clientId,
+//       existingBookingId: payment.bookingId,
+//       status: transactionData.status
+//     })
+
+//     // Update payment status based on Paystack response
+//     const updateData: any = {
+//       transactionId: transactionData.id.toString(),
+//       gatewayResponse: JSON.stringify(transactionData),
+//       updatedAt: new Date()
+//     }
+
+//     if (transactionData.status === 'success') {
+//       updateData.status = 'completed'
+//       updateData.paidAt = new Date()
+
+//       // Extract metadata from Paystack response if not already set
+//       if (!payment.bookingId && transactionData.metadata?.bookingId) {
+//         updateData.bookingId = new Types.ObjectId(transactionData.metadata.bookingId)
+//       }
+//       if (!payment.clientId && transactionData.metadata?.clientId) {
+//         updateData.clientId = new Types.ObjectId(transactionData.metadata.clientId)
+//       }
+
+//       // Send payment confirmation notification
+//       try {
+//         await this.notificationService.notifyPaymentConfirmation(
+//           payment._id.toString(),
+//           payment.clientId?.toString() || transactionData.metadata?.clientId,
+//           transactionData.metadata?.businessId || '',
+//           {
+//             clientName: transactionData.metadata?.clientName,
+//             amount: payment.totalAmount,
+//             method: payment.paymentMethod,
+//             transactionId: transactionData.id.toString(),
+//             serviceName: transactionData.metadata?.services?.map((s: any) => s.serviceName).join(', '),
+//             appointmentDate: transactionData.metadata?.preferredDate,
+//             businessName: 'Business Name', // You can get this from metadata
+//             receiptUrl: `${this.configService.get('FRONTEND_URL')}/receipts/${payment._id}`,
+//             clientEmail: transactionData.customer?.email,
+//             clientPhone: transactionData.metadata?.clientPhone
+//           }
+//         )
+//       } catch (notificationError) {
+//         console.error('Failed to send payment confirmation:', notificationError)
+//       }
+//     } else if (transactionData.status === 'failed') {
+//       updateData.status = 'failed'
+//     } else {
+//       updateData.status = 'processing'
+//     }
+
+//     const updatedPayment = await this.paymentModel.findByIdAndUpdate(
+//       payment._id,
+//       updateData,
+//       { new: true, runValidators: true }
+//     ).populate('clientId', 'firstName lastName email')
+//       .populate('bookingId')
+
+//     console.log('✅ Payment updated:', {
+//       paymentId: updatedPayment._id,
+//       status: updatedPayment.status,
+//       clientId: updatedPayment.clientId,
+//       bookingId: updatedPayment.bookingId,
+//       itemsCount: updatedPayment.items.length
+//     })
+
+//     return {
+//       success: true,
+//       data: updatedPayment,
+//       message: `Payment ${transactionData.status}`
+//     }
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       throw new BadRequestException(
+//         error.response?.data?.message || 'Failed to verify payment with Paystack'
+//       )
+//     }
+//     if (error instanceof NotFoundException) {
+//       throw error
+//     }
+//     throw new Error(`Failed to verify payment: ${error.message}`)
+//   }
+// }
+
+/**
+ * Verify payment with Paystack and update booking status
+ */
 async verifyPayment(reference: string): Promise<ApiResponse<Payment>> {
   try {
     // Verify transaction with Paystack
@@ -265,6 +385,24 @@ async verifyPayment(reference: string): Promise<ApiResponse<Payment>> {
         updateData.clientId = new Types.ObjectId(transactionData.metadata.clientId)
       }
 
+      // 🔥 UPDATE BOOKING STATUS TO CONFIRMED
+      if (payment.bookingId) {
+        try {
+          // You'll need to inject BookingModel - see note below
+          await this.bookingModel.findByIdAndUpdate(
+            payment.bookingId,
+            {
+              status: 'confirmed',
+              updatedAt: new Date()
+            }
+          )
+          console.log('✅ Booking status updated to confirmed:', payment.bookingId)
+        } catch (bookingError) {
+          console.error('❌ Failed to update booking status:', bookingError)
+          // Don't throw - payment succeeded, booking update is secondary
+        }
+      }
+
       // Send payment confirmation notification
       try {
         await this.notificationService.notifyPaymentConfirmation(
@@ -278,7 +416,7 @@ async verifyPayment(reference: string): Promise<ApiResponse<Payment>> {
             transactionId: transactionData.id.toString(),
             serviceName: transactionData.metadata?.services?.map((s: any) => s.serviceName).join(', '),
             appointmentDate: transactionData.metadata?.preferredDate,
-            businessName: 'Business Name', // You can get this from metadata
+            businessName: 'Business Name',
             receiptUrl: `${this.configService.get('FRONTEND_URL')}/receipts/${payment._id}`,
             clientEmail: transactionData.customer?.email,
             clientPhone: transactionData.metadata?.clientPhone
@@ -289,6 +427,22 @@ async verifyPayment(reference: string): Promise<ApiResponse<Payment>> {
       }
     } else if (transactionData.status === 'failed') {
       updateData.status = 'failed'
+      
+      // 🔥 UPDATE BOOKING STATUS TO PAYMENT_FAILED
+      if (payment.bookingId) {
+        try {
+          await this.bookingModel.findByIdAndUpdate(
+            payment.bookingId,
+            {
+              status: 'payment_failed',
+              updatedAt: new Date()
+            }
+          )
+          console.log('✅ Booking status updated to payment_failed:', payment.bookingId)
+        } catch (bookingError) {
+          console.error('❌ Failed to update booking status:', bookingError)
+        }
+      }
     } else {
       updateData.status = 'processing'
     }

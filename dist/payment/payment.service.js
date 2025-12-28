@@ -19,13 +19,15 @@ exports.PaymentService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("mongoose");
 const payment_schema_1 = require("./schemas/payment.schema");
+const booking_schema_1 = require("../booking/schemas/booking.schema");
 const notification_service_1 = require("../notification/notification.service");
 const mongoose_2 = require("@nestjs/mongoose");
 const config_1 = require("@nestjs/config");
 const axios_1 = __importDefault(require("axios"));
 let PaymentService = class PaymentService {
-    constructor(paymentModel, notificationService, configService) {
+    constructor(paymentModel, bookingModel, notificationService, configService) {
         this.paymentModel = paymentModel;
+        this.bookingModel = bookingModel;
         this.notificationService = notificationService;
         this.configService = configService;
         this.paystackBaseUrl = 'https://api.paystack.co';
@@ -205,6 +207,18 @@ let PaymentService = class PaymentService {
                 if (!payment.clientId && ((_b = transactionData.metadata) === null || _b === void 0 ? void 0 : _b.clientId)) {
                     updateData.clientId = new mongoose_1.Types.ObjectId(transactionData.metadata.clientId);
                 }
+                if (payment.bookingId) {
+                    try {
+                        await this.bookingModel.findByIdAndUpdate(payment.bookingId, {
+                            status: 'confirmed',
+                            updatedAt: new Date()
+                        });
+                        console.log('✅ Booking status updated to confirmed:', payment.bookingId);
+                    }
+                    catch (bookingError) {
+                        console.error('❌ Failed to update booking status:', bookingError);
+                    }
+                }
                 try {
                     await this.notificationService.notifyPaymentConfirmation(payment._id.toString(), ((_c = payment.clientId) === null || _c === void 0 ? void 0 : _c.toString()) || ((_d = transactionData.metadata) === null || _d === void 0 ? void 0 : _d.clientId), ((_e = transactionData.metadata) === null || _e === void 0 ? void 0 : _e.businessId) || '', {
                         clientName: (_f = transactionData.metadata) === null || _f === void 0 ? void 0 : _f.clientName,
@@ -225,6 +239,18 @@ let PaymentService = class PaymentService {
             }
             else if (transactionData.status === 'failed') {
                 updateData.status = 'failed';
+                if (payment.bookingId) {
+                    try {
+                        await this.bookingModel.findByIdAndUpdate(payment.bookingId, {
+                            status: 'payment_failed',
+                            updatedAt: new Date()
+                        });
+                        console.log('✅ Booking status updated to payment_failed:', payment.bookingId);
+                    }
+                    catch (bookingError) {
+                        console.error('❌ Failed to update booking status:', bookingError);
+                    }
+                }
             }
             else {
                 updateData.status = 'processing';
@@ -742,7 +768,10 @@ let PaymentService = class PaymentService {
 PaymentService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(payment_schema_1.Payment.name)),
+    __param(0, (0, mongoose_2.InjectModel)(payment_schema_1.Payment.name)),
+    __param(1, (0, mongoose_2.InjectModel)(booking_schema_1.Booking.name)),
     __metadata("design:paramtypes", [mongoose_1.Model,
+        mongoose_1.Model,
         notification_service_1.NotificationService,
         config_1.ConfigService])
 ], PaymentService);

@@ -24,7 +24,11 @@ async function bootstrap() {
         console.log('⚠️  MongoDB disconnected');
     });
     app.use((0, compression_1.default)());
-    app.use((0, helmet_1.default)());
+    app.use((0, helmet_1.default)({
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+        crossOriginOpenerPolicy: { policy: "unsafe-none" },
+        crossOriginEmbedderPolicy: false,
+    }));
     app.use((req, res, next) => {
         if (req.path.includes('/payments/initialize')) {
             console.log('═══════════════════════════════════════');
@@ -36,34 +40,27 @@ async function bootstrap() {
         }
         next();
     });
-    const allowedOrigins = configService.get("ALLOWED_ORIGINS") ||
-        "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173";
     app.enableCors({
-        origin: (origin, callback) => {
-            if (!origin) {
-                return callback(null, true);
-            }
-            const origins = allowedOrigins.split(",");
-            if (origins.indexOf(origin) !== -1 || origins.includes("*")) {
-                return callback(null, true);
-            }
-            else {
-                console.log(`Blocked request from: ${origin}`);
-                return callback(null, true);
-            }
-        },
+        origin: true,
         credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
         allowedHeaders: [
             "Content-Type",
             "Authorization",
             "Accept",
             "Origin",
             "X-Requested-With",
+            "X-Business-Id",
+            "Sec-Ch-Ua",
+            "Sec-Ch-Ua-Mobile",
+            "Sec-Ch-Ua-Platform",
+            "User-Agent",
+            "Referer",
         ],
         exposedHeaders: ["Content-Disposition"],
         preflightContinue: false,
         optionsSuccessStatus: 204,
+        maxAge: 86400,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
@@ -89,6 +86,7 @@ async function bootstrap() {
     await app.listen(port);
     console.log(`Application is running on: ${await app.getUrl()}`);
     console.log(`🔐 JWT Secret configured:`, !!configService.get('JWT_SECRET'));
+    console.log(`🌐 CORS enabled for ALL origins`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

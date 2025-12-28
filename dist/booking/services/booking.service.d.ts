@@ -18,14 +18,14 @@ export declare class BookingService {
         page: number;
         limit: number;
     }>;
+    getTodayBookings(businessId: string): Promise<BookingDocument[]>;
+    getUpcomingBookings(businessId: string, days?: number): Promise<BookingDocument[]>;
     updateBookingStatus(bookingId: string, status: string, updatedBy?: string, reason?: string): Promise<BookingDocument>;
     confirmBooking(bookingId: string, staffId: string, confirmedBy: string): Promise<BookingDocument>;
     rejectBooking(bookingId: string, reason: string, rejectedBy: string): Promise<void>;
     cancelBooking(bookingId: string, reason: string, cancelledBy: string): Promise<void>;
     getClientBookings(clientId: string, status?: string): Promise<BookingDocument[]>;
-    getTodayBookings(businessId: string): Promise<BookingDocument[]>;
     getPendingBookings(businessId: string): Promise<BookingDocument[]>;
-    getUpcomingBookings(businessId: string, days?: number): Promise<BookingDocument[]>;
     linkAppointment(bookingId: string, appointmentId: string): Promise<void>;
     extendBookingExpiry(bookingId: string, additionalMinutes?: number): Promise<BookingDocument>;
     getBookingStats(businessId: string, startDate?: Date, endDate?: Date): Promise<any>;
