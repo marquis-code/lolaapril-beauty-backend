@@ -1,10 +1,11 @@
-import { Controller, Post, UseGuards, Get, Req, Body, Res, Query } from "@nestjs/common"
+import { Controller, Post, UseGuards, Get, Req, Body, Res, Query, Patch, Delete } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { Response } from "express"
 import { AuthService } from "./auth.service"
 import { RegisterDto } from "./dto/register.dto"
 import { LoginDto } from "./dto/login.dto"
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto"
+import { UpdateProfileDto, ChangePasswordDto, UpdateEmailDto, UserPreferencesDto } from "./dto/update-profile.dto"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 import { GoogleAuthGuard } from "./guards/google-auth.guard"
 
@@ -145,4 +146,75 @@ export class AuthController {
   async refreshTokens(@Body() body: { userId: string; refreshToken: string }) {
     return this.authService.refreshTokens(body.userId, body.refreshToken)
   }
+
+
+
+ @Patch('profile')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Update user profile' })
+@ApiResponse({ status: 200, description: 'Profile updated successfully' })
+@ApiResponse({ status: 400, description: 'Invalid update data' })
+@ApiResponse({ status: 401, description: 'Unauthorized' })
+async updateProfile(
+  @Req() req: RequestWithUser,
+  @Body() updateProfileDto: UpdateProfileDto
+) {
+  return this.authService.updateProfile(req.user.sub, updateProfileDto)
+}
+
+@Patch('preferences')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Update user preferences (language, timezone, notifications, etc.)' })
+@ApiResponse({ status: 200, description: 'Preferences updated successfully' })
+@ApiResponse({ status: 401, description: 'Unauthorized' })
+async updatePreferences(
+  @Req() req: RequestWithUser,
+  @Body() preferences: UserPreferencesDto
+) {
+  return this.authService.updatePreferences(req.user.sub, preferences)
+}
+
+@Post('change-password')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Change user password' })
+@ApiResponse({ status: 200, description: 'Password changed successfully' })
+@ApiResponse({ status: 400, description: 'Invalid password data' })
+@ApiResponse({ status: 401, description: 'Current password is incorrect' })
+async changePassword(
+  @Req() req: RequestWithUser,
+  @Body() changePasswordDto: ChangePasswordDto
+) {
+  return this.authService.changePassword(req.user.sub, changePasswordDto)
+}
+
+@Patch('email')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Update user email address' })
+@ApiResponse({ status: 200, description: 'Email updated successfully' })
+@ApiResponse({ status: 400, description: 'Invalid email data' })
+@ApiResponse({ status: 401, description: 'Password is incorrect' })
+@ApiResponse({ status: 409, description: 'Email already in use' })
+async updateEmail(
+  @Req() req: RequestWithUser,
+  @Body() updateEmailDto: UpdateEmailDto
+) {
+  return this.authService.updateEmail(req.user.sub, updateEmailDto)
+}
+
+@Delete('account')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Delete user account (soft delete)' })
+@ApiResponse({ status: 200, description: 'Account deleted successfully' })
+@ApiResponse({ status: 401, description: 'Password is incorrect or unauthorized' })
+async deleteAccount(
+  @Req() req: RequestWithUser,
+  @Body() body: { password?: string }
+) {
+  return this.authService.deleteAccount(req.user.sub, body.password)
+}
 }

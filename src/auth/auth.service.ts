@@ -1,5 +1,5 @@
 // src/modules/auth/auth.service.ts
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from "@nestjs/common"
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model, Types } from "mongoose"
 import { JwtService } from "@nestjs/jwt"
@@ -10,7 +10,9 @@ import { Business, BusinessDocument } from "../tenant/schemas/business.schema"
 import { Subscription, SubscriptionDocument } from "../tenant/schemas/subscription.schema"
 import { TenantConfig, TenantConfigDocument } from "../tenant/schemas/tenant-config.schema"
 import { RegisterDto } from "./dto/register.dto"
+import { UpdateEmailDto } from "./dto/update-profile.dto"
 import { LoginDto } from "./dto/login.dto"
+import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto"
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto"
 import { OAuth2Client } from "google-auth-library"
 
@@ -960,6 +962,289 @@ async loginBusiness(loginDto: BusinessLoginDto) {
       status: b.status,
     })),
     ...tokens,
+  }
+}
+
+
+
+// Add these methods to your AuthService class (auth.service.ts)
+
+// ==================== PROFILE MANAGEMENT ====================
+
+/**
+ * Update user profile information
+ */
+async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+  try {
+    const user = await this.userModel.findById(userId)
+    
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    // Fields that can be updated
+    const allowedUpdates = ['firstName', 'lastName', 'phone', 'profileImage', 'bio', 'dateOfBirth', 'gender']
+    const updates: any = {}
+
+    // Only include fields that are provided and allowed
+    Object.keys(updateProfileDto).forEach(key => {
+      if (allowedUpdates.includes(key) && updateProfileDto[key] !== undefined) {
+        // Convert dateOfBirth string to Date object
+        if (key === 'dateOfBirth' && updateProfileDto[key]) {
+          updates[key] = new Date(updateProfileDto[key])
+        } else {
+          updates[key] = updateProfileDto[key]
+        }
+      }
+    })
+
+    if (Object.keys(updates).length === 0) {
+      throw new BadRequestException('No valid fields to update')
+    }
+
+    // Update user
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { ...updates, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    ).select('-password -refreshToken')
+
+    return {
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: updatedUser._id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        role: updatedUser.role,
+        status: updatedUser.status,
+        profileImage: updatedUser.profileImage,
+        bio: updatedUser.bio,
+        dateOfBirth: updatedUser.dateOfBirth,
+        gender: updatedUser.gender,
+        emailVerified: updatedUser.emailVerified,
+        phoneVerified: updatedUser.phoneVerified,
+        authProvider: updatedUser.authProvider,
+        preferences: updatedUser.preferences,
+      }
+    }
+  } catch (error) {
+    if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      throw error
+    }
+    console.error('Profile update error:', error)
+    throw new BadRequestException('Failed to update profile')
+  }
+}
+
+/**
+ * Update user preferences
+ */
+async updatePreferences(userId: string, preferences: any) {
+  try {
+    const user = await this.userModel.findById(userId)
+    
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { 
+        preferences: { ...user.preferences, ...preferences },
+        updatedAt: new Date() 
+      },
+      { new: true, runValidators: true }
+    ).select('-password -refreshToken')
+
+    return {
+      success: true,
+      message: 'Preferences updated successfully',
+      preferences: updatedUser.preferences
+    }
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw error
+    }
+    console.error('Preferences update error:', error)
+    throw new BadRequestException('Failed to update preferences')
+  }
+}
+
+/**
+ * Change user password
+ */
+async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = changePasswordDto
+
+    // Validate new password matches confirmation
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException('New password and confirmation do not match')
+    }
+
+    // Check if new password is same as current
+    if (currentPassword === newPassword) {
+      throw new BadRequestException('New password must be different from current password')
+    }
+
+    const user = await this.userModel.findById(userId)
+    
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    // Check if user registered with OAuth (no password)
+    if (user.authProvider !== 'local' && !user.password) {
+      throw new BadRequestException(
+        `Cannot change password for ${user.authProvider} authenticated accounts`
+      )
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password)
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect')
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12)
+
+    // Update password
+    await this.userModel.findByIdAndUpdate(userId, {
+      password: hashedPassword,
+      updatedAt: new Date()
+    })
+
+    // Invalidate all refresh tokens for security
+    await this.userModel.findByIdAndUpdate(userId, {
+      refreshToken: null
+    })
+
+    return {
+      success: true,
+      message: 'Password changed successfully. Please login again with your new password.'
+    }
+  } catch (error) {
+    if (error instanceof NotFoundException || 
+        error instanceof BadRequestException || 
+        error instanceof UnauthorizedException) {
+      throw error
+    }
+    console.error('Password change error:', error)
+    throw new BadRequestException('Failed to change password')
+  }
+}
+
+/**
+ * Update user email
+ */
+async updateEmail(userId: string, updateEmailDto: UpdateEmailDto) {
+  try {
+    const { newEmail, password } = updateEmailDto
+
+    const user = await this.userModel.findById(userId)
+    
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    // Check if user registered with OAuth
+    if (user.authProvider !== 'local' && !user.password) {
+      throw new BadRequestException(
+        `Cannot change email for ${user.authProvider} authenticated accounts. Please contact support.`
+      )
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Password is incorrect')
+    }
+
+    // Check if email is already in use
+    const existingUser = await this.userModel.findOne({ email: newEmail })
+    if (existingUser && existingUser._id.toString() !== userId) {
+      throw new ConflictException('Email is already in use by another account')
+    }
+
+    // Check if email is same as current
+    if (user.email === newEmail) {
+      throw new BadRequestException('New email must be different from current email')
+    }
+
+    // Update email and set emailVerified to false
+    await this.userModel.findByIdAndUpdate(userId, {
+      email: newEmail,
+      emailVerified: false, // Require re-verification
+      updatedAt: new Date()
+    })
+
+    // Invalidate refresh token for security
+    await this.userModel.findByIdAndUpdate(userId, {
+      refreshToken: null
+    })
+
+    return {
+      success: true,
+      message: 'Email updated successfully. Please verify your new email address and login again.',
+      newEmail
+    }
+  } catch (error) {
+    if (error instanceof NotFoundException || 
+        error instanceof BadRequestException || 
+        error instanceof UnauthorizedException ||
+        error instanceof ConflictException) {
+      throw error
+    }
+    console.error('Email update error:', error)
+    throw new BadRequestException('Failed to update email')
+  }
+}
+
+/**
+ * Delete user account (soft delete)
+ */
+async deleteAccount(userId: string, password?: string) {
+  try {
+    const user = await this.userModel.findById(userId)
+    
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    // For local auth users, verify password
+    if (user.authProvider === 'local' && user.password) {
+      if (!password) {
+        throw new BadRequestException('Password is required to delete account')
+      }
+      const isPasswordValid = await bcrypt.compare(password, user.password)
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Password is incorrect')
+      }
+    }
+
+    // Soft delete: Update status to inactive
+    await this.userModel.findByIdAndUpdate(userId, {
+      status: UserStatus.INACTIVE,
+      refreshToken: null,
+      updatedAt: new Date()
+    })
+
+    return {
+      success: true,
+      message: 'Account deleted successfully'
+    }
+  } catch (error) {
+    if (error instanceof NotFoundException || 
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException) {
+      throw error
+    }
+    console.error('Account deletion error:', error)
+    throw new BadRequestException('Failed to delete account')
   }
 }
 }
