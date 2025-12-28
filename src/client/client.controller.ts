@@ -29,6 +29,9 @@ export class ClientController {
     return this.clientService.findAll(query)
   }
 
+  // IMPORTANT: All specific string routes MUST come BEFORE the dynamic :id route
+  // Otherwise NestJS will try to match "stats", "export", etc. as IDs
+  
   @Get("stats")
   @ApiOperation({ summary: "Get client statistics" })
   @ApiResponse({ status: 200, description: "Client statistics retrieved successfully" })
@@ -41,10 +44,10 @@ export class ClientController {
   @ApiResponse({ status: 200, description: 'CSV file generated successfully' })
   async exportCSV(@Res() res: Response) {
     try {
-      const filePath = await this.clientService.exportToCSV();
-      res.download(filePath, 'clients-export.csv');
+      const filePath = await this.clientService.exportToCSV()
+      res.download(filePath, 'clients-export.csv')
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: error.message })
     }
   }
 
@@ -53,15 +56,15 @@ export class ClientController {
   @ApiResponse({ status: 200, description: 'PDF file generated successfully' })
   async exportPDF(@Res() res: Response) {
     try {
-      const pdfBuffer = await this.clientService.exportToPDF();
+      const pdfBuffer = await this.clientService.exportToPDF()
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename=clients-export.pdf',
         'Content-Length': pdfBuffer.length,
-      });
-      res.send(pdfBuffer);
+      })
+      res.send(pdfBuffer)
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: error.message })
     }
   }
 
@@ -82,16 +85,19 @@ export class ClientController {
   @UseInterceptors(FileInterceptor('file'))
   async importCSV(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      return { success: false, error: 'No file uploaded' };
+      return { success: false, error: 'No file uploaded' }
     }
-    return this.clientService.importFromCSV(file.path);
+    return this.clientService.importFromCSV(file.path)
   }
 
+  // Dynamic :id route MUST be LAST among GET routes
+  // This ensures specific routes like /stats, /export/csv are matched first
+  
   @Get(':id')
   @ApiOperation({ summary: 'Get a client by ID' })
   @ApiResponseWrapper(Client)
   findOne(@Param('id') id: string) {
-    return this.clientService.findOne(id);
+    return this.clientService.findOne(id)
   }
 
   @Patch(":id")
@@ -105,6 +111,6 @@ export class ClientController {
   @ApiOperation({ summary: 'Deactivate a client' })
   @ApiResponse({ status: 200, description: 'Client deactivated successfully' })
   remove(@Param('id') id: string) {
-    return this.clientService.remove(id);
+    return this.clientService.remove(id)
   }
 }
