@@ -554,19 +554,103 @@ private buildServiceTimeline(
     await availability.save()
   }
 
+// async getAllSlots(dto: GetAllSlotsDto): Promise<{
+//   date: string
+//   dayOfWeek: string
+//   businessHours: TimeSlot[]
+//   staffAvailability: Array<{
+//     staffId: string
+//     staffName: string
+//     email: string
+//     availableSlots: TimeSlot[]
+//     blockedSlots: TimeSlot[]
+//     status: string
+//   }>
+// }[]> {
+//   if (!dto.businessId) {
+//     throw new BadRequestException('Business ID is required')
+//   }
+
+//   const startDate = dto.startDate ? this.parseDate(dto.startDate) : new Date()
+//   const endDate = dto.endDate 
+//     ? this.parseDate(dto.endDate) 
+//     : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+//   const allSlots: Array<{
+//     date: string
+//     dayOfWeek: string
+//     businessHours: TimeSlot[]
+//     staffAvailability: Array<{
+//       staffId: string
+//       staffName: string
+//       email: string
+//       availableSlots: TimeSlot[]
+//       blockedSlots: TimeSlot[]
+//       status: string
+//     }>
+//   }> = []
+  
+//   for (let currentDate = new Date(startDate); currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
+//     const date = new Date(currentDate)
+//     const normalizedDate = this.normalizeDate(date)
+    
+//     const businessHours = await this.getBusinessHours(dto.businessId, date)
+    
+//     const staffQuery: {
+//       businessId: Types.ObjectId
+//       date: Date
+//       staffId?: Types.ObjectId
+//     } = {
+//       businessId: new Types.ObjectId(dto.businessId),
+//       date: normalizedDate
+//     }
+    
+//     if (dto.staffId) {
+//       staffQuery.staffId = new Types.ObjectId(dto.staffId)
+//     }
+    
+//     // Remove .lean() - work with documents instead
+//     const staffAvailability = await this.staffAvailabilityModel
+//       .find(staffQuery)
+//       .populate('staffId', 'firstName lastName email')
+//       .exec()
+
+//     allSlots.push({
+//       date: date.toISOString().split('T')[0],
+//       dayOfWeek: this.getDayName(date.getDay()),
+//       businessHours: businessHours,
+//       staffAvailability: staffAvailability.map((avail: any) => ({
+//         staffId: avail.staffId._id.toString(),
+//         staffName: `${avail.staffId.firstName} ${avail.staffId.lastName}`,
+//         email: avail.staffId.email,
+//         availableSlots: avail.availableSlots,
+//         blockedSlots: avail.blockedSlots || [],
+//         status: avail.status
+//       }))
+//     })
+//   }
+
+//   return allSlots
+// }
+
 async getAllSlots(dto: GetAllSlotsDto): Promise<{
-  date: string
-  dayOfWeek: string
-  businessHours: TimeSlot[]
-  staffAvailability: Array<{
-    staffId: string
-    staffName: string
-    email: string
-    availableSlots: TimeSlot[]
-    blockedSlots: TimeSlot[]
-    status: string
+  dateRange: {
+    start: string
+    end: string
+  }
+  slots: Array<{
+    date: string
+    hasSlots: boolean
+    availableSlotCount: number
+    totalSlots: number
+    staffAvailable: number
   }>
-}[]> {
+  summary: {
+    totalDates: number
+    datesWithAvailability: number
+    datesFullyBooked: number
+  }
+}> {
   if (!dto.businessId) {
     throw new BadRequestException('Business ID is required')
   }
@@ -574,28 +658,41 @@ async getAllSlots(dto: GetAllSlotsDto): Promise<{
   const startDate = dto.startDate ? this.parseDate(dto.startDate) : new Date()
   const endDate = dto.endDate 
     ? this.parseDate(dto.endDate) 
-    : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+    : new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000) // 90 days ahead
 
-  const allSlots: Array<{
+  // Ensure staff availability is extended
+  await this.ensureAllStaffAvailability(dto.businessId, 90)
+
+  const slotsData: Record<string, {
     date: string
-    dayOfWeek: string
-    businessHours: TimeSlot[]
-    staffAvailability: Array<{
-      staffId: string
-      staffName: string
-      email: string
-      availableSlots: TimeSlot[]
-      blockedSlots: TimeSlot[]
-      status: string
-    }>
-  }> = []
+    hasSlots: boolean
+    availableSlotCount: number
+    totalSlots: number
+    staffAvailable: number
+  }> = {}
   
+  // Process each date in range
   for (let currentDate = new Date(startDate); currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
     const date = new Date(currentDate)
+    const dateString = date.toISOString().split('T')[0]
     const normalizedDate = this.normalizeDate(date)
     
+    // Get business hours for this date
     const businessHours = await this.getBusinessHours(dto.businessId, date)
     
+    if (businessHours.length === 0) {
+      // Business closed on this day
+      slotsData[dateString] = {
+        date: dateString,
+        hasSlots: false,
+        availableSlotCount: 0,
+        totalSlots: 0,
+        staffAvailable: 0
+      }
+      continue
+    }
+    
+    // Get staff availability for this date
     const staffQuery: {
       businessId: Types.ObjectId
       date: Date
@@ -609,30 +706,82 @@ async getAllSlots(dto: GetAllSlotsDto): Promise<{
       staffQuery.staffId = new Types.ObjectId(dto.staffId)
     }
     
-    // Remove .lean() - work with documents instead
     const staffAvailability = await this.staffAvailabilityModel
       .find(staffQuery)
-      .populate('staffId', 'firstName lastName email')
+      .lean()
       .exec()
-
-    allSlots.push({
-      date: date.toISOString().split('T')[0],
-      dayOfWeek: this.getDayName(date.getDay()),
-      businessHours: businessHours,
-      staffAvailability: staffAvailability.map((avail: any) => ({
-        staffId: avail.staffId._id.toString(),
-        staffName: `${avail.staffId.firstName} ${avail.staffId.lastName}`,
-        email: avail.staffId.email,
-        availableSlots: avail.availableSlots,
-        blockedSlots: avail.blockedSlots || [],
-        status: avail.status
-      }))
-    })
+    
+    // Calculate available slots for the day
+    let totalSlots = 0
+    let availableSlotCount = 0
+    const availableStaffCount = staffAvailability.filter(staff => 
+      staff.status !== 'unavailable' && 
+      staff.availableSlots && 
+      staff.availableSlots.length > 0
+    ).length
+    
+    // For each business hour slot, count potential bookings
+    for (const businessHour of businessHours) {
+      const startMinutes = this.timeToMinutes(businessHour.startTime)
+      const endMinutes = this.timeToMinutes(businessHour.endTime)
+      const defaultDuration = 30 // Default slot duration
+      
+      // Count total possible slots
+      const possibleSlots = Math.floor((endMinutes - startMinutes) / defaultDuration)
+      totalSlots += possibleSlots
+      
+      // Count how many slots have at least one available staff
+      for (let currentMinutes = startMinutes; currentMinutes + defaultDuration <= endMinutes; currentMinutes += defaultDuration) {
+        const slotStart = this.minutesToTime(currentMinutes)
+        const slotEnd = this.minutesToTime(currentMinutes + defaultDuration)
+        
+        const hasAvailableStaff = staffAvailability.some(staff => {
+          const isSlotAvailable = this.isTimeSlotAvailable(
+            staff.availableSlots || [],
+            slotStart,
+            slotEnd
+          )
+          const isNotBlocked = !this.isTimeSlotBlocked(
+            staff.blockedSlots || [],
+            slotStart,
+            slotEnd
+          )
+          return staff.status !== 'unavailable' && isSlotAvailable && isNotBlocked
+        })
+        
+        if (hasAvailableStaff) {
+          availableSlotCount++
+        }
+      }
+    }
+    
+    slotsData[dateString] = {
+      date: dateString,
+      hasSlots: availableSlotCount > 0,
+      availableSlotCount,
+      totalSlots,
+      staffAvailable: availableStaffCount
+    }
   }
-
-  return allSlots
+  
+  // Convert to array and sort by date
+  const result = Object.values(slotsData).sort((a, b) => 
+    a.date.localeCompare(b.date)
+  )
+  
+  return {
+    dateRange: {
+      start: startDate.toISOString().split('T')[0],
+      end: endDate.toISOString().split('T')[0]
+    },
+    slots: result,
+    summary: {
+      totalDates: result.length,
+      datesWithAvailability: result.filter(d => d.hasSlots).length,
+      datesFullyBooked: result.filter(d => !d.hasSlots && d.totalSlots > 0).length
+    }
+  }
 }
-
 
 /**
  * Internal method to check slot availability without requiring serviceId
