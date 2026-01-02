@@ -38,6 +38,9 @@ var AuditEntity;
     AuditEntity["CLIENT_MEMBERSHIP"] = "client_membership";
     AuditEntity["TEAM_MEMBER"] = "team_member";
     AuditEntity["SETTINGS"] = "settings";
+    AuditEntity["COMMISSION"] = "commission";
+    AuditEntity["FINANCIAL_REPORT"] = "financial_report";
+    AuditEntity["ANALYTICS"] = "analytics";
 })(AuditEntity = exports.AuditEntity || (exports.AuditEntity = {}));
 let AuditLog = class AuditLog {
 };

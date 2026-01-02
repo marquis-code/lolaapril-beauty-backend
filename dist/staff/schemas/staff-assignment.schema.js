@@ -415,7 +415,6 @@ exports.StaffAssignmentSchema.virtual('calculatedCommission').get(function () {
     return this.commissionAmount;
 });
 exports.StaffAssignmentSchema.pre('save', function (next) {
-    var _a;
     if (this.isModified('status')) {
         this.history.push({
             action: `status_changed_to_${this.status}`,
@@ -431,7 +430,7 @@ exports.StaffAssignmentSchema.pre('save', function (next) {
         this.history.push({
             action: 'reassigned',
             performedAt: new Date(),
-            previousValue: ((_a = this.previousStaffId) === null || _a === void 0 ? void 0 : _a.toString()) || '',
+            previousValue: this.previousStaffId?.toString() || '',
             newValue: this.staffId.toString(),
             performedBy: this.assignedBy || null,
             reason: this.reassignmentReason || 'Staff reassigned'

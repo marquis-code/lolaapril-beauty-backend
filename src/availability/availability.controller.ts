@@ -88,8 +88,7 @@ export class AvailabilityController {
       message: 'Staff time blocked successfully'
     }
   }
-
-  @Get('all-slots')
+@Get('all-slots')
 async getAllSlots(
   @Query(ValidationPipe) dto: GetAllSlotsDto,
   @Req() req: TenantRequest

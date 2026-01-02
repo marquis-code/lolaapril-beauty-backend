@@ -25,14 +25,13 @@ let TenantRateLimitMiddleware = TenantRateLimitMiddleware_1 = class TenantRateLi
         this.logger.log('Rate limiters initialized for all plan types');
     }
     use(req, res, next) {
-        var _a, _b;
         if (!req.tenant) {
             return this.defaultLimiter(req, res, next);
         }
         const tenantId = req.tenant.businessId;
         let limiter = this.limiters.get(tenantId);
         if (!limiter) {
-            const planType = ((_b = (_a = req.tenant.business) === null || _a === void 0 ? void 0 : _a.activeSubscription) === null || _b === void 0 ? void 0 : _b.planType) || 'trial';
+            const planType = req.tenant.business?.activeSubscription?.planType || 'trial';
             limiter = this.planLimiters.get(planType) || this.defaultLimiter;
             this.limiters.set(tenantId, limiter);
         }

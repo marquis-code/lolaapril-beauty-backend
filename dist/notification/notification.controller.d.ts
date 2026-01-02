@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { NotificationService } from './notification.service';
 import { NotificationTemplate, NotificationTemplateDocument, NotificationLog, NotificationLogDocument, NotificationPreference, NotificationPreferenceDocument } from './schemas/notification.schema';
 export declare class NotificationController {
@@ -32,13 +32,13 @@ export declare class NotificationController {
     private notificationLogModel;
     private notificationPreferenceModel;
     constructor(notificationService: NotificationService, notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>);
-    getTemplates(businessId: string): Promise<(import("mongoose").Document<unknown, {}, NotificationTemplateDocument, {}, {}> & NotificationTemplate & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-        _id: unknown;
+    getTemplates(businessId: string): Promise<(import("mongoose").Document<unknown, {}, NotificationTemplateDocument, {}, {}> & NotificationTemplate & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
     }> & {
         __v: number;
     })[]>;
-    getNotificationLogs(businessId: string, limit?: number, offset?: number): Promise<(import("mongoose").Document<unknown, {}, NotificationLogDocument, {}, {}> & NotificationLog & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-        _id: unknown;
+    getNotificationLogs(businessId: string, limit?: number, offset?: number): Promise<(import("mongoose").Document<unknown, {}, NotificationLogDocument, {}, {}> & NotificationLog & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
     }> & {
         __v: number;
     })[]>;
@@ -46,13 +46,13 @@ export declare class NotificationController {
         userId: string;
         businessId: string;
         preferences: any;
-    }): Promise<import("mongoose").Document<unknown, {}, NotificationPreferenceDocument, {}, {}> & NotificationPreference & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-        _id: unknown;
+    }): Promise<import("mongoose").Document<unknown, {}, NotificationPreferenceDocument, {}, {}> & NotificationPreference & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
     }> & {
         __v: number;
     }>;
-    getNotificationPreferences(userId: string, businessId: string): Promise<(import("mongoose").Document<unknown, {}, NotificationPreferenceDocument, {}, {}> & NotificationPreference & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-        _id: unknown;
+    getNotificationPreferences(userId: string, businessId: string): Promise<(import("mongoose").Document<unknown, {}, NotificationPreferenceDocument, {}, {}> & NotificationPreference & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
     }> & {
         __v: number;
     }) | {
@@ -114,8 +114,8 @@ export declare class NotificationController {
         content: string;
         availableVariables?: any[];
         createdBy: string;
-    }): Promise<import("mongoose").Document<unknown, {}, NotificationTemplateDocument, {}, {}> & NotificationTemplate & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-        _id: unknown;
+    }): Promise<import("mongoose").Document<unknown, {}, NotificationTemplateDocument, {}, {}> & NotificationTemplate & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
     }> & {
         __v: number;
     }>;
@@ -125,8 +125,8 @@ export declare class NotificationController {
         subject?: string;
         content?: string;
         isActive?: boolean;
-    }): Promise<import("mongoose").Document<unknown, {}, NotificationTemplateDocument, {}, {}> & NotificationTemplate & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-        _id: unknown;
+    }): Promise<import("mongoose").Document<unknown, {}, NotificationTemplateDocument, {}, {}> & NotificationTemplate & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
     }> & {
         __v: number;
     }>;

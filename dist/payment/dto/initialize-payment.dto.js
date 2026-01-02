@@ -33,6 +33,12 @@ __decorate([
     __metadata("design:type", String)
 ], InitializePaymentDto.prototype, "clientId", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ example: "507f1f77bcf86cd799439014", description: "Tenant/Business ID" }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], InitializePaymentDto.prototype, "tenantId", void 0);
+__decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: "507f1f77bcf86cd799439012", description: "Appointment ID" }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
@@ -46,8 +52,23 @@ __decorate([
 ], InitializePaymentDto.prototype, "bookingId", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
+        example: "paystack",
+        description: "Payment gateway to use (paystack, flutterwave, etc.)",
+        enum: ["paystack", "flutterwave", "stripe"]
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], InitializePaymentDto.prototype, "gateway", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
         description: "Additional metadata for the payment",
-        example: { businessId: "507f1f77bcf86cd799439014", serviceName: "Hair Cut" }
+        example: {
+            services: [
+                { serviceId: "507f1f77bcf86cd799439015", serviceName: "Hair Cut", price: 5000 }
+            ],
+            businessName: "Beauty Salon"
+        }
     }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)

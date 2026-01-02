@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { BookingDocument } from '../schemas/booking.schema';
+import { Booking, BookingDocument } from '../schemas/booking.schema';
 import { GetBookingsDto } from '../dto/get-bookings.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 export declare class BookingService {
@@ -18,6 +18,7 @@ export declare class BookingService {
         page: number;
         limit: number;
     }>;
+    updateBooking(bookingId: string, updateData: Partial<Booking>): Promise<BookingDocument>;
     getTodayBookings(businessId: string): Promise<BookingDocument[]>;
     getUpcomingBookings(businessId: string, days?: number): Promise<BookingDocument[]>;
     updateBookingStatus(bookingId: string, status: string, updatedBy?: string, reason?: string): Promise<BookingDocument>;

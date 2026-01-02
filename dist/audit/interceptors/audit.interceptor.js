@@ -30,9 +30,8 @@ let AuditInterceptor = class AuditInterceptor {
         const ipAddress = request.ip;
         const userAgent = request.get("User-Agent");
         return next.handle().pipe((0, operators_1.tap)(async (response) => {
-            var _a;
             if (user) {
-                const entityId = (response === null || response === void 0 ? void 0 : response.id) || (response === null || response === void 0 ? void 0 : response._id) || ((_a = request.params) === null || _a === void 0 ? void 0 : _a.id) || "unknown";
+                const entityId = response?.id || response?._id || request.params?.id || "unknown";
                 await this.auditService.createLog({
                     userId: user.userId,
                     action: auditOptions.action,

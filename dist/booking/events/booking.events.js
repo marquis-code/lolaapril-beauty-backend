@@ -55,7 +55,6 @@ let BookingEventHandler = BookingEventHandler_1 = class BookingEventHandler {
         this.logger.log(`Handling booking expired event for: ${booking.bookingNumber}`);
     }
     async handlePaymentReminder(booking) {
-        var _a;
         this.logger.log(`Sending payment reminder for booking: ${booking.bookingNumber}`);
         await this.notificationService.notifyPaymentReminder(booking._id, booking.clientId, booking.businessId, {
             clientName: booking.clientName,
@@ -63,7 +62,7 @@ let BookingEventHandler = BookingEventHandler_1 = class BookingEventHandler {
             amount: booking.estimatedTotal,
             paymentUrl: `${process.env.APP_URL}/pay/${booking._id}`,
             expiryTime: booking.expiresAt,
-            appointmentDate: ((_a = booking.preferredDate) === null || _a === void 0 ? void 0 : _a.toDateString()) || '',
+            appointmentDate: booking.preferredDate?.toDateString() || '',
             businessName: booking.businessName,
             businessPhone: booking.businessPhone || '',
             clientEmail: booking.clientEmail,

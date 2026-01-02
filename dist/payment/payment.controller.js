@@ -39,7 +39,7 @@ let PaymentController = class PaymentController {
     }
     async handleWebhook(signature, req) {
         const payload = req.body;
-        await this.paymentService.handleWebhook(payload, signature);
+        await this.paymentService.handleWebhook(payload, signature, 'paystack');
         return { message: 'Webhook received' };
     }
     initiateRefund(reference, body) {
@@ -77,7 +77,7 @@ __decorate([
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Initialize payment with Paystack' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Initialize payment with gateway' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Payment initialized successfully' }),
     (0, swagger_1.ApiBody)({ type: initialize_payment_dto_1.InitializePaymentDto }),
     __param(0, (0, common_1.Body)()),
@@ -92,7 +92,7 @@ __decorate([
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Verify payment with Paystack' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Verify payment with gateway' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Payment verified successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Payment not found' }),
     __param(0, (0, common_1.Param)('reference')),
@@ -102,7 +102,7 @@ __decorate([
 ], PaymentController.prototype, "verifyPayment", null);
 __decorate([
     (0, common_1.Post)('webhook'),
-    (0, swagger_1.ApiOperation)({ summary: 'Paystack webhook endpoint' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Payment gateway webhook endpoint' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Webhook processed successfully' }),
     __param(0, (0, common_1.Headers)('x-paystack-signature')),
     __param(1, (0, common_1.Req)()),
@@ -117,7 +117,7 @@ __decorate([
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Initiate refund via Paystack' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Initiate refund via payment gateway' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Refund initiated successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Payment not found' }),
     __param(0, (0, common_1.Param)('reference')),

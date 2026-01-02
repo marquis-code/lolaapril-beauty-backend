@@ -8,20 +8,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SMSService = void 0;
 const common_1 = require("@nestjs/common");
-const axios_1 = __importDefault(require("axios"));
+const axios_1 = require("axios");
 let SMSService = class SMSService {
     constructor() {
         this.baseUrl = process.env.TWILIO_BASE_URL || 'https://api.twilio.com/2010-04-01';
         this.apiKey = process.env.TWILIO_API_KEY;
     }
     async sendSMS(to, message, from) {
-        var _a, _b;
         try {
             const formattedPhone = this.formatPhoneNumber(to);
             const response = await axios_1.default.post(`${this.baseUrl}/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Messages.json`, {
@@ -43,7 +39,7 @@ let SMSService = class SMSService {
             return {
                 messageId: '',
                 success: false,
-                error: ((_b = (_a = error.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || error.message,
+                error: error.response?.data?.message || error.message,
             };
         }
     }

@@ -7,12 +7,22 @@ import { Payment, PaymentSchema } from "./schemas/payment.schema"
 import { Booking, BookingSchema } from '../booking/schemas/booking.schema';
 import { AuditModule } from "../audit/audit.module"
 import { NotificationModule } from '../notification/notification.module'
+import { CommissionModule } from "../commission/commission.module"
+import { IntegrationModule } from "../integration/integration.module"
+import { JobsModule } from "../jobs/jobs.module"
+import { CacheModule } from "../cache/cache.module"
+import { PricingModule } from "../pricing/pricing.module"
 
 @Module({
   imports: [MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }, { name: Booking.name, schema: BookingSchema }]), 
   ConfigModule,
   forwardRef(() => NotificationModule),
-  AuditModule
+  AuditModule,
+    PricingModule,  
+    CommissionModule,
+    IntegrationModule,
+    JobsModule, 
+    CacheModule,
 ],
   controllers: [PaymentController],
   providers: [PaymentService],

@@ -154,6 +154,21 @@ let BookingService = BookingService_1 = class BookingService {
             limit
         };
     }
+    async updateBooking(bookingId, updateData) {
+        const booking = await this.bookingModel
+            .findByIdAndUpdate(bookingId, {
+            $set: {
+                ...updateData,
+                updatedAt: new Date()
+            }
+        }, { new: true })
+            .lean()
+            .exec();
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        return booking;
+    }
     async getTodayBookings(businessId) {
         const today = new Date();
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -273,7 +288,7 @@ let BookingService = BookingService_1 = class BookingService {
             reason,
             rejectedBy
         });
-        this.logger.log(`Booking ${booking === null || booking === void 0 ? void 0 : booking.bookingNumber} rejected: ${reason}`);
+        this.logger.log(`Booking ${booking?.bookingNumber} rejected: ${reason}`);
     }
     async cancelBooking(bookingId, reason, cancelledBy) {
         const bookingDoc = await this.bookingModel.findById(bookingId).exec();
@@ -298,7 +313,7 @@ let BookingService = BookingService_1 = class BookingService {
             reason,
             cancelledBy
         });
-        this.logger.log(`Booking ${booking === null || booking === void 0 ? void 0 : booking.bookingNumber} cancelled: ${reason}`);
+        this.logger.log(`Booking ${booking?.bookingNumber} cancelled: ${reason}`);
     }
     async getClientBookings(clientId, status) {
         const filter = {
@@ -445,8 +460,7 @@ let BookingService = BookingService_1 = class BookingService {
         }
     }
     calculateConversionRate(stats) {
-        var _a;
-        const confirmedCount = ((_a = stats.find(s => s._id === 'confirmed')) === null || _a === void 0 ? void 0 : _a.count) || 0;
+        const confirmedCount = stats.find(s => s._id === 'confirmed')?.count || 0;
         const totalCount = stats.reduce((sum, s) => sum + s.count, 0);
         return totalCount > 0 ? Math.round((confirmedCount / totalCount) * 100) : 0;
     }

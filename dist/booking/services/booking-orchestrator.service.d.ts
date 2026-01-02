@@ -7,9 +7,13 @@ import { StaffService } from '../../staff/staff.service';
 import { TenantService } from '../../tenant/tenant.service';
 import { ServiceService } from '../../service/service.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CreateBookingDto } from "../dto/create-booking.dto";
+import { CancellationPolicyService } from '../../cancellation/services/cancellation-policy.service';
+import { NoShowManagementService } from '../../cancellation/services/no-show-management.service';
 import { AppointmentResult } from "../types/booking.types";
 import { Logger } from 'winston';
+import { SourceTrackingService } from '../../commission/services/source-tracking.service';
+import { CommissionCalculatorService } from '../../commission/services/commission-calculator.service';
+import { CreateBookingWithSourceDto } from '../dto/create-booking-with-source.dto';
 interface BookingResult {
     bookingId: string;
     bookingNumber: string;
@@ -22,6 +26,12 @@ interface BookingResult {
     availableSlots?: any[];
     message: string;
     requiresPayment?: boolean;
+    requiresDeposit?: boolean;
+    depositAmount?: number;
+    depositReason?: string;
+    remainingAmount?: number;
+    commissionInfo?: any;
+    clientReliability?: any;
 }
 interface PaymentResult {
     paymentId: string;
@@ -34,6 +44,7 @@ interface PaymentResult {
     status: string;
     payment: any;
     appointment: any;
+    remainingAmount?: number;
 }
 export declare class BookingOrchestrator {
     private readonly logger;
@@ -46,10 +57,16 @@ export declare class BookingOrchestrator {
     private readonly tenantService;
     private readonly serviceService;
     private readonly eventEmitter;
-    constructor(logger: Logger, bookingService: BookingService, appointmentService: AppointmentService, paymentService: PaymentService, availabilityService: AvailabilityService, notificationService: NotificationService, staffService: StaffService, tenantService: TenantService, serviceService: ServiceService, eventEmitter: EventEmitter2);
+    private readonly cancellationPolicyService;
+    private readonly noShowManagementService;
+    private readonly sourceTrackingService;
+    private readonly commissionCalculatorService;
+    constructor(logger: Logger, bookingService: BookingService, appointmentService: AppointmentService, paymentService: PaymentService, availabilityService: AvailabilityService, notificationService: NotificationService, staffService: StaffService, tenantService: TenantService, serviceService: ServiceService, eventEmitter: EventEmitter2, cancellationPolicyService: CancellationPolicyService, noShowManagementService: NoShowManagementService, sourceTrackingService: SourceTrackingService, commissionCalculatorService: CommissionCalculatorService);
     private calculateTotalBufferTime;
+    private normalizeBookingSource;
+    private transformBookingSourceToDto;
     private sendConfirmationNotifications;
-    createBookingWithValidation(createBookingDto: CreateBookingDto): Promise<BookingResult>;
+    createBookingWithValidation(createBookingDto: CreateBookingWithSourceDto): Promise<BookingResult>;
     private parseDate;
     private formatDateForAvailability;
     private checkAvailabilityForAllServices;
@@ -67,6 +84,7 @@ export declare class BookingOrchestrator {
         gateway: string;
         clientId: string;
         businessId: string;
+        paymentType?: 'full' | 'deposit' | 'remaining';
     }): Promise<PaymentResult>;
     resetBookingForPaymentRetry(bookingId: string): Promise<void>;
     confirmBookingWithoutStaff(bookingId: string): Promise<AppointmentResult>;

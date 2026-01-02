@@ -33,8 +33,8 @@ export declare class AppointmentController {
     constructor(appointmentService: AppointmentService);
     create(createAppointmentDto: CreateAppointmentDto): Promise<import("./schemas/appointment.schema").Appointment>;
     findAll(query: AppointmentQueryDto): Promise<{
-        appointments: (import("mongoose").Document<unknown, {}, import("./schemas/appointment.schema").AppointmentDocument, {}, {}> & import("./schemas/appointment.schema").Appointment & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-            _id: unknown;
+        appointments: (import("mongoose").Document<unknown, {}, import("./schemas/appointment.schema").AppointmentDocument, {}, {}> & import("./schemas/appointment.schema").Appointment & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
         }> & {
             __v: number;
         })[];

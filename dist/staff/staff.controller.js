@@ -30,7 +30,10 @@ let StaffController = class StaffController {
     async createStaff(createStaffDto, req) {
         try {
             const businessId = req.tenant.businessId;
-            const staff = await this.staffService.createStaff(Object.assign(Object.assign({}, createStaffDto), { businessId }));
+            const staff = await this.staffService.createStaff({
+                ...createStaffDto,
+                businessId
+            });
             return {
                 success: true,
                 data: staff,
@@ -85,8 +88,11 @@ let StaffController = class StaffController {
         try {
             const businessId = req.tenant.businessId;
             const createdBy = req.user.id;
-            const schedule = await this.staffService.createStaffSchedule(Object.assign(Object.assign({}, createScheduleDto), { businessId,
-                createdBy }));
+            const schedule = await this.staffService.createStaffSchedule({
+                ...createScheduleDto,
+                businessId,
+                createdBy
+            });
             return {
                 success: true,
                 data: schedule,
@@ -122,8 +128,12 @@ let StaffController = class StaffController {
         try {
             const businessId = req.tenant.businessId;
             const assignedBy = req.user.id;
-            const assignment = await this.staffService.assignStaffToAppointment(Object.assign(Object.assign({}, assignStaffDto), { businessId,
-                assignedBy, assignmentMethod: 'manual' }));
+            const assignment = await this.staffService.assignStaffToAppointment({
+                ...assignStaffDto,
+                businessId,
+                assignedBy,
+                assignmentMethod: 'manual'
+            });
             return {
                 success: true,
                 data: assignment,
@@ -193,8 +203,11 @@ let StaffController = class StaffController {
         try {
             const businessId = req.tenant.businessId;
             const checkedInBy = req.user.id;
-            await this.staffService.checkInStaff(Object.assign(Object.assign({}, checkInDto), { businessId,
-                checkedInBy }));
+            await this.staffService.checkInStaff({
+                ...checkInDto,
+                businessId,
+                checkedInBy
+            });
             return {
                 success: true,
                 message: 'Staff checked in successfully'

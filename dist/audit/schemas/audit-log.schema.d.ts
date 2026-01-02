@@ -47,7 +47,10 @@ export declare enum AuditEntity {
     MEMBERSHIP = "membership",
     CLIENT_MEMBERSHIP = "client_membership",
     TEAM_MEMBER = "team_member",
-    SETTINGS = "settings"
+    SETTINGS = "settings",
+    COMMISSION = "commission",
+    FINANCIAL_REPORT = "financial_report",
+    ANALYTICS = "analytics"
 }
 export declare class AuditLog {
     userId: Types.ObjectId;

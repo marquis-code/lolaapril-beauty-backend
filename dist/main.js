@@ -1,16 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
-const compression_1 = __importDefault(require("compression"));
-const helmet_1 = __importDefault(require("helmet"));
+const compression = require("compression");
+const helmet_1 = require("helmet");
 const config_1 = require("@nestjs/config");
-const mongoose_1 = __importDefault(require("mongoose"));
+const mongoose_1 = require("mongoose");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const configService = app.get(config_1.ConfigService);
@@ -23,10 +20,10 @@ async function bootstrap() {
     mongoose_1.default.connection.on('disconnected', () => {
         console.log('⚠️  MongoDB disconnected');
     });
-    app.use((0, compression_1.default)());
+    app.use(compression());
     app.use((0, helmet_1.default)({
-        crossOriginResourcePolicy: { policy: "cross-origin" },
-        crossOriginOpenerPolicy: { policy: "unsafe-none" },
+        crossOriginResourcePolicy: { policy: 'cross-origin' },
+        crossOriginOpenerPolicy: { policy: 'unsafe-none' },
         crossOriginEmbedderPolicy: false,
     }));
     app.use((req, res, next) => {
@@ -43,21 +40,21 @@ async function bootstrap() {
     app.enableCors({
         origin: true,
         credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
         allowedHeaders: [
-            "Content-Type",
-            "Authorization",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-            "X-Business-Id",
-            "Sec-Ch-Ua",
-            "Sec-Ch-Ua-Mobile",
-            "Sec-Ch-Ua-Platform",
-            "User-Agent",
-            "Referer",
+            'Content-Type',
+            'Authorization',
+            'Accept',
+            'Origin',
+            'X-Requested-With',
+            'X-Business-Id',
+            'Sec-Ch-Ua',
+            'Sec-Ch-Ua-Mobile',
+            'Sec-Ch-Ua-Platform',
+            'User-Agent',
+            'Referer',
         ],
-        exposedHeaders: ["Content-Disposition"],
+        exposedHeaders: ['Content-Disposition'],
         preflightContinue: false,
         optionsSuccessStatus: 204,
         maxAge: 86400,
@@ -82,7 +79,7 @@ async function bootstrap() {
             uptime: process.uptime(),
         });
     });
-    const port = configService.get("PORT") || 3001;
+    const port = configService.get('PORT') || 3001;
     await app.listen(port);
     console.log(`Application is running on: ${await app.getUrl()}`);
     console.log(`🔐 JWT Secret configured:`, !!configService.get('JWT_SECRET'));

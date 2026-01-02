@@ -23,8 +23,26 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document, Types } from "mongoose";
+import { Document, Types, Schema as MongooseSchema } from "mongoose";
 export type BookingDocument = Booking & Document;
+export declare class BookingSource {
+    sourceType: string;
+    sourceIdentifier: string;
+    referralCode: string;
+    utmSource: string;
+    utmMedium: string;
+    utmCampaign: string;
+    trackedAt: Date;
+    ipAddress: string;
+    userAgent: string;
+}
+export declare class CommissionInfo {
+    isCommissionable: boolean;
+    commissionRate: number;
+    commissionAmount: number;
+    commissionReason: string;
+    calculatedAt: Date;
+}
 export declare class BookedService {
     serviceId: Types.ObjectId;
     serviceName: string;
@@ -39,6 +57,17 @@ export declare class BookingMetadata {
     platform: string;
 }
 export declare class Booking {
+    requiresDeposit: boolean;
+    depositAmount: number;
+    depositPaid: boolean;
+    depositTransactionId: string;
+    depositReason: string;
+    remainingAmount: number;
+    bookingSource: BookingSource;
+    commissionInfo: CommissionInfo;
+    firstTimeClient: boolean;
+    clientReliabilityScore: number;
+    commissionPreview: any;
     clientId: Types.ObjectId;
     businessId: Types.ObjectId;
     totalBufferTime: number;
@@ -56,7 +85,6 @@ export declare class Booking {
     businessPhone: string;
     specialRequests: string;
     status: string;
-    bookingSource: string;
     cancellationReason: string;
     rejectionReason: string;
     cancellationDate: Date;
@@ -69,7 +97,7 @@ export declare class Booking {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const BookingSchema: import("mongoose").Schema<Booking, import("mongoose").Model<Booking, any, any, any, Document<unknown, any, Booking, any, {}> & Booking & {
+export declare const BookingSchema: MongooseSchema<Booking, import("mongoose").Model<Booking, any, any, any, Document<unknown, any, Booking, any, {}> & Booking & {
     _id: Types.ObjectId;
 } & {
     __v: number;

@@ -29,7 +29,12 @@ let StaffService = class StaffService {
     }
     async createStaff(createStaffDto) {
         const staffId = await this.generateStaffId(createStaffDto.businessId);
-        const staff = new this.staffModel(Object.assign(Object.assign({}, createStaffDto), { staffId, userId: new mongoose_2.Types.ObjectId(createStaffDto.userId), businessId: new mongoose_2.Types.ObjectId(createStaffDto.businessId) }));
+        const staff = new this.staffModel({
+            ...createStaffDto,
+            staffId,
+            userId: new mongoose_2.Types.ObjectId(createStaffDto.userId),
+            businessId: new mongoose_2.Types.ObjectId(createStaffDto.businessId),
+        });
         const savedStaff = await staff.save();
         await this.createDefaultSchedule(savedStaff._id.toString(), createStaffDto.businessId);
         return savedStaff;
@@ -102,7 +107,12 @@ let StaffService = class StaffService {
     }
     async createStaffSchedule(createScheduleDto) {
         await this.deactivateOverlappingSchedules(createScheduleDto.staffId, createScheduleDto.effectiveDate, createScheduleDto.endDate);
-        const schedule = new this.staffScheduleModel(Object.assign(Object.assign({}, createScheduleDto), { staffId: new mongoose_2.Types.ObjectId(createScheduleDto.staffId), businessId: new mongoose_2.Types.ObjectId(createScheduleDto.businessId), createdBy: new mongoose_2.Types.ObjectId(createScheduleDto.createdBy) }));
+        const schedule = new this.staffScheduleModel({
+            ...createScheduleDto,
+            staffId: new mongoose_2.Types.ObjectId(createScheduleDto.staffId),
+            businessId: new mongoose_2.Types.ObjectId(createScheduleDto.businessId),
+            createdBy: new mongoose_2.Types.ObjectId(createScheduleDto.createdBy),
+        });
         return await schedule.save();
     }
     async getStaffSchedule(staffId, date) {
@@ -118,7 +128,7 @@ let StaffService = class StaffService {
         return schedule;
     }
     async updateStaffSchedule(scheduleId, updateData) {
-        const schedule = await this.staffScheduleModel.findByIdAndUpdate(scheduleId, Object.assign(Object.assign({}, updateData), { updatedAt: new Date() }), { new: true }).exec();
+        const schedule = await this.staffScheduleModel.findByIdAndUpdate(scheduleId, { ...updateData, updatedAt: new Date() }, { new: true }).exec();
         if (!schedule) {
             throw new common_1.NotFoundException('Schedule not found');
         }
@@ -140,7 +150,11 @@ let StaffService = class StaffService {
         return result;
     }
     async completeStaffAssignment(assignmentId, completionData) {
-        const assignment = await this.staffAssignmentModel.findByIdAndUpdate(assignmentId, Object.assign(Object.assign({}, completionData), { status: 'completed', updatedAt: new Date() }), { new: true }).exec();
+        const assignment = await this.staffAssignmentModel.findByIdAndUpdate(assignmentId, {
+            ...completionData,
+            status: 'completed',
+            updatedAt: new Date()
+        }, { new: true }).exec();
         if (!assignment) {
             throw new common_1.NotFoundException('Assignment not found');
         }
@@ -152,7 +166,7 @@ let StaffService = class StaffService {
         const today = new Date();
         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const schedule = await this.getStaffSchedule(staffId, today);
-        const daySchedule = schedule === null || schedule === void 0 ? void 0 : schedule.weeklySchedule.find(day => day.dayOfWeek === today.getDay());
+        const daySchedule = schedule?.weeklySchedule.find(day => day.dayOfWeek === today.getDay());
         if (!daySchedule || !daySchedule.isWorkingDay) {
             throw new common_1.BadRequestException('Staff is not scheduled to work today');
         }
@@ -207,15 +221,12 @@ let StaffService = class StaffService {
             .exec();
     }
     async recordWorkingHours(workingHoursDto) {
-        const toWorkingTimeSlot = (slot) => {
-            var _a, _b;
-            return ({
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                isBreak: (_a = slot.isBreak) !== null && _a !== void 0 ? _a : false,
-                breakType: (_b = slot.breakType) !== null && _b !== void 0 ? _b : '',
-            });
-        };
+        const toWorkingTimeSlot = (slot) => ({
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            isBreak: slot.isBreak ?? false,
+            breakType: slot.breakType ?? '',
+        });
         const existingRecord = await this.workingHoursModel.findOne({
             staffId: new mongoose_2.Types.ObjectId(workingHoursDto.staffId),
             date: new Date(workingHoursDto.date.getFullYear(), workingHoursDto.date.getMonth(), workingHoursDto.date.getDate()),
@@ -233,8 +244,15 @@ let StaffService = class StaffService {
             existingRecord.updatedAt = new Date();
             return await existingRecord.save();
         }
-        const workingHours = new this.workingHoursModel(Object.assign(Object.assign({}, workingHoursDto), { staffId: new mongoose_2.Types.ObjectId(workingHoursDto.staffId), businessId: new mongoose_2.Types.ObjectId(workingHoursDto.businessId), scheduledMinutes,
-            actualMinutes, checkedInBy: new mongoose_2.Types.ObjectId(workingHoursDto.checkedInBy), actualHours: (workingHoursDto.actualHours || []).map(toWorkingTimeSlot) }));
+        const workingHours = new this.workingHoursModel({
+            ...workingHoursDto,
+            staffId: new mongoose_2.Types.ObjectId(workingHoursDto.staffId),
+            businessId: new mongoose_2.Types.ObjectId(workingHoursDto.businessId),
+            scheduledMinutes,
+            actualMinutes,
+            checkedInBy: new mongoose_2.Types.ObjectId(workingHoursDto.checkedInBy),
+            actualHours: (workingHoursDto.actualHours || []).map(toWorkingTimeSlot),
+        });
         return await workingHours.save();
     }
     async checkStaffAvailability(staffId, date, startTime, endTime) {
@@ -569,7 +587,7 @@ let StaffService = class StaffService {
             if (staff.totalReviews > 0) {
                 score += (staff.totalRating / staff.totalReviews) * 6;
             }
-            const experienceMonths = (skill === null || skill === void 0 ? void 0 : skill.experienceMonths) || 0;
+            const experienceMonths = skill?.experienceMonths || 0;
             score += Math.min(experienceMonths / 6, 20);
             const todayAssignments = await this.staffAssignmentModel.countDocuments({
                 staffId: staff._id,

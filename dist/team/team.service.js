@@ -29,9 +29,8 @@ let TeamService = class TeamService {
         }
     }
     async validateServiceReferences(createTeamMemberDto) {
-        var _a;
         const serviceIds = new Set();
-        if ((_a = createTeamMemberDto.skills) === null || _a === void 0 ? void 0 : _a.services) {
+        if (createTeamMemberDto.skills?.services) {
             createTeamMemberDto.skills.services.forEach(serviceId => {
                 const id = serviceId.toString();
                 this.validateObjectId(id, "Service");
@@ -163,7 +162,6 @@ let TeamService = class TeamService {
         }
     }
     async update(id, updateTeamMemberDto) {
-        var _a;
         try {
             this.validateObjectId(id, "Team member");
             if (updateTeamMemberDto.email) {
@@ -175,11 +173,11 @@ let TeamService = class TeamService {
                     throw new common_1.ConflictException("Team member with this email already exists");
                 }
             }
-            if (((_a = updateTeamMemberDto.skills) === null || _a === void 0 ? void 0 : _a.services) || updateTeamMemberDto.commissions) {
+            if (updateTeamMemberDto.skills?.services || updateTeamMemberDto.commissions) {
                 await this.validateServiceReferences(updateTeamMemberDto);
             }
             const teamMember = await this.teamMemberModel
-                .findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), Object.assign(Object.assign({}, updateTeamMemberDto), { updatedAt: new Date() }), { new: true, runValidators: true })
+                .findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { ...updateTeamMemberDto, updatedAt: new Date() }, { new: true, runValidators: true })
                 .populate('skills.services', 'basicDetails.serviceName')
                 .populate('commissions.serviceId', 'basicDetails.serviceName');
             if (!teamMember) {

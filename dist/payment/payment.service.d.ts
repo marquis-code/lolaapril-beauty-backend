@@ -1,4 +1,5 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
+import { ConfigService } from '@nestjs/config';
 import { Payment, PaymentDocument } from "./schemas/payment.schema";
 import { BookingDocument } from "../booking/schemas/booking.schema";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
@@ -6,34 +7,64 @@ import { ApiResponse } from "../common/interfaces/common.interface";
 import { PaymentQueryDto } from "./dto/payment-query.dto";
 import { UpdatePaymentDto } from "./dto/update-payment.dto";
 import { NotificationService } from '../notification/notification.service';
-import { ConfigService } from '@nestjs/config';
+import { PricingService } from '../pricing/pricing.service';
+import { CommissionService } from '../commission/services/commission.service';
+import { GatewayManagerService } from '../integration/gateway-manager.service';
+import { JobsService } from '../jobs/jobs.service';
+import { CacheService } from '../cache/cache.service';
 export declare class PaymentService {
     private paymentModel;
     private bookingModel;
     private notificationService;
     private configService;
+    private pricingService;
+    private commissionService;
+    private gatewayManager;
+    private jobsService;
+    private cacheService;
     private readonly paystackSecretKey;
     private readonly paystackBaseUrl;
-    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, notificationService: NotificationService, configService: ConfigService);
+    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, notificationService: NotificationService, configService: ConfigService, pricingService: PricingService, commissionService: CommissionService, gatewayManager: GatewayManagerService, jobsService: JobsService, cacheService: CacheService);
     initializePayment(data: {
         email: string;
         amount: number;
         clientId: string;
+        tenantId: string;
         appointmentId?: string;
         bookingId?: string;
+        gateway?: string;
         metadata?: any;
     }): Promise<ApiResponse<any>>;
     verifyPayment(reference: string): Promise<ApiResponse<Payment>>;
-    handleWebhook(payload: any, signature: string): Promise<void>;
+    handleWebhook(payload: any, signature: string, source: string): Promise<void>;
     private handleSuccessfulCharge;
     private handleFailedCharge;
+    createPaymentFromBooking(booking: any, transactionReference: string, paymentInfo: {
+        paymentMethod: string;
+        gateway: string;
+        status: string;
+        amount: number;
+        paymentType?: 'full' | 'deposit' | 'remaining';
+    }): Promise<any>;
+    createFailedPayment(data: {
+        bookingId: string;
+        transactionReference: string;
+        errorMessage: string;
+        clientId: string;
+        businessId: string;
+        amount: number;
+    }): Promise<any>;
+    createPaymentForAppointment(appointment: any): Promise<any>;
+    updatePaymentStatus(paymentId: string, status: 'completed' | 'failed' | 'pending' | 'cancelled' | 'refunded', transactionReference: string): Promise<any>;
+    processRefund(id: string, refundAmount: number, refundReason: string): Promise<ApiResponse<Payment>>;
+    initiateRefund(transactionReference: string, amount: number): Promise<void>;
     create(createPaymentDto: CreatePaymentDto): Promise<ApiResponse<Payment>>;
     findAll(): Promise<ApiResponse<Payment[]>>;
     findAllWithQuery(query: PaymentQueryDto): Promise<{
         success: boolean;
         data: {
-            payments: (import("mongoose").Document<unknown, {}, PaymentDocument, {}, {}> & Payment & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-                _id: unknown;
+            payments: (import("mongoose").Document<unknown, {}, PaymentDocument, {}, {}> & Payment & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+                _id: Types.ObjectId;
             }> & {
                 __v: number;
             })[];
@@ -46,28 +77,12 @@ export declare class PaymentService {
         };
     }>;
     findOne(id: string): Promise<ApiResponse<Payment>>;
-    updateStatus(id: string, status: string, transactionId?: string): Promise<ApiResponse<Payment>>;
-    processRefund(id: string, refundAmount: number, refundReason: string): Promise<ApiResponse<Payment>>;
-    getPaymentStats(): Promise<ApiResponse<any>>;
     update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<ApiResponse<Payment>>;
+    updateStatus(id: string, status: string, transactionId?: string): Promise<ApiResponse<Payment>>;
     remove(id: string): Promise<ApiResponse<void>>;
-    private generatePaymentReference;
-    createPaymentForAppointment(appointment: any): Promise<any>;
     getPaymentByAppointment(appointmentId: string): Promise<any>;
-    createPaymentFromBooking(booking: any, transactionReference: string, paymentInfo: {
-        paymentMethod: string;
-        gateway: string;
-        status: string;
-    }): Promise<any>;
-    createFailedPayment(data: {
-        bookingId: string;
-        transactionReference: string;
-        errorMessage: string;
-        clientId: string;
-        businessId: string;
-        amount: number;
-    }): Promise<any>;
-    updatePaymentStatus(paymentId: string, status: 'completed' | 'failed' | 'pending' | 'cancelled' | 'refunded', transactionReference: string): Promise<any>;
     getPaymentByBookingId(bookingId: string): Promise<any>;
-    initiateRefund(transactionReference: string, amount: number): Promise<void>;
+    getPaymentStats(): Promise<ApiResponse<any>>;
+    private generatePaymentReference;
+    private buildPaymentItems;
 }

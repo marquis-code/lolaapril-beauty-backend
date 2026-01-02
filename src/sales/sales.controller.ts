@@ -25,6 +25,7 @@ export class SalesController {
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.SALE })
   @ApiOperation({ summary: "Create a new sale" })
   @ApiResponse({ status: 201, description: "Sale created successfully" })
+
   create(@Body() createSaleDto: CreateSaleDto) {
     return this.salesService.create(createSaleDto)
   }

@@ -24,6 +24,7 @@
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
 import { Model } from "mongoose";
+import { Types } from "mongoose";
 import { Membership, type MembershipDocument } from "./schemas/membership.schema";
 import { ClientMembership, type ClientMembershipDocument } from "./schemas/client-membership.schema";
 import { CreateMembershipDto } from "./dto/create-membership.dto";
@@ -36,8 +37,8 @@ export declare class MembershipService {
     constructor(membershipModel: Model<MembershipDocument>, clientMembershipModel: Model<ClientMembershipDocument>);
     createMembership(createMembershipDto: CreateMembershipDto): Promise<Membership>;
     findAllMemberships(query: MembershipQueryDto): Promise<{
-        memberships: (import("mongoose").Document<unknown, {}, MembershipDocument, {}, {}> & Membership & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-            _id: unknown;
+        memberships: (import("mongoose").Document<unknown, {}, MembershipDocument, {}, {}> & Membership & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: Types.ObjectId;
         }> & {
             __v: number;
         })[];
@@ -52,8 +53,8 @@ export declare class MembershipService {
     updateMembership(id: string, updateMembershipDto: UpdateMembershipDto): Promise<Membership>;
     removeMembership(id: string): Promise<void>;
     enrollClient(createClientMembershipDto: CreateClientMembershipDto): Promise<ClientMembership>;
-    findClientMemberships(clientId: string): Promise<(import("mongoose").Document<unknown, {}, ClientMembershipDocument, {}, {}> & ClientMembership & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-        _id: unknown;
+    findClientMemberships(clientId: string): Promise<(import("mongoose").Document<unknown, {}, ClientMembershipDocument, {}, {}> & ClientMembership & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
     }> & {
         __v: number;
     })[]>;

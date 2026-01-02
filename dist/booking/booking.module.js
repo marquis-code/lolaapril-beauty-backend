@@ -18,6 +18,9 @@ const booking_orchestrator_service_1 = require("./services/booking-orchestrator.
 const booking_schema_1 = require("./schemas/booking.schema");
 const booking_events_1 = require("./events/booking.events");
 const tenant_middleware_1 = require("../tenant/middleware/tenant.middleware");
+const source_tracking_service_1 = require("./services/source-tracking.service");
+const client_reliability_service_1 = require("./services/client-reliability.service");
+const client_reliability_schema_1 = require("./schemas/client-reliability.schema");
 const availability_module_1 = require("../availability/availability.module");
 const tenant_module_1 = require("../tenant/tenant.module");
 const notification_module_1 = require("../notification/notification.module");
@@ -25,6 +28,9 @@ const appointment_module_1 = require("../appointment/appointment.module");
 const payment_module_1 = require("../payment/payment.module");
 const staff_module_1 = require("../staff/staff.module");
 const service_module_1 = require("../service/service.module");
+const commission_module_1 = require("../commission/commission.module");
+const cancellation_module_1 = require("../cancellation/cancellation.module");
+const analytics_module_1 = require("../analytics/analytics.module");
 let BookingModule = class BookingModule {
     configure(consumer) {
         consumer
@@ -36,7 +42,8 @@ BookingModule = __decorate([
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([
-                { name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema }
+                { name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema },
+                { name: client_reliability_schema_1.ClientReliability.name, schema: client_reliability_schema_1.ClientReliabilitySchema }
             ]),
             event_emitter_1.EventEmitterModule.forRoot(),
             (0, common_1.forwardRef)(() => availability_module_1.AvailabilityModule),
@@ -46,18 +53,28 @@ BookingModule = __decorate([
             (0, common_1.forwardRef)(() => payment_module_1.PaymentModule),
             (0, common_1.forwardRef)(() => staff_module_1.StaffModule),
             (0, common_1.forwardRef)(() => service_module_1.ServiceModule),
+            (0, common_1.forwardRef)(() => commission_module_1.CommissionModule),
+            (0, common_1.forwardRef)(() => cancellation_module_1.CancellationModule),
+            (0, common_1.forwardRef)(() => analytics_module_1.AnalyticsModule)
         ],
-        controllers: [booking_controller_1.BookingController, booking_flow_controller_1.BookingFlowController],
+        controllers: [
+            booking_controller_1.BookingController,
+            booking_flow_controller_1.BookingFlowController
+        ],
         providers: [
             booking_service_1.BookingService,
             booking_automation_service_1.BookingAutomationService,
             booking_orchestrator_service_1.BookingOrchestrator,
             booking_events_1.BookingEventHandler,
+            source_tracking_service_1.SourceTrackingService,
+            client_reliability_service_1.ClientReliabilityService
         ],
         exports: [
             booking_service_1.BookingService,
             booking_automation_service_1.BookingAutomationService,
             booking_orchestrator_service_1.BookingOrchestrator,
+            source_tracking_service_1.SourceTrackingService,
+            client_reliability_service_1.ClientReliabilityService
         ],
     })
 ], BookingModule);

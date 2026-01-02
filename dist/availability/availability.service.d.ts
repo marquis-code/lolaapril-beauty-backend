@@ -1,5 +1,5 @@
 import { Model, Types } from 'mongoose';
-import { BusinessHoursDocument, TimeSlot } from './schemas/business-hours.schema';
+import { BusinessHoursDocument } from './schemas/business-hours.schema';
 import { StaffAvailabilityDocument } from './schemas/staff-availability.schema';
 import { CreateStaffAvailabilityDto } from './dto/create-staff-availability.dto';
 import { CheckAvailabilityDto } from './dto/check-availability.dto';
@@ -45,18 +45,23 @@ export declare class AvailabilityService {
     createStaffAvailability(dto: CreateStaffAvailabilityDto): Promise<StaffAvailabilityDocument>;
     blockStaffTime(dto: BlockStaffTimeDto): Promise<void>;
     getAllSlots(dto: GetAllSlotsDto): Promise<{
-        date: string;
-        dayOfWeek: string;
-        businessHours: TimeSlot[];
-        staffAvailability: Array<{
-            staffId: string;
-            staffName: string;
-            email: string;
-            availableSlots: TimeSlot[];
-            blockedSlots: TimeSlot[];
-            status: string;
+        dateRange: {
+            start: string;
+            end: string;
+        };
+        slots: Array<{
+            date: string;
+            hasSlots: boolean;
+            availableSlotCount: number;
+            totalSlots: number;
+            staffAvailable: number;
         }>;
-    }[]>;
+        summary: {
+            totalDates: number;
+            datesWithAvailability: number;
+            datesFullyBooked: number;
+        };
+    }>;
     private checkSlotAvailabilityInternal;
     private getDayName;
     private parseDate;

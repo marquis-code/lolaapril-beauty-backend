@@ -1,4 +1,3 @@
-
 // app.module.ts
 import { Module, MiddlewareConsumer, RequestMethod } from "@nestjs/common"
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -8,6 +7,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
 import { APP_INTERCEPTOR } from "@nestjs/core"
 import { WinstonModule } from 'nest-winston'
 import * as winston from 'winston'
+import { ThrottlerModule } from '@nestjs/throttler'
+import { RedisModule } from '@nestjs-modules/ioredis'
 
 import { ClientModule } from "./client/client.module"
 import { ServiceModule } from "./service/service.module"
@@ -21,7 +22,9 @@ import { VoucherModule } from "./voucher/voucher.module"
 import { MembershipModule } from "./membership/membership.module"
 import { ReportsModule } from "./reports/reports.module"
 import { AuthModule } from "./auth/auth.module"
+import { CommissionModule } from "./commission/commission.module"
 import { AuditModule } from "./audit/audit.module"
+import { CancellationModule } from "./cancellation/cancellation.module"
 import { UploadModule } from "./upload/upload.module"
 import { AvailabilityModule } from './availability/availability.module'
 import { NotificationModule } from './notification/notification.module'
@@ -30,6 +33,17 @@ import { StaffModule } from './staff/staff.module'
 import { AuditInterceptor } from './audit/interceptors/audit.interceptor'
 import { TenantMiddleware } from './tenant/middleware/tenant.middleware'
 import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redirect.middleware'
+import { AnalyticsModule } from './analytics/analytics.module'
+import { PricingModule } from './pricing/pricing.module';
+import { BrandingModule } from './branding/branding.module';
+import { SupportModule } from './support/support.module';
+import { IntegrationModule } from './integration/integration.module';
+import { JobsModule } from './jobs/jobs.module';
+import { CacheModule } from './cache/cache.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
+import { WebhookModule } from './webhook/webhook.module';
+import { RateLimiterModule } from './rate-limiter/rate-limiter.module';
+import { MarketplaceModule } from './marketplace/marketplace.module';
 
 @Module({
   imports: [
@@ -37,6 +51,57 @@ import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redir
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env'
+    }),
+
+    // Redis Configuration - FIXED
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const redisHost = configService.get<string>('REDIS_HOST');
+        const redisPort = configService.get<number>('REDIS_PORT');
+        const redisPassword = configService.get<string>('REDIS_PASSWORD');
+        const redisUsername = configService.get<string>('REDIS_USERNAME');
+        const redisTls = configService.get<string>('REDIS_TLS');
+
+        console.log('🔴 Redis Configuration:');
+        console.log(`   Host: ${redisHost}`);
+        console.log(`   Port: ${redisPort}`);
+        console.log(`   Username: ${redisUsername}`);
+        console.log(`   Password: ${redisPassword ? '***' : 'not set'}`);
+        console.log(`   REDIS_TLS env: ${redisTls}`);
+        console.log(`   TLS: ${redisTls === 'true' ? 'enabled' : 'disabled'}`);
+
+        // Build config object
+        const config: any = {
+          type: 'single',
+          options: {
+            host: redisHost,
+            port: redisPort,
+            password: redisPassword,
+            username: redisUsername,
+            retryStrategy: (times: number) => {
+              const delay = Math.min(times * 50, 2000);
+              return delay;
+            },
+            maxRetriesPerRequest: 3,
+            enableReadyCheck: true,
+            lazyConnect: false,
+          },
+        };
+
+        // ✅ ONLY add TLS if explicitly set to 'true'
+        if (redisTls === 'true') {
+          config.options.tls = {
+            rejectUnauthorized: false
+          };
+          console.log('   ✅ TLS Config Added');
+        } else {
+          console.log('   ✅ TLS Disabled (not added to config)');
+        }
+
+        return config;
+      },
     }),
 
     // Winston Logger - Global setup
@@ -107,6 +172,18 @@ import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redir
       }),
     }),
 
+    // Throttling (alternative to custom rate limiter)
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests per minute
+      },
+    ]),
+
+    MonitoringModule,
+    CacheModule,
+    RateLimiterModule,
+
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     
@@ -129,6 +206,24 @@ import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redir
     AvailabilityModule,
     NotificationModule,
     StaffModule,
+    CommissionModule,
+    CancellationModule,
+    AnalyticsModule,
+
+    // Enhanced modules
+    CancellationModule,
+    CommissionModule,
+
+    // New critical modules
+    PricingModule,
+    BrandingModule,
+    SupportModule,
+    MarketplaceModule,
+
+    // Integration & background processing
+    IntegrationModule,
+    JobsModule,
+    WebhookModule,
   ],
 
   providers: [

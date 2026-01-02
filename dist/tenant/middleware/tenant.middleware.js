@@ -26,17 +26,16 @@ let TenantMiddleware = TenantMiddleware_1 = class TenantMiddleware {
         this.logger = new common_1.Logger(TenantMiddleware_1.name);
     }
     async use(req, res, next) {
-        var _a, _b, _c, _d, _e;
         try {
             this.logger.log(`Processing request: ${req.method} ${req.path}`);
             let businessId;
-            businessId = (_a = req.params) === null || _a === void 0 ? void 0 : _a.businessId;
+            businessId = req.params?.businessId;
             this.logger.debug(`BusinessId from params: ${businessId}`);
             if (!businessId) {
-                businessId = (_b = req.query) === null || _b === void 0 ? void 0 : _b.businessId;
+                businessId = req.query?.businessId;
                 this.logger.debug(`BusinessId from query: ${businessId}`);
             }
-            if (!businessId && ((_c = req.body) === null || _c === void 0 ? void 0 : _c.businessId)) {
+            if (!businessId && req.body?.businessId) {
                 businessId = req.body.businessId;
                 this.logger.debug(`BusinessId from body: ${businessId}`);
             }
@@ -44,7 +43,7 @@ let TenantMiddleware = TenantMiddleware_1 = class TenantMiddleware {
                 businessId = req.headers['x-business-id'];
                 this.logger.debug(`BusinessId from header: ${businessId}`);
             }
-            if (!businessId && ((_d = req.params) === null || _d === void 0 ? void 0 : _d.bookingId)) {
+            if (!businessId && req.params?.bookingId) {
                 try {
                     const booking = await this.bookingModel
                         .findById(req.params.bookingId)
@@ -60,7 +59,7 @@ let TenantMiddleware = TenantMiddleware_1 = class TenantMiddleware {
                     this.logger.warn(`Failed to get businessId from booking: ${error.message}`);
                 }
             }
-            if (!businessId && ((_e = req.params) === null || _e === void 0 ? void 0 : _e.appointmentId)) {
+            if (!businessId && req.params?.appointmentId) {
                 try {
                     this.logger.debug(`AppointmentId found but Appointment model not injected yet`);
                 }

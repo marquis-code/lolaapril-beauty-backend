@@ -84,7 +84,7 @@ let NotificationController = class NotificationController {
         return await template.save();
     }
     async updateTemplate(templateId, updateDto) {
-        return await this.notificationTemplateModel.findByIdAndUpdate(templateId, Object.assign(Object.assign({}, updateDto), { updatedAt: new Date() }), { new: true });
+        return await this.notificationTemplateModel.findByIdAndUpdate(templateId, { ...updateDto, updatedAt: new Date() }, { new: true });
     }
     async seedTemplates() {
         const templates = [

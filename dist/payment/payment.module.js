@@ -16,6 +16,11 @@ const payment_schema_1 = require("./schemas/payment.schema");
 const booking_schema_1 = require("../booking/schemas/booking.schema");
 const audit_module_1 = require("../audit/audit.module");
 const notification_module_1 = require("../notification/notification.module");
+const commission_module_1 = require("../commission/commission.module");
+const integration_module_1 = require("../integration/integration.module");
+const jobs_module_1 = require("../jobs/jobs.module");
+const cache_module_1 = require("../cache/cache.module");
+const pricing_module_1 = require("../pricing/pricing.module");
 let PaymentModule = class PaymentModule {
 };
 PaymentModule = __decorate([
@@ -23,7 +28,12 @@ PaymentModule = __decorate([
         imports: [mongoose_1.MongooseModule.forFeature([{ name: payment_schema_1.Payment.name, schema: payment_schema_1.PaymentSchema }, { name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema }]),
             config_1.ConfigModule,
             (0, common_1.forwardRef)(() => notification_module_1.NotificationModule),
-            audit_module_1.AuditModule
+            audit_module_1.AuditModule,
+            pricing_module_1.PricingModule,
+            commission_module_1.CommissionModule,
+            integration_module_1.IntegrationModule,
+            jobs_module_1.JobsModule,
+            cache_module_1.CacheModule,
         ],
         controllers: [payment_controller_1.PaymentController],
         providers: [payment_service_1.PaymentService],

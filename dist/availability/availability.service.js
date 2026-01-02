@@ -231,12 +231,24 @@ let AvailabilityService = class AvailabilityService {
         const startDate = dto.startDate ? this.parseDate(dto.startDate) : new Date();
         const endDate = dto.endDate
             ? this.parseDate(dto.endDate)
-            : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-        const allSlots = [];
+            : new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+        await this.ensureAllStaffAvailability(dto.businessId, 90);
+        const slotsData = {};
         for (let currentDate = new Date(startDate); currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
             const date = new Date(currentDate);
+            const dateString = date.toISOString().split('T')[0];
             const normalizedDate = this.normalizeDate(date);
             const businessHours = await this.getBusinessHours(dto.businessId, date);
+            if (businessHours.length === 0) {
+                slotsData[dateString] = {
+                    date: dateString,
+                    hasSlots: false,
+                    availableSlotCount: 0,
+                    totalSlots: 0,
+                    staffAvailable: 0
+                };
+                continue;
+            }
             const staffQuery = {
                 businessId: new mongoose_2.Types.ObjectId(dto.businessId),
                 date: normalizedDate
@@ -246,23 +258,53 @@ let AvailabilityService = class AvailabilityService {
             }
             const staffAvailability = await this.staffAvailabilityModel
                 .find(staffQuery)
-                .populate('staffId', 'firstName lastName email')
+                .lean()
                 .exec();
-            allSlots.push({
-                date: date.toISOString().split('T')[0],
-                dayOfWeek: this.getDayName(date.getDay()),
-                businessHours: businessHours,
-                staffAvailability: staffAvailability.map((avail) => ({
-                    staffId: avail.staffId._id.toString(),
-                    staffName: `${avail.staffId.firstName} ${avail.staffId.lastName}`,
-                    email: avail.staffId.email,
-                    availableSlots: avail.availableSlots,
-                    blockedSlots: avail.blockedSlots || [],
-                    status: avail.status
-                }))
-            });
+            let totalSlots = 0;
+            let availableSlotCount = 0;
+            const availableStaffCount = staffAvailability.filter(staff => staff.status !== 'unavailable' &&
+                staff.availableSlots &&
+                staff.availableSlots.length > 0).length;
+            for (const businessHour of businessHours) {
+                const startMinutes = this.timeToMinutes(businessHour.startTime);
+                const endMinutes = this.timeToMinutes(businessHour.endTime);
+                const defaultDuration = 30;
+                const possibleSlots = Math.floor((endMinutes - startMinutes) / defaultDuration);
+                totalSlots += possibleSlots;
+                for (let currentMinutes = startMinutes; currentMinutes + defaultDuration <= endMinutes; currentMinutes += defaultDuration) {
+                    const slotStart = this.minutesToTime(currentMinutes);
+                    const slotEnd = this.minutesToTime(currentMinutes + defaultDuration);
+                    const hasAvailableStaff = staffAvailability.some(staff => {
+                        const isSlotAvailable = this.isTimeSlotAvailable(staff.availableSlots || [], slotStart, slotEnd);
+                        const isNotBlocked = !this.isTimeSlotBlocked(staff.blockedSlots || [], slotStart, slotEnd);
+                        return staff.status !== 'unavailable' && isSlotAvailable && isNotBlocked;
+                    });
+                    if (hasAvailableStaff) {
+                        availableSlotCount++;
+                    }
+                }
+            }
+            slotsData[dateString] = {
+                date: dateString,
+                hasSlots: availableSlotCount > 0,
+                availableSlotCount,
+                totalSlots,
+                staffAvailable: availableStaffCount
+            };
         }
-        return allSlots;
+        const result = Object.values(slotsData).sort((a, b) => a.date.localeCompare(b.date));
+        return {
+            dateRange: {
+                start: startDate.toISOString().split('T')[0],
+                end: endDate.toISOString().split('T')[0]
+            },
+            slots: result,
+            summary: {
+                totalDates: result.length,
+                datesWithAvailability: result.filter(d => d.hasSlots).length,
+                datesFullyBooked: result.filter(d => !d.hasSlots && d.totalSlots > 0).length
+            }
+        };
     }
     async checkSlotAvailabilityInternal(dto) {
         const date = this.parseDate(dto.date);
@@ -358,7 +400,7 @@ let AvailabilityService = class AvailabilityService {
             let skillLevel = undefined;
             if (dto.serviceId && staff.skills) {
                 const skill = staff.skills.find(s => s.serviceId.toString() === dto.serviceId);
-                skillLevel = skill === null || skill === void 0 ? void 0 : skill.skillLevel;
+                skillLevel = skill?.skillLevel;
             }
             return {
                 staffId: staff._id.toString(),

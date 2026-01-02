@@ -44,7 +44,7 @@ let TenantService = class TenantService {
     }
     async updateBusiness(businessId, updateData) {
         const business = (await this.businessModel
-            .findByIdAndUpdate(businessId, Object.assign(Object.assign({}, updateData), { updatedAt: new Date() }), { new: true })
+            .findByIdAndUpdate(businessId, { ...updateData, updatedAt: new Date() }, { new: true })
             .exec());
         if (!business) {
             throw new common_1.NotFoundException("Business not found");
@@ -204,7 +204,7 @@ let TenantService = class TenantService {
     }
     async updateTenantConfig(businessId, configData) {
         const config = (await this.tenantConfigModel
-            .findOneAndUpdate({ businessId: new mongoose_2.Types.ObjectId(businessId) }, Object.assign(Object.assign({}, configData), { updatedAt: new Date() }), { new: true, upsert: true })
+            .findOneAndUpdate({ businessId: new mongoose_2.Types.ObjectId(businessId) }, { ...configData, updatedAt: new Date() }, { new: true, upsert: true })
             .exec());
         return config;
     }
@@ -231,10 +231,9 @@ let TenantService = class TenantService {
         });
     }
     async getCurrentUsage(businessId) {
-        var _a;
         const business = await this.businessModel.findById(businessId);
         return {
-            staffCount: ((_a = business === null || business === void 0 ? void 0 : business.staffIds) === null || _a === void 0 ? void 0 : _a.length) || 0,
+            staffCount: business?.staffIds?.length || 0,
             servicesCount: 0,
             monthlyAppointments: 0,
             storageUsedGB: 0,

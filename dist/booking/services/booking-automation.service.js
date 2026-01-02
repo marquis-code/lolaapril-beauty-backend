@@ -103,7 +103,9 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
             const payment = await this.paymentService.createPaymentFromBooking(booking, paymentData.transactionReference, {
                 paymentMethod: paymentData.paymentMethod,
                 gateway: paymentData.gateway,
-                status: 'completed'
+                status: 'completed',
+                amount: paymentData.amount,
+                paymentType: 'full'
             });
             const appointment = await this.appointmentService.createFromBooking(booking);
             const staffAssignment = await this.autoAssignStaffToAppointment(appointment, booking.services);

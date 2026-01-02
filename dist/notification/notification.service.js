@@ -354,12 +354,27 @@ let NotificationService = class NotificationService {
         const { channel, preferences } = notificationData;
         if ((channel === 'email' || channel === 'both') && preferences.email) {
             const emailResult = await this.emailService.sendEmail(notificationData.recipient, notificationData.subject, notificationData.content);
-            await this.logNotification(Object.assign(Object.assign({}, notificationData), { channel: 'email', status: emailResult.success ? 'sent' : 'failed', providerMessageId: emailResult.messageId, errorMessage: emailResult.error, sentAt: emailResult.success ? new Date() : null }));
+            await this.logNotification({
+                ...notificationData,
+                channel: 'email',
+                status: emailResult.success ? 'sent' : 'failed',
+                providerMessageId: emailResult.messageId,
+                errorMessage: emailResult.error,
+                sentAt: emailResult.success ? new Date() : null,
+            });
         }
         if ((channel === 'sms' || channel === 'both') && preferences.sms && notificationData.recipientPhone) {
             const smsContent = this.stripHtml(notificationData.content);
             const smsResult = await this.smsService.sendSMS(notificationData.recipientPhone, smsContent);
-            await this.logNotification(Object.assign(Object.assign({}, notificationData), { channel: 'sms', content: smsContent, status: smsResult.success ? 'sent' : 'failed', providerMessageId: smsResult.messageId, errorMessage: smsResult.error, sentAt: smsResult.success ? new Date() : null }));
+            await this.logNotification({
+                ...notificationData,
+                channel: 'sms',
+                content: smsContent,
+                status: smsResult.success ? 'sent' : 'failed',
+                providerMessageId: smsResult.messageId,
+                errorMessage: smsResult.error,
+                sentAt: smsResult.success ? new Date() : null,
+            });
         }
     }
     async logNotification(logData) {
@@ -404,7 +419,7 @@ let NotificationService = class NotificationService {
             userId: new mongoose_2.Types.ObjectId(userId),
             businessId: new mongoose_2.Types.ObjectId(businessId),
         });
-        return (preferences === null || preferences === void 0 ? void 0 : preferences.preferences) || {
+        return preferences?.preferences || {
             booking_confirmation: { email: true, sms: true },
             booking_rejection: { email: true, sms: true },
             appointment_reminder: { email: true, sms: true },

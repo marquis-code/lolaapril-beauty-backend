@@ -1,7 +1,16 @@
 // src/modules/booking/dto/process-payment.dto.ts
-import { IsNotEmpty, IsString, IsNumber, IsIn } from 'class-validator'
+import { IsNotEmpty, IsString, IsNumber, IsIn, IsOptional, IsEnum, IsBoolean } from 'class-validator'
 
 export class ProcessPaymentDto {
+
+    @IsOptional()
+    @IsEnum(['full', 'deposit', 'remaining'])
+    paymentType?: 'full' | 'deposit' | 'remaining'
+  
+    @IsOptional()
+    @IsNumber()
+    depositAmount?: number
+
   @IsNotEmpty()
   @IsString()
   bookingId: string
@@ -33,4 +42,8 @@ export class ProcessPaymentDto {
   @IsNotEmpty()
   @IsIn(['successful', 'failed'])
   status: 'successful' | 'failed'
+
+  @IsOptional()
+  @IsBoolean()
+  captureNow?: boolean // For deposit capture at booking time
 }

@@ -77,7 +77,7 @@ let ServiceService = class ServiceService {
                     throw new common_1.ConflictException("Service category with this name already exists");
                 }
             }
-            const category = await this.serviceCategoryModel.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), Object.assign(Object.assign({}, updateCategoryDto), { updatedAt: new Date() }), { new: true, runValidators: true });
+            const category = await this.serviceCategoryModel.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { ...updateCategoryDto, updatedAt: new Date() }, { new: true, runValidators: true });
             if (!category) {
                 throw new common_1.NotFoundException("Service category not found");
             }
@@ -95,9 +95,8 @@ let ServiceService = class ServiceService {
         }
     }
     async createService(createServiceDto) {
-        var _a;
         try {
-            if ((_a = createServiceDto.basicDetails) === null || _a === void 0 ? void 0 : _a.category) {
+            if (createServiceDto.basicDetails?.category) {
                 this.validateObjectId(createServiceDto.basicDetails.category.toString(), "Service category");
                 const categoryExists = await this.serviceCategoryModel.findById(createServiceDto.basicDetails.category);
                 if (!categoryExists) {
@@ -205,17 +204,16 @@ let ServiceService = class ServiceService {
         }
     }
     async updateService(id, updateServiceDto) {
-        var _a, _b;
         try {
             this.validateObjectId(id, "Service");
-            if ((_a = updateServiceDto.basicDetails) === null || _a === void 0 ? void 0 : _a.category) {
+            if (updateServiceDto.basicDetails?.category) {
                 this.validateObjectId(updateServiceDto.basicDetails.category.toString(), "Service category");
                 const categoryExists = await this.serviceCategoryModel.findById(updateServiceDto.basicDetails.category);
                 if (!categoryExists) {
                     throw new common_1.NotFoundException("Service category not found");
                 }
             }
-            if ((_b = updateServiceDto.basicDetails) === null || _b === void 0 ? void 0 : _b.serviceName) {
+            if (updateServiceDto.basicDetails?.serviceName) {
                 const existingService = await this.serviceModel.findOne({
                     "basicDetails.serviceName": updateServiceDto.basicDetails.serviceName,
                     _id: { $ne: new mongoose_1.Types.ObjectId(id) },
@@ -224,7 +222,7 @@ let ServiceService = class ServiceService {
                     throw new common_1.ConflictException("Service with this name already exists");
                 }
             }
-            const service = await this.serviceModel.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), Object.assign(Object.assign({}, updateServiceDto), { updatedAt: new Date() }), { new: true, runValidators: true }).populate('basicDetails.category', 'categoryName appointmentColor');
+            const service = await this.serviceModel.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { ...updateServiceDto, updatedAt: new Date() }, { new: true, runValidators: true }).populate('basicDetails.category', 'categoryName appointmentColor');
             if (!service) {
                 throw new common_1.NotFoundException("Service not found");
             }
@@ -269,9 +267,8 @@ let ServiceService = class ServiceService {
         }
     }
     async createBundle(createBundleDto) {
-        var _a;
         try {
-            if ((_a = createBundleDto.basicInfo) === null || _a === void 0 ? void 0 : _a.category) {
+            if (createBundleDto.basicInfo?.category) {
                 this.validateObjectId(createBundleDto.basicInfo.category.toString(), "Service category");
                 const categoryExists = await this.serviceCategoryModel.findById(createBundleDto.basicInfo.category);
                 if (!categoryExists) {
@@ -347,10 +344,9 @@ let ServiceService = class ServiceService {
         }
     }
     async updateBundle(id, updateBundleDto) {
-        var _a, _b;
         try {
             this.validateObjectId(id, "Service bundle");
-            if ((_a = updateBundleDto.basicInfo) === null || _a === void 0 ? void 0 : _a.category) {
+            if (updateBundleDto.basicInfo?.category) {
                 this.validateObjectId(updateBundleDto.basicInfo.category.toString(), "Service category");
                 const categoryExists = await this.serviceCategoryModel.findById(updateBundleDto.basicInfo.category);
                 if (!categoryExists) {
@@ -366,7 +362,7 @@ let ServiceService = class ServiceService {
                     }
                 }
             }
-            if ((_b = updateBundleDto.basicInfo) === null || _b === void 0 ? void 0 : _b.bundleName) {
+            if (updateBundleDto.basicInfo?.bundleName) {
                 const existingBundle = await this.serviceBundleModel.findOne({
                     "basicInfo.bundleName": updateBundleDto.basicInfo.bundleName,
                     _id: { $ne: new mongoose_1.Types.ObjectId(id) },
@@ -375,7 +371,7 @@ let ServiceService = class ServiceService {
                     throw new common_1.ConflictException("Service bundle with this name already exists");
                 }
             }
-            const bundle = await this.serviceBundleModel.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), Object.assign(Object.assign({}, updateBundleDto), { updatedAt: new Date() }), { new: true, runValidators: true })
+            const bundle = await this.serviceBundleModel.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { ...updateBundleDto, updatedAt: new Date() }, { new: true, runValidators: true })
                 .populate('basicInfo.category', 'categoryName appointmentColor')
                 .populate('services.serviceId', 'basicDetails.serviceName');
             if (!bundle) {

@@ -15,20 +15,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingFlowController = void 0;
 const common_1 = require("@nestjs/common");
 const booking_orchestrator_service_1 = require("../services/booking-orchestrator.service");
-const create_booking_dto_1 = require("../dto/create-booking.dto");
 const confirm_booking_dto_1 = require("../dto/confirm-booking.dto");
+const create_booking_with_source_dto_1 = require("../dto/create-booking-with-source.dto");
 let BookingFlowController = class BookingFlowController {
     constructor(bookingOrchestrator) {
         this.bookingOrchestrator = bookingOrchestrator;
     }
     async createBooking(createBookingDto, req) {
-        var _a;
         try {
-            const businessId = createBookingDto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+            const businessId = req.tenant.businessId;
             if (!businessId) {
                 throw new common_1.BadRequestException('Business ID is required');
             }
-            const result = await this.bookingOrchestrator.createBookingWithValidation(Object.assign(Object.assign({}, createBookingDto), { businessId }));
+            const bookingData = {
+                ...createBookingDto,
+                businessId
+            };
+            if (!bookingData.bookingSource) {
+                bookingData.bookingSource = {
+                    sourceType: create_booking_with_source_dto_1.BookingSourceType.DIRECT_LINK
+                };
+            }
+            const result = await this.bookingOrchestrator.createBookingWithValidation(bookingData);
             return {
                 success: true,
                 data: result,
@@ -36,6 +44,7 @@ let BookingFlowController = class BookingFlowController {
             };
         }
         catch (error) {
+            console.error('❌ Booking creation failed:', error.message);
             return {
                 success: false,
                 error: error.message,
@@ -73,10 +82,11 @@ let BookingFlowController = class BookingFlowController {
                 console.log(`✅ Validated ${confirmDto.staffAssignments.length} staff assignments`);
             }
             const result = await this.bookingOrchestrator.confirmBookingAndCreateAppointment(bookingId, confirmDto.staffId, confirmDto.staffAssignments);
+            console.log('✅ Booking confirmed successfully');
             return {
                 success: true,
                 data: result,
-                message: 'Booking confirmed and appointment created successfully'
+                message: result.message || 'Booking confirmed and appointment created successfully'
             };
         }
         catch (error) {
@@ -92,23 +102,36 @@ let BookingFlowController = class BookingFlowController {
     }
     async handlePayment(bookingId, paymentDto) {
         try {
+            console.log('💳 CONTROLLER: HANDLE PAYMENT');
+            console.log('BookingId:', bookingId);
+            console.log('Payment amount:', paymentDto.amount);
+            console.log('Payment type:', paymentDto.paymentType || 'full');
             if (!this.isValidObjectId(bookingId)) {
                 throw new common_1.BadRequestException('Invalid booking ID format');
+            }
+            if (!paymentDto.amount || paymentDto.amount <= 0) {
+                throw new common_1.BadRequestException('Invalid payment amount');
+            }
+            if (!paymentDto.transactionReference) {
+                throw new common_1.BadRequestException('Transaction reference is required');
             }
             const result = await this.bookingOrchestrator.handlePaymentAndComplete(bookingId, paymentDto.transactionReference, {
                 amount: paymentDto.amount,
                 method: paymentDto.method,
                 gateway: paymentDto.gateway,
                 clientId: paymentDto.clientId,
-                businessId: paymentDto.businessId
+                businessId: paymentDto.businessId,
+                paymentType: paymentDto.paymentType
             });
+            console.log('✅ Payment processed successfully');
             return {
                 success: true,
                 data: result,
-                message: 'Payment processed and appointment created successfully'
+                message: result.message || 'Payment processed and appointment created successfully'
             };
         }
         catch (error) {
+            console.error('❌ Payment processing failed:', error.message);
             return {
                 success: false,
                 error: error.message,
@@ -126,7 +149,7 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_booking_dto_1.CreateBookingDto, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], BookingFlowController.prototype, "createBooking", null);
 __decorate([

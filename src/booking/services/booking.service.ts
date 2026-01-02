@@ -216,6 +216,31 @@ async getBookings(query: GetBookingsDto & { businessId: string }): Promise<{
   }
 }
 
+async updateBooking(
+  bookingId: string,
+  updateData: Partial<Booking>
+): Promise<BookingDocument> {
+  const booking = await this.bookingModel
+    .findByIdAndUpdate(
+      bookingId,
+      {
+        $set: {
+          ...updateData,
+          updatedAt: new Date()
+        }
+      },
+      { new: true }
+    )
+    .lean<BookingDocument>()
+    .exec()
+
+  if (!booking) {
+    throw new NotFoundException('Booking not found')
+  }
+
+  return booking
+}
+
 // Also fix getTodayBookings method
 async getTodayBookings(businessId: string): Promise<BookingDocument[]> {
   const today = new Date()

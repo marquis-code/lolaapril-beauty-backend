@@ -25,6 +25,11 @@
     "script:installment": "ts-node -r tsconfig-paths/register src/scripts/setup-installment-config.ts"
   },
   "dependencies": {
+    "@bull-board/api": "^6.16.2",
+    "@bull-board/express": "^6.16.2",
+    "@nestjs-modules/ioredis": "^2.0.2",
+    "@nestjs/bull": "^11.0.4",
+    "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",
@@ -41,8 +46,11 @@
     "@nestjs/websockets": "latest",
     "@types/multer": "^2.0.0",
     "autoprefixer": "^10.4.20",
-    "axios": "^1.12.2",
+    "axios": "^1.13.2",
     "bcryptjs": "latest",
+    "bull": "^4.16.5",
+    "cache-manager": "^7.2.7",
+    "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "class-variance-authority": "^0.7.1",
@@ -55,6 +63,7 @@
     "express-rate-limit": "^8.2.1",
     "google-auth-library": "^10.5.0",
     "helmet": "^8.1.0",
+    "ioredis": "^5.8.2",
     "moment": "^2.30.1",
     "mongoose": "^8.18.2",
     "nest-commander": "^3.17.0",
@@ -66,10 +75,15 @@
     "passport-jwt": "latest",
     "passport-local": "latest",
     "pdfkit": "^0.17.2",
+    "qrcode": "^1.5.4",
+    "redis": "^5.10.0",
     "reflect-metadata": "latest",
     "rxjs": "latest",
     "slugify": "^1.6.6",
     "sonner": "^1.7.1",
+    "square": "^43.2.1",
+    "stripe": "^20.1.0",
+    "twilio": "^5.11.1",
     "uuid": "latest",
     "vaul": "^0.9.6",
     "winston": "^3.18.3"
@@ -83,6 +97,7 @@
     "@types/jest": "^26.0.24",
     "@types/node": "^16.0.0",
     "@types/passport-google-oauth20": "^2.0.17",
+    "@types/qrcode": "^1.5.6",
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^4.28.2",
     "@typescript-eslint/parser": "^4.28.2",
@@ -117,5 +132,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "resolutions": {
+    "yargs": "^17.0.0"
   }
 }

@@ -53,7 +53,7 @@ let SettingsService = class SettingsService {
     }
     async getBusinessHours() {
         const settings = await this.settingsModel.findOne().exec();
-        return (settings === null || settings === void 0 ? void 0 : settings.businessHours) || [];
+        return settings?.businessHours || [];
     }
     async getAppointmentSettings() {
         const settings = await this.settingsModel.findOne().exec();

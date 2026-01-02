@@ -71,7 +71,7 @@ let MembershipService = class MembershipService {
     }
     async updateMembership(id, updateMembershipDto) {
         const membership = await this.membershipModel
-            .findByIdAndUpdate(id, Object.assign(Object.assign({}, updateMembershipDto), { updatedAt: new Date() }), { new: true })
+            .findByIdAndUpdate(id, { ...updateMembershipDto, updatedAt: new Date() }, { new: true })
             .populate("createdBy", "firstName lastName email")
             .exec();
         if (!membership) {

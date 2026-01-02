@@ -26,8 +26,7 @@ let AvailabilityController = class AvailabilityController {
         this.availabilityService = availabilityService;
     }
     async getAvailableSlots(dto, req) {
-        var _a;
-        dto.businessId = dto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+        dto.businessId = dto.businessId || req.tenant?.businessId;
         if (!dto.businessId) {
             throw new common_1.BadRequestException('Business ID is required');
         }
@@ -37,8 +36,7 @@ let AvailabilityController = class AvailabilityController {
         };
     }
     async checkSlotAvailability(dto, req) {
-        var _a;
-        dto.businessId = dto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+        dto.businessId = dto.businessId || req.tenant?.businessId;
         if (!dto.businessId) {
             throw new common_1.BadRequestException('Business ID is required');
         }
@@ -50,8 +48,7 @@ let AvailabilityController = class AvailabilityController {
         };
     }
     async createStaffAvailability(dto, req) {
-        var _a;
-        dto.businessId = dto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+        dto.businessId = dto.businessId || req.tenant?.businessId;
         if (!dto.businessId) {
             throw new common_1.BadRequestException('Business ID is required');
         }
@@ -62,8 +59,7 @@ let AvailabilityController = class AvailabilityController {
         };
     }
     async blockStaffTime(dto, req) {
-        var _a;
-        dto.businessId = dto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+        dto.businessId = dto.businessId || req.tenant?.businessId;
         if (!dto.businessId) {
             throw new common_1.BadRequestException('Business ID is required. Please provide businessId in the request body or ensure tenant context is set.');
         }
@@ -74,8 +70,7 @@ let AvailabilityController = class AvailabilityController {
         };
     }
     async getAllSlots(dto, req) {
-        var _a;
-        dto.businessId = dto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+        dto.businessId = dto.businessId || req.tenant?.businessId;
         if (!dto.businessId) {
             throw new common_1.BadRequestException('Business ID is required');
         }
@@ -98,8 +93,7 @@ let AvailabilityController = class AvailabilityController {
         return this.availabilityService.isFullyBooked(dto);
     }
     async extendStaffAvailability(dto, req) {
-        var _a;
-        const businessId = dto.businessId || ((_a = req.tenant) === null || _a === void 0 ? void 0 : _a.businessId);
+        const businessId = dto.businessId || req.tenant?.businessId;
         if (!businessId) {
             throw new common_1.BadRequestException('Business ID is required');
         }

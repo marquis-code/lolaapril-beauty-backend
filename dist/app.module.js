@@ -1,43 +1,9 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
@@ -48,7 +14,9 @@ const schedule_1 = require("@nestjs/schedule");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const core_1 = require("@nestjs/core");
 const nest_winston_1 = require("nest-winston");
-const winston = __importStar(require("winston"));
+const winston = require("winston");
+const throttler_1 = require("@nestjs/throttler");
+const ioredis_1 = require("@nestjs-modules/ioredis");
 const client_module_1 = require("./client/client.module");
 const service_module_1 = require("./service/service.module");
 const appointment_module_1 = require("./appointment/appointment.module");
@@ -61,13 +29,26 @@ const voucher_module_1 = require("./voucher/voucher.module");
 const membership_module_1 = require("./membership/membership.module");
 const reports_module_1 = require("./reports/reports.module");
 const auth_module_1 = require("./auth/auth.module");
+const commission_module_1 = require("./commission/commission.module");
 const audit_module_1 = require("./audit/audit.module");
+const cancellation_module_1 = require("./cancellation/cancellation.module");
 const upload_module_1 = require("./upload/upload.module");
 const availability_module_1 = require("./availability/availability.module");
 const notification_module_1 = require("./notification/notification.module");
 const tenant_module_1 = require("./tenant/tenant.module");
 const staff_module_1 = require("./staff/staff.module");
 const audit_interceptor_1 = require("./audit/interceptors/audit.interceptor");
+const analytics_module_1 = require("./analytics/analytics.module");
+const pricing_module_1 = require("./pricing/pricing.module");
+const branding_module_1 = require("./branding/branding.module");
+const support_module_1 = require("./support/support.module");
+const integration_module_1 = require("./integration/integration.module");
+const jobs_module_1 = require("./jobs/jobs.module");
+const cache_module_1 = require("./cache/cache.module");
+const monitoring_module_1 = require("./monitoring/monitoring.module");
+const webhook_module_1 = require("./webhook/webhook.module");
+const rate_limiter_module_1 = require("./rate-limiter/rate-limiter.module");
+const marketplace_module_1 = require("./marketplace/marketplace.module");
 let AppModule = class AppModule {
     configure(consumer) {
     }
@@ -80,11 +61,54 @@ AppModule = __decorate([
                 isGlobal: true,
                 envFilePath: '.env'
             }),
+            ioredis_1.RedisModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => {
+                    const redisHost = configService.get('REDIS_HOST');
+                    const redisPort = configService.get('REDIS_PORT');
+                    const redisPassword = configService.get('REDIS_PASSWORD');
+                    const redisUsername = configService.get('REDIS_USERNAME');
+                    const redisTls = configService.get('REDIS_TLS');
+                    console.log('🔴 Redis Configuration:');
+                    console.log(`   Host: ${redisHost}`);
+                    console.log(`   Port: ${redisPort}`);
+                    console.log(`   Username: ${redisUsername}`);
+                    console.log(`   Password: ${redisPassword ? '***' : 'not set'}`);
+                    console.log(`   REDIS_TLS env: ${redisTls}`);
+                    console.log(`   TLS: ${redisTls === 'true' ? 'enabled' : 'disabled'}`);
+                    const config = {
+                        type: 'single',
+                        options: {
+                            host: redisHost,
+                            port: redisPort,
+                            password: redisPassword,
+                            username: redisUsername,
+                            retryStrategy: (times) => {
+                                const delay = Math.min(times * 50, 2000);
+                                return delay;
+                            },
+                            maxRetriesPerRequest: 3,
+                            enableReadyCheck: true,
+                            lazyConnect: false,
+                        },
+                    };
+                    if (redisTls === 'true') {
+                        config.options.tls = {
+                            rejectUnauthorized: false
+                        };
+                        console.log('   ✅ TLS Config Added');
+                    }
+                    else {
+                        console.log('   ✅ TLS Disabled (not added to config)');
+                    }
+                    return config;
+                },
+            }),
             nest_winston_1.WinstonModule.forRoot({
                 transports: [
                     new winston.transports.Console({
-                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.ms(), winston.format.errors({ stack: true }), winston.format.splat(), winston.format.colorize(), winston.format.printf((_a) => {
-                            var { level, message, timestamp, ms } = _a, meta = __rest(_a, ["level", "message", "timestamp", "ms"]);
+                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.ms(), winston.format.errors({ stack: true }), winston.format.splat(), winston.format.colorize(), winston.format.printf(({ level, message, timestamp, ms, ...meta }) => {
                             let log = `${timestamp} [${level}]: ${message}`;
                             if (Object.keys(meta).length > 0) {
                                 log += ` ${JSON.stringify(meta, null, 2)}`;
@@ -130,6 +154,15 @@ AppModule = __decorate([
                     },
                 }),
             }),
+            throttler_1.ThrottlerModule.forRoot([
+                {
+                    ttl: 60000,
+                    limit: 100,
+                },
+            ]),
+            monitoring_module_1.MonitoringModule,
+            cache_module_1.CacheModule,
+            rate_limiter_module_1.RateLimiterModule,
             schedule_1.ScheduleModule.forRoot(),
             event_emitter_1.EventEmitterModule.forRoot(),
             tenant_module_1.TenantModule,
@@ -150,6 +183,18 @@ AppModule = __decorate([
             availability_module_1.AvailabilityModule,
             notification_module_1.NotificationModule,
             staff_module_1.StaffModule,
+            commission_module_1.CommissionModule,
+            cancellation_module_1.CancellationModule,
+            analytics_module_1.AnalyticsModule,
+            cancellation_module_1.CancellationModule,
+            commission_module_1.CommissionModule,
+            pricing_module_1.PricingModule,
+            branding_module_1.BrandingModule,
+            support_module_1.SupportModule,
+            marketplace_module_1.MarketplaceModule,
+            integration_module_1.IntegrationModule,
+            jobs_module_1.JobsModule,
+            webhook_module_1.WebhookModule,
         ],
         providers: [
             {

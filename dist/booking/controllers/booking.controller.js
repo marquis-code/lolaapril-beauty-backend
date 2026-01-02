@@ -22,6 +22,7 @@ const update_booking_dto_1 = require("../dto/update-booking.dto");
 const get_bookings_dto_1 = require("../dto/get-bookings.dto");
 const tenant_guard_1 = require("../../tenant/guards/tenant.guard");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
+const create_booking_with_source_dto_1 = require("../dto/create-booking-with-source.dto");
 let BookingController = class BookingController {
     constructor(bookingOrchestrator, bookingService) {
         this.bookingOrchestrator = bookingOrchestrator;
@@ -30,7 +31,16 @@ let BookingController = class BookingController {
     async createAutomatedBooking(createBookingDto, req) {
         try {
             const businessId = req.tenant.businessId;
-            const result = await this.bookingOrchestrator.createBookingWithValidation(Object.assign(Object.assign({}, createBookingDto), { businessId }));
+            const bookingData = {
+                ...createBookingDto,
+                businessId
+            };
+            if (!bookingData.bookingSource) {
+                bookingData.bookingSource = {
+                    sourceType: create_booking_with_source_dto_1.BookingSourceType.DIRECT_LINK
+                };
+            }
+            const result = await this.bookingOrchestrator.createBookingWithValidation(bookingData);
             return {
                 success: true,
                 data: result,
@@ -92,7 +102,10 @@ let BookingController = class BookingController {
     async getBookings(getBookingsDto, req) {
         try {
             const businessId = req.tenant.businessId;
-            const bookings = await this.bookingService.getBookings(Object.assign(Object.assign({}, getBookingsDto), { businessId }));
+            const bookings = await this.bookingService.getBookings({
+                ...getBookingsDto,
+                businessId
+            });
             return {
                 success: true,
                 data: bookings,

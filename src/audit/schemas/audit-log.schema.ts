@@ -28,6 +28,9 @@ export enum AuditEntity {
   CLIENT_MEMBERSHIP = "client_membership", // Added this missing enum value
   TEAM_MEMBER = "team_member",
   SETTINGS = "settings",
+  COMMISSION = "commission",
+  FINANCIAL_REPORT = "financial_report",
+  ANALYTICS = 'analytics'
 }
 
 @Schema({ timestamps: true })

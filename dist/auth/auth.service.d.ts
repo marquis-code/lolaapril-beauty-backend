@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { User, UserDocument, UserRole, UserStatus } from "./schemas/user.schema";
@@ -31,7 +31,9 @@ import { BusinessDocument } from "../tenant/schemas/business.schema";
 import { SubscriptionDocument } from "../tenant/schemas/subscription.schema";
 import { TenantConfigDocument } from "../tenant/schemas/tenant-config.schema";
 import { RegisterDto } from "./dto/register.dto";
+import { UpdateEmailDto } from "./dto/update-profile.dto";
 import { LoginDto } from "./dto/login.dto";
+import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto";
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto";
 export declare class AuthService {
     private userModel;
@@ -46,7 +48,7 @@ export declare class AuthService {
         accessToken: string;
         refreshToken: string;
         user: {
-            id: unknown;
+            id: Types.ObjectId;
             firstName: string;
             lastName: string;
             email: string;
@@ -54,7 +56,7 @@ export declare class AuthService {
             status: UserStatus;
         };
         business: {
-            id: unknown;
+            id: Types.ObjectId;
             businessName: string;
             subdomain: string;
             businessType: string;
@@ -66,7 +68,7 @@ export declare class AuthService {
         accessToken: string;
         refreshToken: string;
         user: {
-            id: unknown;
+            id: Types.ObjectId;
             firstName: string;
             lastName: string;
             email: string;
@@ -83,8 +85,8 @@ export declare class AuthService {
         message: string;
     }>;
     private generateTokens;
-    validateUser(userId: string): Promise<import("mongoose").Document<unknown, {}, UserDocument, {}, {}> & User & import("mongoose").Document<unknown, any, any, Record<string, any>, {}> & Required<{
-        _id: unknown;
+    validateUser(userId: string): Promise<import("mongoose").Document<unknown, {}, UserDocument, {}, {}> & User & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
     }> & {
         __v: number;
     }>;
@@ -94,7 +96,7 @@ export declare class AuthService {
         accessToken: string;
         refreshToken: string;
         user: {
-            id: unknown;
+            id: Types.ObjectId;
             firstName: string;
             lastName: string;
             email: string;
@@ -108,7 +110,7 @@ export declare class AuthService {
         accessToken: string;
         refreshToken: string;
         user: {
-            id: unknown;
+            id: Types.ObjectId;
             firstName: string;
             lastName: string;
             email: string;
@@ -130,5 +132,62 @@ export declare class AuthService {
             subdomain: any;
             status: any;
         }[];
+    }>;
+    updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<{
+        success: boolean;
+        message: string;
+        user: {
+            id: Types.ObjectId;
+            firstName: string;
+            lastName: string;
+            email: string;
+            phone: string;
+            role: UserRole;
+            status: UserStatus;
+            profileImage: string;
+            bio: string;
+            dateOfBirth: Date;
+            gender: string;
+            emailVerified: boolean;
+            phoneVerified: boolean;
+            authProvider: string;
+            preferences: {
+                language: string;
+                timezone: string;
+                currency: string;
+                notifications: {
+                    email: boolean;
+                    sms: boolean;
+                    push: boolean;
+                };
+            };
+        };
+    }>;
+    updatePreferences(userId: string, preferences: any): Promise<{
+        success: boolean;
+        message: string;
+        preferences: {
+            language: string;
+            timezone: string;
+            currency: string;
+            notifications: {
+                email: boolean;
+                sms: boolean;
+                push: boolean;
+            };
+        };
+    }>;
+    changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    updateEmail(userId: string, updateEmailDto: UpdateEmailDto): Promise<{
+        success: boolean;
+        message: string;
+        newEmail: string;
+    }>;
+    deleteAccount(userId: string, password?: string): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

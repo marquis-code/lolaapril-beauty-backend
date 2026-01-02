@@ -30,18 +30,23 @@ export declare class AvailabilityController {
     getAllSlots(dto: GetAllSlotsDto, req: TenantRequest): Promise<{
         success: boolean;
         data: {
-            date: string;
-            dayOfWeek: string;
-            businessHours: import("./schemas/business-hours.schema").TimeSlot[];
-            staffAvailability: {
-                staffId: string;
-                staffName: string;
-                email: string;
-                availableSlots: import("./schemas/business-hours.schema").TimeSlot[];
-                blockedSlots: import("./schemas/business-hours.schema").TimeSlot[];
-                status: string;
+            dateRange: {
+                start: string;
+                end: string;
+            };
+            slots: {
+                date: string;
+                hasSlots: boolean;
+                availableSlotCount: number;
+                totalSlots: number;
+                staffAvailable: number;
             }[];
-        }[];
+            summary: {
+                totalDates: number;
+                datesWithAvailability: number;
+                datesFullyBooked: number;
+            };
+        };
     }>;
     createBusinessHours(businessId: string): Promise<any>;
     setupAvailability(dto: {

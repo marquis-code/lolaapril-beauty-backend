@@ -1,4 +1,6 @@
 export declare class ProcessPaymentDto {
+    paymentType?: 'full' | 'deposit' | 'remaining';
+    depositAmount?: number;
     bookingId: string;
     transactionReference: string;
     amount: number;
@@ -7,4 +9,5 @@ export declare class ProcessPaymentDto {
     clientId: string;
     businessId: string;
     status: 'successful' | 'failed';
+    captureNow?: boolean;
 }

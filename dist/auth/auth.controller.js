@@ -19,6 +19,7 @@ const auth_service_1 = require("./auth.service");
 const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
 const business_register_dto_1 = require("./dto/business-register.dto");
+const update_profile_dto_1 = require("./dto/update-profile.dto");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
 let AuthController = class AuthController {
@@ -70,6 +71,21 @@ let AuthController = class AuthController {
     }
     async refreshTokens(body) {
         return this.authService.refreshTokens(body.userId, body.refreshToken);
+    }
+    async updateProfile(req, updateProfileDto) {
+        return this.authService.updateProfile(req.user.sub, updateProfileDto);
+    }
+    async updatePreferences(req, preferences) {
+        return this.authService.updatePreferences(req.user.sub, preferences);
+    }
+    async changePassword(req, changePasswordDto) {
+        return this.authService.changePassword(req.user.sub, changePasswordDto);
+    }
+    async updateEmail(req, updateEmailDto) {
+        return this.authService.updateEmail(req.user.sub, updateEmailDto);
+    }
+    async deleteAccount(req, body) {
+        return this.authService.deleteAccount(req.user.sub, body.password);
     }
 };
 __decorate([
@@ -175,6 +191,75 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "refreshTokens", null);
+__decorate([
+    (0, common_1.Patch)('profile'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Update user profile' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Profile updated successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid update data' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_profile_dto_1.UpdateProfileDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.Patch)('preferences'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Update user preferences (language, timezone, notifications, etc.)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Preferences updated successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_profile_dto_1.UserPreferencesDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "updatePreferences", null);
+__decorate([
+    (0, common_1.Post)('change-password'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Change user password' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Password changed successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid password data' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Current password is incorrect' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_profile_dto_1.ChangePasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "changePassword", null);
+__decorate([
+    (0, common_1.Patch)('email'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Update user email address' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Email updated successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid email data' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Password is incorrect' }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: 'Email already in use' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_profile_dto_1.UpdateEmailDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "updateEmail", null);
+__decorate([
+    (0, common_1.Delete)('account'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete user account (soft delete)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Account deleted successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Password is incorrect or unauthorized' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "deleteAccount", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),

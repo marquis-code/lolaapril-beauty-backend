@@ -28,7 +28,10 @@ let VoucherService = class VoucherService {
         if (existingVoucher) {
             throw new common_1.BadRequestException("Voucher code already exists");
         }
-        const voucher = new this.voucherModel(Object.assign(Object.assign({}, createVoucherDto), { createdBy: userId }));
+        const voucher = new this.voucherModel({
+            ...createVoucherDto,
+            createdBy: userId,
+        });
         return voucher.save();
     }
     async findAll(query) {
@@ -86,7 +89,7 @@ let VoucherService = class VoucherService {
         return voucher;
     }
     async update(id, updateVoucherDto) {
-        const updateQuery = this.voucherModel.findByIdAndUpdate(id, Object.assign(Object.assign({}, updateVoucherDto), { updatedAt: new Date() }), { new: true });
+        const updateQuery = this.voucherModel.findByIdAndUpdate(id, { ...updateVoucherDto, updatedAt: new Date() }, { new: true });
         updateQuery.populate("createdBy", "firstName lastName email");
         const voucher = await updateQuery.exec();
         if (!voucher) {
@@ -101,7 +104,6 @@ let VoucherService = class VoucherService {
         }
     }
     async validateVoucher(voucherCode, clientId, serviceIds, totalAmount) {
-        var _a, _b;
         const voucher = await this.voucherModel.findOne({ voucherCode }).exec();
         if (!voucher) {
             return { isValid: false, message: "Voucher not found" };
@@ -119,13 +121,13 @@ let VoucherService = class VoucherService {
         if (voucher.restrictions.minimumSpend && totalAmount < voucher.restrictions.minimumSpend) {
             return { isValid: false, message: `Minimum spend of ${voucher.restrictions.minimumSpend} required` };
         }
-        if (((_a = voucher.restrictions.applicableServices) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+        if (voucher.restrictions.applicableServices?.length > 0) {
             const hasApplicableService = serviceIds.some((id) => voucher.restrictions.applicableServices.some((svc) => svc.toString() === id));
             if (!hasApplicableService) {
                 return { isValid: false, message: "Voucher not applicable to selected services" };
             }
         }
-        if (((_b = voucher.restrictions.excludedServices) === null || _b === void 0 ? void 0 : _b.length) > 0) {
+        if (voucher.restrictions.excludedServices?.length > 0) {
             const hasExcludedService = serviceIds.some((id) => voucher.restrictions.excludedServices.some((svc) => svc.toString() === id));
             if (hasExcludedService) {
                 return { isValid: false, message: "Voucher cannot be used with selected services" };

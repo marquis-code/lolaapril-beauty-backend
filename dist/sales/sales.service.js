@@ -112,7 +112,6 @@ let SalesService = class SalesService {
         }
     }
     async getSalesStats() {
-        var _a;
         try {
             const [totalSales, completedSales, totalRevenue, pendingSales] = await Promise.all([
                 this.saleModel.countDocuments(),
@@ -141,7 +140,7 @@ let SalesService = class SalesService {
                 data: {
                     totalSales,
                     completedSales,
-                    totalRevenue: ((_a = totalRevenue[0]) === null || _a === void 0 ? void 0 : _a.total) || 0,
+                    totalRevenue: totalRevenue[0]?.total || 0,
                     pendingSales,
                     topServices,
                 },
@@ -213,7 +212,7 @@ let SalesService = class SalesService {
     async update(id, updateSaleDto) {
         try {
             const sale = await this.saleModel
-                .findByIdAndUpdate(id, Object.assign(Object.assign({}, updateSaleDto), { updatedAt: new Date() }), { new: true })
+                .findByIdAndUpdate(id, { ...updateSaleDto, updatedAt: new Date() }, { new: true })
                 .populate("clientId", "firstName lastName email phone")
                 .populate("createdBy", "firstName lastName email")
                 .populate("completedBy", "firstName lastName email")

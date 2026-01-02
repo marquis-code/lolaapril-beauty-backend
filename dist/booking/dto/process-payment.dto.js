@@ -14,6 +14,16 @@ const class_validator_1 = require("class-validator");
 class ProcessPaymentDto {
 }
 __decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(['full', 'deposit', 'remaining']),
+    __metadata("design:type", String)
+], ProcessPaymentDto.prototype, "paymentType", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ProcessPaymentDto.prototype, "depositAmount", void 0);
+__decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
@@ -53,5 +63,10 @@ __decorate([
     (0, class_validator_1.IsIn)(['successful', 'failed']),
     __metadata("design:type", String)
 ], ProcessPaymentDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], ProcessPaymentDto.prototype, "captureNow", void 0);
 exports.ProcessPaymentDto = ProcessPaymentDto;
 //# sourceMappingURL=process-payment.dto.js.map

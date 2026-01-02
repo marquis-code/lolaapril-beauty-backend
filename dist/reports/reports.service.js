@@ -11,9 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportsService = void 0;
 const common_1 = require("@nestjs/common");
@@ -22,7 +19,7 @@ const daily_sales_summary_schema_1 = require("./schemas/daily-sales-summary.sche
 const sale_schema_1 = require("../sales/schemas/sale.schema");
 const appointment_schema_1 = require("../appointment/schemas/appointment.schema");
 const client_schema_1 = require("../client/schemas/client.schema");
-const moment_1 = __importDefault(require("moment"));
+const moment_1 = require("moment");
 const mongoose_2 = require("@nestjs/mongoose");
 let ReportsService = class ReportsService {
     constructor(dailySalesSummaryModel, saleModel, appointmentModel, clientModel) {
@@ -79,7 +76,7 @@ let ReportsService = class ReportsService {
             const existingSummary = await this.dailySalesSummaryModel.findOne({ date });
             let summary;
             if (existingSummary) {
-                summary = await this.dailySalesSummaryModel.findOneAndUpdate({ date }, Object.assign(Object.assign({}, summaryData), { updatedAt: new Date() }), { new: true });
+                summary = await this.dailySalesSummaryModel.findOneAndUpdate({ date }, { ...summaryData, updatedAt: new Date() }, { new: true });
             }
             else {
                 summary = new this.dailySalesSummaryModel(summaryData);
@@ -238,7 +235,7 @@ let ReportsService = class ReportsService {
                     existing.revenue += service.revenue;
                 }
                 else {
-                    servicesMap.set(service.serviceId, Object.assign({}, service));
+                    servicesMap.set(service.serviceId, { ...service });
                 }
             });
         });
@@ -257,7 +254,7 @@ let ReportsService = class ReportsService {
                     existing.commission += staff.commission;
                 }
                 else {
-                    staffMap.set(staff.staffId, Object.assign({}, staff));
+                    staffMap.set(staff.staffId, { ...staff });
                 }
             });
         });

@@ -1,49 +1,15 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
@@ -52,7 +18,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
-const bcrypt = __importStar(require("bcryptjs"));
+const bcrypt = require("bcryptjs");
 const user_schema_1 = require("./schemas/user.schema");
 const business_schema_1 = require("../tenant/schemas/business.schema");
 const subscription_schema_1 = require("../tenant/schemas/subscription.schema");
@@ -112,46 +78,57 @@ let AuthService = class AuthService {
         await this.userModel.findByIdAndUpdate(savedUser._id, {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
         });
-        return Object.assign({ user: {
+        return {
+            user: {
                 id: savedUser._id,
                 firstName: savedUser.firstName,
                 lastName: savedUser.lastName,
                 email: savedUser.email,
                 role: savedUser.role,
                 status: savedUser.status,
-            }, business: {
+            },
+            business: {
                 id: savedBusiness._id,
                 businessName: savedBusiness.businessName,
                 subdomain: savedBusiness.subdomain,
                 businessType: savedBusiness.businessType,
                 status: savedBusiness.status,
                 trialEndsAt: savedBusiness.trialEndsAt,
-            } }, tokens);
+            },
+            ...tokens,
+        };
     }
     async register(registerDto) {
-        const { email, password } = registerDto, userData = __rest(registerDto, ["email", "password"]);
+        const { email, password, ...userData } = registerDto;
         const existingUser = await this.userModel.findOne({ email });
         if (existingUser) {
             throw new common_1.ConflictException("User with this email already exists");
         }
         const hashedPassword = await bcrypt.hash(password, 12);
-        const user = new this.userModel(Object.assign(Object.assign({}, userData), { email, password: hashedPassword, authProvider: "local" }));
+        const user = new this.userModel({
+            ...userData,
+            email,
+            password: hashedPassword,
+            authProvider: "local",
+        });
         await user.save();
         const tokens = await this.generateTokens(user._id.toString(), user.email, user.role);
         await this.userModel.findByIdAndUpdate(user._id, {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
         });
-        return Object.assign({ user: {
+        return {
+            user: {
                 id: user._id,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
                 status: user.status,
-            } }, tokens);
+            },
+            ...tokens,
+        };
     }
     async handleGoogleCallback(googleUser, subdomain) {
-        var _a;
         const { googleId, email, firstName, lastName, picture } = googleUser;
         if (!email) {
             throw new common_1.UnauthorizedException("Email not provided by Google");
@@ -202,12 +179,13 @@ let AuthService = class AuthService {
         else if (businesses.length > 0) {
             business = businesses[0];
         }
-        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, (_a = business === null || business === void 0 ? void 0 : business._id) === null || _a === void 0 ? void 0 : _a.toString(), business === null || business === void 0 ? void 0 : business.subdomain);
+        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, business?._id?.toString(), business?.subdomain);
         await this.userModel.findByIdAndUpdate(user._id, {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-            currentBusinessId: business === null || business === void 0 ? void 0 : business._id,
+            currentBusinessId: business?._id,
         });
-        const response = Object.assign({ user: {
+        const response = {
+            user: {
                 id: user._id,
                 firstName: user.firstName,
                 lastName: user.lastName,
@@ -217,7 +195,9 @@ let AuthService = class AuthService {
                 profileImage: user.profileImage,
                 emailVerified: user.emailVerified,
                 authProvider: user.authProvider,
-            } }, tokens);
+            },
+            ...tokens,
+        };
         if (business) {
             response.business = {
                 id: business._id,
@@ -367,7 +347,8 @@ let AuthService = class AuthService {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
             lastLogin: new Date(),
         });
-        return Object.assign({ user: {
+        return {
+            user: {
                 id: user._id,
                 firstName: user.firstName,
                 lastName: user.lastName,
@@ -375,10 +356,11 @@ let AuthService = class AuthService {
                 role: user.role,
                 status: user.status,
                 authProvider: user.authProvider,
-            } }, tokens);
+            },
+            ...tokens,
+        };
     }
     async googleAuth(googleAuthDto) {
-        var _a;
         const { idToken, subdomain } = googleAuthDto;
         try {
             const ticket = await this.googleClient.verifyIdToken({
@@ -439,12 +421,13 @@ let AuthService = class AuthService {
             else if (businesses.length > 0) {
                 business = businesses[0];
             }
-            const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, (_a = business === null || business === void 0 ? void 0 : business._id) === null || _a === void 0 ? void 0 : _a.toString(), business === null || business === void 0 ? void 0 : business.subdomain);
+            const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, business?._id?.toString(), business?.subdomain);
             await this.userModel.findByIdAndUpdate(user._id, {
                 refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-                currentBusinessId: business === null || business === void 0 ? void 0 : business._id,
+                currentBusinessId: business?._id,
             });
-            const response = Object.assign({ user: {
+            const response = {
+                user: {
                     id: user._id,
                     firstName: user.firstName,
                     lastName: user.lastName,
@@ -453,7 +436,9 @@ let AuthService = class AuthService {
                     status: user.status,
                     profileImage: user.profileImage,
                     emailVerified: user.emailVerified,
-                } }, tokens);
+                },
+                ...tokens,
+            };
             if (business) {
                 response.business = {
                     id: business._id,
@@ -530,14 +515,16 @@ let AuthService = class AuthService {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
             lastLogin: new Date(),
         });
-        return Object.assign({ user: {
+        return {
+            user: {
                 id: user._id,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
                 status: user.status,
-            }, business: {
+            },
+            business: {
                 id: business._id,
                 businessName: business.businessName,
                 subdomain: business.subdomain,
@@ -545,12 +532,215 @@ let AuthService = class AuthService {
                 status: business.status,
                 trialEndsAt: business.trialEndsAt,
                 subscription: business.activeSubscription,
-            }, businesses: businesses.map((b) => ({
+            },
+            businesses: businesses.map((b) => ({
                 id: b._id,
                 businessName: b.businessName,
                 subdomain: b.subdomain,
                 status: b.status,
-            })) }, tokens);
+            })),
+            ...tokens,
+        };
+    }
+    async updateProfile(userId, updateProfileDto) {
+        try {
+            const user = await this.userModel.findById(userId);
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            const allowedUpdates = ['firstName', 'lastName', 'phone', 'profileImage', 'bio', 'dateOfBirth', 'gender'];
+            const updates = {};
+            Object.keys(updateProfileDto).forEach(key => {
+                if (allowedUpdates.includes(key) && updateProfileDto[key] !== undefined) {
+                    if (key === 'dateOfBirth' && updateProfileDto[key]) {
+                        updates[key] = new Date(updateProfileDto[key]);
+                    }
+                    else {
+                        updates[key] = updateProfileDto[key];
+                    }
+                }
+            });
+            if (Object.keys(updates).length === 0) {
+                throw new common_1.BadRequestException('No valid fields to update');
+            }
+            const updatedUser = await this.userModel.findByIdAndUpdate(userId, { ...updates, updatedAt: new Date() }, { new: true, runValidators: true }).select('-password -refreshToken');
+            return {
+                success: true,
+                message: 'Profile updated successfully',
+                user: {
+                    id: updatedUser._id,
+                    firstName: updatedUser.firstName,
+                    lastName: updatedUser.lastName,
+                    email: updatedUser.email,
+                    phone: updatedUser.phone,
+                    role: updatedUser.role,
+                    status: updatedUser.status,
+                    profileImage: updatedUser.profileImage,
+                    bio: updatedUser.bio,
+                    dateOfBirth: updatedUser.dateOfBirth,
+                    gender: updatedUser.gender,
+                    emailVerified: updatedUser.emailVerified,
+                    phoneVerified: updatedUser.phoneVerified,
+                    authProvider: updatedUser.authProvider,
+                    preferences: updatedUser.preferences,
+                }
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException || error instanceof common_1.BadRequestException) {
+                throw error;
+            }
+            console.error('Profile update error:', error);
+            throw new common_1.BadRequestException('Failed to update profile');
+        }
+    }
+    async updatePreferences(userId, preferences) {
+        try {
+            const user = await this.userModel.findById(userId);
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            const updatedUser = await this.userModel.findByIdAndUpdate(userId, {
+                preferences: { ...user.preferences, ...preferences },
+                updatedAt: new Date()
+            }, { new: true, runValidators: true }).select('-password -refreshToken');
+            return {
+                success: true,
+                message: 'Preferences updated successfully',
+                preferences: updatedUser.preferences
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            console.error('Preferences update error:', error);
+            throw new common_1.BadRequestException('Failed to update preferences');
+        }
+    }
+    async changePassword(userId, changePasswordDto) {
+        try {
+            const { currentPassword, newPassword, confirmPassword } = changePasswordDto;
+            if (newPassword !== confirmPassword) {
+                throw new common_1.BadRequestException('New password and confirmation do not match');
+            }
+            if (currentPassword === newPassword) {
+                throw new common_1.BadRequestException('New password must be different from current password');
+            }
+            const user = await this.userModel.findById(userId);
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            if (user.authProvider !== 'local' && !user.password) {
+                throw new common_1.BadRequestException(`Cannot change password for ${user.authProvider} authenticated accounts`);
+            }
+            const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+            if (!isPasswordValid) {
+                throw new common_1.UnauthorizedException('Current password is incorrect');
+            }
+            const hashedPassword = await bcrypt.hash(newPassword, 12);
+            await this.userModel.findByIdAndUpdate(userId, {
+                password: hashedPassword,
+                updatedAt: new Date()
+            });
+            await this.userModel.findByIdAndUpdate(userId, {
+                refreshToken: null
+            });
+            return {
+                success: true,
+                message: 'Password changed successfully. Please login again with your new password.'
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException ||
+                error instanceof common_1.BadRequestException ||
+                error instanceof common_1.UnauthorizedException) {
+                throw error;
+            }
+            console.error('Password change error:', error);
+            throw new common_1.BadRequestException('Failed to change password');
+        }
+    }
+    async updateEmail(userId, updateEmailDto) {
+        try {
+            const { newEmail, password } = updateEmailDto;
+            const user = await this.userModel.findById(userId);
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            if (user.authProvider !== 'local' && !user.password) {
+                throw new common_1.BadRequestException(`Cannot change email for ${user.authProvider} authenticated accounts. Please contact support.`);
+            }
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (!isPasswordValid) {
+                throw new common_1.UnauthorizedException('Password is incorrect');
+            }
+            const existingUser = await this.userModel.findOne({ email: newEmail });
+            if (existingUser && existingUser._id.toString() !== userId) {
+                throw new common_1.ConflictException('Email is already in use by another account');
+            }
+            if (user.email === newEmail) {
+                throw new common_1.BadRequestException('New email must be different from current email');
+            }
+            await this.userModel.findByIdAndUpdate(userId, {
+                email: newEmail,
+                emailVerified: false,
+                updatedAt: new Date()
+            });
+            await this.userModel.findByIdAndUpdate(userId, {
+                refreshToken: null
+            });
+            return {
+                success: true,
+                message: 'Email updated successfully. Please verify your new email address and login again.',
+                newEmail
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException ||
+                error instanceof common_1.BadRequestException ||
+                error instanceof common_1.UnauthorizedException ||
+                error instanceof common_1.ConflictException) {
+                throw error;
+            }
+            console.error('Email update error:', error);
+            throw new common_1.BadRequestException('Failed to update email');
+        }
+    }
+    async deleteAccount(userId, password) {
+        try {
+            const user = await this.userModel.findById(userId);
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            if (user.authProvider === 'local' && user.password) {
+                if (!password) {
+                    throw new common_1.BadRequestException('Password is required to delete account');
+                }
+                const isPasswordValid = await bcrypt.compare(password, user.password);
+                if (!isPasswordValid) {
+                    throw new common_1.UnauthorizedException('Password is incorrect');
+                }
+            }
+            await this.userModel.findByIdAndUpdate(userId, {
+                status: user_schema_1.UserStatus.INACTIVE,
+                refreshToken: null,
+                updatedAt: new Date()
+            });
+            return {
+                success: true,
+                message: 'Account deleted successfully'
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException ||
+                error instanceof common_1.UnauthorizedException ||
+                error instanceof common_1.BadRequestException) {
+                throw error;
+            }
+            console.error('Account deletion error:', error);
+            throw new common_1.BadRequestException('Failed to delete account');
+        }
     }
 };
 AuthService = __decorate([

@@ -23,10 +23,15 @@ const staff_service_1 = require("../../staff/staff.service");
 const tenant_service_1 = require("../../tenant/tenant.service");
 const service_service_1 = require("../../service/service.service");
 const event_emitter_1 = require("@nestjs/event-emitter");
+const cancellation_policy_service_1 = require("../../cancellation/services/cancellation-policy.service");
+const no_show_management_service_1 = require("../../cancellation/services/no-show-management.service");
 const winston_1 = require("winston");
 const nest_winston_1 = require("nest-winston");
+const source_tracking_service_1 = require("../../commission/services/source-tracking.service");
+const commission_calculator_service_1 = require("../../commission/services/commission-calculator.service");
+const create_booking_with_source_dto_1 = require("../dto/create-booking-with-source.dto");
 let BookingOrchestrator = class BookingOrchestrator {
-    constructor(logger, bookingService, appointmentService, paymentService, availabilityService, notificationService, staffService, tenantService, serviceService, eventEmitter) {
+    constructor(logger, bookingService, appointmentService, paymentService, availabilityService, notificationService, staffService, tenantService, serviceService, eventEmitter, cancellationPolicyService, noShowManagementService, sourceTrackingService, commissionCalculatorService) {
         this.logger = logger;
         this.bookingService = bookingService;
         this.appointmentService = appointmentService;
@@ -37,11 +42,71 @@ let BookingOrchestrator = class BookingOrchestrator {
         this.tenantService = tenantService;
         this.serviceService = serviceService;
         this.eventEmitter = eventEmitter;
+        this.cancellationPolicyService = cancellationPolicyService;
+        this.noShowManagementService = noShowManagementService;
+        this.sourceTrackingService = sourceTrackingService;
+        this.commissionCalculatorService = commissionCalculatorService;
     }
     calculateTotalBufferTime(services) {
         return services.reduce((total, service) => {
             return total + (service.bufferTime || 0);
         }, 0);
+    }
+    normalizeBookingSource(dto) {
+        if (dto.bookingSource) {
+            return {
+                sourceType: dto.bookingSource.sourceType || dto.sourceType || create_booking_with_source_dto_1.BookingSourceType.DIRECT_LINK,
+                channel: dto.bookingSource.channel,
+                referrer: dto.bookingSource.referrer,
+                referrerUrl: dto.bookingSource.referrerUrl,
+                trackingCode: dto.bookingSource.trackingCode,
+                campaignId: dto.bookingSource.campaignId,
+                affiliateId: dto.bookingSource.affiliateId,
+                sourceIdentifier: dto.bookingSource.sourceIdentifier || dto.sourceIdentifier,
+                referralCode: dto.bookingSource.referralCode || dto.referralCode,
+                utmSource: dto.bookingSource.utmSource || dto.utmSource,
+                utmMedium: dto.bookingSource.utmMedium || dto.utmMedium,
+                utmCampaign: dto.bookingSource.utmCampaign || dto.utmCampaign,
+                ipAddress: dto.bookingSource.ipAddress,
+                userAgent: dto.bookingSource.userAgent,
+                metadata: dto.bookingSource.metadata,
+            };
+        }
+        return {
+            sourceType: dto.sourceType || create_booking_with_source_dto_1.BookingSourceType.DIRECT_LINK,
+            sourceIdentifier: dto.sourceIdentifier,
+            referralCode: dto.referralCode,
+            utmSource: dto.utmSource,
+            utmMedium: dto.utmMedium,
+            utmCampaign: dto.utmCampaign,
+        };
+    }
+    transformBookingSourceToDto(bookingSource) {
+        if (!bookingSource) {
+            return {
+                sourceType: create_booking_with_source_dto_1.BookingSourceType.DIRECT_LINK,
+            };
+        }
+        const sourceType = bookingSource.sourceType
+            ? (create_booking_with_source_dto_1.BookingSourceType[bookingSource.sourceType.toUpperCase()] || create_booking_with_source_dto_1.BookingSourceType.DIRECT_LINK)
+            : create_booking_with_source_dto_1.BookingSourceType.DIRECT_LINK;
+        return {
+            sourceType,
+            channel: bookingSource.channel,
+            referrer: bookingSource.referrer,
+            referrerUrl: bookingSource.referrerUrl,
+            trackingCode: bookingSource.trackingCode,
+            campaignId: bookingSource.campaignId,
+            affiliateId: bookingSource.affiliateId,
+            sourceIdentifier: bookingSource.sourceIdentifier,
+            referralCode: bookingSource.referralCode,
+            utmSource: bookingSource.utmSource,
+            utmMedium: bookingSource.utmMedium,
+            utmCampaign: bookingSource.utmCampaign,
+            ipAddress: bookingSource.ipAddress,
+            userAgent: bookingSource.userAgent,
+            metadata: bookingSource.metadata,
+        };
     }
     async sendConfirmationNotifications(booking, appointment, staffAssignments) {
         const bookingDate = this.parseDate(booking.preferredDate);
@@ -64,7 +129,7 @@ let BookingOrchestrator = class BookingOrchestrator {
                     await this.notificationService.notifyStaffAssignment(appointment._id.toString(), assignment.staffId, booking.businessId.toString(), {
                         staffName: assignment.staffName || 'Staff Member',
                         clientName: booking.clientName,
-                        serviceName: (assignedService === null || assignedService === void 0 ? void 0 : assignedService.serviceName) || 'Service',
+                        serviceName: assignedService?.serviceName || 'Service',
                         date: bookingDate.toDateString(),
                         time: booking.preferredStartTime,
                         businessName: booking.businessName,
@@ -81,98 +146,84 @@ let BookingOrchestrator = class BookingOrchestrator {
     }
     async createBookingWithValidation(createBookingDto) {
         try {
-            console.log(`🚀 Creating booking for client: ${createBookingDto.clientId}`);
             const preferredDate = this.parseDate(createBookingDto.preferredDate);
-            const dateString = this.formatDateForAvailability(preferredDate);
             const limitsCheck = await this.tenantService.checkSubscriptionLimits(createBookingDto.businessId, 'booking');
             if (!limitsCheck.isValid) {
-                throw new common_1.BadRequestException(`Subscription limits exceeded: ${limitsCheck.warnings.join(', ')}`);
+                throw new common_1.BadRequestException(`Subscription limits exceeded`);
             }
             const serviceIds = createBookingDto.services.map(s => s.serviceId);
-            let services = [];
-            try {
-                services = await this.getServicesDetails(serviceIds);
-                console.log(`✅ Fetched ${services.length} services`);
+            const services = await this.serviceService.getServicesByIds(serviceIds);
+            const totalAmount = this.calculateTotalPrice(services);
+            const normalizedBookingSource = this.normalizeBookingSource(createBookingDto);
+            console.log('📊 Normalized booking source:', {
+                sourceType: normalizedBookingSource.sourceType,
+                trackingCode: normalizedBookingSource.trackingCode,
+                hasLegacyFields: !!(createBookingDto.sourceType || createBookingDto.utmSource),
+            });
+            const sourceValidation = this.sourceTrackingService.validateSourceData(normalizedBookingSource);
+            if (!sourceValidation.isValid) {
+                throw new common_1.BadRequestException(`Invalid source tracking data: ${sourceValidation.errors.join(', ')}`);
             }
-            catch (error) {
-                console.error(`❌ Service fetch error: ${error.message}`);
-                throw new common_1.BadRequestException(`Failed to fetch service details: ${error.message}`);
-            }
-            if (!services || services.length === 0) {
-                throw new common_1.BadRequestException('No services found for the provided service IDs');
-            }
-            const bufferTimeMap = new Map();
-            createBookingDto.services.forEach(s => {
-                bufferTimeMap.set(s.serviceId, s.bufferTime || 0);
+            const clientReliability = await this.noShowManagementService
+                .shouldRequireDeposit(createBookingDto.clientId, createBookingDto.businessId);
+            const depositPolicy = await this.cancellationPolicyService
+                .calculateDepositAmount(createBookingDto.businessId, totalAmount, serviceIds);
+            const requiresDeposit = depositPolicy.requiresDeposit ||
+                clientReliability.requiresDeposit;
+            const depositAmount = requiresDeposit ? depositPolicy.depositAmount : 0;
+            const depositReason = clientReliability.requiresDeposit
+                ? clientReliability.reason
+                : depositPolicy.reason;
+            const commissionPreview = await this.commissionCalculatorService
+                .calculateCommission('preview', {
+                businessId: createBookingDto.businessId,
+                clientId: createBookingDto.clientId,
+                totalAmount,
+                sourceTracking: normalizedBookingSource
             });
             const totalDuration = this.calculateTotalDuration(services);
-            const totalBufferTime = this.calculateTotalBufferTime(createBookingDto.services);
-            const totalDurationWithBuffer = totalDuration + totalBufferTime;
-            console.log(`⏱️ Duration: ${totalDuration}min, Buffer: ${totalBufferTime}min, Total: ${totalDurationWithBuffer}min`);
-            const estimatedEndTime = this.addMinutesToTime(createBookingDto.preferredStartTime, totalDurationWithBuffer);
-            console.log(`🔍 Checking availability for ${dateString} at ${createBookingDto.preferredStartTime}`);
-            const fullyBookedCheck = await this.availabilityService.isFullyBooked({
-                businessId: createBookingDto.businessId,
-                date: dateString,
-                startTime: createBookingDto.preferredStartTime,
-                duration: totalDuration,
-                bufferTime: totalBufferTime
-            });
-            console.log(`📊 Availability check result:`, fullyBookedCheck);
-            if (fullyBookedCheck.isFullyBooked) {
-                const availableSlots = await this.availabilityService.getAvailableSlots({
-                    businessId: createBookingDto.businessId,
-                    serviceIds: serviceIds,
-                    date: dateString,
-                    bookingType: 'sequential'
-                });
-                return {
-                    bookingId: '',
-                    bookingNumber: '',
-                    estimatedTotal: this.calculateTotalPrice(services),
-                    expiresAt: new Date(),
-                    status: 'fully_booked',
-                    clientId: createBookingDto.clientId,
-                    businessId: createBookingDto.businessId,
-                    booking: null,
-                    availableSlots,
-                    message: fullyBookedCheck.message + '. Please choose from alternative slots.'
-                };
+            const isAvailable = await this.checkAvailabilityForAllServices(createBookingDto.businessId, serviceIds, preferredDate, createBookingDto.preferredStartTime, totalDuration);
+            if (!isAvailable) {
+                throw new common_1.BadRequestException('Selected time slot is not available');
             }
-            const mappedServices = services.map((service, index) => {
-                const serviceIdStr = service._id.toString();
-                const bufferTime = bufferTimeMap.get(serviceIdStr) || 0;
-                return {
-                    serviceId: service._id,
-                    serviceName: service.basicDetails.serviceName,
-                    duration: this.getServiceDurationInMinutes(service),
-                    bufferTime: bufferTime,
-                    price: service.pricingAndDuration.price.amount
-                };
-            });
             const bookingData = {
                 clientId: createBookingDto.clientId,
                 businessId: createBookingDto.businessId,
-                preferredDate: preferredDate,
+                preferredDate,
                 preferredStartTime: createBookingDto.preferredStartTime,
                 clientName: createBookingDto.clientName,
                 clientEmail: createBookingDto.clientEmail,
                 clientPhone: createBookingDto.clientPhone,
                 specialRequests: createBookingDto.specialRequests,
-                services: mappedServices,
-                estimatedEndTime,
+                services: services.map((service, index) => ({
+                    serviceId: service._id,
+                    serviceName: service.basicDetails.serviceName,
+                    duration: this.getServiceDurationInMinutes(service),
+                    bufferTime: createBookingDto.services[index].bufferTime || 0,
+                    price: service.pricingAndDuration.price.amount
+                })),
+                estimatedEndTime: this.addMinutesToTime(createBookingDto.preferredStartTime, totalDuration),
                 totalDuration,
-                totalBufferTime,
-                estimatedTotal: this.calculateTotalPrice(services),
+                estimatedTotal: totalAmount,
                 status: 'pending',
-                bookingSource: 'online',
-                metadata: { platform: 'web' }
+                bookingSource: normalizedBookingSource,
+                requiresDeposit,
+                depositAmount,
+                depositReason,
+                remainingAmount: requiresDeposit ? totalAmount - depositAmount : totalAmount,
+                commissionPreview: commissionPreview.isCommissionable ? {
+                    rate: commissionPreview.commissionRate,
+                    amount: commissionPreview.commissionAmount,
+                    reason: commissionPreview.reason
+                } : null,
+                clientReliabilityScore: clientReliability.score
             };
-            console.log(`💾 Creating booking with ${bookingData.services.length} services`);
             const booking = await this.bookingService.createBooking(bookingData);
+            if (normalizedBookingSource.trackingCode) {
+                await this.sourceTrackingService.recordConversion(normalizedBookingSource.trackingCode);
+            }
             await this.notificationService.notifyStaffNewBooking(booking);
             this.eventEmitter.emit('booking.created', booking);
-            console.log(`✅ Booking created: ${booking.bookingNumber}`);
             return {
                 bookingId: booking._id.toString(),
                 bookingNumber: booking.bookingNumber,
@@ -182,12 +233,33 @@ let BookingOrchestrator = class BookingOrchestrator {
                 clientId: booking.clientId.toString(),
                 businessId: booking.businessId.toString(),
                 booking,
-                message: 'Booking created successfully. Awaiting staff assignment and confirmation.',
-                requiresPayment: true
+                requiresDeposit,
+                depositAmount,
+                depositReason,
+                remainingAmount: bookingData.remainingAmount,
+                commissionInfo: commissionPreview.isCommissionable ? {
+                    willBeCharged: true,
+                    rate: commissionPreview.commissionRate,
+                    amount: commissionPreview.commissionAmount,
+                    reason: commissionPreview.reason,
+                    businessPayout: commissionPreview.businessPayout
+                } : {
+                    willBeCharged: false,
+                    reason: commissionPreview.reason,
+                    businessPayout: totalAmount
+                },
+                clientReliability: {
+                    score: clientReliability.score,
+                    requiresDeposit: clientReliability.requiresDeposit,
+                    reason: clientReliability.reason
+                },
+                message: requiresDeposit
+                    ? `Booking created. Deposit of ₦${depositAmount} required to confirm.`
+                    : 'Booking created successfully. Awaiting confirmation.'
             };
         }
         catch (error) {
-            console.error(`❌ Booking creation failed: ${error.message}`);
+            this.logger.error(`Booking creation failed: ${error.message}`);
             throw error;
         }
     }
@@ -290,26 +362,70 @@ let BookingOrchestrator = class BookingOrchestrator {
     }
     async handlePaymentAndComplete(bookingId, transactionReference, paymentData) {
         try {
-            console.log('💳 Processing payment...');
-            console.log('  - Booking ID:', bookingId);
-            console.log('  - Transaction Reference:', transactionReference);
-            console.log('  - Amount:', paymentData.amount);
-            console.log('  - Method:', paymentData.method);
-            console.log('  - Gateway:', paymentData.gateway);
             const booking = await this.bookingService.getBookingById(bookingId);
             if (!booking) {
                 throw new common_1.NotFoundException('Booking not found');
             }
-            const allowedStatuses = ['pending', 'payment_failed'];
+            const isDepositPayment = paymentData.paymentType === 'deposit';
+            const isRemainingPayment = paymentData.paymentType === 'remaining';
+            const bookingSourceDto = this.transformBookingSourceToDto(booking.bookingSource);
+            if (isDepositPayment) {
+                if (!booking.requiresDeposit) {
+                    throw new common_1.BadRequestException('This booking does not require a deposit');
+                }
+                if (paymentData.amount !== booking.depositAmount) {
+                    throw new common_1.BadRequestException(`Deposit amount must be ₦${booking.depositAmount}`);
+                }
+                await this.bookingService.updateBooking(bookingId, {
+                    depositPaid: true,
+                    depositTransactionId: transactionReference,
+                    remainingAmount: booking.estimatedTotal - booking.depositAmount,
+                    status: 'deposit_paid'
+                });
+                const payment = await this.paymentService.createPaymentFromBooking(booking, transactionReference, {
+                    paymentMethod: paymentData.method,
+                    gateway: paymentData.gateway,
+                    status: 'completed',
+                    amount: paymentData.amount,
+                    paymentType: 'deposit'
+                });
+                return {
+                    paymentId: payment._id.toString(),
+                    success: true,
+                    message: 'Deposit paid successfully. Please pay remaining amount before appointment.',
+                    transactionReference,
+                    amount: paymentData.amount,
+                    method: paymentData.method,
+                    gateway: paymentData.gateway,
+                    status: 'deposit_completed',
+                    payment,
+                    appointment: null,
+                    remainingAmount: booking.estimatedTotal - booking.depositAmount
+                };
+            }
+            if (isRemainingPayment) {
+                if (!booking.depositPaid) {
+                    throw new common_1.BadRequestException('Deposit must be paid first');
+                }
+                if (paymentData.amount !== booking.remainingAmount) {
+                    throw new common_1.BadRequestException(`Remaining amount must be ₦${booking.remainingAmount}`);
+                }
+            }
+            const allowedStatuses = ['pending', 'payment_failed', 'deposit_paid'];
             if (!allowedStatuses.includes(booking.status)) {
                 throw new common_1.BadRequestException(`Cannot process payment for booking with status '${booking.status}'. ` +
-                    `Payment can only be processed for bookings with status 'pending' or 'payment_failed'.`);
+                    `Payment can only be processed for bookings with status 'pending', 'payment_failed', or 'deposit_paid'.`);
             }
             if (booking.status === 'payment_failed') {
                 console.log('🔄 This is a payment retry - resetting booking status to pending');
                 await this.bookingService.updateBookingStatus(bookingId, 'pending');
             }
-            if (paymentData.amount !== booking.estimatedTotal) {
+            if (isRemainingPayment) {
+                if (paymentData.amount !== booking.remainingAmount) {
+                    throw new common_1.BadRequestException(`Payment amount (${paymentData.amount}) does not match remaining amount (${booking.remainingAmount})`);
+                }
+            }
+            else if (!isDepositPayment && paymentData.amount !== booking.estimatedTotal) {
                 throw new common_1.BadRequestException(`Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`);
             }
             const bookingDate = this.parseDate(booking.preferredDate);
@@ -319,28 +435,37 @@ let BookingOrchestrator = class BookingOrchestrator {
                 await this.handleUnavailableSlot(booking, transactionReference);
                 throw new common_1.BadRequestException('Time slot is no longer available. Payment will be refunded.');
             }
-            console.log('📅 Creating appointment from booking (without staff assignment)...');
+            console.log('📅 Creating appointment from booking...');
             const appointmentResult = await this.confirmBookingWithoutStaff(bookingId);
             if (!appointmentResult || !appointmentResult.appointment) {
                 throw new Error('Failed to create appointment from booking');
             }
             console.log('✅ Appointment created:', appointmentResult.appointmentNumber);
-            console.log('💾 Creating payment record...');
             const payment = await this.paymentService.createPaymentFromBooking(booking, transactionReference, {
                 paymentMethod: paymentData.method,
                 gateway: paymentData.gateway,
-                status: 'completed'
+                status: 'completed',
+                amount: paymentData.amount,
+                paymentType: paymentData.paymentType || 'full'
             });
-            console.log('✅ Updating payment status...');
+            const commissionCalculation = await this.commissionCalculatorService
+                .calculateCommission(bookingId, {
+                businessId: booking.businessId.toString(),
+                clientId: booking.clientId.toString(),
+                totalAmount: booking.estimatedTotal,
+                sourceTracking: bookingSourceDto
+            });
+            if (commissionCalculation.isCommissionable) {
+                await this.commissionCalculatorService.createCommissionRecord(bookingId, payment._id.toString(), {
+                    businessId: booking.businessId.toString(),
+                    clientId: booking.clientId.toString(),
+                    totalAmount: booking.estimatedTotal,
+                    sourceTracking: bookingSourceDto
+                }, commissionCalculation);
+            }
             await this.paymentService.updatePaymentStatus(payment._id.toString(), 'completed', transactionReference);
             await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString());
             const appointmentDate = this.parseDate(booking.preferredDate);
-            console.log('📧 Preparing to send payment confirmation notification');
-            console.log('Notification data:', {
-                clientName: booking.clientName,
-                appointmentDate: appointmentDate.toDateString(),
-                amount: paymentData.amount
-            });
             try {
                 await this.notificationService.notifyPaymentConfirmation(payment._id.toString(), paymentData.clientId, paymentData.businessId, {
                     clientName: booking.clientName,
@@ -355,7 +480,6 @@ let BookingOrchestrator = class BookingOrchestrator {
                     clientEmail: booking.clientEmail,
                     clientPhone: booking.clientPhone
                 });
-                console.log('✅ Payment confirmation notification sent');
             }
             catch (notificationError) {
                 console.warn('⚠️ Notification failed (continuing):', notificationError.message);
@@ -365,13 +489,12 @@ let BookingOrchestrator = class BookingOrchestrator {
                 booking,
                 appointment: appointmentResult.appointment
             });
-            console.log('✅ PAYMENT PROCESSING COMPLETE');
             return {
                 paymentId: payment._id.toString(),
                 success: true,
                 message: booking.status === 'payment_failed'
-                    ? 'Payment retry successful! Your appointment has been confirmed. Staff will be assigned shortly.'
-                    : 'Payment successful! Your appointment has been confirmed. Staff will be assigned shortly.',
+                    ? 'Payment retry successful! Your appointment has been confirmed.'
+                    : 'Payment successful! Your appointment has been confirmed.',
                 transactionReference,
                 amount: paymentData.amount,
                 method: paymentData.method,
@@ -407,7 +530,6 @@ let BookingOrchestrator = class BookingOrchestrator {
         console.log(`✅ Booking ${booking.bookingNumber} reset to pending for payment retry`);
     }
     async confirmBookingWithoutStaff(bookingId) {
-        var _a;
         console.log('=== ORCHESTRATOR: CONFIRM BOOKING WITHOUT STAFF ===');
         console.log('BookingId:', bookingId);
         try {
@@ -461,7 +583,7 @@ let BookingOrchestrator = class BookingOrchestrator {
                 scheduledTime: appointment.selectedTime || appointment.scheduledTime || booking.preferredStartTime,
                 status: appointment.status,
                 clientId: appointment.clientId.toString(),
-                businessId: ((_a = appointment.businessInfo) === null || _a === void 0 ? void 0 : _a.businessId) || booking.businessId.toString(),
+                businessId: appointment.businessInfo?.businessId || booking.businessId.toString(),
                 booking: booking,
                 message: 'Booking confirmed successfully. Staff will be assigned shortly.',
                 appointment,
@@ -494,7 +616,7 @@ let BookingOrchestrator = class BookingOrchestrator {
         console.log('=== ORCHESTRATOR: CONFIRM BOOKING START ===');
         console.log('BookingId:', bookingId);
         console.log('Single StaffId:', staffId);
-        console.log('Staff Assignments:', (staffAssignments === null || staffAssignments === void 0 ? void 0 : staffAssignments.length) || 0);
+        console.log('Staff Assignments:', staffAssignments?.length || 0);
         if (!staffId && (!staffAssignments || staffAssignments.length === 0)) {
             console.log('⚠️ No staff provided - using confirmation without staff assignment');
             return await this.confirmBookingWithoutStaff(bookingId);
@@ -600,7 +722,13 @@ let BookingOrchestrator = class BookingOrchestrator {
                             assignedBy: staffId || assignment.staffId,
                             assignmentMethod: 'manual'
                         });
-                        staffAssignmentResults.push(Object.assign({ staffId: assignment.staffId, serviceId: assignment.serviceId, staffName: assignment.staffName, status: 'assigned' }, result));
+                        staffAssignmentResults.push({
+                            staffId: assignment.staffId,
+                            serviceId: assignment.serviceId,
+                            staffName: assignment.staffName,
+                            status: 'assigned',
+                            ...result
+                        });
                         console.log(`✅ Successfully assigned staff ${assignment.staffId}`);
                     }
                     catch (error) {
@@ -727,7 +855,11 @@ BookingOrchestrator = __decorate([
         staff_service_1.StaffService,
         tenant_service_1.TenantService,
         service_service_1.ServiceService,
-        event_emitter_1.EventEmitter2])
+        event_emitter_1.EventEmitter2,
+        cancellation_policy_service_1.CancellationPolicyService,
+        no_show_management_service_1.NoShowManagementService,
+        source_tracking_service_1.SourceTrackingService,
+        commission_calculator_service_1.CommissionCalculatorService])
 ], BookingOrchestrator);
 exports.BookingOrchestrator = BookingOrchestrator;
 //# sourceMappingURL=booking-orchestrator.service.js.map

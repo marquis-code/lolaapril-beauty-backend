@@ -28,7 +28,12 @@ let AppointmentService = class AppointmentService {
         this.staffService = staffService;
     }
     async create(createAppointmentDto) {
-        const conflictingAppointment = await this.appointmentModel.findOne(Object.assign({ selectedDate: createAppointmentDto.selectedDate, selectedTime: createAppointmentDto.selectedTime, status: { $nin: ["cancelled", "no_show"] } }, (createAppointmentDto.assignedStaff && { assignedStaff: createAppointmentDto.assignedStaff })));
+        const conflictingAppointment = await this.appointmentModel.findOne({
+            selectedDate: createAppointmentDto.selectedDate,
+            selectedTime: createAppointmentDto.selectedTime,
+            status: { $nin: ["cancelled", "no_show"] },
+            ...(createAppointmentDto.assignedStaff && { assignedStaff: createAppointmentDto.assignedStaff }),
+        });
         if (conflictingAppointment) {
             throw new common_1.ConflictException("Time slot is already booked");
         }
@@ -103,7 +108,13 @@ let AppointmentService = class AppointmentService {
             const newDate = updateAppointmentDto.selectedDate || existingAppointment.selectedDate;
             const newTime = updateAppointmentDto.selectedTime || existingAppointment.selectedTime;
             const newStaff = updateAppointmentDto.assignedStaff || existingAppointment.assignedStaff;
-            const conflictingAppointment = await this.appointmentModel.findOne(Object.assign({ _id: { $ne: id }, selectedDate: newDate, selectedTime: newTime, status: { $nin: ["cancelled", "no_show"] } }, (newStaff && { assignedStaff: newStaff })));
+            const conflictingAppointment = await this.appointmentModel.findOne({
+                _id: { $ne: id },
+                selectedDate: newDate,
+                selectedTime: newTime,
+                status: { $nin: ["cancelled", "no_show"] },
+                ...(newStaff && { assignedStaff: newStaff }),
+            });
             if (conflictingAppointment) {
                 throw new common_1.ConflictException("Time slot is already booked");
             }
@@ -203,7 +214,11 @@ let AppointmentService = class AppointmentService {
     }
     async getAvailableTimeSlots(date, staffId) {
         const bookedSlots = await this.appointmentModel
-            .find(Object.assign({ selectedDate: date, status: { $nin: ["cancelled", "no_show"] } }, (staffId && { assignedStaff: staffId })))
+            .find({
+            selectedDate: date,
+            status: { $nin: ["cancelled", "no_show"] },
+            ...(staffId && { assignedStaff: staffId }),
+        })
             .select("selectedTime")
             .exec();
         const bookedTimes = bookedSlots.map((slot) => slot.selectedTime);
