@@ -14,6 +14,7 @@ import { LoginDto } from "./dto/login.dto"
 import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto"
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto"
 import { OAuth2Client } from "google-auth-library"
+import { AddBusinessDto } from "./dto/add-business.dto"
 
 @Injectable()
 export class AuthService {
@@ -1551,6 +1552,95 @@ async clearBusinessContext(userId: string) {
   return {
     success: true,
     message: 'Business context cleared successfully',
+    ...tokens,
+  }
+}
+
+
+async addBusinessToUser(userId: string, addBusinessDto: AddBusinessDto) {
+  const { businessName, subdomain, businessType, businessDescription, address, contact } = addBusinessDto
+
+  // Verify user exists and get user details
+  const user = await this.userModel.findById(userId)
+  if (!user) {
+    throw new NotFoundException('User not found')
+  }
+
+  // Check subdomain availability
+  const existingBusiness = await this.businessModel.findOne({ subdomain })
+  if (existingBusiness) {
+    throw new ConflictException('Subdomain already taken')
+  }
+
+  // Create new business with user as owner
+  const business = new this.businessModel({
+    businessName,
+    subdomain,
+    businessType,
+    businessDescription,
+    address,
+    contact,
+    ownerId: user._id,
+    status: 'trial',
+    trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days trial
+    settings: {
+      timezone: 'Africa/Lagos',
+      currency: 'NGN',
+      language: 'en',
+      defaultAppointmentDuration: 30,
+      bufferTimeBetweenAppointments: 15,
+      cancellationPolicyHours: 24,
+      advanceBookingDays: 7,
+      allowOnlineBooking: true,
+      requireEmailVerification: true,
+      requirePhoneVerification: false,
+      taxRate: 10,
+      serviceCharge: 0,
+      notificationSettings: {
+        booking_confirmation: true,
+        payment_reminders: true,
+        appointment_reminders: true,
+        marketing: false,
+      },
+    },
+  })
+
+  const savedBusiness = await business.save()
+
+  // Update user's owned businesses
+  await this.userModel.findByIdAndUpdate(userId, {
+    $push: { ownedBusinesses: savedBusiness._id },
+  })
+
+  // Create trial subscription for new business
+  await this.createTrialSubscription(savedBusiness._id.toString())
+
+  // Generate new tokens with business context
+  const tokens = await this.generateTokens(
+    user._id.toString(),
+    user.email,
+    user.role,
+    savedBusiness._id.toString(),
+    subdomain
+  )
+
+  // Update user with new current business and refresh token
+  await this.userModel.findByIdAndUpdate(userId, {
+    refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+    currentBusinessId: savedBusiness._id,
+  })
+
+  return {
+    success: true,
+    message: 'Business added successfully',
+    business: {
+      id: savedBusiness._id,
+      businessName: savedBusiness.businessName,
+      subdomain: savedBusiness.subdomain,
+      businessType: savedBusiness.businessType,
+      status: savedBusiness.status,
+      trialEndsAt: savedBusiness.trialEndsAt,
+    },
     ...tokens,
   }
 }

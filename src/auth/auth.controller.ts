@@ -13,6 +13,7 @@ import { RequestWithUser } from "./types/request-with-user.interface"
 import { CurrentUser, BusinessContext, BusinessId } from "./decorators/business-context.decorator"
 import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator"
 import { SwitchBusinessDto } from "./dto/switch-business.dto"
+import { AddBusinessDto } from "./dto/add-business.dto"
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -289,4 +290,22 @@ async getUserBusinesses(@CurrentUser() user: RequestWithUser['user']) {
 async clearBusinessContext(@CurrentUser() user: RequestWithUser['user']) {
   return this.authService.clearBusinessContext(user.sub)
 }
+
+@Post('business/add')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@ApiOperation({ 
+  summary: 'Add a new business under existing user account',
+  description: 'Allows authenticated user to create additional business without registering new account'
+})
+@ApiResponse({ status: 201, description: 'Business added successfully' })
+@ApiResponse({ status: 409, description: 'Subdomain already taken' })
+@ApiResponse({ status: 401, description: 'Unauthorized' })
+async addBusiness(
+  @CurrentUser() user: RequestWithUser['user'],
+  @Body() addBusinessDto: AddBusinessDto
+) {
+  return this.authService.addBusinessToUser(user.sub, addBusinessDto)
+}
+
 }
