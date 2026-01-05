@@ -15,7 +15,7 @@ const mongoose_2 = require("mongoose");
 let CustomDomain = class CustomDomain {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Tenant', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true, index: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], CustomDomain.prototype, "tenantId", void 0);
 __decorate([
@@ -27,15 +27,31 @@ __decorate([
     __metadata("design:type", String)
 ], CustomDomain.prototype, "subdomain", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: 'pending' }),
+    (0, mongoose_1.Prop)({
+        type: String,
+        enum: ['pending', 'verified', 'failed'],
+        default: 'pending'
+    }),
     __metadata("design:type", String)
 ], CustomDomain.prototype, "verificationStatus", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({
+        type: String,
+        enum: ['pending', 'active', 'failed', 'expired'],
+        default: 'pending'
+    }),
     __metadata("design:type", String)
 ], CustomDomain.prototype, "sslStatus", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Object }),
+    (0, mongoose_1.Prop)({
+        type: [{
+                type: { type: String, required: true },
+                name: { type: String, required: true },
+                value: { type: String, required: true },
+                verified: { type: Boolean, default: false },
+            }],
+        default: []
+    }),
     __metadata("design:type", Array)
 ], CustomDomain.prototype, "dnsRecords", void 0);
 __decorate([
@@ -43,12 +59,27 @@ __decorate([
     __metadata("design:type", Date)
 ], CustomDomain.prototype, "verifiedAt", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], CustomDomain.prototype, "requestedBy", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ default: true }),
     __metadata("design:type", Boolean)
 ], CustomDomain.prototype, "isActive", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: Date.now }),
+    __metadata("design:type", Date)
+], CustomDomain.prototype, "createdAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: Date.now }),
+    __metadata("design:type", Date)
+], CustomDomain.prototype, "updatedAt", void 0);
 CustomDomain = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], CustomDomain);
 exports.CustomDomain = CustomDomain;
 exports.CustomDomainSchema = mongoose_1.SchemaFactory.createForClass(CustomDomain);
+exports.CustomDomainSchema.index({ tenantId: 1 });
+exports.CustomDomainSchema.index({ domain: 1 }, { unique: true });
+exports.CustomDomainSchema.index({ verificationStatus: 1 });
 //# sourceMappingURL=custom-domain.schema.js.map

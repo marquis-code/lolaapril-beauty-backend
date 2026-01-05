@@ -1,3 +1,4 @@
+// src/modules/auth/auth.controller.ts
 import { Controller, Post, UseGuards, Get, Req, Body, Res, Query, Patch, Delete } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { Response } from "express"
@@ -8,21 +9,9 @@ import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/busi
 import { UpdateProfileDto, ChangePasswordDto, UpdateEmailDto, UserPreferencesDto } from "./dto/update-profile.dto"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 import { GoogleAuthGuard } from "./guards/google-auth.guard"
-
-interface RequestWithUser extends Request {
-  user: {
-    sub: string
-    email: string
-    role: string
-    businessId?: string
-    subdomain?: string
-    googleId?: string
-    firstName?: string
-    lastName?: string
-    picture?: string
-    [key: string]: any
-  }
-}
+import { RequestWithUser } from "./types/request-with-user.interface"
+import { CurrentUser, BusinessContext, BusinessId } from "./decorators/business-context.decorator"
+import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator"
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -115,8 +104,8 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({ status: 200, description: 'User logged out successfully' })
-  async logout(@Req() req: RequestWithUser) {
-    return this.authService.logout(req.user.sub)
+  async logout(@CurrentUser() user: RequestWithUser['user']) {
+    return this.authService.logout(user.sub)
   }
 
   @Get('profile')
@@ -124,15 +113,16 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
-  async getProfile(@Req() req: RequestWithUser) {
-    const user = await this.authService.validateUser(req.user.sub)
+  async getProfile(@CurrentUser() user: RequestWithUser['user']) {
+    const userProfile = await this.authService.validateUser(user.sub)
     
-    const response: any = { user }
+    const response: any = { user: userProfile }
     
-    if (req.user.businessId) {
+    // Include business context if available
+    if (user.businessId && user.subdomain) {
       response.businessContext = {
-        businessId: req.user.businessId,
-        subdomain: req.user.subdomain,
+        businessId: user.businessId,
+        subdomain: user.subdomain,
       }
     }
     
@@ -147,74 +137,110 @@ export class AuthController {
     return this.authService.refreshTokens(body.userId, body.refreshToken)
   }
 
+  // ========== PROFILE MANAGEMENT ==========
 
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user profile' })
+  @ApiResponse({ status: 200, description: 'Profile updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid update data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async updateProfile(
+    @CurrentUser() user: RequestWithUser['user'],
+    @Body() updateProfileDto: UpdateProfileDto
+  ) {
+    return this.authService.updateProfile(user.sub, updateProfileDto)
+  }
 
- @Patch('profile')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Update user profile' })
-@ApiResponse({ status: 200, description: 'Profile updated successfully' })
-@ApiResponse({ status: 400, description: 'Invalid update data' })
-@ApiResponse({ status: 401, description: 'Unauthorized' })
-async updateProfile(
-  @Req() req: RequestWithUser,
-  @Body() updateProfileDto: UpdateProfileDto
-) {
-  return this.authService.updateProfile(req.user.sub, updateProfileDto)
-}
+  @Patch('preferences')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user preferences (language, timezone, notifications, etc.)' })
+  @ApiResponse({ status: 200, description: 'Preferences updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async updatePreferences(
+    @CurrentUser() user: RequestWithUser['user'],
+    @Body() preferences: UserPreferencesDto
+  ) {
+    return this.authService.updatePreferences(user.sub, preferences)
+  }
 
-@Patch('preferences')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Update user preferences (language, timezone, notifications, etc.)' })
-@ApiResponse({ status: 200, description: 'Preferences updated successfully' })
-@ApiResponse({ status: 401, description: 'Unauthorized' })
-async updatePreferences(
-  @Req() req: RequestWithUser,
-  @Body() preferences: UserPreferencesDto
-) {
-  return this.authService.updatePreferences(req.user.sub, preferences)
-}
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid password data' })
+  @ApiResponse({ status: 401, description: 'Current password is incorrect' })
+  async changePassword(
+    @CurrentUser() user: RequestWithUser['user'],
+    @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    return this.authService.changePassword(user.sub, changePasswordDto)
+  }
 
-@Post('change-password')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Change user password' })
-@ApiResponse({ status: 200, description: 'Password changed successfully' })
-@ApiResponse({ status: 400, description: 'Invalid password data' })
-@ApiResponse({ status: 401, description: 'Current password is incorrect' })
-async changePassword(
-  @Req() req: RequestWithUser,
-  @Body() changePasswordDto: ChangePasswordDto
-) {
-  return this.authService.changePassword(req.user.sub, changePasswordDto)
-}
+  @Patch('email')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user email address' })
+  @ApiResponse({ status: 200, description: 'Email updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid email data' })
+  @ApiResponse({ status: 401, description: 'Password is incorrect' })
+  @ApiResponse({ status: 409, description: 'Email already in use' })
+  async updateEmail(
+    @CurrentUser() user: RequestWithUser['user'],
+    @Body() updateEmailDto: UpdateEmailDto
+  ) {
+    return this.authService.updateEmail(user.sub, updateEmailDto)
+  }
 
-@Patch('email')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Update user email address' })
-@ApiResponse({ status: 200, description: 'Email updated successfully' })
-@ApiResponse({ status: 400, description: 'Invalid email data' })
-@ApiResponse({ status: 401, description: 'Password is incorrect' })
-@ApiResponse({ status: 409, description: 'Email already in use' })
-async updateEmail(
-  @Req() req: RequestWithUser,
-  @Body() updateEmailDto: UpdateEmailDto
-) {
-  return this.authService.updateEmail(req.user.sub, updateEmailDto)
-}
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete user account (soft delete)' })
+  @ApiResponse({ status: 200, description: 'Account deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Password is incorrect or unauthorized' })
+  async deleteAccount(
+    @CurrentUser() user: RequestWithUser['user'],
+    @Body() body: { password?: string }
+  ) {
+    return this.authService.deleteAccount(user.sub, body.password)
+  }
 
-@Delete('account')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Delete user account (soft delete)' })
-@ApiResponse({ status: 200, description: 'Account deleted successfully' })
-@ApiResponse({ status: 401, description: 'Password is incorrect or unauthorized' })
-async deleteAccount(
-  @Req() req: RequestWithUser,
-  @Body() body: { password?: string }
-) {
-  return this.authService.deleteAccount(req.user.sub, body.password)
-}
+  // ========== EXAMPLE: BUSINESS-SPECIFIC ENDPOINT ==========
+  
+  /**
+   * Example endpoint showing how to use BusinessContext decorator
+   * This endpoint requires business authentication
+   */
+  @Get('business/context')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get business context (example endpoint)' })
+  @ApiResponse({ status: 200, description: 'Business context retrieved' })
+  async getBusinessContext(@BusinessContext() context: BusinessCtx) {
+    return {
+      message: 'Business context retrieved successfully',
+      businessId: context.businessId,
+      subdomain: context.subdomain,
+      userId: context.userId,
+      userEmail: context.userEmail,
+      userRole: context.userRole
+    }
+  }
+
+  /**
+   * Example endpoint using just BusinessId decorator
+   */
+  @Get('business/info')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get business info using BusinessId' })
+  async getBusinessInfo(@BusinessId() businessId: string) {
+    return {
+      message: 'Business ID extracted',
+      businessId
+    }
+  }
 }

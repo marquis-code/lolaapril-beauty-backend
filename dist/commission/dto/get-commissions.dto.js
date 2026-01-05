@@ -15,12 +15,6 @@ const swagger_1 = require("@nestjs/swagger");
 class GetCommissionsDto {
 }
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: '507f1f77bcf86cd799439011' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], GetCommissionsDto.prototype, "businessId", void 0);
-__decorate([
     (0, swagger_1.ApiPropertyOptional)({
         enum: ['pending', 'calculated', 'approved', 'paid', 'disputed', 'waived']
     }),

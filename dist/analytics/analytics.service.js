@@ -20,7 +20,6 @@ const mongoose_2 = require("mongoose");
 const financial_report_schema_1 = require("./schemas/financial-report.schema");
 const booking_schema_1 = require("../booking/schemas/booking.schema");
 const payment_schema_1 = require("../payment/schemas/payment.schema");
-const commission_schema_1 = require("../commission/schemas/commission.schema");
 let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
     constructor(reportModel, bookingModel, paymentModel, commissionModel) {
         this.reportModel = reportModel;
@@ -412,7 +411,7 @@ AnalyticsService = AnalyticsService_1 = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(financial_report_schema_1.FinancialReport.name)),
     __param(1, (0, mongoose_1.InjectModel)(booking_schema_1.Booking.name)),
     __param(2, (0, mongoose_1.InjectModel)(payment_schema_1.Payment.name)),
-    __param(3, (0, mongoose_1.InjectModel)(commission_schema_1.Commission.name)),
+    __param(3, (0, mongoose_1.InjectModel)('Commission')),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

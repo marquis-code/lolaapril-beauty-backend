@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document, Types } from "mongoose";
+import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 export declare class NoShowRecord {
     clientId: Types.ObjectId;
     businessId: Types.ObjectId;
@@ -43,7 +43,7 @@ export declare class NoShowRecord {
     recordedAt: Date;
 }
 export type NoShowRecordDocument = NoShowRecord & Document;
-export declare const NoShowRecordSchema: import("mongoose").Schema<NoShowRecord, import("mongoose").Model<NoShowRecord, any, any, any, Document<unknown, any, NoShowRecord, any, {}> & NoShowRecord & {
+export declare const NoShowRecordSchema: MongooseSchema<NoShowRecord, import("mongoose").Model<NoShowRecord, any, any, any, Document<unknown, any, NoShowRecord, any, {}> & NoShowRecord & {
     _id: Types.ObjectId;
 } & {
     __v: number;

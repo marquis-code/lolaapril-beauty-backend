@@ -17,8 +17,6 @@ exports.SourceTrackingService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const booking_schema_1 = require("../../booking/schemas/booking.schema");
-const tracking_code_schema_1 = require("../schemas/tracking-code.schema");
 let SourceTrackingService = SourceTrackingService_1 = class SourceTrackingService {
     constructor(bookingModel, trackingCodeModel) {
         this.bookingModel = bookingModel;
@@ -206,8 +204,8 @@ let SourceTrackingService = SourceTrackingService_1 = class SourceTrackingServic
 };
 SourceTrackingService = SourceTrackingService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(booking_schema_1.Booking.name)),
-    __param(1, (0, mongoose_1.InjectModel)(tracking_code_schema_1.TrackingCode.name)),
+    __param(0, (0, mongoose_1.InjectModel)('Booking')),
+    __param(1, (0, mongoose_1.InjectModel)('TrackingCode')),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model])
 ], SourceTrackingService);

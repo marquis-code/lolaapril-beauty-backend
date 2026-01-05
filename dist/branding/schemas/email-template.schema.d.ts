@@ -23,17 +23,20 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document, Types } from "mongoose";
+import { Document, Types } from 'mongoose';
 export type EmailTemplateDocument = EmailTemplate & Document;
 export declare class EmailTemplate {
     tenantId: Types.ObjectId;
     templateType: string;
     subject: string;
     htmlContent: string;
-    textContent: string;
+    textContent?: string;
     variables: string[];
     isCustom: boolean;
     isActive: boolean;
+    createdBy?: Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
 }
 export declare const EmailTemplateSchema: import("mongoose").Schema<EmailTemplate, import("mongoose").Model<EmailTemplate, any, any, any, Document<unknown, any, EmailTemplate, any, {}> & EmailTemplate & {
     _id: Types.ObjectId;

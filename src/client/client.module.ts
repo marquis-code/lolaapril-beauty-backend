@@ -1,3 +1,5 @@
+
+// // @ts-nocheck
 // import { Module } from "@nestjs/common"
 // import { MongooseModule } from "@nestjs/mongoose"
 // import { MulterModule } from "@nestjs/platform-express"
@@ -18,13 +20,15 @@
 // })
 // export class ClientModule {}
 
-// @ts-nocheck
+
+// src/modules/client/client.module.ts
 import { Module } from "@nestjs/common"
 import { MongooseModule } from "@nestjs/mongoose"
 import { MulterModule } from "@nestjs/platform-express"
 import { ClientService } from "./client.service"
 import { ClientController } from "./client.controller"
 import { Client, ClientSchema } from "./schemas/client.schema"
+import { AuthModule } from "../auth/auth.module"
 
 @Module({
   imports: [
@@ -32,6 +36,7 @@ import { Client, ClientSchema } from "./schemas/client.schema"
     MulterModule.register({
       dest: "./uploads",
     }),
+    AuthModule,
   ],
   controllers: [ClientController],
   providers: [ClientService],

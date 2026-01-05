@@ -22,31 +22,32 @@ const update_client_dto_1 = require("./dto/update-client.dto");
 const client_query_dto_1 = require("./dto/client-query.dto");
 const client_schema_1 = require("./schemas/client.schema");
 const api_response_decorator_1 = require("../common/decorators/api-response.decorator");
+const auth_1 = require("../auth");
 let ClientController = class ClientController {
     constructor(clientService) {
         this.clientService = clientService;
     }
-    create(createClientDto) {
-        return this.clientService.create(createClientDto);
+    create(createClientDto, businessId) {
+        return this.clientService.create(createClientDto, businessId);
     }
-    findAll(query) {
-        return this.clientService.findAll(query);
+    findAll(query, businessId) {
+        return this.clientService.findAll(query, businessId);
     }
-    getStats() {
-        return this.clientService.getClientStats();
+    getStats(businessId) {
+        return this.clientService.getClientStats(businessId);
     }
-    async exportCSV(res) {
+    async exportCSV(res, businessId) {
         try {
-            const filePath = await this.clientService.exportToCSV();
+            const filePath = await this.clientService.exportToCSV(businessId);
             res.download(filePath, 'clients-export.csv');
         }
         catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }
     }
-    async exportPDF(res) {
+    async exportPDF(res, businessId) {
         try {
-            const pdfBuffer = await this.clientService.exportToPDF();
+            const pdfBuffer = await this.clientService.exportToPDF(businessId);
             res.set({
                 'Content-Type': 'application/pdf',
                 'Content-Disposition': 'attachment; filename=clients-export.pdf',
@@ -58,20 +59,20 @@ let ClientController = class ClientController {
             res.status(500).json({ success: false, error: error.message });
         }
     }
-    async importCSV(file) {
+    async importCSV(file, businessId) {
         if (!file) {
             return { success: false, error: 'No file uploaded' };
         }
-        return this.clientService.importFromCSV(file.path);
+        return this.clientService.importFromCSV(file.path, businessId);
     }
-    findOne(id) {
-        return this.clientService.findOne(id);
+    findOne(id, businessId) {
+        return this.clientService.findOne(id, businessId);
     }
-    update(id, updateClientDto) {
-        return this.clientService.update(id, updateClientDto);
+    update(id, updateClientDto, businessId) {
+        return this.clientService.update(id, updateClientDto, businessId);
     }
-    remove(id) {
-        return this.clientService.remove(id);
+    remove(id, businessId) {
+        return this.clientService.remove(id, businessId);
     }
 };
 __decorate([
@@ -79,8 +80,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new client" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(client_schema_1.Client, 201, "Client created successfully"),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_client_dto_1.CreateClientDto]),
+    __metadata("design:paramtypes", [create_client_dto_1.CreateClientDto, String]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "create", null);
 __decorate([
@@ -88,16 +90,18 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all clients with filtering and pagination" }),
     (0, api_response_decorator_1.ApiPaginatedResponse)(client_schema_1.Client),
     __param(0, (0, common_1.Query)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [client_query_dto_1.ClientQueryDto]),
+    __metadata("design:paramtypes", [client_query_dto_1.ClientQueryDto, String]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("stats"),
     (0, swagger_1.ApiOperation)({ summary: "Get client statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Client statistics retrieved successfully" }),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "getStats", null);
 __decorate([
@@ -105,8 +109,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Export clients to CSV' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'CSV file generated successfully' }),
     __param(0, (0, common_1.Res)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], ClientController.prototype, "exportCSV", null);
 __decorate([
@@ -114,8 +119,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Export clients to PDF' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'PDF file generated successfully' }),
     __param(0, (0, common_1.Res)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], ClientController.prototype, "exportPDF", null);
 __decorate([
@@ -135,8 +141,9 @@ __decorate([
     }),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
     __param(0, (0, common_1.UploadedFile)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], ClientController.prototype, "importCSV", null);
 __decorate([
@@ -144,8 +151,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get a client by ID' }),
     (0, api_response_decorator_1.ApiResponseWrapper)(client_schema_1.Client),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "findOne", null);
 __decorate([
@@ -154,8 +162,9 @@ __decorate([
     (0, api_response_decorator_1.ApiResponseWrapper)(client_schema_1.Client),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_client_dto_1.UpdateClientDto]),
+    __metadata("design:paramtypes", [String, update_client_dto_1.UpdateClientDto, String]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "update", null);
 __decorate([
@@ -163,13 +172,16 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Deactivate a client' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Client deactivated successfully' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "remove", null);
 ClientController = __decorate([
     (0, swagger_1.ApiTags)("Clients"),
     (0, common_1.Controller)("clients"),
+    (0, common_1.UseGuards)(auth_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [client_service_1.ClientService])
 ], ClientController);
 exports.ClientController = ClientController;

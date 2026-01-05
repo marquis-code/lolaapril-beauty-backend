@@ -7,14 +7,14 @@ export declare class CommissionController {
     private commissionCalculatorService;
     private sourceTrackingService;
     constructor(commissionCalculatorService: CommissionCalculatorService, sourceTrackingService: SourceTrackingService);
-    createTrackingCode(createDto: CreateTrackingCodeDto, req: any): Promise<{
+    createTrackingCode(createDto: CreateTrackingCodeDto, businessId: string): Promise<{
         success: boolean;
         data: {
             code: string;
             trackingUrl: string;
             qrCodeUrl: string;
             name: string;
-            codeType: "direct_link" | "qr_code" | "social_media" | "email_campaign";
+            codeType: "qr_code" | "direct_link" | "social_media" | "email_campaign";
         };
         message: string;
         error?: undefined;
@@ -24,7 +24,7 @@ export declare class CommissionController {
         message: string;
         data?: undefined;
     }>;
-    getTrackingCodes(req: any): Promise<{
+    getTrackingCodes(businessId: string): Promise<{
         success: boolean;
         data: any;
         message: string;
@@ -51,7 +51,7 @@ export declare class CommissionController {
         message: string;
         data?: undefined;
     }>;
-    getBookingCommission(bookingId: string, req: any): Promise<{
+    getBookingCommission(bookingId: string, businessId: string): Promise<{
         success: boolean;
         message: string;
         data?: undefined;
@@ -67,7 +67,7 @@ export declare class CommissionController {
         message: string;
         data?: undefined;
     }>;
-    getCommissionSummary(query: GetCommissionsDto, req: any): Promise<{
+    getCommissionSummary(query: GetCommissionsDto, businessId: string): Promise<{
         success: boolean;
         data: any;
         message: string;
@@ -78,7 +78,7 @@ export declare class CommissionController {
         message: string;
         data?: undefined;
     }>;
-    disputeCommission(commissionId: string, disputeDto: DisputeCommissionDto): Promise<{
+    disputeCommission(commissionId: string, disputeDto: DisputeCommissionDto, businessId: string): Promise<{
         success: boolean;
         message: string;
         error?: undefined;
@@ -87,7 +87,7 @@ export declare class CommissionController {
         error: any;
         message: string;
     }>;
-    getSourceBreakdown(startDate: string, endDate: string, req: any): Promise<{
+    getSourceBreakdown(startDate: string, endDate: string, businessId: string): Promise<{
         success: boolean;
         data: any;
         message: string;

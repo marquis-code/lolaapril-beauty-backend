@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document, Types } from "mongoose";
+import { Document, Types } from 'mongoose';
 export type CustomDomainDocument = CustomDomain & Document;
 export declare class CustomDomain {
     tenantId: Types.ObjectId;
@@ -31,14 +31,17 @@ export declare class CustomDomain {
     subdomain: string;
     verificationStatus: string;
     sslStatus: string;
-    dnsRecords: {
+    dnsRecords: Array<{
         type: string;
         name: string;
         value: string;
         verified: boolean;
-    }[];
-    verifiedAt: Date;
+    }>;
+    verifiedAt?: Date;
+    requestedBy?: Types.ObjectId;
     isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }
 export declare const CustomDomainSchema: import("mongoose").Schema<CustomDomain, import("mongoose").Model<CustomDomain, any, any, any, Document<unknown, any, CustomDomain, any, {}> & CustomDomain & {
     _id: Types.ObjectId;

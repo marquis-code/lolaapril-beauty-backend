@@ -9,10 +9,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AvailabilityModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
-const availability_controller_1 = require("../availability/availability.controller");
-const availability_service_1 = require("../availability/availability.service");
+const schedule_1 = require("@nestjs/schedule");
+const availability_controller_1 = require("./availability.controller");
+const availability_service_1 = require("./availability.service");
+const availability_scheduler_service_1 = require("./availability-scheduler.service");
 const business_hours_schema_1 = require("./schemas/business-hours.schema");
 const staff_availability_schema_1 = require("./schemas/staff-availability.schema");
+const auth_module_1 = require("../auth/auth.module");
+const tenant_module_1 = require("../tenant/tenant.module");
 let AvailabilityModule = class AvailabilityModule {
 };
 AvailabilityModule = __decorate([
@@ -22,10 +26,19 @@ AvailabilityModule = __decorate([
                 { name: business_hours_schema_1.BusinessHours.name, schema: business_hours_schema_1.BusinessHoursSchema },
                 { name: staff_availability_schema_1.StaffAvailability.name, schema: staff_availability_schema_1.StaffAvailabilitySchema },
             ]),
+            schedule_1.ScheduleModule.forRoot(),
+            auth_module_1.AuthModule,
+            tenant_module_1.TenantModule,
         ],
         controllers: [availability_controller_1.AvailabilityController],
-        providers: [availability_service_1.AvailabilityService],
-        exports: [availability_service_1.AvailabilityService],
+        providers: [
+            availability_service_1.AvailabilityService,
+            availability_scheduler_service_1.AvailabilitySchedulerService,
+        ],
+        exports: [
+            availability_service_1.AvailabilityService,
+            mongoose_1.MongooseModule,
+        ],
     })
 ], AvailabilityModule);
 exports.AvailabilityModule = AvailabilityModule;

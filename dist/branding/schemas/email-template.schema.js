@@ -15,7 +15,7 @@ const mongoose_2 = require("mongoose");
 let EmailTemplate = class EmailTemplate {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Tenant', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true, index: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], EmailTemplate.prototype, "tenantId", void 0);
 __decorate([
@@ -27,11 +27,11 @@ __decorate([
     __metadata("design:type", String)
 ], EmailTemplate.prototype, "subject", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ required: true, type: String }),
     __metadata("design:type", String)
 ], EmailTemplate.prototype, "htmlContent", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ type: String }),
     __metadata("design:type", String)
 ], EmailTemplate.prototype, "textContent", void 0);
 __decorate([
@@ -46,9 +46,23 @@ __decorate([
     (0, mongoose_1.Prop)({ default: true }),
     __metadata("design:type", Boolean)
 ], EmailTemplate.prototype, "isActive", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], EmailTemplate.prototype, "createdBy", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: Date.now }),
+    __metadata("design:type", Date)
+], EmailTemplate.prototype, "createdAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: Date.now }),
+    __metadata("design:type", Date)
+], EmailTemplate.prototype, "updatedAt", void 0);
 EmailTemplate = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], EmailTemplate);
 exports.EmailTemplate = EmailTemplate;
 exports.EmailTemplateSchema = mongoose_1.SchemaFactory.createForClass(EmailTemplate);
+exports.EmailTemplateSchema.index({ tenantId: 1, templateType: 1 });
+exports.EmailTemplateSchema.index({ tenantId: 1, isActive: 1 });
 //# sourceMappingURL=email-template.schema.js.map

@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QRCodeController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const QRCode = require("qrcode");
 let QRCodeController = class QRCodeController {
     async generateQRCode(code, res) {
@@ -63,6 +64,7 @@ let QRCodeController = class QRCodeController {
 };
 __decorate([
     (0, common_1.Get)(':code'),
+    (0, swagger_1.ApiOperation)({ summary: 'Generate QR code image' }),
     __param(0, (0, common_1.Param)('code')),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
@@ -71,6 +73,7 @@ __decorate([
 ], QRCodeController.prototype, "generateQRCode", null);
 __decorate([
     (0, common_1.Get)(':code/download'),
+    (0, swagger_1.ApiOperation)({ summary: 'Download QR code image' }),
     __param(0, (0, common_1.Param)('code')),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
@@ -78,6 +81,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], QRCodeController.prototype, "downloadQRCode", null);
 QRCodeController = __decorate([
+    (0, swagger_1.ApiTags)('QR Code'),
     (0, common_1.Controller)('qr')
 ], QRCodeController);
 exports.QRCodeController = QRCodeController;

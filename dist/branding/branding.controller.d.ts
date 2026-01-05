@@ -25,76 +25,222 @@
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
 import { BrandingService } from './branding.service';
-import { CreateThemeDto } from './dto/create-theme.dto';
+import { CreateThemeDto, UpdateThemeDto } from './dto/create-theme.dto';
+import { CreateEmailTemplateDto, UpdateEmailTemplateDto } from './dto/email-template.dto';
+import { CreateWidgetDto, UpdateWidgetDto } from './dto/widget.dto';
+import { RequestCustomDomainDto } from './dto/custom-domain.dto';
+import type { BusinessContext as BusinessCtx } from '../auth/decorators/business-context.decorator';
 export declare class BrandingController {
     private readonly brandingService;
     constructor(brandingService: BrandingService);
-    createOrUpdateTheme(tenantId: string, themeDto: CreateThemeDto): Promise<import("mongoose").Document<unknown, {}, import("./schemas/theme.schema").ThemeDocument, {}, {}> & import("./schemas/theme.schema").Theme & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }> & {
-        __v: number;
-    }>;
-    getTheme(tenantId: string): Promise<{
-        colors: {
-            primary: string;
-            secondary: string;
-            accent: string;
-            background: string;
-            text: string;
-            error: string;
-            success: string;
-        };
-        typography: {
-            fontFamily: string;
-            headingFont: string;
-            bodyFont: string;
-        };
-        logo: any;
-        favicon: any;
-        customCss: {
-            enabled: boolean;
-            cssCode: string;
+    createOrUpdateTheme(businessId: string, themeDto: CreateThemeDto): Promise<{
+        success: boolean;
+        message: string;
+        theme: import("mongoose").Document<unknown, {}, import(".").ThemeDocument, {}, {}> & import(".").Theme & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
+        }> & {
+            __v: number;
         };
     }>;
-    requestCustomDomain(tenantId: string, domain: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/custom-domain.schema").CustomDomainDocument, {}, {}> & import("./schemas/custom-domain.schema").CustomDomain & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    getTheme(businessId: string): Promise<{
+        isDefault: boolean;
+        theme: {
+            colors: {
+                primary: string;
+                secondary: string;
+                accent: string;
+                background: string;
+                text: string;
+                error: string;
+                success: string;
+            };
+            typography: {
+                fontFamily: string;
+                headingFont: string;
+                bodyFont: string;
+            };
+            logo: any;
+            favicon: any;
+            customCss: {
+                enabled: boolean;
+                cssCode: string;
+            };
+        };
+    } | {
+        isDefault: boolean;
+        theme: import("mongoose").Document<unknown, {}, import(".").ThemeDocument, {}, {}> & import(".").Theme & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
+        }> & {
+            __v: number;
+        };
+    }>;
+    updateTheme(businessId: string, themeDto: UpdateThemeDto): Promise<{
+        success: boolean;
+        message: string;
+        theme: import("mongoose").Document<unknown, {}, import(".").ThemeDocument, {}, {}> & import(".").Theme & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
+        }> & {
+            __v: number;
+        };
+    }>;
+    requestCustomDomain(context: BusinessCtx, domainDto: RequestCustomDomainDto): Promise<{
+        success: boolean;
+        message: string;
+        domain: import("mongoose").Document<unknown, {}, import(".").CustomDomainDocument, {}, {}> & import(".").CustomDomain & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
+        }> & {
+            __v: number;
+        };
+        instructions: {
+            step1: string;
+            step2: string;
+            step3: string;
+            step4: string;
+        };
+    }>;
+    verifyDomain(businessId: string, domainId: string): Promise<{
+        success: boolean;
+        message: string;
+        domain: import("mongoose").Document<unknown, {}, import(".").CustomDomainDocument, {}, {}> & import(".").CustomDomain & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
+        }> & {
+            __v: number;
+        };
+    }>;
+    getCustomDomains(businessId: string): Promise<{
+        count: any;
+        domains: any;
+    }>;
+    getDomain(businessId: string, domainId: string): Promise<import("mongoose").Document<unknown, {}, import(".").CustomDomainDocument, {}, {}> & import(".").CustomDomain & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;
     }>;
-    verifyDomain(domainId: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/custom-domain.schema").CustomDomainDocument, {}, {}> & import("./schemas/custom-domain.schema").CustomDomain & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    createEmailTemplate(context: BusinessCtx, templateDto: CreateEmailTemplateDto): Promise<{
+        success: boolean;
+        message: string;
+        template: import("mongoose").Document<unknown, {}, import(".").EmailTemplateDocument, {}, {}> & import(".").EmailTemplate & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
+        }> & {
+            __v: number;
+        };
+    }>;
+    getEmailTemplate(businessId: string, templateType: string): Promise<{
+        isCustom: boolean;
+        template: any;
+    }>;
+    getAllEmailTemplates(businessId: string): Promise<{
+        count: any;
+        templates: any;
+        availableDefaults: {
+            type: string;
+            subject: any;
+        }[];
+    }>;
+    updateEmailTemplate(businessId: string, templateId: string, templateDto: UpdateEmailTemplateDto): Promise<{
+        success: boolean;
+        message: string;
+        template: import("mongoose").Document<unknown, {}, import(".").EmailTemplateDocument, {}, {}> & import(".").EmailTemplate & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
+        }> & {
+            __v: number;
+        };
+    }>;
+    createWidget(context: BusinessCtx, widgetDto: CreateWidgetDto): Promise<{
+        success: boolean;
+        message: string;
+        widget: {
+            id: import("mongoose").Types.ObjectId;
+            widgetId: string;
+            name: string;
+            embedCode: string;
+            configuration: {
+                displayType: string;
+                buttonText: string;
+                buttonColor: string;
+                showBranding: boolean;
+                allowedOrigins: string[];
+            };
+            styling: {
+                theme: string;
+                primaryColor: string;
+                borderRadius: string;
+                fontSize: string;
+            };
+        };
+    }>;
+    getWidget(businessId: string, widgetId: string): Promise<import("mongoose").Document<unknown, {}, import(".").BookingWidgetDocument, {}, {}> & import(".").BookingWidget & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;
     }>;
-    getCustomDomains(tenantId: string): Promise<(import("mongoose").Document<unknown, {}, import("./schemas/custom-domain.schema").CustomDomainDocument, {}, {}> & import("./schemas/custom-domain.schema").CustomDomain & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }> & {
-        __v: number;
-    })[]>;
-    createEmailTemplate(tenantId: string, body: {
-        templateType: string;
-        subject: string;
-        htmlContent: string;
-        textContent?: string;
-    }): Promise<import("mongoose").Document<unknown, {}, import("./schemas/email-template.schema").EmailTemplateDocument, {}, {}> & import("./schemas/email-template.schema").EmailTemplate & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }> & {
-        __v: number;
+    getAllWidgets(businessId: string): Promise<{
+        count: any;
+        widgets: any;
     }>;
-    getEmailTemplate(tenantId: string, templateType: string): Promise<any>;
-    createWidget(tenantId: string, body: {
-        configuration: any;
-        styling: any;
-    }): Promise<import("mongoose").Document<unknown, {}, import("./schemas/booking-widget.schema").BookingWidgetDocument, {}, {}> & import("./schemas/booking-widget.schema").BookingWidget & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }> & {
-        __v: number;
-    }>;
-    getWidget(tenantId: string, widgetId: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/booking-widget.schema").BookingWidgetDocument, {}, {}> & import("./schemas/booking-widget.schema").BookingWidget & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }> & {
-        __v: number;
+    updateWidget(businessId: string, widgetId: string, widgetDto: UpdateWidgetDto): Promise<{
+        success: boolean;
+        message: string;
+        widget: import("mongoose").Document<unknown, {}, import(".").BookingWidgetDocument, {}, {}> & import(".").BookingWidget & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: import("mongoose").Types.ObjectId;
+        }> & {
+            __v: number;
+        };
     }>;
     trackImpression(widgetId: string): Promise<void>;
     trackConversion(widgetId: string): Promise<void>;
+    getWidgetAnalytics(businessId: string, widgetId: string, startDate?: string, endDate?: string): Promise<{
+        widgetId: string;
+        name: string;
+        analytics: {
+            totalImpressions: number;
+            totalConversions: number;
+            conversionRate: string;
+            period: {
+                start: Date;
+                end: Date;
+            };
+        };
+        performance: {
+            averageImpressions: number;
+            averageConversions: number;
+        };
+    }>;
+    getBrandingOverview(context: BusinessCtx): Promise<{
+        theme: {
+            isCustomized: boolean;
+            colors: any;
+            hasLogo: boolean;
+            hasFavicon: boolean;
+            customCssEnabled: any;
+        };
+        customDomains: {
+            total: any;
+            verified: any;
+            pending: any;
+            domains: any;
+        };
+        emailTemplates: {
+            total: any;
+            custom: any;
+            templates: any;
+        };
+        widgets: {
+            total: any;
+            totalImpressions: any;
+            totalConversions: any;
+            widgets: any;
+        };
+        summary: {
+            brandingComplete: boolean;
+            setupProgress: number;
+        };
+    }>;
+    previewTheme(businessId: string, previewData: CreateThemeDto): Promise<{
+        preview: boolean;
+        theme: CreateThemeDto;
+        previewUrl: string;
+        message: string;
+        expires: Date;
+    }>;
 }

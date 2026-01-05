@@ -18,7 +18,7 @@ export class AnalyticsService {
     private bookingModel: Model<BookingDocument>,
     @InjectModel(Payment.name)
     private paymentModel: Model<PaymentDocument>,
-    @InjectModel(Commission.name)
+    @InjectModel('Commission')
     private commissionModel: Model<CommissionDocument>
   ) {}
 

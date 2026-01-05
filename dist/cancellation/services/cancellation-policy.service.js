@@ -17,7 +17,6 @@ exports.CancellationPolicyService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const cancellation_policy_schema_1 = require("../schemas/cancellation-policy.schema");
 let CancellationPolicyService = CancellationPolicyService_1 = class CancellationPolicyService {
     constructor(policyModel) {
         this.policyModel = policyModel;
@@ -31,7 +30,7 @@ let CancellationPolicyService = CancellationPolicyService_1 = class Cancellation
         if (serviceId) {
             query.applicableServices = new mongoose_2.Types.ObjectId(serviceId);
         }
-        const policy = await this.policyModel.findOne(query);
+        const policy = await this.policyModel.findOne(query).lean().exec();
         if (policy) {
             return policy;
         }
@@ -39,22 +38,22 @@ let CancellationPolicyService = CancellationPolicyService_1 = class Cancellation
             businessId: new mongoose_2.Types.ObjectId(businessId),
             isActive: true,
             applicableServices: { $size: 0 }
-        });
+        }).lean().exec();
         if (defaultPolicy) {
             return defaultPolicy;
         }
-        return await this.createDefaultPolicy(businessId);
+        return this.createDefaultPolicy(businessId);
     }
     async createOrUpdatePolicy(businessId, policyDto) {
         const existingPolicy = await this.policyModel.findOne({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             isActive: true
-        });
+        }).exec();
         if (existingPolicy) {
             Object.assign(existingPolicy, policyDto);
-            await existingPolicy.save();
-            this.logger.log(`Updated policy ${existingPolicy._id} for business ${businessId}`);
-            return existingPolicy;
+            const saved = await existingPolicy.save();
+            this.logger.log(`Updated policy ${saved._id} for business ${businessId}`);
+            return saved.toObject();
         }
         const newPolicy = await this.policyModel.create({
             ...policyDto,
@@ -62,7 +61,40 @@ let CancellationPolicyService = CancellationPolicyService_1 = class Cancellation
             isActive: true
         });
         this.logger.log(`Created new policy ${newPolicy._id} for business ${businessId}`);
-        return newPolicy;
+        return newPolicy.toObject();
+    }
+    async updatePolicy(businessId, updateDto) {
+        const policy = await this.policyModel.findOne({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            isActive: true
+        }).exec();
+        if (!policy) {
+            throw new common_1.NotFoundException('No active policy found for this business');
+        }
+        Object.assign(policy, updateDto);
+        const saved = await policy.save();
+        this.logger.log(`Updated policy ${saved._id} for business ${businessId}`);
+        return saved.toObject();
+    }
+    async getPolicyById(policyId) {
+        const policy = await this.policyModel.findById(policyId).lean().exec();
+        if (!policy) {
+            throw new common_1.NotFoundException('Policy not found');
+        }
+        return policy;
+    }
+    async deactivatePolicy(businessId, policyId) {
+        const policy = await this.policyModel.findOne({
+            _id: policyId,
+            businessId: new mongoose_2.Types.ObjectId(businessId)
+        }).exec();
+        if (!policy) {
+            throw new common_1.NotFoundException('Policy not found');
+        }
+        policy.isActive = false;
+        const saved = await policy.save();
+        this.logger.log(`Deactivated policy ${policyId} for business ${businessId}`);
+        return saved.toObject();
     }
     async calculateDepositAmount(businessId, totalAmount, serviceIds) {
         const policy = await this.getBusinessPolicy(businessId, serviceIds?.[0]);
@@ -84,10 +116,13 @@ let CancellationPolicyService = CancellationPolicyService_1 = class Cancellation
     }
     async calculateRefund(businessId, appointmentDate, paidAmount, depositAmount = 0) {
         const policy = await this.getBusinessPolicy(businessId);
+        if (!policy) {
+            throw new common_1.NotFoundException('No policy found for business');
+        }
         const hoursUntilAppointment = (appointmentDate.getTime() - Date.now()) / (1000 * 60 * 60);
         const applicableRule = policy.rules
             ?.sort((a, b) => b.hoursBeforeAppointment - a.hoursBeforeAppointment)
-            .find(rule => hoursUntilAppointment >= rule.hoursBeforeAppointment);
+            .find((rule) => hoursUntilAppointment >= rule.hoursBeforeAppointment);
         if (!applicableRule) {
             if (!policy.allowSameDayCancellation) {
                 return {
@@ -153,12 +188,12 @@ let CancellationPolicyService = CancellationPolicyService_1 = class Cancellation
             description: 'Standard cancellation policy'
         });
         this.logger.log(`Created default policy for business ${businessId}`);
-        return defaultPolicy;
+        return defaultPolicy.toObject();
     }
 };
 CancellationPolicyService = CancellationPolicyService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(cancellation_policy_schema_1.CancellationPolicy.name)),
+    __param(0, (0, mongoose_1.InjectModel)('CancellationPolicy')),
     __metadata("design:paramtypes", [mongoose_2.Model])
 ], CancellationPolicyService);
 exports.CancellationPolicyService = CancellationPolicyService;

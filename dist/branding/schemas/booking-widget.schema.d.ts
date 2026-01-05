@@ -23,11 +23,12 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document, Types } from "mongoose";
+import { Document, Types } from 'mongoose';
 export type BookingWidgetDocument = BookingWidget & Document;
 export declare class BookingWidget {
     tenantId: Types.ObjectId;
     widgetId: string;
+    name: string;
     configuration: {
         displayType: string;
         buttonText: string;
@@ -45,6 +46,9 @@ export declare class BookingWidget {
     impressions: number;
     conversions: number;
     isActive: boolean;
+    createdBy?: Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
 }
 export declare const BookingWidgetSchema: import("mongoose").Schema<BookingWidget, import("mongoose").Model<BookingWidget, any, any, any, Document<unknown, any, BookingWidget, any, {}> & BookingWidget & {
     _id: Types.ObjectId;

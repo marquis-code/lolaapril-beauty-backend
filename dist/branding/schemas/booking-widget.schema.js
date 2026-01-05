@@ -15,7 +15,7 @@ const mongoose_2 = require("mongoose");
 let BookingWidget = class BookingWidget {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Tenant', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true, index: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], BookingWidget.prototype, "tenantId", void 0);
 __decorate([
@@ -23,15 +23,36 @@ __decorate([
     __metadata("design:type", String)
 ], BookingWidget.prototype, "widgetId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Object }),
+    (0, mongoose_1.Prop)({ default: 'Default Widget' }),
+    __metadata("design:type", String)
+], BookingWidget.prototype, "name", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: {
+            displayType: { type: String, required: true },
+            buttonText: { type: String, required: true },
+            buttonColor: { type: String, required: true },
+            showBranding: { type: Boolean, default: true },
+            allowedOrigins: { type: [String], default: [] },
+        },
+        required: true
+    }),
     __metadata("design:type", Object)
 ], BookingWidget.prototype, "configuration", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Object }),
+    (0, mongoose_1.Prop)({
+        type: {
+            theme: { type: String, required: true },
+            primaryColor: { type: String, required: true },
+            borderRadius: { type: String, required: true },
+            fontSize: { type: String, required: true },
+        },
+        required: true
+    }),
     __metadata("design:type", Object)
 ], BookingWidget.prototype, "styling", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true, type: String }),
     __metadata("design:type", String)
 ], BookingWidget.prototype, "embedCode", void 0);
 __decorate([
@@ -46,9 +67,24 @@ __decorate([
     (0, mongoose_1.Prop)({ default: true }),
     __metadata("design:type", Boolean)
 ], BookingWidget.prototype, "isActive", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], BookingWidget.prototype, "createdBy", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: Date.now }),
+    __metadata("design:type", Date)
+], BookingWidget.prototype, "createdAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: Date.now }),
+    __metadata("design:type", Date)
+], BookingWidget.prototype, "updatedAt", void 0);
 BookingWidget = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], BookingWidget);
 exports.BookingWidget = BookingWidget;
 exports.BookingWidgetSchema = mongoose_1.SchemaFactory.createForClass(BookingWidget);
+exports.BookingWidgetSchema.index({ tenantId: 1 });
+exports.BookingWidgetSchema.index({ widgetId: 1 }, { unique: true });
+exports.BookingWidgetSchema.index({ tenantId: 1, isActive: 1 });
 //# sourceMappingURL=booking-widget.schema.js.map

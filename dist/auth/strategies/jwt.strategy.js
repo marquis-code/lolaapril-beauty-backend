@@ -29,22 +29,39 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         this.userModel = userModel;
     }
     async validate(payload) {
-        console.log('🔐 JWT Payload:', payload);
+        console.log('🔐 JWT Payload received:', payload);
         const user = await this.userModel.findById(payload.sub);
-        console.log('👤 User found:', user ? `${user._id} - ${user.email}` : 'NOT FOUND');
         if (!user) {
+            console.error('❌ User not found for ID:', payload.sub);
             throw new common_1.UnauthorizedException('User not found');
         }
-        const result = {
-            userId: payload.sub,
+        if (user.status !== 'active') {
+            console.error('❌ User account is not active:', user.status);
+            throw new common_1.UnauthorizedException('Account is not active');
+        }
+        console.log('👤 User validated:', {
+            id: user._id,
+            email: user.email,
+            role: user.role
+        });
+        const validatedPayload = {
             sub: payload.sub,
+            userId: payload.sub,
             email: payload.email,
             role: payload.role,
-            businessId: payload.businessId,
-            subdomain: payload.subdomain
         };
-        console.log('✅ Validated user:', result);
-        return result;
+        if (payload.businessId) {
+            validatedPayload.businessId = payload.businessId;
+            console.log('🏢 Business context included:', {
+                businessId: payload.businessId,
+                subdomain: payload.subdomain
+            });
+        }
+        if (payload.subdomain) {
+            validatedPayload.subdomain = payload.subdomain;
+        }
+        console.log('✅ Final validated payload:', validatedPayload);
+        return validatedPayload;
     }
 };
 JwtStrategy = __decorate([

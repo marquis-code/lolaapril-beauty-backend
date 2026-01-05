@@ -14,6 +14,11 @@ export declare class CreateCancellationPolicyDto {
     allowSameDayCancellation: boolean;
     sameDayRefundPercentage: number;
     reminderHours?: number[];
+    maxNoShowsBeforeDeposit?: number;
     description?: string;
+    applicableServices?: string[];
+}
+declare const UpdateCancellationPolicyDto_base: import("@nestjs/common").Type<Partial<CreateCancellationPolicyDto>>;
+export declare class UpdateCancellationPolicyDto extends UpdateCancellationPolicyDto_base {
 }
 export {};

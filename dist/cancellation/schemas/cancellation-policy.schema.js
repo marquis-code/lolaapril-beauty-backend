@@ -9,35 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CancellationPolicySchema = exports.CancellationPolicy = exports.PolicyRule = void 0;
+exports.CancellationPolicySchema = exports.CancellationPolicy = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-let PolicyRule = class PolicyRule {
-};
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", Number)
-], PolicyRule.prototype, "hoursBeforeAppointment", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, default: 0 }),
-    __metadata("design:type", Number)
-], PolicyRule.prototype, "refundPercentage", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, default: 0 }),
-    __metadata("design:type", Number)
-], PolicyRule.prototype, "penaltyPercentage", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], PolicyRule.prototype, "description", void 0);
-PolicyRule = __decorate([
-    (0, mongoose_1.Schema)()
-], PolicyRule);
-exports.PolicyRule = PolicyRule;
+const PolicyRuleSchema = new mongoose_2.Schema({
+    hoursBeforeAppointment: { type: Number, required: true },
+    refundPercentage: { type: Number, required: true, default: 0 },
+    penaltyPercentage: { type: Number, required: true, default: 0 },
+    description: { type: String }
+}, { _id: false });
 let CancellationPolicy = class CancellationPolicy {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Business', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], CancellationPolicy.prototype, "businessId", void 0);
 __decorate([
@@ -61,7 +45,7 @@ __decorate([
     __metadata("design:type", Number)
 ], CancellationPolicy.prototype, "cancellationWindowHours", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [PolicyRule], required: true }),
+    (0, mongoose_1.Prop)({ type: [PolicyRuleSchema], required: true }),
     __metadata("design:type", Array)
 ], CancellationPolicy.prototype, "rules", void 0);
 __decorate([
@@ -89,7 +73,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], CancellationPolicy.prototype, "isActive", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [mongoose_2.Types.ObjectId], ref: 'Service' }),
+    (0, mongoose_1.Prop)({ type: [mongoose_2.Schema.Types.ObjectId], ref: 'Service' }),
     __metadata("design:type", Array)
 ], CancellationPolicy.prototype, "applicableServices", void 0);
 __decorate([

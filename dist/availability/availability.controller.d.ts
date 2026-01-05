@@ -3,31 +3,24 @@ import { CreateStaffAvailabilityDto } from './dto/create-staff-availability.dto'
 import { CheckAvailabilityDto } from './dto/check-availability.dto';
 import { GetAvailableSlotsDto } from './dto/get-available-slots.dto';
 import { BlockStaffTimeDto } from './dto/block-staff-time.dto';
-import { TenantRequest } from '../tenant/middleware/tenant.middleware';
 import { GetAllSlotsDto } from "./dto/get-all-slots.dto";
+import { UserRole } from '../auth/schemas/user.schema';
+import type { BusinessContext as BusinessCtx } from '../auth/decorators/business-context.decorator';
+import type { RequestWithUser } from '../auth/types/request-with-user.interface';
 export declare class AvailabilityController {
     private readonly availabilityService;
     constructor(availabilityService: AvailabilityService);
-    getAvailableSlots(dto: GetAvailableSlotsDto, req: TenantRequest): Promise<{
+    getAvailableSlots(dto: GetAvailableSlotsDto): Promise<{
         success: boolean;
         data: import("./availability.service").AvailabilitySlot[];
     }>;
-    checkSlotAvailability(dto: CheckAvailabilityDto, req: TenantRequest): Promise<{
+    checkSlotAvailability(dto: CheckAvailabilityDto): Promise<{
         success: boolean;
         data: {
             isAvailable: boolean;
         };
     }>;
-    createStaffAvailability(dto: CreateStaffAvailabilityDto, req: TenantRequest): Promise<{
-        success: boolean;
-        data: import("./schemas/staff-availability.schema").StaffAvailabilityDocument;
-        message: string;
-    }>;
-    blockStaffTime(dto: BlockStaffTimeDto, req: TenantRequest): Promise<{
-        success: boolean;
-        message: string;
-    }>;
-    getAllSlots(dto: GetAllSlotsDto, req: TenantRequest): Promise<{
+    getAllSlots(dto: GetAllSlotsDto): Promise<{
         success: boolean;
         data: {
             dateRange: {
@@ -48,17 +41,56 @@ export declare class AvailabilityController {
             };
         };
     }>;
-    createBusinessHours(businessId: string): Promise<any>;
-    setupAvailability(dto: {
+    createMyAvailability(context: BusinessCtx, dto: Omit<CreateStaffAvailabilityDto, 'businessId' | 'staffId' | 'createdBy'>): Promise<{
+        success: boolean;
+        data: import("./schemas/staff-availability.schema").StaffAvailabilityDocument;
+        message: string;
+    }>;
+    blockMyTime(context: BusinessCtx, dto: Omit<BlockStaffTimeDto, 'businessId' | 'staffId'>): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    createStaffAvailability(context: BusinessCtx, dto: Omit<CreateStaffAvailabilityDto, 'businessId' | 'createdBy'>): Promise<{
+        success: boolean;
+        data: import("./schemas/staff-availability.schema").StaffAvailabilityDocument;
+        message: string;
+    }>;
+    blockStaffTime(context: BusinessCtx, dto: Omit<BlockStaffTimeDto, 'businessId'>): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    createBusinessHours(businessId: string): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    createBusinessHours24x7(businessId: string): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    extendStaffAvailability(context: BusinessCtx, dto: {
+        staffId?: string;
+        daysAhead?: number;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    initializeBusiness(context: BusinessCtx, dto: {
+        staffIds: string[];
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    setupAvailability(user: RequestWithUser['user'], dto: {
         businessId: string;
         staffIds: string[];
         startDate: string;
         endDate: string;
-        createdBy: string;
     }): Promise<{
+        success: boolean;
         message: string;
     }>;
-    createBusinessHours24x7(businessId: string): Promise<any>;
     checkFullyBooked(dto: {
         businessId: string;
         date: string;
@@ -66,29 +98,30 @@ export declare class AvailabilityController {
         duration: number;
         bufferTime?: number;
     }): Promise<{
-        isFullyBooked: boolean;
-        availableStaffCount: number;
-        totalStaffCount: number;
-        message: string;
-        availableStaff?: {
-            staffId: string;
-            staffName: string;
-            currentWorkload: number;
-        }[];
-    }>;
-    extendStaffAvailability(dto: {
-        businessId: string;
-        staffId?: string;
-        daysAhead?: number;
-    }, req: TenantRequest): Promise<{
         success: boolean;
-        message: string;
+        data: {
+            isFullyBooked: boolean;
+            availableStaffCount: number;
+            totalStaffCount: number;
+            message: string;
+            availableStaff?: {
+                staffId: string;
+                staffName: string;
+                currentWorkload: number;
+            }[];
+        };
     }>;
-    initializeBusiness(dto: {
-        businessId: string;
-        staffIds: string[];
-    }): Promise<{
+    getDetailedSlots(user: RequestWithUser['user'] | undefined, dto: GetAvailableSlotsDto): Promise<{
         success: boolean;
-        message: string;
+        data: import("./availability.service").AvailabilitySlot[];
+        userContext: {
+            isAuthenticated: boolean;
+            role: UserRole;
+            businessId: string;
+        } | {
+            isAuthenticated: boolean;
+            role?: undefined;
+            businessId?: undefined;
+        };
     }>;
 }

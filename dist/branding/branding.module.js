@@ -15,6 +15,7 @@ const theme_schema_1 = require("./schemas/theme.schema");
 const custom_domain_schema_1 = require("./schemas/custom-domain.schema");
 const email_template_schema_1 = require("./schemas/email-template.schema");
 const booking_widget_schema_1 = require("./schemas/booking-widget.schema");
+const auth_module_1 = require("../auth/auth.module");
 let BrandingModule = class BrandingModule {
 };
 BrandingModule = __decorate([
@@ -26,6 +27,7 @@ BrandingModule = __decorate([
                 { name: email_template_schema_1.EmailTemplate.name, schema: email_template_schema_1.EmailTemplateSchema },
                 { name: booking_widget_schema_1.BookingWidget.name, schema: booking_widget_schema_1.BookingWidgetSchema },
             ]),
+            auth_module_1.AuthModule,
         ],
         controllers: [branding_controller_1.BrandingController],
         providers: [branding_service_1.BrandingService],

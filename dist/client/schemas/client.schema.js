@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClientSchema = exports.Client = exports.ClientSettingsSchema = exports.ClientSettings = exports.ClientAddressSchema = exports.ClientAddress = exports.AdditionalInfoSchema = exports.AdditionalInfo = exports.ClientProfileSchema = exports.ClientProfile = exports.EmergencyContactSchema = exports.EmergencyContact = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
 let EmergencyContact = class EmergencyContact {
 };
 __decorate([
@@ -51,7 +52,7 @@ __decorate([
     __metadata("design:type", String)
 ], ClientProfile.prototype, "lastName", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, unique: true }),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], ClientProfile.prototype, "email", void 0);
 __decorate([
@@ -202,6 +203,10 @@ exports.ClientSettingsSchema = mongoose_1.SchemaFactory.createForClass(ClientSet
 let Client = class Client {
 };
 __decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "Business", required: true, index: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Client.prototype, "businessId", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: exports.ClientProfileSchema, required: true }),
     __metadata("design:type", ClientProfile)
 ], Client.prototype, "profile", void 0);
@@ -255,9 +260,10 @@ Client = __decorate([
 ], Client);
 exports.Client = Client;
 exports.ClientSchema = mongoose_1.SchemaFactory.createForClass(Client);
-exports.ClientSchema.index({ "profile.email": 1 });
-exports.ClientSchema.index({ "profile.firstName": 1, "profile.lastName": 1 });
-exports.ClientSchema.index({ "profile.phone.number": 1 });
-exports.ClientSchema.index({ createdAt: -1 });
-exports.ClientSchema.index({ isActive: 1 });
+exports.ClientSchema.index({ businessId: 1 });
+exports.ClientSchema.index({ businessId: 1, "profile.email": 1 }, { unique: true });
+exports.ClientSchema.index({ businessId: 1, "profile.firstName": 1, "profile.lastName": 1 });
+exports.ClientSchema.index({ businessId: 1, "profile.phone.number": 1 });
+exports.ClientSchema.index({ businessId: 1, createdAt: -1 });
+exports.ClientSchema.index({ businessId: 1, isActive: 1 });
 //# sourceMappingURL=client.schema.js.map

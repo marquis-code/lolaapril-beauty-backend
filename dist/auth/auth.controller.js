@@ -22,6 +22,7 @@ const business_register_dto_1 = require("./dto/business-register.dto");
 const update_profile_dto_1 = require("./dto/update-profile.dto");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
+const business_context_decorator_1 = require("./decorators/business-context.decorator");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -55,16 +56,16 @@ let AuthController = class AuthController {
     async login(loginDto) {
         return this.authService.login(loginDto);
     }
-    async logout(req) {
-        return this.authService.logout(req.user.sub);
+    async logout(user) {
+        return this.authService.logout(user.sub);
     }
-    async getProfile(req) {
-        const user = await this.authService.validateUser(req.user.sub);
-        const response = { user };
-        if (req.user.businessId) {
+    async getProfile(user) {
+        const userProfile = await this.authService.validateUser(user.sub);
+        const response = { user: userProfile };
+        if (user.businessId && user.subdomain) {
             response.businessContext = {
-                businessId: req.user.businessId,
-                subdomain: req.user.subdomain,
+                businessId: user.businessId,
+                subdomain: user.subdomain,
             };
         }
         return response;
@@ -72,20 +73,36 @@ let AuthController = class AuthController {
     async refreshTokens(body) {
         return this.authService.refreshTokens(body.userId, body.refreshToken);
     }
-    async updateProfile(req, updateProfileDto) {
-        return this.authService.updateProfile(req.user.sub, updateProfileDto);
+    async updateProfile(user, updateProfileDto) {
+        return this.authService.updateProfile(user.sub, updateProfileDto);
     }
-    async updatePreferences(req, preferences) {
-        return this.authService.updatePreferences(req.user.sub, preferences);
+    async updatePreferences(user, preferences) {
+        return this.authService.updatePreferences(user.sub, preferences);
     }
-    async changePassword(req, changePasswordDto) {
-        return this.authService.changePassword(req.user.sub, changePasswordDto);
+    async changePassword(user, changePasswordDto) {
+        return this.authService.changePassword(user.sub, changePasswordDto);
     }
-    async updateEmail(req, updateEmailDto) {
-        return this.authService.updateEmail(req.user.sub, updateEmailDto);
+    async updateEmail(user, updateEmailDto) {
+        return this.authService.updateEmail(user.sub, updateEmailDto);
     }
-    async deleteAccount(req, body) {
-        return this.authService.deleteAccount(req.user.sub, body.password);
+    async deleteAccount(user, body) {
+        return this.authService.deleteAccount(user.sub, body.password);
+    }
+    async getBusinessContext(context) {
+        return {
+            message: 'Business context retrieved successfully',
+            businessId: context.businessId,
+            subdomain: context.subdomain,
+            userId: context.userId,
+            userEmail: context.userEmail,
+            userRole: context.userRole
+        };
+    }
+    async getBusinessInfo(businessId) {
+        return {
+            message: 'Business ID extracted',
+            businessId
+        };
     }
 };
 __decorate([
@@ -165,7 +182,7 @@ __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Logout user' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'User logged out successfully' }),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
@@ -176,7 +193,7 @@ __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get user profile' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'User profile retrieved successfully' }),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
@@ -199,7 +216,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Profile updated successfully' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid update data' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, update_profile_dto_1.UpdateProfileDto]),
@@ -212,7 +229,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Update user preferences (language, timezone, notifications, etc.)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Preferences updated successfully' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, update_profile_dto_1.UserPreferencesDto]),
@@ -226,7 +243,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Password changed successfully' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid password data' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Current password is incorrect' }),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, update_profile_dto_1.ChangePasswordDto]),
@@ -241,7 +258,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid email data' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Password is incorrect' }),
     (0, swagger_1.ApiResponse)({ status: 409, description: 'Email already in use' }),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, update_profile_dto_1.UpdateEmailDto]),
@@ -254,12 +271,33 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Delete user account (soft delete)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Account deleted successfully' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Password is incorrect or unauthorized' }),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "deleteAccount", null);
+__decorate([
+    (0, common_1.Get)('business/context'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get business context (example endpoint)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Business context retrieved' }),
+    __param(0, (0, business_context_decorator_1.BusinessContext)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getBusinessContext", null);
+__decorate([
+    (0, common_1.Get)('business/info'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get business info using BusinessId' }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getBusinessInfo", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),

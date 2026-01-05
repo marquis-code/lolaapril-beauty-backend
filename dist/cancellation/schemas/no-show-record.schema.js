@@ -15,19 +15,19 @@ const mongoose_2 = require("mongoose");
 let NoShowRecord = class NoShowRecord {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'User', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], NoShowRecord.prototype, "clientId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Business', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], NoShowRecord.prototype, "businessId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Appointment', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Appointment', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], NoShowRecord.prototype, "appointmentId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Booking' }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Booking' }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], NoShowRecord.prototype, "bookingId", void 0);
 __decorate([

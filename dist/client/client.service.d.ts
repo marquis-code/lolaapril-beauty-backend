@@ -9,16 +9,16 @@ import { ApiResponse } from "../common/interfaces/common.interface";
 export declare class ClientService {
     private clientModel;
     constructor(clientModel: Model<ClientDocument>);
-    create(createClientDto: CreateClientDto): Promise<ApiResponse<Client>>;
-    findAll(query: ClientQueryDto): Promise<ApiResponse<Client[]>>;
-    findOne(id: string): Promise<ApiResponse<Client>>;
-    update(id: string, updateClientDto: UpdateClientDto): Promise<ApiResponse<Client>>;
-    remove(id: string): Promise<ApiResponse<null>>;
-    exportToCSV(): Promise<string>;
-    exportToPDF(): Promise<Buffer>;
-    importFromCSV(filePath: string): Promise<ApiResponse<{
+    create(createClientDto: CreateClientDto, businessId: string): Promise<ApiResponse<Client>>;
+    findAll(query: ClientQueryDto, businessId: string): Promise<ApiResponse<Client[]>>;
+    findOne(id: string, businessId: string): Promise<ApiResponse<Client>>;
+    update(id: string, updateClientDto: UpdateClientDto, businessId: string): Promise<ApiResponse<Client>>;
+    remove(id: string, businessId: string): Promise<ApiResponse<null>>;
+    exportToCSV(businessId: string): Promise<string>;
+    exportToPDF(businessId: string): Promise<Buffer>;
+    importFromCSV(filePath: string, businessId: string): Promise<ApiResponse<{
         imported: number;
         errors: string[];
     }>>;
-    getClientStats(): Promise<ApiResponse<any>>;
+    getClientStats(businessId: string): Promise<ApiResponse<any>>;
 }

@@ -18,16 +18,21 @@ declare class Logo {
     height: number;
     alt: string;
 }
+declare class Favicon {
+    url: string;
+}
+declare class CustomCss {
+    enabled: boolean;
+    cssCode: string;
+}
 export declare class CreateThemeDto {
     colors: ColorScheme;
     typography: Typography;
-    logo: Logo;
-    favicon: {
-        url: string;
-    };
-    customCss: {
-        enabled: boolean;
-        cssCode: string;
-    };
+    logo?: Logo;
+    favicon?: Favicon;
+    customCss: CustomCss;
+}
+declare const UpdateThemeDto_base: import("@nestjs/common").Type<Partial<CreateThemeDto>>;
+export declare class UpdateThemeDto extends UpdateThemeDto_base {
 }
 export {};

@@ -23,9 +23,10 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document, Types } from 'mongoose';
+import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 export declare class ClientReliability {
     clientId: Types.ObjectId;
+    businessId: Types.ObjectId;
     reliabilityScore: number;
     totalBookings: number;
     completedBookings: number;
@@ -33,13 +34,19 @@ export declare class ClientReliability {
     noShowCount: number;
     lateCancellations: number;
     onTimeArrivals: number;
+    lateArrivals: number;
     lastNoShowDate: Date;
     lastCancellationDate: Date;
+    lastCompletedDate: Date;
     requiresDeposit: boolean;
     isBlacklisted: boolean;
+    blacklistReason: string;
+    blacklistedAt: Date;
+    lifetimeValue: number;
+    riskLevel: string;
 }
 export type ClientReliabilityDocument = ClientReliability & Document;
-export declare const ClientReliabilitySchema: import("mongoose").Schema<ClientReliability, import("mongoose").Model<ClientReliability, any, any, any, Document<unknown, any, ClientReliability, any, {}> & ClientReliability & {
+export declare const ClientReliabilitySchema: MongooseSchema<ClientReliability, import("mongoose").Model<ClientReliability, any, any, any, Document<unknown, any, ClientReliability, any, {}> & ClientReliability & {
     _id: Types.ObjectId;
 } & {
     __v: number;

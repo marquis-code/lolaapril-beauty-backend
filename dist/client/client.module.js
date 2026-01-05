@@ -13,6 +13,7 @@ const platform_express_1 = require("@nestjs/platform-express");
 const client_service_1 = require("./client.service");
 const client_controller_1 = require("./client.controller");
 const client_schema_1 = require("./schemas/client.schema");
+const auth_module_1 = require("../auth/auth.module");
 let ClientModule = class ClientModule {
 };
 ClientModule = __decorate([
@@ -22,6 +23,7 @@ ClientModule = __decorate([
             platform_express_1.MulterModule.register({
                 dest: "./uploads",
             }),
+            auth_module_1.AuthModule,
         ],
         controllers: [client_controller_1.ClientController],
         providers: [client_service_1.ClientService],

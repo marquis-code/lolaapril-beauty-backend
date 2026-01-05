@@ -8,16 +8,16 @@ import { Client } from "./schemas/client.schema";
 export declare class ClientController {
     private readonly clientService;
     constructor(clientService: ClientService);
-    create(createClientDto: CreateClientDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Client>>;
-    findAll(query: ClientQueryDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Client[]>>;
-    getStats(): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    exportCSV(res: Response): Promise<void>;
-    exportPDF(res: Response): Promise<void>;
-    importCSV(file: Express.Multer.File): Promise<import("../common/interfaces/common.interface").ApiResponse<{
+    create(createClientDto: CreateClientDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Client>>;
+    findAll(query: ClientQueryDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Client[]>>;
+    getStats(businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    exportCSV(res: Response, businessId: string): Promise<void>;
+    exportPDF(res: Response, businessId: string): Promise<void>;
+    importCSV(file: Express.Multer.File, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<{
         imported: number;
         errors: string[];
     }>>;
-    findOne(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Client>>;
-    update(id: string, updateClientDto: UpdateClientDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Client>>;
-    remove(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<null>>;
+    findOne(id: string, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Client>>;
+    update(id: string, updateClientDto: UpdateClientDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Client>>;
+    remove(id: string, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<null>>;
 }

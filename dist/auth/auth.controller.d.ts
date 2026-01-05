@@ -30,20 +30,8 @@ import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto";
 import { UpdateProfileDto, ChangePasswordDto, UpdateEmailDto, UserPreferencesDto } from "./dto/update-profile.dto";
-interface RequestWithUser extends Request {
-    user: {
-        sub: string;
-        email: string;
-        role: string;
-        businessId?: string;
-        subdomain?: string;
-        googleId?: string;
-        firstName?: string;
-        lastName?: string;
-        picture?: string;
-        [key: string]: any;
-    };
-}
+import { RequestWithUser } from "./types/request-with-user.interface";
+import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator";
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -58,8 +46,8 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             email: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus;
+            role: import(".").UserRole;
+            status: import(".").UserStatus;
         };
         business: {
             id: import("mongoose").Types.ObjectId;
@@ -78,8 +66,8 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             email: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus.ACTIVE;
+            role: import(".").UserRole;
+            status: import(".").UserStatus.ACTIVE;
         };
         business: {
             id: any;
@@ -105,8 +93,8 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             email: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus;
+            role: import(".").UserRole;
+            status: import(".").UserStatus;
         };
     }>;
     login(loginDto: LoginDto): Promise<{
@@ -117,15 +105,15 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             email: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus.ACTIVE;
+            role: import(".").UserRole;
+            status: import(".").UserStatus.ACTIVE;
             authProvider: string;
         };
     }>;
-    logout(req: RequestWithUser): Promise<{
+    logout(user: RequestWithUser['user']): Promise<{
         message: string;
     }>;
-    getProfile(req: RequestWithUser): Promise<any>;
+    getProfile(user: RequestWithUser['user']): Promise<any>;
     refreshTokens(body: {
         userId: string;
         refreshToken: string;
@@ -133,7 +121,7 @@ export declare class AuthController {
         accessToken: string;
         refreshToken: string;
     }>;
-    updateProfile(req: RequestWithUser, updateProfileDto: UpdateProfileDto): Promise<{
+    updateProfile(user: RequestWithUser['user'], updateProfileDto: UpdateProfileDto): Promise<{
         success: boolean;
         message: string;
         user: {
@@ -142,8 +130,8 @@ export declare class AuthController {
             lastName: string;
             email: string;
             phone: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus;
+            role: import(".").UserRole;
+            status: import(".").UserStatus;
             profileImage: string;
             bio: string;
             dateOfBirth: Date;
@@ -163,7 +151,7 @@ export declare class AuthController {
             };
         };
     }>;
-    updatePreferences(req: RequestWithUser, preferences: UserPreferencesDto): Promise<{
+    updatePreferences(user: RequestWithUser['user'], preferences: UserPreferencesDto): Promise<{
         success: boolean;
         message: string;
         preferences: {
@@ -177,20 +165,31 @@ export declare class AuthController {
             };
         };
     }>;
-    changePassword(req: RequestWithUser, changePasswordDto: ChangePasswordDto): Promise<{
+    changePassword(user: RequestWithUser['user'], changePasswordDto: ChangePasswordDto): Promise<{
         success: boolean;
         message: string;
     }>;
-    updateEmail(req: RequestWithUser, updateEmailDto: UpdateEmailDto): Promise<{
+    updateEmail(user: RequestWithUser['user'], updateEmailDto: UpdateEmailDto): Promise<{
         success: boolean;
         message: string;
         newEmail: string;
     }>;
-    deleteAccount(req: RequestWithUser, body: {
+    deleteAccount(user: RequestWithUser['user'], body: {
         password?: string;
     }): Promise<{
         success: boolean;
         message: string;
     }>;
+    getBusinessContext(context: BusinessCtx): Promise<{
+        message: string;
+        businessId: string;
+        subdomain: string;
+        userId: string;
+        userEmail: string;
+        userRole: string;
+    }>;
+    getBusinessInfo(businessId: string): Promise<{
+        message: string;
+        businessId: string;
+    }>;
 }
-export {};

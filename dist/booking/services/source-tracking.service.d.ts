@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
 import { BookingDocument } from '../schemas/booking.schema';
-import { BookingSourceDto } from "../dto/create-booking.dto";
+import { BookingSourceDto } from '../dto/create-booking.dto';
 export declare class SourceTrackingService {
     private bookingModel;
     private readonly logger;

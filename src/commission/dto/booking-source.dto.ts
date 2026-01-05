@@ -1,65 +1,103 @@
-// // src/commission/dto/booking-source.dto.ts
-// import { IsString, IsOptional, IsEnum, IsEmail, IsUrl, IsNumber, IsBoolean, ValidateNested, IsArray, IsDateString, IsObject } from 'class-validator';
+
+
+// import { IsString, IsOptional, IsEnum } from 'class-validator';
 // import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+// export enum BookingSourceType {
+//   MARKETPLACE = 'marketplace',
+//   DIRECT_LINK = 'direct_link',
+//   QR_CODE = 'qr_code',
+//   BUSINESS_WEBSITE = 'business_website',
+//   GOOGLE_SEARCH = 'google_search',
+//   SOCIAL_MEDIA = 'social_media',
+//   REFERRAL = 'referral',
+//   WALK_IN = 'walk_in',
+//   PHONE = 'phone'
+// }
+
 // export class BookingSourceDto {
+//   // ✅ Make sourceType required with a default value approach
 //   @ApiProperty({
-//     enum: ['marketplace', 'direct_link', 'qr_code', 'business_website', 
-//            'google_search', 'social_media', 'referral', 'walk_in', 'phone'],
-//     example: 'qr_code'
+//     enum: BookingSourceType,
+//     example: BookingSourceType.DIRECT_LINK,
+//     description: 'The source type of the booking'
 //   })
-//   @IsEnum(['marketplace', 'direct_link', 'qr_code', 'business_website', 
-//            'google_search', 'social_media', 'referral', 'walk_in', 'phone'])
-//   sourceType: string
+//   @IsEnum(BookingSourceType)
+//   sourceType: BookingSourceType;  // ✅ Required, no optional operator
 
 //   @ApiPropertyOptional({ example: 'QR-ABC123-XYZ' })
 //   @IsOptional()
 //   @IsString()
-//   sourceIdentifier?: string
+//   sourceIdentifier?: string;
 
 //   @ApiPropertyOptional({ example: 'TRACK-123456' })
 //   @IsOptional()
 //   @IsString()
-//   trackingCode?: string
+//   trackingCode?: string;
 
 //   @ApiPropertyOptional({ example: 'REF-JOHN123' })
 //   @IsOptional()
 //   @IsString()
-//   referralCode?: string
+//   referralCode?: string;
+
+//   @ApiPropertyOptional({ example: 'CAMP-001' })
+//   @IsOptional()
+//   @IsString()
+//   campaignId?: string;
+
+//   @ApiPropertyOptional({ example: 'AFF-123' })
+//   @IsOptional()
+//   @IsString()
+//   affiliateId?: string;
 
 //   @ApiPropertyOptional({ example: 'google' })
 //   @IsOptional()
 //   @IsString()
-//   utmSource?: string
+//   utmSource?: string;
 
 //   @ApiPropertyOptional({ example: 'cpc' })
 //   @IsOptional()
 //   @IsString()
-//   utmMedium?: string
+//   utmMedium?: string;
 
 //   @ApiPropertyOptional({ example: 'summer_sale' })
 //   @IsOptional()
 //   @IsString()
-//   utmCampaign?: string
+//   utmCampaign?: string;
 
-//   @ApiPropertyOptional({ example: '192.168.1.1' })
+//   @ApiPropertyOptional({ example: 'web' })
 //   @IsOptional()
 //   @IsString()
-//   ipAddress?: string
-
-//   @ApiPropertyOptional({ example: 'Mozilla/5.0...' })
-//   @IsOptional()
-//   @IsString()
-//   userAgent?: string
+//   channel?: string;
 
 //   @ApiPropertyOptional({ example: 'https://google.com' })
 //   @IsOptional()
 //   @IsString()
-//   referrerUrl?: string
+//   referrer?: string;
+
+//   @ApiPropertyOptional({ example: 'https://google.com/search' })
+//   @IsOptional()
+//   @IsString()
+//   referrerUrl?: string;
+
+//   @ApiPropertyOptional({ example: '192.168.1.1' })
+//   @IsOptional()
+//   @IsString()
+//   ipAddress?: string;
+
+//   @ApiPropertyOptional({ example: 'Mozilla/5.0...' })
+//   @IsOptional()
+//   @IsString()
+//   userAgent?: string;
+
+//   @ApiPropertyOptional()
+//   @IsOptional()
+//   metadata?: Record<string, any>;
 // }
 
-import { IsString, IsOptional, IsEnum } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+// src/modules/commission/dto/booking-source.dto.ts
+import { IsString, IsOptional, IsEnum } from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
 export enum BookingSourceType {
   MARKETPLACE = 'marketplace',
@@ -74,81 +112,80 @@ export enum BookingSourceType {
 }
 
 export class BookingSourceDto {
-  // ✅ Make sourceType required with a default value approach
   @ApiProperty({
     enum: BookingSourceType,
     example: BookingSourceType.DIRECT_LINK,
     description: 'The source type of the booking'
   })
   @IsEnum(BookingSourceType)
-  sourceType: BookingSourceType;  // ✅ Required, no optional operator
+  sourceType: BookingSourceType
 
   @ApiPropertyOptional({ example: 'QR-ABC123-XYZ' })
   @IsOptional()
   @IsString()
-  sourceIdentifier?: string;
+  sourceIdentifier?: string
 
   @ApiPropertyOptional({ example: 'TRACK-123456' })
   @IsOptional()
   @IsString()
-  trackingCode?: string;
+  trackingCode?: string
 
   @ApiPropertyOptional({ example: 'REF-JOHN123' })
   @IsOptional()
   @IsString()
-  referralCode?: string;
+  referralCode?: string
 
   @ApiPropertyOptional({ example: 'CAMP-001' })
   @IsOptional()
   @IsString()
-  campaignId?: string;
+  campaignId?: string
 
   @ApiPropertyOptional({ example: 'AFF-123' })
   @IsOptional()
   @IsString()
-  affiliateId?: string;
+  affiliateId?: string
 
   @ApiPropertyOptional({ example: 'google' })
   @IsOptional()
   @IsString()
-  utmSource?: string;
+  utmSource?: string
 
   @ApiPropertyOptional({ example: 'cpc' })
   @IsOptional()
   @IsString()
-  utmMedium?: string;
+  utmMedium?: string
 
   @ApiPropertyOptional({ example: 'summer_sale' })
   @IsOptional()
   @IsString()
-  utmCampaign?: string;
+  utmCampaign?: string
 
   @ApiPropertyOptional({ example: 'web' })
   @IsOptional()
   @IsString()
-  channel?: string;
+  channel?: string
 
   @ApiPropertyOptional({ example: 'https://google.com' })
   @IsOptional()
   @IsString()
-  referrer?: string;
+  referrer?: string
 
   @ApiPropertyOptional({ example: 'https://google.com/search' })
   @IsOptional()
   @IsString()
-  referrerUrl?: string;
+  referrerUrl?: string
 
   @ApiPropertyOptional({ example: '192.168.1.1' })
   @IsOptional()
   @IsString()
-  ipAddress?: string;
+  ipAddress?: string
 
   @ApiPropertyOptional({ example: 'Mozilla/5.0...' })
   @IsOptional()
   @IsString()
-  userAgent?: string;
+  userAgent?: string
 
   @ApiPropertyOptional()
   @IsOptional()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any>
 }

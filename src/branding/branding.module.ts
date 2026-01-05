@@ -1,4 +1,28 @@
-// branding.module.ts
+// // branding.module.ts
+// import { Module } from '@nestjs/common';
+// import { MongooseModule } from '@nestjs/mongoose';
+// import { BrandingService } from './branding.service';
+// import { BrandingController } from './branding.controller';
+// import { Theme, ThemeSchema } from './schemas/theme.schema';
+// import { CustomDomain, CustomDomainSchema } from './schemas/custom-domain.schema';
+// import { EmailTemplate, EmailTemplateSchema } from './schemas/email-template.schema';
+// import { BookingWidget, BookingWidgetSchema } from './schemas/booking-widget.schema';
+
+// @Module({
+//   imports: [
+//     MongooseModule.forFeature([
+//       { name: Theme.name, schema: ThemeSchema },
+//       { name: CustomDomain.name, schema: CustomDomainSchema },
+//       { name: EmailTemplate.name, schema: EmailTemplateSchema },
+//       { name: BookingWidget.name, schema: BookingWidgetSchema },
+//     ]),
+//   ],
+//   controllers: [BrandingController],
+//   providers: [BrandingService],
+//   exports: [BrandingService],
+// })
+// export class BrandingModule {}
+
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BrandingService } from './branding.service';
@@ -8,6 +32,9 @@ import { CustomDomain, CustomDomainSchema } from './schemas/custom-domain.schema
 import { EmailTemplate, EmailTemplateSchema } from './schemas/email-template.schema';
 import { BookingWidget, BookingWidgetSchema } from './schemas/booking-widget.schema';
 
+// Import auth module for guards and decorators
+import { AuthModule } from '../auth/auth.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -16,9 +43,10 @@ import { BookingWidget, BookingWidgetSchema } from './schemas/booking-widget.sch
       { name: EmailTemplate.name, schema: EmailTemplateSchema },
       { name: BookingWidget.name, schema: BookingWidgetSchema },
     ]),
+    AuthModule, // Import to use auth guards
   ],
   controllers: [BrandingController],
   providers: [BrandingService],
-  exports: [BrandingService],
+  exports: [BrandingService], // Export for use in other modules
 })
 export class BrandingModule {}

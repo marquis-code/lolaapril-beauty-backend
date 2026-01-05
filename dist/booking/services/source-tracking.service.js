@@ -44,12 +44,13 @@ let SourceTrackingService = SourceTrackingService_1 = class SourceTrackingServic
         };
     }
     async isClientAcquiredByBusiness(clientId, businessId, currentSource) {
-        const previousBooking = await this.bookingModel
-            .findOne({
+        const query = {
             clientId: new mongoose_2.Types.ObjectId(clientId),
             businessId: new mongoose_2.Types.ObjectId(businessId),
             createdAt: { $lt: new Date() }
-        })
+        };
+        const previousBooking = await this.bookingModel
+            .findOne(query)
             .sort({ createdAt: 1 })
             .lean()
             .exec();

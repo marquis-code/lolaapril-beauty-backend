@@ -41,20 +41,21 @@ export declare class Theme {
         headingFont: string;
         bodyFont: string;
     };
-    logo: {
+    logo?: {
         url: string;
         width: number;
         height: number;
         alt: string;
     };
-    favicon: {
+    favicon?: {
         url: string;
     };
     customCss: {
         enabled: boolean;
         cssCode: string;
     };
-    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }
 export declare const ThemeSchema: import("mongoose").Schema<Theme, import("mongoose").Model<Theme, any, any, any, Document<unknown, any, Theme, any, {}> & Theme & {
     _id: Types.ObjectId;

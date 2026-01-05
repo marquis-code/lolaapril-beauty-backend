@@ -23,13 +23,13 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document, Types } from 'mongoose';
+import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 export type CancellationPolicyDocument = CancellationPolicy & Document;
-export declare class PolicyRule {
+export interface PolicyRule {
     hoursBeforeAppointment: number;
     refundPercentage: number;
     penaltyPercentage: number;
-    description: string;
+    description?: string;
 }
 export declare class CancellationPolicy {
     businessId: Types.ObjectId;
@@ -48,7 +48,7 @@ export declare class CancellationPolicy {
     applicableServices: Types.ObjectId[];
     description: string;
 }
-export declare const CancellationPolicySchema: import("mongoose").Schema<CancellationPolicy, import("mongoose").Model<CancellationPolicy, any, any, any, Document<unknown, any, CancellationPolicy, any, {}> & CancellationPolicy & {
+export declare const CancellationPolicySchema: MongooseSchema<CancellationPolicy, import("mongoose").Model<CancellationPolicy, any, any, any, Document<unknown, any, CancellationPolicy, any, {}> & CancellationPolicy & {
     _id: Types.ObjectId;
 } & {
     __v: number;

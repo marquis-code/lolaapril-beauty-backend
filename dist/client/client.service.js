@@ -25,15 +25,19 @@ let ClientService = class ClientService {
     constructor(clientModel) {
         this.clientModel = clientModel;
     }
-    async create(createClientDto) {
+    async create(createClientDto, businessId) {
         try {
             const existingClient = await this.clientModel.findOne({
                 "profile.email": createClientDto.profile.email,
+                businessId,
             });
             if (existingClient) {
                 throw new common_1.ConflictException("Client with this email already exists");
             }
-            const client = new this.clientModel(createClientDto);
+            const client = new this.clientModel({
+                ...createClientDto,
+                businessId,
+            });
             const savedClient = await client.save();
             return {
                 success: true,
@@ -48,10 +52,10 @@ let ClientService = class ClientService {
             throw new Error(`Failed to create client: ${error.message}`);
         }
     }
-    async findAll(query) {
+    async findAll(query, businessId) {
         try {
             const { page = 1, limit = 10, sortBy = "createdAt", sortOrder = "desc", search, clientSource, gender, isActive, country, } = query;
-            const filter = {};
+            const filter = { businessId };
             if (search) {
                 filter.$or = [
                     { "profile.firstName": { $regex: search, $options: "i" } },
@@ -92,9 +96,9 @@ let ClientService = class ClientService {
             throw new Error(`Failed to fetch clients: ${error.message}`);
         }
     }
-    async findOne(id) {
+    async findOne(id, businessId) {
         try {
-            const client = await this.clientModel.findById(id);
+            const client = await this.clientModel.findOne({ _id: id, businessId });
             if (!client) {
                 throw new common_1.NotFoundException("Client not found");
             }
@@ -110,18 +114,19 @@ let ClientService = class ClientService {
             throw new Error(`Failed to fetch client: ${error.message}`);
         }
     }
-    async update(id, updateClientDto) {
+    async update(id, updateClientDto, businessId) {
         try {
             if (updateClientDto.profile?.email) {
                 const existingClient = await this.clientModel.findOne({
                     "profile.email": updateClientDto.profile.email,
+                    businessId,
                     _id: { $ne: id },
                 });
                 if (existingClient) {
                     throw new common_1.ConflictException("Client with this email already exists");
                 }
             }
-            const client = await this.clientModel.findByIdAndUpdate(id, { ...updateClientDto, updatedAt: new Date() }, { new: true, runValidators: true });
+            const client = await this.clientModel.findOneAndUpdate({ _id: id, businessId }, { ...updateClientDto, updatedAt: new Date() }, { new: true, runValidators: true });
             if (!client) {
                 throw new common_1.NotFoundException("Client not found");
             }
@@ -138,9 +143,9 @@ let ClientService = class ClientService {
             throw new Error(`Failed to update client: ${error.message}`);
         }
     }
-    async remove(id) {
+    async remove(id, businessId) {
         try {
-            const client = await this.clientModel.findByIdAndUpdate(id, { isActive: false, updatedAt: new Date() }, { new: true });
+            const client = await this.clientModel.findOneAndUpdate({ _id: id, businessId }, { isActive: false, updatedAt: new Date() }, { new: true });
             if (!client) {
                 throw new common_1.NotFoundException("Client not found");
             }
@@ -156,9 +161,9 @@ let ClientService = class ClientService {
             throw new Error(`Failed to deactivate client: ${error.message}`);
         }
     }
-    async exportToCSV() {
+    async exportToCSV(businessId) {
         try {
-            const clients = await this.clientModel.find({ isActive: true });
+            const clients = await this.clientModel.find({ businessId, isActive: true });
             const csvWriter = csv.createObjectCsvWriter({
                 path: "clients-export.csv",
                 header: [
@@ -191,9 +196,9 @@ let ClientService = class ClientService {
             throw new Error(`Failed to export clients to CSV: ${error.message}`);
         }
     }
-    async exportToPDF() {
+    async exportToPDF(businessId) {
         try {
-            const clients = await this.clientModel.find({ isActive: true });
+            const clients = await this.clientModel.find({ businessId, isActive: true });
             const doc = new PDFDocument();
             const buffers = [];
             doc.on("data", buffers.push.bind(buffers));
@@ -221,7 +226,7 @@ let ClientService = class ClientService {
             throw new Error(`Failed to export clients to PDF: ${error.message}`);
         }
     }
-    async importFromCSV(filePath) {
+    async importFromCSV(filePath, businessId) {
         try {
             const results = [];
             const errors = [];
@@ -248,7 +253,7 @@ let ClientService = class ClientService {
                                     clientSource: row["Source"] || "Import",
                                 },
                             };
-                            await this.create(clientData);
+                            await this.create(clientData, businessId);
                             imported++;
                         }
                         catch (error) {
@@ -268,17 +273,18 @@ let ClientService = class ClientService {
             throw new Error(`Failed to import clients from CSV: ${error.message}`);
         }
     }
-    async getClientStats() {
+    async getClientStats(businessId) {
         try {
-            const totalClients = await this.clientModel.countDocuments().exec();
-            const activeClients = await this.clientModel.countDocuments({ isActive: true }).exec();
+            const totalClients = await this.clientModel.countDocuments({ businessId }).exec();
+            const activeClients = await this.clientModel.countDocuments({ businessId, isActive: true }).exec();
             const newThisMonth = await this.clientModel.countDocuments({
+                businessId,
                 createdAt: {
                     $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
                 },
             }).exec();
             const topSources = await this.clientModel.aggregate([
-                { $match: { isActive: true } },
+                { $match: { businessId, isActive: true } },
                 { $group: { _id: "$additionalInfo.clientSource", count: { $sum: 1 } } },
                 { $sort: { count: -1 } },
                 { $limit: 5 },

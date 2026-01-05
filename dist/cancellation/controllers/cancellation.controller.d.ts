@@ -1,110 +1,131 @@
+import type { BusinessContext as BusinessCtx } from '../../auth/decorators/business-context.decorator';
 import { CancellationPolicyService } from '../services/cancellation-policy.service';
 import { NoShowManagementService } from '../services/no-show-management.service';
 import { AppointmentService } from '../../appointment/appointment.service';
 import { CancelAppointmentDto } from '../dto/cancel-appointment.dto';
 import { RecordNoShowDto } from '../dto/record-no-show.dto';
-import { CreateCancellationPolicyDto } from '../dto/create-cancellation-policy.dto';
+import { CreateCancellationPolicyDto, UpdateCancellationPolicyDto } from '../dto/create-cancellation-policy.dto';
+import { CalculateRefundDto } from '../dto/calculate-refund.dto';
 export declare class CancellationController {
     private cancellationPolicyService;
     private noShowManagementService;
     private appointmentService;
     constructor(cancellationPolicyService: CancellationPolicyService, noShowManagementService: NoShowManagementService, appointmentService: AppointmentService);
-    getPolicy(req: any): Promise<{
+    getPolicy(businessId: string): Promise<{
         success: boolean;
         data: any;
         message: string;
-        error?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        message: string;
-        data?: undefined;
     }>;
-    createOrUpdatePolicy(createDto: CreateCancellationPolicyDto, req: any): Promise<{
+    getPolicyForService(businessId: string, serviceId: string): Promise<{
         success: boolean;
         data: any;
         message: string;
-        error?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        message: string;
-        data?: undefined;
     }>;
-    cancelAppointment(appointmentId: string, cancelDto: CancelAppointmentDto, req: any): Promise<{
+    createOrUpdatePolicy(context: BusinessCtx, createDto: CreateCancellationPolicyDto): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    updatePolicy(businessId: string, updateDto: UpdateCancellationPolicyDto): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    cancelAppointment(context: BusinessCtx, appointmentId: string, cancelDto: CancelAppointmentDto): Promise<{
         success: boolean;
         message: string;
-        data: {
-            canCancel: boolean;
-            refundAmount: number;
-            penaltyAmount: number;
-            refundPercentage: number;
-            reason: string;
-            hoursNotice: number;
-        };
-        error?: undefined;
+        data: import("../services/cancellation-policy.service").RefundCalculation;
     } | {
         success: boolean;
         data: {
-            appointment: import("../../appointment/schemas/appointment.schema").Appointment;
-            refund: {
-                canCancel: boolean;
-                refundAmount: number;
-                penaltyAmount: number;
-                refundPercentage: number;
-                reason: string;
-                hoursNotice: number;
+            appointment: {
+                id: string;
+                status: string;
+                cancelledAt: Date;
+                cancelReason: string;
             };
+            refund: import("../services/cancellation-policy.service").RefundCalculation;
         };
         message: string;
-        error?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        message: string;
-        data?: undefined;
     }>;
-    recordNoShow(appointmentId: string, noShowDto: RecordNoShowDto, req: any): Promise<{
+    calculateRefund(businessId: string, body: CalculateRefundDto): Promise<{
         success: boolean;
-        message: string;
-        error?: undefined;
-    } | {
-        success: boolean;
-        error: any;
+        data: import("../services/cancellation-policy.service").RefundCalculation;
         message: string;
     }>;
-    getClientReliability(clientId: string, req: any): Promise<any>;
-    getNoShowAnalytics(startDate: string, endDate: string, req: any): Promise<{
+    recordNoShow(context: BusinessCtx, appointmentId: string, noShowDto: RecordNoShowDto): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            appointmentId: string;
+            status: string;
+            depositForfeited: boolean;
+            recordedAt: Date;
+        };
+    }>;
+    getClientReliability(businessId: string, clientId: string): Promise<{
         success: boolean;
         data: any;
         message: string;
-        error?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        message: string;
-        data?: undefined;
     }>;
-    calculateRefund(body: {
-        appointmentDate: string;
-        paidAmount: number;
-        depositAmount?: number;
-    }, req: any): Promise<{
+    getClientHistory(businessId: string, clientId: string, limit?: string): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    checkDepositRequirement(businessId: string, clientId: string): Promise<{
         success: boolean;
         data: {
-            canCancel: boolean;
-            refundAmount: number;
-            penaltyAmount: number;
-            refundPercentage: number;
+            requiresDeposit: boolean;
             reason: string;
-            hoursNotice: number;
+            score: number;
+            riskLevel: string;
         };
         message: string;
-        error?: undefined;
-    } | {
+    }>;
+    getNoShowAnalytics(businessId: string, startDate?: string, endDate?: string): Promise<{
         success: boolean;
-        error: any;
+        data: any;
         message: string;
-        data?: undefined;
+    }>;
+    getAnalyticsSummary(businessId: string, period?: string): Promise<{
+        success: boolean;
+        data: {
+            period: {
+                days: number;
+                startDate: Date;
+                endDate: Date;
+            };
+            stats: any;
+            policy: {
+                name: any;
+                requiresDeposit: any;
+                depositPercentage: any;
+            };
+            reliability: any;
+        };
+        message: string;
+    }>;
+    getCancellationTrends(businessId: string, startDate: string, endDate: string, groupBy?: string): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    calculateDeposit(businessId: string, body: {
+        totalAmount: number;
+        clientId?: string;
+        serviceIds?: string[];
+    }): Promise<{
+        success: boolean;
+        data: {
+            requiresDeposit: any;
+            depositAmount: number;
+            depositPercentage: number;
+            reason: any;
+            policyBased: boolean;
+            clientHistoryBased: any;
+            clientScore: any;
+        };
+        message: string;
     }>;
 }

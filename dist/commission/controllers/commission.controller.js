@@ -15,8 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommissionController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
-const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
-const tenant_guard_1 = require("../../tenant/guards/tenant.guard");
+const auth_1 = require("../../auth");
 const commission_calculator_service_1 = require("../services/commission-calculator.service");
 const source_tracking_service_1 = require("../services/source-tracking.service");
 const create_tracking_code_dto_1 = require("../dto/create-tracking-code.dto");
@@ -27,9 +26,8 @@ let CommissionController = class CommissionController {
         this.commissionCalculatorService = commissionCalculatorService;
         this.sourceTrackingService = sourceTrackingService;
     }
-    async createTrackingCode(createDto, req) {
+    async createTrackingCode(createDto, businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const code = await this.sourceTrackingService.generateTrackingCode(businessId, createDto.codeType, createDto.name, {
                 description: createDto.description,
                 expiresAt: createDto.expiresAt
@@ -58,9 +56,8 @@ let CommissionController = class CommissionController {
             };
         }
     }
-    async getTrackingCodes(req) {
+    async getTrackingCodes(businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const analytics = await this.sourceTrackingService.getTrackingAnalytics(businessId);
             return {
                 success: true,
@@ -95,7 +92,7 @@ let CommissionController = class CommissionController {
             };
         }
     }
-    async getBookingCommission(bookingId, req) {
+    async getBookingCommission(bookingId, businessId) {
         try {
             const commission = await this.commissionCalculatorService
                 .getCommissionByBooking(bookingId);
@@ -103,6 +100,12 @@ let CommissionController = class CommissionController {
                 return {
                     success: false,
                     message: 'Commission record not found for this booking'
+                };
+            }
+            if (commission.businessId.toString() !== businessId) {
+                return {
+                    success: false,
+                    message: 'Unauthorized access to commission record'
                 };
             }
             return {
@@ -119,9 +122,8 @@ let CommissionController = class CommissionController {
             };
         }
     }
-    async getCommissionSummary(query, req) {
+    async getCommissionSummary(query, businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const summary = await this.commissionCalculatorService
                 .getBusinessCommissionSummary(businessId, query.startDate ? new Date(query.startDate) : undefined, query.endDate ? new Date(query.endDate) : undefined);
             return {
@@ -138,8 +140,16 @@ let CommissionController = class CommissionController {
             };
         }
     }
-    async disputeCommission(commissionId, disputeDto) {
+    async disputeCommission(commissionId, disputeDto, businessId) {
         try {
+            const commission = await this.commissionCalculatorService
+                .getCommissionByBooking(commissionId);
+            if (commission && commission.businessId.toString() !== businessId) {
+                return {
+                    success: false,
+                    message: 'Unauthorized access to commission record'
+                };
+            }
             await this.commissionCalculatorService.disputeCommission(commissionId, disputeDto.reason, disputeDto.disputedBy);
             return {
                 success: true,
@@ -154,9 +164,8 @@ let CommissionController = class CommissionController {
             };
         }
     }
-    async getSourceBreakdown(startDate, endDate, req) {
+    async getSourceBreakdown(startDate, endDate, businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const breakdown = await this.commissionCalculatorService
                 .getSourceBreakdown(businessId, new Date(startDate), new Date(endDate));
             return {
@@ -176,22 +185,20 @@ let CommissionController = class CommissionController {
 };
 __decorate([
     (0, common_1.Post)('tracking-codes'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: 'Generate tracking code for marketing channel' }),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Request)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_tracking_code_dto_1.CreateTrackingCodeDto, Object]),
+    __metadata("design:paramtypes", [create_tracking_code_dto_1.CreateTrackingCodeDto, String]),
     __metadata("design:returntype", Promise)
 ], CommissionController.prototype, "createTrackingCode", null);
 __decorate([
     (0, common_1.Get)('tracking-codes'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: 'Get all tracking codes for business' }),
-    __param(0, (0, common_1.Request)()),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], CommissionController.prototype, "getTrackingCodes", null);
 __decorate([
@@ -204,49 +211,47 @@ __decorate([
 ], CommissionController.prototype, "validateTrackingCode", null);
 __decorate([
     (0, common_1.Get)('bookings/:bookingId'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: 'Get commission details for booking' }),
     __param(0, (0, common_1.Param)('bookingId')),
-    __param(1, (0, common_1.Request)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], CommissionController.prototype, "getBookingCommission", null);
 __decorate([
     (0, common_1.Get)('business/summary'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: 'Get commission summary for business' }),
     __param(0, (0, common_1.Query)()),
-    __param(1, (0, common_1.Request)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [get_commissions_dto_1.GetCommissionsDto, Object]),
+    __metadata("design:paramtypes", [get_commissions_dto_1.GetCommissionsDto, String]),
     __metadata("design:returntype", Promise)
 ], CommissionController.prototype, "getCommissionSummary", null);
 __decorate([
     (0, common_1.Post)(':commissionId/dispute'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: 'Dispute a commission charge' }),
     __param(0, (0, common_1.Param)('commissionId')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, dispute_commission_dto_1.DisputeCommissionDto]),
+    __metadata("design:paramtypes", [String, dispute_commission_dto_1.DisputeCommissionDto, String]),
     __metadata("design:returntype", Promise)
 ], CommissionController.prototype, "disputeCommission", null);
 __decorate([
     (0, common_1.Get)('analytics/source-breakdown'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: 'Get booking source breakdown with commission impact' }),
     __param(0, (0, common_1.Query)('startDate')),
     __param(1, (0, common_1.Query)('endDate')),
-    __param(2, (0, common_1.Request)()),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], CommissionController.prototype, "getSourceBreakdown", null);
 CommissionController = __decorate([
     (0, swagger_1.ApiTags)('Commission'),
     (0, common_1.Controller)('commission'),
-    (0, common_1.UseGuards)(tenant_guard_1.TenantGuard),
+    (0, common_1.UseGuards)(auth_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [commission_calculator_service_1.CommissionCalculatorService,
         source_tracking_service_1.SourceTrackingService])
 ], CommissionController);

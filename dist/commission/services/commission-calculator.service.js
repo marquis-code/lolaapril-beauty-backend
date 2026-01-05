@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const booking_schema_1 = require("../../booking/schemas/booking.schema");
-const commission_schema_1 = require("../schemas/commission.schema");
 const tracking_code_schema_1 = require("../schemas/tracking-code.schema");
 const source_tracking_service_1 = require("./source-tracking.service");
 let CommissionCalculatorService = class CommissionCalculatorService {
@@ -223,7 +222,7 @@ let CommissionCalculatorService = class CommissionCalculatorService {
 };
 CommissionCalculatorService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(commission_schema_1.Commission.name)),
+    __param(0, (0, mongoose_1.InjectModel)('Commission')),
     __param(1, (0, mongoose_1.InjectModel)(booking_schema_1.Booking.name)),
     __param(2, (0, mongoose_1.InjectModel)(tracking_code_schema_1.TrackingCode.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
