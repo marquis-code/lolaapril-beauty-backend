@@ -34,6 +34,7 @@ import { UpdateEmailDto } from "./dto/update-profile.dto";
 import { LoginDto } from "./dto/login.dto";
 import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto";
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto";
+import { AddBusinessDto } from "./dto/add-business.dto";
 export declare class AuthService {
     private userModel;
     private businessModel;
@@ -218,5 +219,19 @@ export declare class AuthService {
         refreshToken: string;
         success: boolean;
         message: string;
+    }>;
+    addBusinessToUser(userId: string, addBusinessDto: AddBusinessDto): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        success: boolean;
+        message: string;
+        business: {
+            id: Types.ObjectId;
+            businessName: string;
+            subdomain: string;
+            businessType: string;
+            status: string;
+            trialEndsAt: Date;
+        };
     }>;
 }

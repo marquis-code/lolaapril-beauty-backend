@@ -50,6 +50,18 @@ let ServiceController = class ServiceController {
     getStats() {
         return this.serviceService.getServiceStats();
     }
+    createBundle(createBundleDto) {
+        return this.serviceService.createBundle(createBundleDto);
+    }
+    findAllBundles() {
+        return this.serviceService.findAllBundles();
+    }
+    findOneBundle(id) {
+        return this.serviceService.findOneBundle(id);
+    }
+    updateBundle(id, updateBundleDto) {
+        return this.serviceService.updateBundle(id, updateBundleDto);
+    }
     findOne(id) {
         console.log(id, 'seevice id');
         return this.serviceService.findOneService(id);
@@ -62,18 +74,6 @@ let ServiceController = class ServiceController {
     }
     remove(id) {
         return this.serviceService.removeService(id);
-    }
-    createBundle(createBundleDto) {
-        return this.serviceService.createBundle(createBundleDto);
-    }
-    findAllBundles() {
-        return this.serviceService.findAllBundles();
-    }
-    findOneBundle(id) {
-        return this.serviceService.findOneBundle(id);
-    }
-    updateBundle(id, updateBundleDto) {
-        return this.serviceService.updateBundle(id, updateBundleDto);
     }
 };
 __decorate([
@@ -130,6 +130,42 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "getStats", null);
 __decorate([
+    (0, common_1.Post)("bundles"),
+    (0, swagger_1.ApiOperation)({ summary: "Create a new service bundle" }),
+    (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle, 201, "Service bundle created successfully"),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_service_bundle_dto_1.CreateServiceBundleDto]),
+    __metadata("design:returntype", void 0)
+], ServiceController.prototype, "createBundle", null);
+__decorate([
+    (0, common_1.Get)("bundles"),
+    (0, swagger_1.ApiOperation)({ summary: "Get all service bundles" }),
+    (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ServiceController.prototype, "findAllBundles", null);
+__decorate([
+    (0, common_1.Get)('bundles/:id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get a service bundle by ID' }),
+    (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ServiceController.prototype, "findOneBundle", null);
+__decorate([
+    (0, common_1.Patch)("bundles/:id"),
+    (0, swagger_1.ApiOperation)({ summary: "Update a service bundle" }),
+    (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_service_bundle_dto_1.UpdateServiceBundleDto]),
+    __metadata("design:returntype", void 0)
+], ServiceController.prototype, "updateBundle", null);
+__decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a service by ID' }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service),
@@ -167,42 +203,6 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "remove", null);
-__decorate([
-    (0, common_1.Post)("bundles"),
-    (0, swagger_1.ApiOperation)({ summary: "Create a new service bundle" }),
-    (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle, 201, "Service bundle created successfully"),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_service_bundle_dto_1.CreateServiceBundleDto]),
-    __metadata("design:returntype", void 0)
-], ServiceController.prototype, "createBundle", null);
-__decorate([
-    (0, common_1.Get)("bundles"),
-    (0, swagger_1.ApiOperation)({ summary: "Get all service bundles" }),
-    (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], ServiceController.prototype, "findAllBundles", null);
-__decorate([
-    (0, common_1.Get)('bundles/:id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get a service bundle by ID' }),
-    (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], ServiceController.prototype, "findOneBundle", null);
-__decorate([
-    (0, common_1.Patch)("bundles/:id"),
-    (0, swagger_1.ApiOperation)({ summary: "Update a service bundle" }),
-    (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_service_bundle_dto_1.UpdateServiceBundleDto]),
-    __metadata("design:returntype", void 0)
-], ServiceController.prototype, "updateBundle", null);
 ServiceController = __decorate([
     (0, common_1.Controller)("services"),
     __metadata("design:paramtypes", [service_service_1.ServiceService])

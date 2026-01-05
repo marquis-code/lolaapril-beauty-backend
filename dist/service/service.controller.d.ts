@@ -19,12 +19,12 @@ export declare class ServiceController {
     create(createServiceDto: CreateServiceDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
     findAll(query: ServiceQueryDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Service[]>>;
     getStats(): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    findOne(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
-    update(id: string, updateServiceDto: UpdateServiceDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
-    addVariant(id: string, variantDto: CreateServiceVariantDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
-    remove(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<null>>;
     createBundle(createBundleDto: CreateServiceBundleDto): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle>>;
     findAllBundles(): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle[]>>;
     findOneBundle(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle>>;
     updateBundle(id: string, updateBundleDto: UpdateServiceBundleDto): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle>>;
+    findOne(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
+    update(id: string, updateServiceDto: UpdateServiceDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
+    addVariant(id: string, variantDto: CreateServiceVariantDto): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
+    remove(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<null>>;
 }

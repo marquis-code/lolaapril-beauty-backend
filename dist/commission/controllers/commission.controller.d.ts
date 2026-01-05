@@ -14,7 +14,7 @@ export declare class CommissionController {
             trackingUrl: string;
             qrCodeUrl: string;
             name: string;
-            codeType: "direct_link" | "qr_code" | "social_media" | "email_campaign";
+            codeType: "qr_code" | "direct_link" | "social_media" | "email_campaign";
         };
         message: string;
         error?: undefined;

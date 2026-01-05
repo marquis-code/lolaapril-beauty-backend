@@ -20,9 +20,12 @@ const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
 const business_register_dto_1 = require("./dto/business-register.dto");
 const update_profile_dto_1 = require("./dto/update-profile.dto");
+const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
 const business_context_decorator_1 = require("./decorators/business-context.decorator");
 const switch_business_dto_1 = require("./dto/switch-business.dto");
+const add_business_dto_1 = require("./dto/add-business.dto");
+const auth_1 = require("../auth");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -113,8 +116,12 @@ let AuthController = class AuthController {
     async clearBusinessContext(user) {
         return this.authService.clearBusinessContext(user.sub);
     }
+    async addBusiness(user, addBusinessDto) {
+        return this.authService.addBusinessToUser(user.sub, addBusinessDto);
+    }
 };
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)("google"),
     (0, common_1.UseGuards)(google_auth_guard_1.GoogleAuthGuard),
     (0, swagger_1.ApiOperation)({ summary: "Initiate Google OAuth login" }),
@@ -146,6 +153,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "googleTokenAuth", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)("business/register"),
     (0, swagger_1.ApiOperation)({ summary: "Register a new business with owner account" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Business registered successfully" }),
@@ -156,6 +164,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "registerBusiness", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)("business/login"),
     (0, swagger_1.ApiOperation)({ summary: "Login as business owner" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Business login successful" }),
@@ -166,6 +175,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "loginBusiness", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)("register"),
     (0, swagger_1.ApiOperation)({ summary: "Register a new user" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "User registered successfully" }),
@@ -176,6 +186,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)("login"),
     (0, swagger_1.ApiOperation)({ summary: "Login user" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "User logged in successfully" }),
@@ -186,6 +197,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)('logout'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Logout user' }),
@@ -340,6 +352,23 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "clearBusinessContext", null);
+__decorate([
+    (0, common_1.Post)('business/add'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Add a new business under existing user account',
+        description: 'Allows authenticated user to create additional business without registering new account'
+    }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Business added successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: 'Subdomain already taken' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, add_business_dto_1.AddBusinessDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "addBusiness", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),

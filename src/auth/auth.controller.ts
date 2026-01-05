@@ -244,8 +244,6 @@ export class AuthController {
     }
   }
 
-  // Add after existing endpoints
-
 // ========== BUSINESS CONTEXT MANAGEMENT ==========
 
 @Post('switch-business')
@@ -302,5 +300,4 @@ async addBusiness(
 ) {
   return this.authService.addBusinessToUser(user.sub, addBusinessDto)
 }
-
 }

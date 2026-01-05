@@ -63,6 +63,37 @@ export class ServiceController {
     return this.serviceService.getServiceStats()
   }
 
+  // ✅ MOVE ALL BUNDLE ROUTES HERE - BEFORE :id
+  // Service Bundles
+  @Post("bundles")
+  @ApiOperation({ summary: "Create a new service bundle" })
+  @ApiResponseWrapper(ServiceBundle, 201, "Service bundle created successfully")
+  createBundle(@Body() createBundleDto: CreateServiceBundleDto) {
+    return this.serviceService.createBundle(createBundleDto)
+  }
+
+  @Get("bundles")
+  @ApiOperation({ summary: "Get all service bundles" })
+  @ApiResponseWrapper(ServiceBundle)
+  findAllBundles() {
+    return this.serviceService.findAllBundles()
+  }
+
+  @Get('bundles/:id')
+  @ApiOperation({ summary: 'Get a service bundle by ID' })
+  @ApiResponseWrapper(ServiceBundle)
+  findOneBundle(@Param('id') id: string) {
+    return this.serviceService.findOneBundle(id);
+  }
+
+  @Patch("bundles/:id")
+  @ApiOperation({ summary: "Update a service bundle" })
+  @ApiResponseWrapper(ServiceBundle)
+  updateBundle(@Param('id') id: string, @Body() updateBundleDto: UpdateServiceBundleDto) {
+    return this.serviceService.updateBundle(id, updateBundleDto)
+  }
+
+  // Service routes with :id parameter - THESE GO LAST
   @Get(':id')
   @ApiOperation({ summary: 'Get a service by ID' })
   @ApiResponseWrapper(Service)
@@ -90,34 +121,5 @@ export class ServiceController {
   @ApiResponse({ status: 200, description: 'Service deactivated successfully' })
   remove(@Param('id') id: string) {
     return this.serviceService.removeService(id);
-  }
-
-  // Service Bundles
-  @Post("bundles")
-  @ApiOperation({ summary: "Create a new service bundle" })
-  @ApiResponseWrapper(ServiceBundle, 201, "Service bundle created successfully")
-  createBundle(@Body()createBundleDto: CreateServiceBundleDto) {
-    return this.serviceService.createBundle(createBundleDto)
-  }
-
-  @Get("bundles")
-  @ApiOperation({ summary: "Get all service bundles" })
-  @ApiResponseWrapper(ServiceBundle)
-  findAllBundles() {
-    return this.serviceService.findAllBundles()
-  }
-
-  @Get('bundles/:id')
-  @ApiOperation({ summary: 'Get a service bundle by ID' })
-  @ApiResponseWrapper(ServiceBundle)
-  findOneBundle(@Param('id') id: string) {
-    return this.serviceService.findOneBundle(id);
-  }
-
-  @Patch("bundles/:id")
-  @ApiOperation({ summary: "Update a service bundle" })
-  @ApiResponseWrapper(ServiceBundle)
-  updateBundle(@Param('id') id: string, @Body() updateBundleDto: UpdateServiceBundleDto) {
-    return this.serviceService.updateBundle(id, updateBundleDto)
   }
 }

@@ -1,29 +1,3 @@
-/// <reference types="mongoose/types/aggregate" />
-/// <reference types="mongoose/types/callback" />
-/// <reference types="mongoose/types/collection" />
-/// <reference types="mongoose/types/connection" />
-/// <reference types="mongoose/types/cursor" />
-/// <reference types="mongoose/types/document" />
-/// <reference types="mongoose/types/error" />
-/// <reference types="mongoose/types/expressions" />
-/// <reference types="mongoose/types/helpers" />
-/// <reference types="mongoose/types/middlewares" />
-/// <reference types="mongoose/types/indexes" />
-/// <reference types="mongoose/types/models" />
-/// <reference types="mongoose/types/mongooseoptions" />
-/// <reference types="mongoose/types/pipelinestage" />
-/// <reference types="mongoose/types/populate" />
-/// <reference types="mongoose/types/query" />
-/// <reference types="mongoose/types/schemaoptions" />
-/// <reference types="mongoose/types/session" />
-/// <reference types="mongoose/types/types" />
-/// <reference types="mongoose/types/utility" />
-/// <reference types="mongoose/types/validation" />
-/// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose" />
-/// <reference types="mongoose/types/schematypes" />
-/// <reference types="mongoose/types/inferschematype" />
-/// <reference types="mongoose/types/inferrawdoctype" />
 import { Response } from "express";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
@@ -33,6 +7,7 @@ import { UpdateProfileDto, ChangePasswordDto, UpdateEmailDto, UserPreferencesDto
 import { RequestWithUser } from "./types/request-with-user.interface";
 import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator";
 import { SwitchBusinessDto } from "./dto/switch-business.dto";
+import { AddBusinessDto } from "./dto/add-business.dto";
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -47,8 +22,8 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             email: string;
-            role: import(".").UserRole;
-            status: import(".").UserStatus;
+            role: import("./schemas/user.schema").UserRole;
+            status: import("./schemas/user.schema").UserStatus;
         };
         business: {
             id: import("mongoose").Types.ObjectId;
@@ -67,8 +42,8 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             email: string;
-            role: import(".").UserRole;
-            status: import(".").UserStatus.ACTIVE;
+            role: import("./schemas/user.schema").UserRole;
+            status: import("./schemas/user.schema").UserStatus.ACTIVE;
         };
         business: {
             id: any;
@@ -94,8 +69,8 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             email: string;
-            role: import(".").UserRole;
-            status: import(".").UserStatus;
+            role: import("./schemas/user.schema").UserRole;
+            status: import("./schemas/user.schema").UserStatus;
         };
     }>;
     login(loginDto: LoginDto): Promise<{
@@ -106,8 +81,8 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             email: string;
-            role: import(".").UserRole;
-            status: import(".").UserStatus.ACTIVE;
+            role: import("./schemas/user.schema").UserRole;
+            status: import("./schemas/user.schema").UserStatus.ACTIVE;
             authProvider: string;
         };
     }>;
@@ -131,8 +106,8 @@ export declare class AuthController {
             lastName: string;
             email: string;
             phone: string;
-            role: import(".").UserRole;
-            status: import(".").UserStatus;
+            role: import("./schemas/user.schema").UserRole;
+            status: import("./schemas/user.schema").UserStatus;
             profileImage: string;
             bio: string;
             dateOfBirth: Date;
@@ -224,5 +199,19 @@ export declare class AuthController {
         refreshToken: string;
         success: boolean;
         message: string;
+    }>;
+    addBusiness(user: RequestWithUser['user'], addBusinessDto: AddBusinessDto): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        success: boolean;
+        message: string;
+        business: {
+            id: import("mongoose").Types.ObjectId;
+            businessName: string;
+            subdomain: string;
+            businessType: string;
+            status: string;
+            trialEndsAt: Date;
+        };
     }>;
 }
