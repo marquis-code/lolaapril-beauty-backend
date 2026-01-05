@@ -14,6 +14,7 @@ import { CurrentUser, BusinessContext, BusinessId } from "./decorators/business-
 import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator"
 import { SwitchBusinessDto } from "./dto/switch-business.dto"
 import { AddBusinessDto } from "./dto/add-business.dto"
+import { Public } from '../auth'
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -22,6 +23,7 @@ export class AuthController {
 
   // ========== GOOGLE OAUTH ROUTES ==========
 
+  @Public()
   @Get("google")
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: "Initiate Google OAuth login" })
@@ -65,6 +67,7 @@ export class AuthController {
 
   // ========== BUSINESS AUTHENTICATION ==========
   
+    @Public()
   @Post("business/register")
   @ApiOperation({ summary: "Register a new business with owner account" })
   @ApiResponse({ status: 201, description: "Business registered successfully" })
@@ -73,6 +76,7 @@ export class AuthController {
     return this.authService.registerBusiness(registerDto)
   }
 
+    @Public()
   @Post("business/login")
   @ApiOperation({ summary: "Login as business owner" })
   @ApiResponse({ status: 200, description: "Business login successful" })
@@ -83,6 +87,7 @@ export class AuthController {
 
   // ========== STANDARD USER AUTHENTICATION ==========
 
+    @Public()
   @Post("register")
   @ApiOperation({ summary: "Register a new user" })
   @ApiResponse({ status: 201, description: "User registered successfully" })
@@ -91,6 +96,7 @@ export class AuthController {
     return this.authService.register(registerDto)
   }
 
+    @Public()
   @Post("login")
   @ApiOperation({ summary: "Login user" })
   @ApiResponse({ status: 200, description: "User logged in successfully" })
@@ -101,8 +107,8 @@ export class AuthController {
 
   // ========== COMMON ENDPOINTS ==========
 
+  @Public()
   @Post('logout')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({ status: 200, description: 'User logged out successfully' })
@@ -111,7 +117,6 @@ export class AuthController {
   }
 
   @Get('profile')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
@@ -142,7 +147,6 @@ export class AuthController {
   // ========== PROFILE MANAGEMENT ==========
 
   @Patch('profile')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
@@ -156,7 +160,6 @@ export class AuthController {
   }
 
   @Patch('preferences')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user preferences (language, timezone, notifications, etc.)' })
   @ApiResponse({ status: 200, description: 'Preferences updated successfully' })
@@ -169,7 +172,6 @@ export class AuthController {
   }
 
   @Post('change-password')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
@@ -183,7 +185,6 @@ export class AuthController {
   }
 
   @Patch('email')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user email address' })
   @ApiResponse({ status: 200, description: 'Email updated successfully' })
@@ -198,7 +199,6 @@ export class AuthController {
   }
 
   @Delete('account')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete user account (soft delete)' })
   @ApiResponse({ status: 200, description: 'Account deleted successfully' })
@@ -217,7 +217,6 @@ export class AuthController {
    * This endpoint requires business authentication
    */
   @Get('business/context')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get business context (example endpoint)' })
   @ApiResponse({ status: 200, description: 'Business context retrieved' })
@@ -236,7 +235,6 @@ export class AuthController {
    * Example endpoint using just BusinessId decorator
    */
   @Get('business/info')
-  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get business info using BusinessId' })
   async getBusinessInfo(@BusinessId() businessId: string) {
@@ -251,7 +249,6 @@ export class AuthController {
 // ========== BUSINESS CONTEXT MANAGEMENT ==========
 
 @Post('switch-business')
-
 @ApiBearerAuth()
 @ApiOperation({ 
   summary: 'Switch active business context',
@@ -268,7 +265,6 @@ async switchBusiness(
 }
 
 @Get('businesses')
-
 @ApiBearerAuth()
 @ApiOperation({ 
   summary: 'Get all businesses user has access to',
@@ -280,7 +276,6 @@ async getUserBusinesses(@CurrentUser() user: RequestWithUser['user']) {
 }
 
 @Post('clear-business-context')
-
 @ApiBearerAuth()
 @ApiOperation({ 
   summary: 'Clear business context (switch to client mode)',
