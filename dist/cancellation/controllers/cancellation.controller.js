@@ -285,8 +285,6 @@ __decorate([
 ], CancellationController.prototype, "getPolicyForService", null);
 __decorate([
     (0, common_1.Post)('policy'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({
         summary: 'Create or update cancellation policy',
         description: 'Only business owners and admins can modify cancellation policies'
@@ -302,8 +300,6 @@ __decorate([
 ], CancellationController.prototype, "createOrUpdatePolicy", null);
 __decorate([
     (0, common_1.Patch)('policy'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Partially update cancellation policy' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Policy updated successfully' }),
     __param(0, (0, business_context_decorator_1.BusinessId)()),
@@ -344,7 +340,6 @@ __decorate([
 ], CancellationController.prototype, "calculateRefund", null);
 __decorate([
     (0, common_1.Post)('appointments/:appointmentId/no-show'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
     (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({
         summary: 'Record no-show incident',
@@ -405,8 +400,6 @@ __decorate([
 ], CancellationController.prototype, "checkDepositRequirement", null);
 __decorate([
     (0, common_1.Get)('analytics/no-shows'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({
         summary: 'Get no-show analytics for business',
         description: 'Provides statistical analysis of no-shows and cancellations'
@@ -423,8 +416,6 @@ __decorate([
 ], CancellationController.prototype, "getNoShowAnalytics", null);
 __decorate([
     (0, common_1.Get)('analytics/summary'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({
         summary: 'Get cancellation analytics summary',
         description: 'Comprehensive overview of cancellations, no-shows, and revenue impact'
@@ -439,8 +430,6 @@ __decorate([
 ], CancellationController.prototype, "getAnalyticsSummary", null);
 __decorate([
     (0, common_1.Get)('analytics/trends'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({
         summary: 'Get cancellation trends over time',
         description: 'Shows trends in cancellations and no-shows over specified period'

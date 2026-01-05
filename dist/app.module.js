@@ -17,6 +17,8 @@ const nest_winston_1 = require("nest-winston");
 const winston = require("winston");
 const throttler_1 = require("@nestjs/throttler");
 const ioredis_1 = require("@nestjs-modules/ioredis");
+const jwt_auth_guard_1 = require("./auth/guards/jwt-auth.guard");
+const validate_business_access_guard_1 = require("./auth/guards/validate-business-access.guard");
 const client_module_1 = require("./client/client.module");
 const service_module_1 = require("./service/service.module");
 const appointment_module_1 = require("./appointment/appointment.module");
@@ -35,7 +37,7 @@ const cancellation_module_1 = require("./cancellation/cancellation.module");
 const upload_module_1 = require("./upload/upload.module");
 const availability_module_1 = require("./availability/availability.module");
 const notification_module_1 = require("./notification/notification.module");
-const tenant_module_1 = require("./tenant/tenant.module");
+const business_module_1 = require("./business/business.module");
 const staff_module_1 = require("./staff/staff.module");
 const audit_interceptor_1 = require("./audit/interceptors/audit.interceptor");
 const analytics_module_1 = require("./analytics/analytics.module");
@@ -49,6 +51,7 @@ const monitoring_module_1 = require("./monitoring/monitoring.module");
 const webhook_module_1 = require("./webhook/webhook.module");
 const rate_limiter_module_1 = require("./rate-limiter/rate-limiter.module");
 const marketplace_module_1 = require("./marketplace/marketplace.module");
+const subscription_module_1 = require("./subscription/subscription.module");
 let AppModule = class AppModule {
     configure(consumer) {
     }
@@ -75,7 +78,6 @@ AppModule = __decorate([
                     console.log(`   Port: ${redisPort}`);
                     console.log(`   Username: ${redisUsername}`);
                     console.log(`   Password: ${redisPassword ? '***' : 'not set'}`);
-                    console.log(`   REDIS_TLS env: ${redisTls}`);
                     console.log(`   TLS: ${redisTls === 'true' ? 'enabled' : 'disabled'}`);
                     const config = {
                         type: 'single',
@@ -97,10 +99,6 @@ AppModule = __decorate([
                         config.options.tls = {
                             rejectUnauthorized: false
                         };
-                        console.log('   ✅ TLS Config Added');
-                    }
-                    else {
-                        console.log('   ✅ TLS Disabled (not added to config)');
                     }
                     return config;
                 },
@@ -165,8 +163,8 @@ AppModule = __decorate([
             rate_limiter_module_1.RateLimiterModule,
             schedule_1.ScheduleModule.forRoot(),
             event_emitter_1.EventEmitterModule.forRoot(),
-            tenant_module_1.TenantModule,
             auth_module_1.AuthModule,
+            business_module_1.BusinessModule,
             audit_module_1.AuditModule,
             upload_module_1.UploadModule,
             client_module_1.ClientModule,
@@ -186,8 +184,6 @@ AppModule = __decorate([
             commission_module_1.CommissionModule,
             cancellation_module_1.CancellationModule,
             analytics_module_1.AnalyticsModule,
-            cancellation_module_1.CancellationModule,
-            commission_module_1.CommissionModule,
             pricing_module_1.PricingModule,
             branding_module_1.BrandingModule,
             support_module_1.SupportModule,
@@ -195,12 +191,25 @@ AppModule = __decorate([
             integration_module_1.IntegrationModule,
             jobs_module_1.JobsModule,
             webhook_module_1.WebhookModule,
+            subscription_module_1.SubscriptionModule
         ],
         providers: [
             {
                 provide: core_1.APP_INTERCEPTOR,
                 useClass: audit_interceptor_1.AuditInterceptor,
-            }
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: throttler_1.ThrottlerGuard,
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: jwt_auth_guard_1.JwtAuthGuard,
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: validate_business_access_guard_1.ValidateBusinessAccessGuard,
+            },
         ],
     })
 ], AppModule);

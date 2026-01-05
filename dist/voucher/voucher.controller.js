@@ -19,8 +19,6 @@ const voucher_service_1 = require("./voucher.service");
 const create_voucher_dto_1 = require("./dto/create-voucher.dto");
 const update_voucher_dto_1 = require("./dto/update-voucher.dto");
 const voucher_query_dto_1 = require("./dto/voucher-query.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
@@ -162,7 +160,6 @@ __decorate([
 VoucherController = __decorate([
     (0, swagger_1.ApiTags)("Vouchers"),
     (0, common_1.Controller)("vouchers"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [voucher_service_1.VoucherService])

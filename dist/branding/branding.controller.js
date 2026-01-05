@@ -23,7 +23,6 @@ const custom_domain_dto_1 = require("./dto/custom-domain.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const business_auth_guard_1 = require("../auth/guards/business-auth.guard");
 const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
-const user_schema_1 = require("../auth/schemas/user.schema");
 let BrandingController = class BrandingController {
     constructor(brandingService) {
         this.brandingService = brandingService;
@@ -91,8 +90,6 @@ let BrandingController = class BrandingController {
 };
 __decorate([
     (0, common_1.Post)('theme'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({
         summary: 'Create or update business theme',
         description: 'Requires business owner or admin role'
@@ -117,8 +114,6 @@ __decorate([
 ], BrandingController.prototype, "getTheme", null);
 __decorate([
     (0, common_1.Patch)('theme'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Partially update theme' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Theme updated successfully' }),
     __param(0, (0, business_context_decorator_1.BusinessId)()),
@@ -129,8 +124,6 @@ __decorate([
 ], BrandingController.prototype, "updateTheme", null);
 __decorate([
     (0, common_1.Post)('domain'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER),
     (0, swagger_1.ApiOperation)({
         summary: 'Request custom domain setup',
         description: 'Only business owners can request custom domains'
@@ -146,8 +139,6 @@ __decorate([
 ], BrandingController.prototype, "requestCustomDomain", null);
 __decorate([
     (0, common_1.Post)('domain/:domainId/verify'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Verify custom domain DNS records' }),
     (0, swagger_1.ApiParam)({ name: 'domainId', description: 'Domain record ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Domain verification initiated' }),
@@ -179,8 +170,6 @@ __decorate([
 ], BrandingController.prototype, "getDomain", null);
 __decorate([
     (0, common_1.Post)('email-template'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Create custom email template' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Template created successfully' }),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
@@ -214,8 +203,6 @@ __decorate([
 ], BrandingController.prototype, "getAllEmailTemplates", null);
 __decorate([
     (0, common_1.Patch)('email-template/:templateId'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Update email template' }),
     __param(0, (0, business_context_decorator_1.BusinessId)()),
     __param(1, (0, common_1.Param)('templateId')),
@@ -226,8 +213,6 @@ __decorate([
 ], BrandingController.prototype, "updateEmailTemplate", null);
 __decorate([
     (0, common_1.Post)('widget'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Create booking widget' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Widget created successfully' }),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
@@ -257,8 +242,6 @@ __decorate([
 ], BrandingController.prototype, "getAllWidgets", null);
 __decorate([
     (0, common_1.Patch)('widget/:widgetId'),
-    (0, common_1.UseGuards)(business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Update widget configuration' }),
     __param(0, (0, business_context_decorator_1.BusinessId)()),
     __param(1, (0, common_1.Param)('widgetId')),

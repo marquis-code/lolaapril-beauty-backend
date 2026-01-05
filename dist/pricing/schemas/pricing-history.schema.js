@@ -15,9 +15,9 @@ const mongoose_2 = require("mongoose");
 let PricingHistory = class PricingHistory {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Tenant', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], PricingHistory.prototype, "tenantId", void 0);
+], PricingHistory.prototype, "businessId", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)

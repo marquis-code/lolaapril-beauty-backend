@@ -12,6 +12,7 @@ import { GoogleAuthGuard } from "./guards/google-auth.guard"
 import { RequestWithUser } from "./types/request-with-user.interface"
 import { CurrentUser, BusinessContext, BusinessId } from "./decorators/business-context.decorator"
 import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator"
+import { SwitchBusinessDto } from "./dto/switch-business.dto"
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -100,7 +101,7 @@ export class AuthController {
   // ========== COMMON ENDPOINTS ==========
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({ status: 200, description: 'User logged out successfully' })
@@ -109,7 +110,7 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
@@ -140,7 +141,7 @@ export class AuthController {
   // ========== PROFILE MANAGEMENT ==========
 
   @Patch('profile')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
@@ -154,7 +155,7 @@ export class AuthController {
   }
 
   @Patch('preferences')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user preferences (language, timezone, notifications, etc.)' })
   @ApiResponse({ status: 200, description: 'Preferences updated successfully' })
@@ -167,7 +168,7 @@ export class AuthController {
   }
 
   @Post('change-password')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
@@ -181,7 +182,7 @@ export class AuthController {
   }
 
   @Patch('email')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user email address' })
   @ApiResponse({ status: 200, description: 'Email updated successfully' })
@@ -196,7 +197,7 @@ export class AuthController {
   }
 
   @Delete('account')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete user account (soft delete)' })
   @ApiResponse({ status: 200, description: 'Account deleted successfully' })
@@ -215,7 +216,7 @@ export class AuthController {
    * This endpoint requires business authentication
    */
   @Get('business/context')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get business context (example endpoint)' })
   @ApiResponse({ status: 200, description: 'Business context retrieved' })
@@ -234,7 +235,7 @@ export class AuthController {
    * Example endpoint using just BusinessId decorator
    */
   @Get('business/info')
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get business info using BusinessId' })
   async getBusinessInfo(@BusinessId() businessId: string) {
@@ -243,4 +244,49 @@ export class AuthController {
       businessId
     }
   }
+
+  // Add after existing endpoints
+
+// ========== BUSINESS CONTEXT MANAGEMENT ==========
+
+@Post('switch-business')
+
+@ApiBearerAuth()
+@ApiOperation({ 
+  summary: 'Switch active business context',
+  description: 'Change the current business context and get new tokens'
+})
+@ApiResponse({ status: 200, description: 'Business context switched successfully' })
+@ApiResponse({ status: 403, description: 'Not authorized for this business' })
+@ApiResponse({ status: 404, description: 'Business not found' })
+async switchBusiness(
+  @CurrentUser() user: RequestWithUser['user'],
+  @Body() switchBusinessDto: SwitchBusinessDto
+) {
+  return this.authService.switchBusiness(user.sub, switchBusinessDto.businessId)
+}
+
+@Get('businesses')
+
+@ApiBearerAuth()
+@ApiOperation({ 
+  summary: 'Get all businesses user has access to',
+  description: 'Returns list of businesses where user is owner, admin, or staff'
+})
+@ApiResponse({ status: 200, description: 'Businesses retrieved successfully' })
+async getUserBusinesses(@CurrentUser() user: RequestWithUser['user']) {
+  return this.authService.getUserBusinesses(user.sub)
+}
+
+@Post('clear-business-context')
+
+@ApiBearerAuth()
+@ApiOperation({ 
+  summary: 'Clear business context (switch to client mode)',
+  description: 'Remove business context from session and get new tokens'
+})
+@ApiResponse({ status: 200, description: 'Business context cleared successfully' })
+async clearBusinessContext(@CurrentUser() user: RequestWithUser['user']) {
+  return this.authService.clearBusinessContext(user.sub)
+}
 }

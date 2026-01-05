@@ -33,7 +33,7 @@ import { AuditAction, AuditEntity } from '../audit/schemas/audit-log.schema';
 @ApiTags('Analytics')
 @ApiBearerAuth()
 @Controller('analytics')
-@UseGuards(JwtAuthGuard, RolesGuard)
+
 @UseInterceptors(AuditInterceptor)
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}

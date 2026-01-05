@@ -26,8 +26,40 @@
 import { Model, Types } from 'mongoose';
 import { PricingTier, PricingTierDocument } from './schemas/pricing-tier.schema';
 import { FeeStructure, FeeStructureDocument } from './schemas/fee-structure.schema';
-import { CreatePricingTierDto } from "./dto/create-pricing-tier.dto";
 import { PricingHistory, PricingHistoryDocument } from './schemas/pricing-history.schema';
+import { CreatePricingTierDto } from './dto/create-pricing-tier.dto';
+type LeanPricingTier = {
+    _id: any;
+    tierName: string;
+    tierLevel: number;
+    commissionRate: number;
+    isActive: boolean;
+    [key: string]: any;
+};
+type LeanFeeStructure = {
+    _id: any;
+    businessId: any;
+    pricingTierId: any;
+    platformFeePercentage: number;
+    platformFeeFixed?: number;
+    effectiveFrom: Date;
+    effectiveTo?: Date;
+    isGrandfathered: boolean;
+    [key: string]: any;
+};
+type LeanPricingHistory = {
+    _id: any;
+    businessId: any;
+    changeType: string;
+    oldTierId?: any;
+    newTierId: any;
+    oldCommissionRate?: number;
+    newCommissionRate: number;
+    effectiveDate: Date;
+    reason: string;
+    createdAt: Date;
+    [key: string]: any;
+};
 export declare class PricingService {
     private pricingTierModel;
     private feeStructureModel;
@@ -38,17 +70,9 @@ export declare class PricingService {
     }> & {
         __v: number;
     }>;
-    getActiveTiers(): Promise<(import("mongoose").Document<unknown, {}, PricingTierDocument, {}, {}> & PricingTier & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: Types.ObjectId;
-    }> & {
-        __v: number;
-    })[]>;
-    getTenantFeeStructure(tenantId: string): Promise<import("mongoose").Document<unknown, {}, FeeStructureDocument, {}, {}> & FeeStructure & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: Types.ObjectId;
-    }> & {
-        __v: number;
-    }>;
-    calculateFees(tenantId: string, bookingAmount: number): Promise<{
+    getActiveTiers(): Promise<LeanPricingTier[]>;
+    getBusinessFeeStructure(businessId: string): Promise<LeanFeeStructure | null>;
+    calculateFees(businessId: string, bookingAmount: number): Promise<{
         bookingAmount: number;
         platformFeePercentage: number;
         platformFeeFixed: number;
@@ -56,7 +80,7 @@ export declare class PricingService {
         businessReceives: number;
         isGrandfathered: boolean;
     }>;
-    changeTenantPlan(tenantId: string, newTierId: string, changedBy: string, reason: string): Promise<{
+    changePlan(businessId: string, newTierId: string, reason: string): Promise<{
         newStructure: import("mongoose").Document<unknown, {}, FeeStructureDocument, {}, {}> & FeeStructure & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
             _id: Types.ObjectId;
         }> & {
@@ -68,18 +92,6 @@ export declare class PricingService {
             __v: number;
         };
     }>;
-    grandfatherTenantPricing(tenantId: string, reason: string): Promise<{
-        success: boolean;
-        message: string;
-        data: import("mongoose").Document<unknown, {}, FeeStructureDocument, {}, {}> & FeeStructure & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-            _id: Types.ObjectId;
-        }> & {
-            __v: number;
-        };
-    }>;
-    getPricingHistory(tenantId: string): Promise<(import("mongoose").Document<unknown, {}, PricingHistoryDocument, {}, {}> & PricingHistory & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: Types.ObjectId;
-    }> & {
-        __v: number;
-    })[]>;
+    getPricingHistory(businessId: string): Promise<LeanPricingHistory[]>;
 }
+export {};

@@ -35,7 +35,7 @@
 //   ) {}
 
 //   @Post('tracking-codes')
-//   @UseGuards(JwtAuthGuard)
+//   
 //   @ApiOperation({ summary: 'Generate tracking code for marketing channel' })
 //   @HttpCode(HttpStatus.CREATED)
 //   async createTrackingCode(
@@ -81,7 +81,7 @@
 //   }
 
 //   @Get('tracking-codes')
-//   @UseGuards(JwtAuthGuard)
+//   
 //   @ApiOperation({ summary: 'Get all tracking codes for business' })
 //   async getTrackingCodes(@Request() req: any) {
 //     try {
@@ -128,7 +128,7 @@
 //   }
 
 //   @Get('bookings/:bookingId')
-//   @UseGuards(JwtAuthGuard)
+//   
 //   @ApiOperation({ summary: 'Get commission details for booking' })
 //   async getBookingCommission(
 //     @Param('bookingId') bookingId: string,
@@ -160,7 +160,7 @@
 //   }
 
 //   @Get('business/summary')
-//   @UseGuards(JwtAuthGuard)
+//   
 //   @ApiOperation({ summary: 'Get commission summary for business' })
 //   async getCommissionSummary(
 //     @Query() query: GetCommissionsDto,
@@ -191,7 +191,7 @@
 //   }
 
 //   @Post(':commissionId/dispute')
-//   @UseGuards(JwtAuthGuard)
+//   
 //   @ApiOperation({ summary: 'Dispute a commission charge' })
 //   async disputeCommission(
 //     @Param('commissionId') commissionId: string,
@@ -218,7 +218,7 @@
 //   }
 
 //   @Get('analytics/source-breakdown')
-//   @UseGuards(JwtAuthGuard)
+//   
 //   @ApiOperation({ summary: 'Get booking source breakdown with commission impact' })
 //   async getSourceBreakdown(
 //     @Query('startDate') startDate: string,
@@ -273,7 +273,7 @@ import { GetCommissionsDto } from '../dto/get-commissions.dto'
 
 @ApiTags('Commission')
 @Controller('commission')
-@UseGuards(JwtAuthGuard)
+
 @ApiBearerAuth()
 export class CommissionController {
   constructor(

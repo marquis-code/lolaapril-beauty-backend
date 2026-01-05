@@ -14,29 +14,26 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingFlowController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const booking_orchestrator_service_1 = require("../services/booking-orchestrator.service");
 const confirm_booking_dto_1 = require("../dto/confirm-booking.dto");
 const create_booking_with_source_dto_1 = require("../dto/create-booking-with-source.dto");
+const auth_1 = require("../../auth");
 let BookingFlowController = class BookingFlowController {
     constructor(bookingOrchestrator) {
         this.bookingOrchestrator = bookingOrchestrator;
     }
-    async createBooking(createBookingDto, req) {
+    async createBooking(createBookingDto) {
         try {
-            const businessId = req.tenant.businessId;
-            if (!businessId) {
+            if (!createBookingDto.businessId) {
                 throw new common_1.BadRequestException('Business ID is required');
             }
-            const bookingData = {
-                ...createBookingDto,
-                businessId
-            };
-            if (!bookingData.bookingSource) {
-                bookingData.bookingSource = {
+            if (!createBookingDto.bookingSource) {
+                createBookingDto.bookingSource = {
                     sourceType: create_booking_with_source_dto_1.BookingSourceType.DIRECT_LINK
                 };
             }
-            const result = await this.bookingOrchestrator.createBookingWithValidation(bookingData);
+            const result = await this.bookingOrchestrator.createBookingWithValidation(createBookingDto);
             return {
                 success: true,
                 data: result,
@@ -53,7 +50,7 @@ let BookingFlowController = class BookingFlowController {
             };
         }
     }
-    async confirmBooking(bookingId, confirmDto, req) {
+    async confirmBooking(bookingId, confirmDto) {
         try {
             console.log('🎯 CONTROLLER: CONFIRM BOOKING');
             console.log('BookingId:', bookingId);
@@ -145,15 +142,20 @@ let BookingFlowController = class BookingFlowController {
     }
 };
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)('create'),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a new booking (Public)' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Booking created successfully' }),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], BookingFlowController.prototype, "createBooking", null);
 __decorate([
     (0, common_1.Post)('confirm/:bookingId'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Confirm booking and create appointment' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Booking confirmed successfully' }),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: false,
@@ -161,13 +163,15 @@ __decorate([
     })),
     __param(0, (0, common_1.Param)('bookingId')),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, confirm_booking_dto_1.ConfirmBookingDto, Object]),
+    __metadata("design:paramtypes", [String, confirm_booking_dto_1.ConfirmBookingDto]),
     __metadata("design:returntype", Promise)
 ], BookingFlowController.prototype, "confirmBooking", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)('payment/:bookingId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Process payment for booking (Public)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Payment processed successfully' }),
     __param(0, (0, common_1.Param)('bookingId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -175,6 +179,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BookingFlowController.prototype, "handlePayment", null);
 BookingFlowController = __decorate([
+    (0, swagger_1.ApiTags)('Booking Flow'),
     (0, common_1.Controller)('booking-flow'),
     __metadata("design:paramtypes", [booking_orchestrator_service_1.BookingOrchestrator])
 ], BookingFlowController);

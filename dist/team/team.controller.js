@@ -19,8 +19,6 @@ const team_service_1 = require("./team.service");
 const create_team_member_dto_1 = require("./dto/create-team-member.dto");
 const update_team_member_dto_1 = require("./dto/update-team-member.dto");
 const team_member_query_dto_1 = require("./dto/team-member-query.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
@@ -155,7 +153,6 @@ __decorate([
 TeamController = __decorate([
     (0, swagger_1.ApiTags)("Team Management"),
     (0, common_1.Controller)("team"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [team_service_1.TeamService])

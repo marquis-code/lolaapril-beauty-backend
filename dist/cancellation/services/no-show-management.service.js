@@ -144,7 +144,7 @@ let NoShowManagementService = NoShowManagementService_1 = class NoShowManagement
             penaltiesCollected: 0,
             depositsForfeited: 0
         };
-        stats.forEach(item => {
+        stats.forEach((item) => {
             summary.totalIncidents += item.count;
             summary.revenueLost += item.totalRevenueLost;
             summary.penaltiesCollected += item.totalPenaltiesCharged;
@@ -234,7 +234,7 @@ let NoShowManagementService = NoShowManagementService_1 = class NoShowManagement
             .exec();
         return {
             total: records.length,
-            records: records.map(r => ({
+            records: records.map((r) => ({
                 id: r._id,
                 type: r.type,
                 appointmentDate: r.appointmentDate,
@@ -316,7 +316,7 @@ let NoShowManagementService = NoShowManagementService_1 = class NoShowManagement
             }
         ]).exec();
         const formattedTrends = {};
-        trends.forEach(item => {
+        trends.forEach((item) => {
             const period = item._id.period;
             if (!formattedTrends[period]) {
                 formattedTrends[period] = {

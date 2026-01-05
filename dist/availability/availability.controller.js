@@ -19,7 +19,6 @@ const availability_service_1 = require("./availability.service");
 const check_availability_dto_1 = require("./dto/check-availability.dto");
 const get_available_slots_dto_1 = require("./dto/get-available-slots.dto");
 const get_all_slots_dto_1 = require("./dto/get-all-slots.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const business_auth_guard_1 = require("../auth/guards/business-auth.guard");
 const user_schema_1 = require("../auth/schemas/user.schema");
@@ -210,7 +209,6 @@ __decorate([
 ], AvailabilityController.prototype, "getAllSlots", null);
 __decorate([
     (0, common_1.Post)('staff/my-availability'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
     (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.STAFF, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.BUSINESS_OWNER),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
@@ -226,7 +224,6 @@ __decorate([
 ], AvailabilityController.prototype, "createMyAvailability", null);
 __decorate([
     (0, common_1.Post)('staff/block-time'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
     (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.STAFF, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.BUSINESS_OWNER),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
@@ -242,8 +239,6 @@ __decorate([
 ], AvailabilityController.prototype, "blockMyTime", null);
 __decorate([
     (0, common_1.Post)('staff/availability'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Create staff availability (Admin/Owner)',
@@ -258,8 +253,6 @@ __decorate([
 ], AvailabilityController.prototype, "createStaffAvailability", null);
 __decorate([
     (0, common_1.Post)('staff/block'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Block staff time (Admin/Owner)',
@@ -274,8 +267,6 @@ __decorate([
 ], AvailabilityController.prototype, "blockStaffTime", null);
 __decorate([
     (0, common_1.Post)('business-hours'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Create business hours (Admin/Owner)',
@@ -289,8 +280,6 @@ __decorate([
 ], AvailabilityController.prototype, "createBusinessHours", null);
 __decorate([
     (0, common_1.Post)('business-hours/24x7'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Enable 24/7 operations (Owner only)',
@@ -304,8 +293,6 @@ __decorate([
 ], AvailabilityController.prototype, "createBusinessHours24x7", null);
 __decorate([
     (0, common_1.Post)('extend-availability'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Extend staff availability (Admin/Owner)',
@@ -320,8 +307,6 @@ __decorate([
 ], AvailabilityController.prototype, "extendStaffAvailability", null);
 __decorate([
     (0, common_1.Post)('initialize-business'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.BUSINESS_OWNER),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Initialize business availability (Owner only)',
@@ -336,8 +321,6 @@ __decorate([
 ], AvailabilityController.prototype, "initializeBusiness", null);
 __decorate([
     (0, common_1.Post)('admin/setup'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.SUPER_ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Setup availability for any business (Platform Admin)',
@@ -352,8 +335,6 @@ __decorate([
 ], AvailabilityController.prototype, "setupAvailability", null);
 __decorate([
     (0, common_1.Post)('admin/check-fully-booked'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, business_auth_guard_1.BusinessRolesGuard),
-    (0, business_auth_guard_1.RequireBusinessRoles)(user_schema_1.UserRole.SUPER_ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Check if time slot is fully booked (Platform Admin)',

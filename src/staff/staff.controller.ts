@@ -25,17 +25,14 @@ import { CompleteAssignmentDto } from '../staff/dto/complete-assignment.dto'
 import { GetStaffAssignmentsDto } from '../staff/dto/get-staff-assignments.dto'
 
 // Import Guards
-import { TenantGuard } from '../tenant/guards/tenant.guard'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 
 @Controller('staff')
-@UseGuards(TenantGuard)
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
   // ================== STAFF MANAGEMENT ==================
   @Post()
-  @UseGuards(JwtAuthGuard)
+  
   @HttpCode(HttpStatus.CREATED)
   async createStaff(
     @Body(ValidationPipe) createStaffDto: CreateStaffDto,
@@ -65,7 +62,7 @@ export class StaffController {
   }
 
   @Get('business')
-  @UseGuards(JwtAuthGuard)
+  
   async getStaffByBusiness(
     @Query('status') status: string,
     @Request() req: any
@@ -90,7 +87,7 @@ export class StaffController {
   }
 
   @Get('available')
-  @UseGuards(JwtAuthGuard)
+  
   async getAvailableStaff(
     @Query('date') date: string,
     @Query('startTime') startTime: string,
@@ -125,7 +122,7 @@ export class StaffController {
 
   // ================== SCHEDULE MANAGEMENT ==================
   @Post('schedule')
-  @UseGuards(JwtAuthGuard)
+  
   async createSchedule(
     @Body(ValidationPipe) createScheduleDto: CreateStaffScheduleDto,
     @Request() req: any
@@ -155,7 +152,7 @@ export class StaffController {
   }
 
   @Get('schedule/:staffId')
-  @UseGuards(JwtAuthGuard)
+  
   async getSchedule(
     @Param('staffId') staffId: string,
     @Query('date') date: string
@@ -182,7 +179,7 @@ export class StaffController {
 
   // ================== ASSIGNMENT MANAGEMENT ==================
   @Post('assign')
-  @UseGuards(JwtAuthGuard)
+  
   async assignStaff(
     @Body(ValidationPipe) assignStaffDto: AssignStaffDto,
     @Request() req: any
@@ -213,7 +210,7 @@ export class StaffController {
   }
 
   @Post('auto-assign')
-  @UseGuards(JwtAuthGuard)
+  
   async autoAssignStaff(@Body(ValidationPipe) autoAssignDto: AutoAssignStaffDto) {
     try {
       const assignment = await this.staffService.autoAssignStaff(
@@ -241,7 +238,7 @@ export class StaffController {
   }
 
   @Get('assignments/:staffId')
-  @UseGuards(JwtAuthGuard)
+  
   async getAssignments(
     @Param('staffId') staffId: string,
     @Query('startDate') startDate: string,
@@ -269,7 +266,7 @@ export class StaffController {
   }
 
   @Put('assignment/:assignmentId/complete')
-  @UseGuards(JwtAuthGuard)
+  
   async completeAssignment(
     @Param('assignmentId') assignmentId: string,
     @Body(ValidationPipe) completionData: CompleteAssignmentDto
@@ -296,7 +293,7 @@ export class StaffController {
 
   // ================== WORKING HOURS TRACKING ==================
   @Post('checkin')
-  @UseGuards(JwtAuthGuard)
+  
   async checkIn(
     @Body(ValidationPipe) checkInDto: CheckInStaffDto,
     @Request() req: any
@@ -325,7 +322,7 @@ export class StaffController {
   }
 
   @Post('checkout')
-  @UseGuards(JwtAuthGuard)
+  
   async checkOut(
     @Body('staffId') staffId: string,
     @Request() req: any
@@ -350,7 +347,7 @@ export class StaffController {
   }
 
   @Get('working-hours/:staffId')
-  @UseGuards(JwtAuthGuard)
+  
   async getWorkingHours(
     @Param('staffId') staffId: string,
     @Query('startDate') startDate: string,
@@ -379,7 +376,7 @@ export class StaffController {
 
   // ================== STAFF PROFILE MANAGEMENT ==================
   @Get(':staffId')
-  @UseGuards(JwtAuthGuard)
+  
   async getStaffById(@Param('staffId') staffId: string) {
     try {
       const staff = await this.staffService.getStaffById(staffId)
@@ -399,7 +396,7 @@ export class StaffController {
   }
 
   @Put(':staffId/skills')
-  @UseGuards(JwtAuthGuard)
+  
   async updateStaffSkills(
     @Param('staffId') staffId: string,
     @Body('skills') skills: any[]
@@ -422,7 +419,7 @@ export class StaffController {
   }
 
   @Put(':staffId/status')
-  @UseGuards(JwtAuthGuard)
+  
   async updateStaffStatus(
     @Param('staffId') staffId: string,
     @Body('status') status: string,

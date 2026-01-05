@@ -23,7 +23,7 @@
 //   constructor(private readonly paymentService: PaymentService) {}
 
 //   @Post('initialize')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
@@ -36,7 +36,7 @@
 //   }
 
 //   @Get('verify/:reference')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.PAYMENT })
@@ -61,7 +61,7 @@
 //   }
 
 //   @Post(':reference/refund')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
@@ -77,7 +77,7 @@
 //   }
 
 //   @Post()
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
@@ -89,7 +89,7 @@
 //   }
 
 //   @Get()
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   // @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
 //   // @ApiBearerAuth()
 //   @ApiOperation({ summary: "Get all payments" })
@@ -99,7 +99,7 @@
 //   }
 
 //   @Get("stats")
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
 //   @ApiBearerAuth()
 //   @ApiOperation({ summary: "Get payment statistics" })
@@ -109,7 +109,7 @@
 //   }
 
 //   @Get(':id')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.PAYMENT })
@@ -122,7 +122,7 @@
 //   }
 
 //   @Patch(":id")
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
@@ -135,7 +135,7 @@
 //   }
 
 //   @Patch(":id/status")
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
@@ -151,7 +151,7 @@
 //   }
 
 //   @Post(":id/refund")
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
@@ -167,7 +167,7 @@
 //   }
 
 //   @Delete(':id')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   
 //   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
 //   @UseInterceptors(AuditInterceptor)
 //   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.PAYMENT })
@@ -205,7 +205,7 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('initialize')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
@@ -218,7 +218,7 @@ export class PaymentController {
   }
 
   @Get('verify/:reference')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.PAYMENT })
@@ -243,7 +243,7 @@ export class PaymentController {
   }
 
   @Post(':reference/refund')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
@@ -259,7 +259,7 @@ export class PaymentController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
@@ -271,7 +271,7 @@ export class PaymentController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @ApiOperation({ summary: "Get all payments" })
   @ApiResponse({ status: 200, description: "Payments retrieved successfully" })
   findAll(@Query() query: PaymentQueryDto) {
@@ -279,7 +279,7 @@ export class PaymentController {
   }
 
   @Get("stats")
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get payment statistics" })
@@ -289,7 +289,7 @@ export class PaymentController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.PAYMENT })
@@ -302,7 +302,7 @@ export class PaymentController {
   }
 
   @Patch(":id")
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
@@ -315,7 +315,7 @@ export class PaymentController {
   }
 
   @Patch(":id/status")
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
@@ -331,7 +331,7 @@ export class PaymentController {
   }
 
   @Post(":id/refund")
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.PAYMENT })
@@ -347,7 +347,7 @@ export class PaymentController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.DELETE, entity: AuditEntity.PAYMENT })

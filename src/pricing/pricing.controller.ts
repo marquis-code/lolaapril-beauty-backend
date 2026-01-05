@@ -1,52 +1,168 @@
-// pricing.controller.ts
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
-import { PricingService } from './pricing.service';
-import { CreatePricingTierDto } from './dto/create-pricing-tier.dto';
+// import { Controller, Get, Post, Body, Param } from '@nestjs/common'
+// import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
+// import { PricingService } from './pricing.service'
+// import { CreatePricingTierDto } from './dto/create-pricing-tier.dto'
+// import { Public, ValidateBusiness, BusinessId } from '../auth'
 
+// @ApiTags('Pricing & Fees')
+// @Controller('pricing')
+// export class PricingController {
+//   constructor(private readonly pricingService: PricingService) {}
+
+//  @Post('tiers')
+//   @ApiBearerAuth()
+//   @ApiOperation({ summary: 'Create pricing tier (Admin only)' })
+//   async createTier(@Body() createDto: CreatePricingTierDto) {
+//     return this.pricingService.createTier(createDto)
+//   }
+
+//   @Public()
+//   @Get('tiers')
+//   getActiveTiers() {
+//     return this.pricingService.getActiveTiers();
+//   }
+
+//   @Get('business/:businessId/fee-structure')
+//   getBusisinessFeeStructure(@Param('businessId') businessId: string) {
+//     return this.pricingService.getBusinessFeeStructure(businessId);
+//   }
+
+//   @Post('business/:businessId/calculate-fees')
+//   calculateFees(@Param('businessId') businessId: string, @Body('amount') amount: number) {
+//     return this.pricingService.calculateFees(businessId, amount);
+//   }
+
+//   @Post('business/:businessId/change-plan')
+//   changePlan(
+//     @Param('businessId') businessId: string,
+//     @Body() body: { newTierId: string; changedBy: string; reason: string },
+//   ) {
+//     return this.pricingService.changePlan(
+//       businessId,
+//       body.newTierId,
+//       body.reason,
+//     );
+//   }
+
+//   @Get('business/:businessId/history')
+//   getPricingHistory(@Param('businessId') businessId: string) {
+//     return this.pricingService.getPricingHistory(businessId);
+//   }
+// }
+
+
+// import { Controller, Get, Post, Body, Param } from '@nestjs/common'
+// import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
+// import { PricingService } from './pricing.service'
+// import { CreatePricingTierDto } from './dto/create-pricing-tier.dto'
+// import { Public, ValidateBusiness, BusinessId } from '../auth'
+
+// @ApiTags('Pricing & Fees')
+// @Controller('pricing')
+// export class PricingController {
+//   constructor(private readonly pricingService: PricingService) {}
+
+//   @Post('tiers')
+//   @ApiBearerAuth()
+//   @ApiOperation({ summary: 'Create pricing tier (Admin only)' })
+//   async createTier(@Body() createDto: CreatePricingTierDto) {
+//     const result = await this.pricingService.createTier(createDto)
+//     return result
+//   }
+
+//   @Public()
+//   @Get('tiers')
+//   async getActiveTiers() {
+//     const result = await this.pricingService.getActiveTiers()
+//     return result
+//   }
+
+//   @Get('business/:businessId/fee-structure')
+//   async getBusisinessFeeStructure(@Param('businessId') businessId: string) {
+//     const result = await this.pricingService.getBusinessFeeStructure(businessId)
+//     return result
+//   }
+
+//   @Post('business/:businessId/calculate-fees')
+//   async calculateFees(
+//     @Param('businessId') businessId: string, 
+//     @Body('amount') amount: number
+//   ) {
+//     const result = await this.pricingService.calculateFees(businessId, amount)
+//     return result
+//   }
+
+//   @Post('business/:businessId/change-plan')
+//   async changePlan(
+//     @Param('businessId') businessId: string,
+//     @Body() body: { newTierId: string; changedBy: string; reason: string },
+//   ) {
+//     const result = await this.pricingService.changePlan(
+//       businessId,
+//       body.newTierId,
+//       body.reason,
+//     )
+//     return result
+//   }
+
+//   @Get('business/:businessId/history')
+//   async getPricingHistory(@Param('businessId') businessId: string) {
+//     const result = await this.pricingService.getPricingHistory(businessId)
+//     return result
+//   }
+// }
+
+import { Controller, Get, Post, Body, Param } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
+import { PricingService } from './pricing.service'
+import { CreatePricingTierDto } from './dto/create-pricing-tier.dto'
+import { Public, ValidateBusiness, BusinessId } from '../auth'
+
+@ApiTags('Pricing & Fees')
 @Controller('pricing')
 export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
   @Post('tiers')
-  createTier(@Body() createDto: CreatePricingTierDto) {
-    return this.pricingService.createTier(createDto);
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create pricing tier (Admin only)' })
+  async createTier(@Body() createDto: CreatePricingTierDto) {
+    return this.pricingService.createTier(createDto)
   }
 
+  @Public()
   @Get('tiers')
-  getActiveTiers() {
-    return this.pricingService.getActiveTiers();
+  async getActiveTiers() {
+    return this.pricingService.getActiveTiers()
   }
 
-  @Get('tenant/:tenantId/fee-structure')
-  getTenantFeeStructure(@Param('tenantId') tenantId: string) {
-    return this.pricingService.getTenantFeeStructure(tenantId);
+  @Get('business/:businessId/fee-structure')
+  async getBusisinessFeeStructure(@Param('businessId') businessId: string) {
+    return this.pricingService.getBusinessFeeStructure(businessId)
   }
 
-  @Post('tenant/:tenantId/calculate-fees')
-  calculateFees(@Param('tenantId') tenantId: string, @Body('amount') amount: number) {
-    return this.pricingService.calculateFees(tenantId, amount);
+  @Post('business/:businessId/calculate-fees')
+  async calculateFees(
+    @Param('businessId') businessId: string, 
+    @Body('amount') amount: number
+  ) {
+    return this.pricingService.calculateFees(businessId, amount)
   }
 
-  @Post('tenant/:tenantId/change-plan')
-  changePlan(
-    @Param('tenantId') tenantId: string,
+  @Post('business/:businessId/change-plan')
+  async changePlan(
+    @Param('businessId') businessId: string,
     @Body() body: { newTierId: string; changedBy: string; reason: string },
   ) {
-    return this.pricingService.changeTenantPlan(
-      tenantId,
+    return this.pricingService.changePlan(
+      businessId,
       body.newTierId,
-      body.changedBy,
       body.reason,
-    );
+    )
   }
 
-  @Post('tenant/:tenantId/grandfather')
-  grandfatherPricing(@Param('tenantId') tenantId: string, @Body('reason') reason: string) {
-    return this.pricingService.grandfatherTenantPricing(tenantId, reason);
-  }
-
-  @Get('tenant/:tenantId/history')
-  getPricingHistory(@Param('tenantId') tenantId: string) {
-    return this.pricingService.getPricingHistory(tenantId);
+  @Get('business/:businessId/history')
+  async getPricingHistory(@Param('businessId') businessId: string) {
+    return this.pricingService.getPricingHistory(businessId)
   }
 }

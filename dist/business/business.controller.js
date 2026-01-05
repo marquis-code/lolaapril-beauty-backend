@@ -1,0 +1,261 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BusinessController = void 0;
+const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
+const business_service_1 = require("./business.service");
+const business_dto_1 = require("./dto/business.dto");
+const auth_1 = require("../auth");
+let BusinessController = class BusinessController {
+    constructor(businessService) {
+        this.businessService = businessService;
+    }
+    async checkSubdomainAvailability(subdomain) {
+        const isAvailable = await this.businessService.isSubdomainAvailable(subdomain);
+        return {
+            success: true,
+            data: { available: isAvailable, subdomain },
+            message: isAvailable ? 'Subdomain is available' : 'Subdomain is already taken'
+        };
+    }
+    async getBySubdomain(subdomain) {
+        const business = await this.businessService.getBySubdomain(subdomain);
+        return {
+            success: true,
+            data: business,
+            message: 'Business retrieved successfully'
+        };
+    }
+    async getById(id) {
+        const business = await this.businessService.getById(id);
+        return {
+            success: true,
+            data: business,
+            message: 'Business retrieved successfully'
+        };
+    }
+    async getMyBusinesses(user) {
+        const businesses = await this.businessService.getBusinessesByUser(user.sub);
+        return {
+            success: true,
+            data: businesses,
+            message: 'Businesses retrieved successfully'
+        };
+    }
+    async update(id, businessId, updateDto) {
+        if (businessId !== id) {
+            return { success: false, error: 'You can only update your active business' };
+        }
+        const business = await this.businessService.update(id, updateDto);
+        return {
+            success: true,
+            data: business,
+            message: 'Business updated successfully'
+        };
+    }
+    async addStaff(id, businessId, staffDto) {
+        if (businessId !== id) {
+            return { success: false, error: 'Access denied' };
+        }
+        const staff = await this.businessService.addStaff(id, staffDto);
+        return {
+            success: true,
+            data: staff,
+            message: 'Staff member added successfully'
+        };
+    }
+    async removeStaff(id, staffId, businessId) {
+        if (businessId !== id) {
+            return { success: false, error: 'Access denied' };
+        }
+        await this.businessService.removeStaff(id, staffId);
+        return {
+            success: true,
+            message: 'Staff member removed successfully'
+        };
+    }
+    async addAdmin(id, adminId, businessId) {
+        if (businessId !== id) {
+            return { success: false, error: 'Access denied' };
+        }
+        await this.businessService.addAdmin(id, adminId);
+        return {
+            success: true,
+            message: 'Admin added successfully'
+        };
+    }
+    async removeAdmin(id, adminId, businessId) {
+        if (businessId !== id) {
+            return { success: false, error: 'Access denied' };
+        }
+        await this.businessService.removeAdmin(id, adminId);
+        return {
+            success: true,
+            message: 'Admin removed successfully'
+        };
+    }
+    async getSettings(id) {
+        const settings = await this.businessService.getSettings(id);
+        return {
+            success: true,
+            data: settings,
+            message: 'Settings retrieved successfully'
+        };
+    }
+    async updateSettings(id, businessId, settings) {
+        if (businessId !== id) {
+            return { success: false, error: 'Access denied' };
+        }
+        const updated = await this.businessService.updateSettings(id, settings);
+        return {
+            success: true,
+            data: updated,
+            message: 'Settings updated successfully'
+        };
+    }
+};
+__decorate([
+    (0, auth_1.Public)(),
+    (0, common_1.Get)('check-subdomain'),
+    (0, swagger_1.ApiOperation)({ summary: 'Check if subdomain is available (Public)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Subdomain availability checked' }),
+    __param(0, (0, common_1.Query)('subdomain')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "checkSubdomainAvailability", null);
+__decorate([
+    (0, auth_1.Public)(),
+    (0, common_1.Get)('subdomain/:subdomain'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get business by subdomain (Public)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Business retrieved successfully' }),
+    __param(0, (0, common_1.Param)('subdomain')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "getBySubdomain", null);
+__decorate([
+    (0, auth_1.Public)(),
+    (0, common_1.Get)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get business by ID (Public)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Business retrieved successfully' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "getById", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all businesses for authenticated user' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Businesses retrieved successfully' }),
+    __param(0, (0, auth_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "getMyBusinesses", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Put)(':id'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Update business' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Business updated successfully' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.BusinessId)()),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, business_dto_1.UpdateBusinessDto]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "update", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Post)(':id/staff'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Add staff member to business' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Staff member added successfully' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.BusinessId)()),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "addStaff", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Delete)(':id/staff/:staffId'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Remove staff member from business' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Staff member removed successfully' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('staffId')),
+    __param(2, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "removeStaff", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Post)(':id/admin/:adminId'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Add business admin' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Admin added successfully' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('adminId')),
+    __param(2, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "addAdmin", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Delete)(':id/admin/:adminId'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Remove business admin' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Admin removed successfully' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('adminId')),
+    __param(2, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "removeAdmin", null);
+__decorate([
+    (0, common_1.Get)(':id/settings'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get business settings' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "getSettings", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Put)(':id/settings'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Update business settings' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.BusinessId)()),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "updateSettings", null);
+BusinessController = __decorate([
+    (0, swagger_1.ApiTags)('Business Management'),
+    (0, common_1.Controller)('businesses'),
+    __metadata("design:paramtypes", [business_service_1.BusinessService])
+], BusinessController);
+exports.BusinessController = BusinessController;
+//# sourceMappingURL=business.controller.js.map

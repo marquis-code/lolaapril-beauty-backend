@@ -20,8 +20,6 @@ const create_membership_dto_1 = require("./dto/create-membership.dto");
 const update_membership_dto_1 = require("./dto/update-membership.dto");
 const create_client_membership_dto_1 = require("./dto/create-client-membership.dto");
 const membership_query_dto_1 = require("./dto/membership-query.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
@@ -205,7 +203,6 @@ __decorate([
 MembershipController = __decorate([
     (0, swagger_1.ApiTags)("Memberships"),
     (0, common_1.Controller)("memberships"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [membership_service_1.MembershipService])

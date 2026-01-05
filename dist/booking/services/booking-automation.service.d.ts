@@ -4,7 +4,8 @@ import { PaymentService } from '../../payment/payment.service';
 import { NotificationService } from '../../notification/notification.service';
 import { StaffService } from '../../staff/staff.service';
 import { AvailabilityService } from '../../availability/availability.service';
-import { TenantService } from '../../tenant/tenant.service';
+import { BusinessService } from '../../business/business.service';
+import { SubscriptionService } from '../../subscription/subscription.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 interface AutomatedBookingResult {
     booking: any;
@@ -21,10 +22,11 @@ export declare class BookingAutomationService {
     private readonly notificationService;
     private readonly staffService;
     private readonly availabilityService;
-    private readonly tenantService;
+    private readonly businessService;
+    private readonly subscriptionService;
     private readonly eventEmitter;
     private readonly logger;
-    constructor(bookingService: BookingService, appointmentService: AppointmentService, paymentService: PaymentService, notificationService: NotificationService, staffService: StaffService, availabilityService: AvailabilityService, tenantService: TenantService, eventEmitter: EventEmitter2);
+    constructor(bookingService: BookingService, appointmentService: AppointmentService, paymentService: PaymentService, notificationService: NotificationService, staffService: StaffService, availabilityService: AvailabilityService, businessService: BusinessService, subscriptionService: SubscriptionService, eventEmitter: EventEmitter2);
     createAutomatedBooking(bookingData: {
         businessId: string;
         clientId: string;
@@ -46,7 +48,7 @@ export declare class BookingAutomationService {
     }): Promise<AutomatedBookingResult>;
     private parseDate;
     private processAutoConfirmedBooking;
-    private validateTenantLimits;
+    private validateBusinessLimits;
     private checkAvailabilityForAllServices;
     private autoAssignStaffToAppointment;
     private sendAppointmentConfirmationNotifications;

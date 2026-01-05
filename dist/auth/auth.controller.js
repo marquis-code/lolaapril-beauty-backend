@@ -20,9 +20,9 @@ const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
 const business_register_dto_1 = require("./dto/business-register.dto");
 const update_profile_dto_1 = require("./dto/update-profile.dto");
-const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
 const business_context_decorator_1 = require("./decorators/business-context.decorator");
+const switch_business_dto_1 = require("./dto/switch-business.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -104,6 +104,15 @@ let AuthController = class AuthController {
             businessId
         };
     }
+    async switchBusiness(user, switchBusinessDto) {
+        return this.authService.switchBusiness(user.sub, switchBusinessDto.businessId);
+    }
+    async getUserBusinesses(user) {
+        return this.authService.getUserBusinesses(user.sub);
+    }
+    async clearBusinessContext(user) {
+        return this.authService.clearBusinessContext(user.sub);
+    }
 };
 __decorate([
     (0, common_1.Get)("google"),
@@ -178,7 +187,6 @@ __decorate([
 ], AuthController.prototype, "login", null);
 __decorate([
     (0, common_1.Post)('logout'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Logout user' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'User logged out successfully' }),
@@ -189,7 +197,6 @@ __decorate([
 ], AuthController.prototype, "logout", null);
 __decorate([
     (0, common_1.Get)('profile'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get user profile' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'User profile retrieved successfully' }),
@@ -210,7 +217,6 @@ __decorate([
 ], AuthController.prototype, "refreshTokens", null);
 __decorate([
     (0, common_1.Patch)('profile'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Update user profile' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Profile updated successfully' }),
@@ -224,7 +230,6 @@ __decorate([
 ], AuthController.prototype, "updateProfile", null);
 __decorate([
     (0, common_1.Patch)('preferences'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Update user preferences (language, timezone, notifications, etc.)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Preferences updated successfully' }),
@@ -237,7 +242,6 @@ __decorate([
 ], AuthController.prototype, "updatePreferences", null);
 __decorate([
     (0, common_1.Post)('change-password'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Change user password' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Password changed successfully' }),
@@ -251,7 +255,6 @@ __decorate([
 ], AuthController.prototype, "changePassword", null);
 __decorate([
     (0, common_1.Patch)('email'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Update user email address' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Email updated successfully' }),
@@ -266,7 +269,6 @@ __decorate([
 ], AuthController.prototype, "updateEmail", null);
 __decorate([
     (0, common_1.Delete)('account'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Delete user account (soft delete)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Account deleted successfully' }),
@@ -279,7 +281,6 @@ __decorate([
 ], AuthController.prototype, "deleteAccount", null);
 __decorate([
     (0, common_1.Get)('business/context'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get business context (example endpoint)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Business context retrieved' }),
@@ -290,7 +291,6 @@ __decorate([
 ], AuthController.prototype, "getBusinessContext", null);
 __decorate([
     (0, common_1.Get)('business/info'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get business info using BusinessId' }),
     __param(0, (0, business_context_decorator_1.BusinessId)()),
@@ -298,6 +298,48 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getBusinessInfo", null);
+__decorate([
+    (0, common_1.Post)('switch-business'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Switch active business context',
+        description: 'Change the current business context and get new tokens'
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Business context switched successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Not authorized for this business' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Business not found' }),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, switch_business_dto_1.SwitchBusinessDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "switchBusiness", null);
+__decorate([
+    (0, common_1.Get)('businesses'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get all businesses user has access to',
+        description: 'Returns list of businesses where user is owner, admin, or staff'
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Businesses retrieved successfully' }),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getUserBusinesses", null);
+__decorate([
+    (0, common_1.Post)('clear-business-context'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Clear business context (switch to client mode)',
+        description: 'Remove business context from session and get new tokens'
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Business context cleared successfully' }),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "clearBusinessContext", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),

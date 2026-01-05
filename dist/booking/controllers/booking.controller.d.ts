@@ -5,8 +5,7 @@ import { GetBookingsDto } from '../dto/get-bookings.dto';
 import { ConfirmBookingDto } from '../dto/confirm-booking.dto';
 import { ProcessPaymentDto } from '../dto/process-payment.dto';
 import { UpdateBookingStatusDto } from '../dto/update-booking.dto';
-import type { BusinessContext as BusinessCtx } from '../../auth/decorators/business-context.decorator';
-import type { RequestWithUser } from '../../auth/types/request-with-user.interface';
+import type { BusinessContext as BusinessCtx, RequestWithUser } from '../../auth';
 import type { BookingResult, PaymentResult, AppointmentResult } from '../types/booking.types';
 export declare class BookingController {
     private readonly bookingService;
@@ -19,7 +18,7 @@ export declare class BookingController {
         page: number;
         limit: number;
     }>;
-    getBookingById(id: string, user: RequestWithUser['user'] | undefined): Promise<{
+    getBookingById(id: string, user: RequestWithUser['user']): Promise<{
         success: boolean;
         message: string;
         data?: undefined;

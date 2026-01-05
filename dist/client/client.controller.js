@@ -180,7 +180,6 @@ __decorate([
 ClientController = __decorate([
     (0, swagger_1.ApiTags)("Clients"),
     (0, common_1.Controller)("clients"),
-    (0, common_1.UseGuards)(auth_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [client_service_1.ClientService])
 ], ClientController);

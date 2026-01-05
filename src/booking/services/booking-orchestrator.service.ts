@@ -6,12 +6,13 @@ import { PaymentService } from '../../payment/payment.service'
 import { AvailabilityService } from '../../availability/availability.service'
 import { NotificationService } from '../../notification/notification.service'
 import { StaffService } from '../../staff/staff.service'
-import { TenantService } from '../../tenant/tenant.service'
+import { BusinessService } from '../../business/business.service' 
 import { ServiceService } from '../../service/service.service'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ServiceBookingDto } from "../dto/create-booking.dto"
 import { CancellationPolicyService } from '../../cancellation/services/cancellation-policy.service'
 import { NoShowManagementService } from '../../cancellation/services/no-show-management.service'
+import { SubscriptionService } from '../../subscription/subscription.service'
 import { AppointmentResult } from "../types/booking.types"
 import { Logger } from 'winston'
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
@@ -74,7 +75,8 @@ export class BookingOrchestrator {
     private readonly availabilityService: AvailabilityService,
     private readonly notificationService: NotificationService,
     private readonly staffService: StaffService,
-    private readonly tenantService: TenantService,
+    private readonly businessService: BusinessService, // ✅ CHANGED: tenantService -> businessService
+    private readonly subscriptionService: SubscriptionService, // ✅ ADDED for subscription checks
     private readonly serviceService: ServiceService,
     private readonly eventEmitter: EventEmitter2,
     private readonly cancellationPolicyService: CancellationPolicyService,
@@ -218,227 +220,67 @@ export class BookingOrchestrator {
     }
   }
 
-  async createBookingWithValidation(
-    createBookingDto: CreateBookingWithSourceDto
-  ): Promise<BookingResult> {
-    try {
-      const preferredDate = this.parseDate(createBookingDto.preferredDate);
-
-      const limitsCheck = await this.tenantService.checkSubscriptionLimits(
-        createBookingDto.businessId,
-        'booking'
-      );
-
-      if (!limitsCheck.isValid) {
-        throw new BadRequestException(`Subscription limits exceeded`);
-      }
-
-      const serviceIds = createBookingDto.services.map(s => s.serviceId);
-      const services = await this.serviceService.getServicesByIds(serviceIds);
-      const totalAmount = this.calculateTotalPrice(services);
-
-      // ✅ Normalize booking source to ensure sourceType is set
-      const normalizedBookingSource = this.normalizeBookingSource(createBookingDto);
-
-      console.log('📊 Normalized booking source:', {
-        sourceType: normalizedBookingSource.sourceType,
-        trackingCode: normalizedBookingSource.trackingCode,
-        hasLegacyFields: !!(createBookingDto.sourceType || createBookingDto.utmSource),
-      });
-
-      // Validate the normalized source data
-      const sourceValidation = this.sourceTrackingService.validateSourceData(
-        normalizedBookingSource
-      );
-
-      if (!sourceValidation.isValid) {
-        throw new BadRequestException(
-          `Invalid source tracking data: ${sourceValidation.errors.join(', ')}`
-        );
-      }
-
-      const clientReliability = await this.noShowManagementService
-        .shouldRequireDeposit(
-          createBookingDto.clientId,
-          createBookingDto.businessId
-        );
-
-      const depositPolicy = await this.cancellationPolicyService
-        .calculateDepositAmount(
-          createBookingDto.businessId,
-          totalAmount,
-          serviceIds
-        );
-
-      const requiresDeposit = depositPolicy.requiresDeposit ||
-        clientReliability.requiresDeposit;
-
-      const depositAmount = requiresDeposit ? depositPolicy.depositAmount : 0;
-      const depositReason = clientReliability.requiresDeposit
-        ? clientReliability.reason
-        : depositPolicy.reason;
-
-      // Calculate commission with normalized source
-      const commissionPreview = await this.commissionCalculatorService
-        .calculateCommission(
-          'preview',
-          {
-            businessId: createBookingDto.businessId,
-            clientId: createBookingDto.clientId,
-            totalAmount,
-            sourceTracking: normalizedBookingSource  // ✅ Use normalized source
-          }
-        );
-
-      const totalDuration = this.calculateTotalDuration(services);
-      const isAvailable = await this.checkAvailabilityForAllServices(
-        createBookingDto.businessId,
-        serviceIds,
-        preferredDate,
-        createBookingDto.preferredStartTime,
-        totalDuration
-      );
-
-      if (!isAvailable) {
-        throw new BadRequestException('Selected time slot is not available');
-      }
-
-      const bookingData = {
-        clientId: createBookingDto.clientId,
-        businessId: createBookingDto.businessId,
-        preferredDate,
-        preferredStartTime: createBookingDto.preferredStartTime,
-        clientName: createBookingDto.clientName,
-        clientEmail: createBookingDto.clientEmail,
-        clientPhone: createBookingDto.clientPhone,
-        specialRequests: createBookingDto.specialRequests,
-        services: services.map((service, index) => ({
-          serviceId: service._id,
-          serviceName: service.basicDetails.serviceName,
-          duration: this.getServiceDurationInMinutes(service),
-          bufferTime: createBookingDto.services[index].bufferTime || 0,
-          price: service.pricingAndDuration.price.amount
-        })),
-        estimatedEndTime: this.addMinutesToTime(
-          createBookingDto.preferredStartTime,
-          totalDuration
-        ),
-        totalDuration,
-        estimatedTotal: totalAmount,
-        status: 'pending',
-        bookingSource: normalizedBookingSource,  // ✅ Use normalized source
-        requiresDeposit,
-        depositAmount,
-        depositReason,
-        remainingAmount: requiresDeposit ? totalAmount - depositAmount : totalAmount,
-        commissionPreview: commissionPreview.isCommissionable ? {
-          rate: commissionPreview.commissionRate,
-          amount: commissionPreview.commissionAmount,
-          reason: commissionPreview.reason
-        } : null,
-        clientReliabilityScore: clientReliability.score
-      };
-
-      const booking = await this.bookingService.createBooking(bookingData);
-
-      // Track conversion if tracking code exists
-      if (normalizedBookingSource.trackingCode) {
-        await this.sourceTrackingService.recordConversion(
-          normalizedBookingSource.trackingCode
-        );
-      }
-
-      await this.notificationService.notifyStaffNewBooking(booking);
-      this.eventEmitter.emit('booking.created', booking);
-
-      return {
-        bookingId: booking._id.toString(),
-        bookingNumber: booking.bookingNumber,
-        estimatedTotal: booking.estimatedTotal,
-        expiresAt: booking.expiresAt,
-        status: booking.status,
-        clientId: booking.clientId.toString(),
-        businessId: booking.businessId.toString(),
-        booking,
-        requiresDeposit,
-        depositAmount,
-        depositReason,
-        remainingAmount: bookingData.remainingAmount,
-        commissionInfo: commissionPreview.isCommissionable ? {
-          willBeCharged: true,
-          rate: commissionPreview.commissionRate,
-          amount: commissionPreview.commissionAmount,
-          reason: commissionPreview.reason,
-          businessPayout: commissionPreview.businessPayout
-        } : {
-          willBeCharged: false,
-          reason: commissionPreview.reason,
-          businessPayout: totalAmount
-        },
-        clientReliability: {
-          score: clientReliability.score,
-          requiresDeposit: clientReliability.requiresDeposit,
-          reason: clientReliability.reason
-        },
-        message: requiresDeposit
-          ? `Booking created. Deposit of ₦${depositAmount} required to confirm.`
-          : 'Booking created successfully. Awaiting confirmation.'
-      };
-
-    } catch (error) {
-      this.logger.error(`Booking creation failed: ${error.message}`);
-      throw error;
-    }
-  }
   // async createBookingWithValidation(
   //   createBookingDto: CreateBookingWithSourceDto
   // ): Promise<BookingResult> {
   //   try {
-  //     const preferredDate = this.parseDate(createBookingDto.preferredDate)
-  //     const limitsCheck = await this.tenantService.checkSubscriptionLimits(
+  //     const preferredDate = this.parseDate(createBookingDto.preferredDate);
+
+  //     const limitsCheck = await this.subscriptionService.checkLimits(
   //       createBookingDto.businessId,
   //       'booking'
-  //     )
+  //     );
 
   //     if (!limitsCheck.isValid) {
-  //       throw new BadRequestException(`Subscription limits exceeded`)
+  //       throw new BadRequestException(`Subscription limits exceeded`);
   //     }
 
-  //     const serviceIds = createBookingDto.services.map(s => s.serviceId)
-  //     const services = await this.serviceService.getServicesByIds(serviceIds)
-  //     const totalAmount = this.calculateTotalPrice(services)
+  //     const serviceIds = createBookingDto.services.map(s => s.serviceId);
+  //     const services = await this.serviceService.getServicesByIds(serviceIds);
+  //     const totalAmount = this.calculateTotalPrice(services);
 
+  //     // ✅ Normalize booking source to ensure sourceType is set
+  //     const normalizedBookingSource = this.normalizeBookingSource(createBookingDto);
+
+  //     console.log('📊 Normalized booking source:', {
+  //       sourceType: normalizedBookingSource.sourceType,
+  //       trackingCode: normalizedBookingSource.trackingCode,
+  //       hasLegacyFields: !!(createBookingDto.sourceType || createBookingDto.utmSource),
+  //     });
+
+  //     // Validate the normalized source data
   //     const sourceValidation = this.sourceTrackingService.validateSourceData(
-  //       createBookingDto.bookingSource
-  //     )
+  //       normalizedBookingSource
+  //     );
 
   //     if (!sourceValidation.isValid) {
   //       throw new BadRequestException(
   //         `Invalid source tracking data: ${sourceValidation.errors.join(', ')}`
-  //       )
+  //       );
   //     }
 
   //     const clientReliability = await this.noShowManagementService
   //       .shouldRequireDeposit(
   //         createBookingDto.clientId,
   //         createBookingDto.businessId
-  //       )
+  //       );
 
   //     const depositPolicy = await this.cancellationPolicyService
   //       .calculateDepositAmount(
   //         createBookingDto.businessId,
   //         totalAmount,
   //         serviceIds
-  //       )
+  //       );
 
   //     const requiresDeposit = depositPolicy.requiresDeposit ||
-  //       clientReliability.requiresDeposit
+  //       clientReliability.requiresDeposit;
 
-  //     const depositAmount = requiresDeposit ? depositPolicy.depositAmount : 0
+  //     const depositAmount = requiresDeposit ? depositPolicy.depositAmount : 0;
   //     const depositReason = clientReliability.requiresDeposit
   //       ? clientReliability.reason
-  //       : depositPolicy.reason
+  //       : depositPolicy.reason;
 
+  //     // Calculate commission with normalized source
   //     const commissionPreview = await this.commissionCalculatorService
   //       .calculateCommission(
   //         'preview',
@@ -446,21 +288,21 @@ export class BookingOrchestrator {
   //           businessId: createBookingDto.businessId,
   //           clientId: createBookingDto.clientId,
   //           totalAmount,
-  //           sourceTracking: createBookingDto.bookingSource
+  //           sourceTracking: normalizedBookingSource  // ✅ Use normalized source
   //         }
-  //       )
+  //       );
 
-  //     const totalDuration = this.calculateTotalDuration(services)
+  //     const totalDuration = this.calculateTotalDuration(services);
   //     const isAvailable = await this.checkAvailabilityForAllServices(
   //       createBookingDto.businessId,
   //       serviceIds,
   //       preferredDate,
   //       createBookingDto.preferredStartTime,
   //       totalDuration
-  //     )
+  //     );
 
   //     if (!isAvailable) {
-  //       throw new BadRequestException('Selected time slot is not available')
+  //       throw new BadRequestException('Selected time slot is not available');
   //     }
 
   //     const bookingData = {
@@ -486,7 +328,7 @@ export class BookingOrchestrator {
   //       totalDuration,
   //       estimatedTotal: totalAmount,
   //       status: 'pending',
-  //       bookingSource: createBookingDto.bookingSource,
+  //       bookingSource: normalizedBookingSource,  // ✅ Use normalized source
   //       requiresDeposit,
   //       depositAmount,
   //       depositReason,
@@ -497,18 +339,19 @@ export class BookingOrchestrator {
   //         reason: commissionPreview.reason
   //       } : null,
   //       clientReliabilityScore: clientReliability.score
-  //     }
+  //     };
 
-  //     const booking = await this.bookingService.createBooking(bookingData)
+  //     const booking = await this.bookingService.createBooking(bookingData);
 
-  //     if (createBookingDto.bookingSource.trackingCode) {
+  //     // Track conversion if tracking code exists
+  //     if (normalizedBookingSource.trackingCode) {
   //       await this.sourceTrackingService.recordConversion(
-  //         createBookingDto.bookingSource.trackingCode
-  //       )
+  //         normalizedBookingSource.trackingCode
+  //       );
   //     }
 
-  //     await this.notificationService.notifyStaffNewBooking(booking)
-  //     this.eventEmitter.emit('booking.created', booking)
+  //     await this.notificationService.notifyStaffNewBooking(booking);
+  //     this.eventEmitter.emit('booking.created', booking);
 
   //     return {
   //       bookingId: booking._id.toString(),
@@ -542,13 +385,188 @@ export class BookingOrchestrator {
   //       message: requiresDeposit
   //         ? `Booking created. Deposit of ₦${depositAmount} required to confirm.`
   //         : 'Booking created successfully. Awaiting confirmation.'
-  //     }
+  //     };
 
   //   } catch (error) {
-  //     this.logger.error(`Booking creation failed: ${error.message}`)
-  //     throw error
+  //     this.logger.error(`Booking creation failed: ${error.message}`);
+  //     throw error;
   //   }
   // }
+
+    async createBookingWithValidation(
+      createBookingDto: CreateBookingWithSourceDto
+    ): Promise<BookingResult> {
+      try {
+        const preferredDate = this.parseDate(createBookingDto.preferredDate);
+  
+        // ✅ CHANGED: Use subscriptionService to check limits
+        const limitsCheck = await this.subscriptionService.checkLimits(
+          createBookingDto.businessId,
+          'booking'
+        );
+  
+        if (!limitsCheck.isValid) {
+          throw new BadRequestException(`Subscription limits exceeded`);
+        }
+  
+        const serviceIds = createBookingDto.services.map(s => s.serviceId);
+        const services = await this.serviceService.getServicesByIds(serviceIds);
+        const totalAmount = this.calculateTotalPrice(services);
+  
+        // ✅ Normalize booking source to ensure sourceType is set
+        const normalizedBookingSource = this.normalizeBookingSource(createBookingDto);
+  
+        console.log('📊 Normalized booking source:', {
+          sourceType: normalizedBookingSource.sourceType,
+          trackingCode: normalizedBookingSource.trackingCode,
+          hasLegacyFields: !!(createBookingDto.sourceType || createBookingDto.utmSource),
+        });
+  
+        // Validate the normalized source data
+        const sourceValidation = this.sourceTrackingService.validateSourceData(
+          normalizedBookingSource
+        );
+  
+        if (!sourceValidation.isValid) {
+          throw new BadRequestException(
+            `Invalid source tracking data: ${sourceValidation.errors.join(', ')}`
+          );
+        }
+  
+        const clientReliability = await this.noShowManagementService
+          .shouldRequireDeposit(
+            createBookingDto.clientId,
+            createBookingDto.businessId
+          );
+  
+        const depositPolicy = await this.cancellationPolicyService
+          .calculateDepositAmount(
+            createBookingDto.businessId,
+            totalAmount,
+            serviceIds
+          );
+  
+        const requiresDeposit = depositPolicy.requiresDeposit ||
+          clientReliability.requiresDeposit;
+  
+        const depositAmount = requiresDeposit ? depositPolicy.depositAmount : 0;
+        const depositReason = clientReliability.requiresDeposit
+          ? clientReliability.reason
+          : depositPolicy.reason;
+  
+        // Calculate commission with normalized source
+        const commissionPreview = await this.commissionCalculatorService
+          .calculateCommission(
+            'preview',
+            {
+              businessId: createBookingDto.businessId,
+              clientId: createBookingDto.clientId,
+              totalAmount,
+              sourceTracking: normalizedBookingSource  // ✅ Use normalized source
+            }
+          );
+  
+        const totalDuration = this.calculateTotalDuration(services);
+        const isAvailable = await this.checkAvailabilityForAllServices(
+          createBookingDto.businessId,
+          serviceIds,
+          preferredDate,
+          createBookingDto.preferredStartTime,
+          totalDuration
+        );
+  
+        if (!isAvailable) {
+          throw new BadRequestException('Selected time slot is not available');
+        }
+  
+        const bookingData = {
+          clientId: createBookingDto.clientId,
+          businessId: createBookingDto.businessId,
+          preferredDate,
+          preferredStartTime: createBookingDto.preferredStartTime,
+          clientName: createBookingDto.clientName,
+          clientEmail: createBookingDto.clientEmail,
+          clientPhone: createBookingDto.clientPhone,
+          specialRequests: createBookingDto.specialRequests,
+          services: services.map((service, index) => ({
+            serviceId: service._id,
+            serviceName: service.basicDetails.serviceName,
+            duration: this.getServiceDurationInMinutes(service),
+            bufferTime: createBookingDto.services[index].bufferTime || 0,
+            price: service.pricingAndDuration.price.amount
+          })),
+          estimatedEndTime: this.addMinutesToTime(
+            createBookingDto.preferredStartTime,
+            totalDuration
+          ),
+          totalDuration,
+          estimatedTotal: totalAmount,
+          status: 'pending',
+          bookingSource: normalizedBookingSource,  // ✅ Use normalized source
+          requiresDeposit,
+          depositAmount,
+          depositReason,
+          remainingAmount: requiresDeposit ? totalAmount - depositAmount : totalAmount,
+          commissionPreview: commissionPreview.isCommissionable ? {
+            rate: commissionPreview.commissionRate,
+            amount: commissionPreview.commissionAmount,
+            reason: commissionPreview.reason
+          } : null,
+          clientReliabilityScore: clientReliability.score
+        };
+  
+        const booking = await this.bookingService.createBooking(bookingData);
+  
+        // Track conversion if tracking code exists
+        if (normalizedBookingSource.trackingCode) {
+          await this.sourceTrackingService.recordConversion(
+            normalizedBookingSource.trackingCode
+          );
+        }
+  
+        await this.notificationService.notifyStaffNewBooking(booking);
+        this.eventEmitter.emit('booking.created', booking);
+  
+        return {
+          bookingId: booking._id.toString(),
+          bookingNumber: booking.bookingNumber,
+          estimatedTotal: booking.estimatedTotal,
+          expiresAt: booking.expiresAt,
+          status: booking.status,
+          clientId: booking.clientId.toString(),
+          businessId: booking.businessId.toString(),
+          booking,
+          requiresDeposit,
+          depositAmount,
+          depositReason,
+          remainingAmount: bookingData.remainingAmount,
+          commissionInfo: commissionPreview.isCommissionable ? {
+            willBeCharged: true,
+            rate: commissionPreview.commissionRate,
+            amount: commissionPreview.commissionAmount,
+            reason: commissionPreview.reason,
+            businessPayout: commissionPreview.businessPayout
+          } : {
+            willBeCharged: false,
+            reason: commissionPreview.reason,
+            businessPayout: totalAmount
+          },
+          clientReliability: {
+            score: clientReliability.score,
+            requiresDeposit: clientReliability.requiresDeposit,
+            reason: clientReliability.reason
+          },
+          message: requiresDeposit
+            ? `Booking created. Deposit of ₦${depositAmount} required to confirm.`
+            : 'Booking created successfully. Awaiting confirmation.'
+        };
+  
+      } catch (error) {
+        this.logger.error(`Booking creation failed: ${error.message}`);
+        throw error;
+      }
+    }
+
 
   private parseDate(date: Date | string): Date {
     if (date instanceof Date) {

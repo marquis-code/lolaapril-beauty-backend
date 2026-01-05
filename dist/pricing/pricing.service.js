@@ -30,23 +30,30 @@ let PricingService = class PricingService {
         return tier.save();
     }
     async getActiveTiers() {
-        return this.pricingTierModel.find({ isActive: true }).sort({ tierLevel: 1 }).exec();
+        const query = this.pricingTierModel
+            .find({ isActive: true })
+            .sort({ tierLevel: 1 })
+            .lean();
+        const result = await query.exec();
+        return result;
     }
-    async getTenantFeeStructure(tenantId) {
+    async getBusinessFeeStructure(businessId) {
         const now = new Date();
-        return this.feeStructureModel
+        const query = this.feeStructureModel
             .findOne({
-            tenantId: new mongoose_2.Types.ObjectId(tenantId),
+            businessId: new mongoose_2.Types.ObjectId(businessId),
             effectiveFrom: { $lte: now },
-            $or: [{ effectiveTo: { $gte: now } }, { effectiveTo: null }],
+            $or: [{ effectiveTo: { $gte: now } }, { effectiveTo: null }]
         })
             .populate('pricingTierId')
-            .exec();
+            .lean();
+        const result = await query.exec();
+        return result;
     }
-    async calculateFees(tenantId, bookingAmount) {
-        const feeStructure = await this.getTenantFeeStructure(tenantId);
+    async calculateFees(businessId, bookingAmount) {
+        const feeStructure = await this.getBusinessFeeStructure(businessId);
         if (!feeStructure) {
-            throw new common_1.NotFoundException('Fee structure not found for tenant');
+            throw new common_1.NotFoundException('Fee structure not found');
         }
         const percentageFee = (bookingAmount * feeStructure.platformFeePercentage) / 100;
         const fixedFee = feeStructure.platformFeeFixed || 0;
@@ -58,64 +65,48 @@ let PricingService = class PricingService {
             platformFeeFixed: fixedFee,
             totalPlatformFee,
             businessReceives,
-            isGrandfathered: feeStructure.isGrandfathered,
+            isGrandfathered: feeStructure.isGrandfathered
         };
     }
-    async changeTenantPlan(tenantId, newTierId, changedBy, reason) {
-        const currentStructure = await this.getTenantFeeStructure(tenantId);
+    async changePlan(businessId, newTierId, reason) {
+        const currentStructure = await this.getBusinessFeeStructure(businessId);
         const newTier = await this.pricingTierModel.findById(newTierId);
         if (!newTier) {
             throw new common_1.NotFoundException('New pricing tier not found');
         }
         if (currentStructure) {
-            currentStructure.effectiveTo = new Date();
-            await currentStructure.save();
+            await this.feeStructureModel.findByIdAndUpdate(currentStructure._id, {
+                effectiveTo: new Date()
+            });
         }
-        const newStructure = new this.feeStructureModel({
-            tenantId: new mongoose_2.Types.ObjectId(tenantId),
+        const newStructure = await this.feeStructureModel.create({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
             pricingTierId: new mongoose_2.Types.ObjectId(newTierId),
             effectiveFrom: new Date(),
             platformFeePercentage: newTier.commissionRate,
-            isGrandfathered: false,
+            isGrandfathered: false
         });
-        await newStructure.save();
-        const history = new this.pricingHistoryModel({
-            tenantId: new mongoose_2.Types.ObjectId(tenantId),
-            changeType: currentStructure?.pricingTierId ?
-                (newTier.tierLevel > currentStructure.pricingTierId.tierLevel ? 'upgrade' : 'downgrade') :
-                'initial',
+        const history = await this.pricingHistoryModel.create({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            changeType: currentStructure?.pricingTierId ? 'upgrade' : 'initial',
             oldTierId: currentStructure?.pricingTierId,
             newTierId: new mongoose_2.Types.ObjectId(newTierId),
             oldCommissionRate: currentStructure?.platformFeePercentage,
             newCommissionRate: newTier.commissionRate,
             effectiveDate: new Date(),
-            reason,
-            changedBy: new mongoose_2.Types.ObjectId(changedBy),
+            reason
         });
-        await history.save();
         return { newStructure, history };
     }
-    async grandfatherTenantPricing(tenantId, reason) {
-        const currentStructure = await this.getTenantFeeStructure(tenantId);
-        if (!currentStructure) {
-            throw new common_1.NotFoundException('Current fee structure not found');
-        }
-        currentStructure.isGrandfathered = true;
-        await currentStructure.save();
-        return {
-            success: true,
-            message: 'Tenant pricing grandfathered successfully',
-            data: currentStructure,
-        };
-    }
-    async getPricingHistory(tenantId) {
-        return this.pricingHistoryModel
-            .find({ tenantId: new mongoose_2.Types.ObjectId(tenantId) })
+    async getPricingHistory(businessId) {
+        const query = this.pricingHistoryModel
+            .find({ businessId: new mongoose_2.Types.ObjectId(businessId) })
             .populate('oldTierId')
             .populate('newTierId')
-            .populate('changedBy', 'firstName lastName email')
             .sort({ createdAt: -1 })
-            .exec();
+            .lean();
+        const result = await query.exec();
+        return result;
     }
 };
 PricingService = __decorate([

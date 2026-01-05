@@ -172,7 +172,7 @@ export class AvailabilityController {
   
   // STAFF ENDPOINT - Omitted fields come from JWT
   @Post('my-availability')
-  @UseGuards(JwtAuthGuard, BusinessRolesGuard)
+  
   @RequireBusinessRoles(UserRole.STAFF)
   async createMyAvailability(
     @BusinessContext() context: BusinessCtx,
@@ -191,8 +191,8 @@ export class AvailabilityController {
   
   // ADMIN ENDPOINT - businessId from JWT, staffId from body
   @Post('staff-availability')
-  @UseGuards(JwtAuthGuard, BusinessRolesGuard)
-  @RequireBusinessRoles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN)
+  
+  
   async createStaffAvailability(
     @BusinessContext() context: BusinessCtx,
     @Body() dto: CreateStaffAvailabilityAdminDto

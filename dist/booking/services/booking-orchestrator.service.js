@@ -20,18 +20,19 @@ const payment_service_1 = require("../../payment/payment.service");
 const availability_service_1 = require("../../availability/availability.service");
 const notification_service_1 = require("../../notification/notification.service");
 const staff_service_1 = require("../../staff/staff.service");
-const tenant_service_1 = require("../../tenant/tenant.service");
+const business_service_1 = require("../../business/business.service");
 const service_service_1 = require("../../service/service.service");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const cancellation_policy_service_1 = require("../../cancellation/services/cancellation-policy.service");
 const no_show_management_service_1 = require("../../cancellation/services/no-show-management.service");
+const subscription_service_1 = require("../../subscription/subscription.service");
 const winston_1 = require("winston");
 const nest_winston_1 = require("nest-winston");
 const source_tracking_service_1 = require("../../commission/services/source-tracking.service");
 const commission_calculator_service_1 = require("../../commission/services/commission-calculator.service");
 const create_booking_with_source_dto_1 = require("../dto/create-booking-with-source.dto");
 let BookingOrchestrator = class BookingOrchestrator {
-    constructor(logger, bookingService, appointmentService, paymentService, availabilityService, notificationService, staffService, tenantService, serviceService, eventEmitter, cancellationPolicyService, noShowManagementService, sourceTrackingService, commissionCalculatorService) {
+    constructor(logger, bookingService, appointmentService, paymentService, availabilityService, notificationService, staffService, businessService, subscriptionService, serviceService, eventEmitter, cancellationPolicyService, noShowManagementService, sourceTrackingService, commissionCalculatorService) {
         this.logger = logger;
         this.bookingService = bookingService;
         this.appointmentService = appointmentService;
@@ -39,7 +40,8 @@ let BookingOrchestrator = class BookingOrchestrator {
         this.availabilityService = availabilityService;
         this.notificationService = notificationService;
         this.staffService = staffService;
-        this.tenantService = tenantService;
+        this.businessService = businessService;
+        this.subscriptionService = subscriptionService;
         this.serviceService = serviceService;
         this.eventEmitter = eventEmitter;
         this.cancellationPolicyService = cancellationPolicyService;
@@ -147,7 +149,7 @@ let BookingOrchestrator = class BookingOrchestrator {
     async createBookingWithValidation(createBookingDto) {
         try {
             const preferredDate = this.parseDate(createBookingDto.preferredDate);
-            const limitsCheck = await this.tenantService.checkSubscriptionLimits(createBookingDto.businessId, 'booking');
+            const limitsCheck = await this.subscriptionService.checkLimits(createBookingDto.businessId, 'booking');
             if (!limitsCheck.isValid) {
                 throw new common_1.BadRequestException(`Subscription limits exceeded`);
             }
@@ -853,7 +855,8 @@ BookingOrchestrator = __decorate([
         availability_service_1.AvailabilityService,
         notification_service_1.NotificationService,
         staff_service_1.StaffService,
-        tenant_service_1.TenantService,
+        business_service_1.BusinessService,
+        subscription_service_1.SubscriptionService,
         service_service_1.ServiceService,
         event_emitter_1.EventEmitter2,
         cancellation_policy_service_1.CancellationPolicyService,

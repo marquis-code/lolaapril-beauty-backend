@@ -131,7 +131,7 @@ import { JwtAuthGuard, BusinessId } from "../auth"
 
 @ApiTags("Clients")
 @Controller("clients")
-@UseGuards(JwtAuthGuard)
+
 @ApiBearerAuth()
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}

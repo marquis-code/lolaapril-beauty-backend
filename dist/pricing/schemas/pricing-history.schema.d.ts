@@ -26,7 +26,7 @@
 import { Document, Types } from 'mongoose';
 export type PricingHistoryDocument = PricingHistory & Document;
 export declare class PricingHistory {
-    tenantId: Types.ObjectId;
+    businessId: Types.ObjectId;
     changeType: string;
     oldTierId: Types.ObjectId;
     newTierId: Types.ObjectId;

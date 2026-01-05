@@ -15,7 +15,7 @@ import { RequestWithUser } from "../auth/types/request-with-user.interface";
 
 @ApiTags("Vouchers")
 @Controller("vouchers")
-@UseGuards(JwtAuthGuard, RolesGuard)
+
 @UseInterceptors(AuditInterceptor)
 @ApiBearerAuth()
 export class VoucherController {

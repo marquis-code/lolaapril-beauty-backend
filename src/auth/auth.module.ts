@@ -1,25 +1,131 @@
-// src/modules/auth/auth.module.ts
-import { Module } from "@nestjs/common"
-import { MongooseModule } from "@nestjs/mongoose"
-import { JwtModule } from "@nestjs/jwt"
-import { ConfigModule, ConfigService } from "@nestjs/config"
-import { PassportModule } from "@nestjs/passport"
-import { AuthService } from "./auth.service"
-import { AuthController } from "./auth.controller"
-import { Business, BusinessSchema } from "../tenant/schemas/business.schema"
-import { Subscription, SubscriptionSchema } from "../tenant/schemas/subscription.schema"
-import { TenantConfig, TenantConfigSchema } from "../tenant/schemas/tenant-config.schema"
-import { User, UserSchema } from "./schemas/user.schema"
-import { JwtStrategy } from "./strategies/jwt.strategy"
-import { GoogleStrategy } from "./strategies/google.strategy"
 
+
+// // ============================================================================
+// // FILE 5: src/modules/auth/auth.module.ts (UPDATE - REPLACE ENTIRE FILE)
+// // ============================================================================
+// import { Module, Global } from '@nestjs/common'
+// import { MongooseModule } from '@nestjs/mongoose'
+// import { JwtModule } from '@nestjs/jwt'
+// import { ConfigModule, ConfigService } from '@nestjs/config'
+// import { PassportModule } from '@nestjs/passport'
+// import { Reflector } from '@nestjs/core'
+
+// import { AuthService } from './auth.service'
+// import { AuthController } from './auth.controller'
+// import { User, UserSchema } from './schemas/user.schema'
+// import { Business, BusinessSchema } from '../business/schemas/business.schema'
+// import { Subscription, SubscriptionSchema } from '../business/schemas/subscription.schema'
+// import { TenantConfig, TenantConfigSchema } from '../business/schemas/tenant-config.schema'
+// import { JwtStrategy } from './strategies/jwt.strategy'
+// import { GoogleStrategy } from './strategies/google.strategy'
+// import { JwtAuthGuard } from './guards/jwt-auth.guard'
+// import { ValidateBusinessAccessGuard } from './guards/validate-business-access.guard'
+// import { BusinessAuthGuard, BusinessRolesGuard } from './guards/business-auth.guard'
+// import { RolesGuard } from './guards/roles.guard'
+// import { OptionalAuthGuard } from './guards/optional-auth.guard'
+
+// /**
+//  * AuthModule - Made Global
+//  * 
+//  * This module is now global (@Global() decorator) so that:
+//  * 1. Guards can be used in APP_GUARD (app.module.ts)
+//  * 2. Decorators and guards are available in all modules
+//  * 3. No need to import AuthModule in every feature module
+//  */
+// @Global()
+// @Module({
+//   imports: [
+//     MongooseModule.forFeature([
+//       { name: User.name, schema: UserSchema },
+//       { name: Business.name, schema: BusinessSchema },
+//       { name: Subscription.name, schema: SubscriptionSchema },
+//       { name: TenantConfig.name, schema: TenantConfigSchema },
+//     ]),
+//     PassportModule.register({ defaultStrategy: 'jwt' }),
+//     ConfigModule,
+//     JwtModule.registerAsync({
+//       imports: [ConfigModule],
+//       useFactory: async (configService: ConfigService) => ({
+//         secret: configService.get<string>('JWT_SECRET'),
+//         signOptions: { expiresIn: '15m' },
+//       }),
+//       inject: [ConfigService],
+//     }),
+//   ],
+//   controllers: [AuthController],
+//   providers: [
+//     // Services
+//     AuthService,
+    
+//     // Strategies
+//     JwtStrategy,
+//     GoogleStrategy,
+    
+//     // Guards
+//     JwtAuthGuard,
+//     ValidateBusinessAccessGuard,
+//     BusinessAuthGuard,
+//     BusinessRolesGuard,
+//     RolesGuard,
+//     OptionalAuthGuard,
+    
+//     // Reflector for guards
+//     Reflector,
+//   ],
+//   exports: [
+//     // Export service for other modules
+//     AuthService,
+    
+//     // Export guards for manual use if needed
+//     JwtAuthGuard,
+//     ValidateBusinessAccessGuard,
+//     BusinessAuthGuard,
+//     BusinessRolesGuard,
+//     RolesGuard,
+//     OptionalAuthGuard,
+//   ],
+// })
+// export class AuthModule {}
+
+// src/modules/auth/auth.module.ts
+import { Module, Global } from '@nestjs/common'
+import { MongooseModule } from '@nestjs/mongoose'
+import { JwtModule } from '@nestjs/jwt'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { PassportModule } from '@nestjs/passport'
+import { Reflector } from '@nestjs/core'
+
+import { AuthService } from './auth.service'
+import { AuthController } from './auth.controller'
+import { User, UserSchema } from './schemas/user.schema'
+import { Business, BusinessSchema } from '../business/schemas/business.schema'
+import { Subscription, SubscriptionSchema } from '../business/schemas/subscription.schema'
+// ✅ REMOVED: TenantConfig import
+
+import { JwtStrategy } from './strategies/jwt.strategy'
+import { GoogleStrategy } from './strategies/google.strategy'
+import { JwtAuthGuard } from './guards/jwt-auth.guard'
+import { ValidateBusinessAccessGuard } from './guards/validate-business-access.guard'
+import { BusinessAuthGuard, BusinessRolesGuard } from './guards/business-auth.guard'
+import { RolesGuard } from './guards/roles.guard'
+import { OptionalAuthGuard } from './guards/optional-auth.guard'
+
+/**
+ * AuthModule - Made Global
+ * 
+ * This module is now global (@Global() decorator) so that:
+ * 1. Guards can be used in APP_GUARD (app.module.ts)
+ * 2. Decorators and guards are available in all modules
+ * 3. No need to import AuthModule in every feature module
+ */
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Business.name, schema: BusinessSchema },
       { name: Subscription.name, schema: SubscriptionSchema },
-      { name: TenantConfig.name, schema: TenantConfigSchema },
+      // ✅ REMOVED: TenantConfig schema registration
     ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     ConfigModule,
@@ -33,7 +139,36 @@ import { GoogleStrategy } from "./strategies/google.strategy"
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
-  exports: [AuthService],
+  providers: [
+    // Services
+    AuthService,
+    
+    // Strategies
+    JwtStrategy,
+    GoogleStrategy,
+    
+    // Guards
+    JwtAuthGuard,
+    ValidateBusinessAccessGuard,
+    BusinessAuthGuard,
+    BusinessRolesGuard,
+    RolesGuard,
+    OptionalAuthGuard,
+    
+    // Reflector for guards
+    Reflector,
+  ],
+  exports: [
+    // Export service for other modules
+    AuthService,
+    
+    // Export guards for manual use if needed
+    JwtAuthGuard,
+    ValidateBusinessAccessGuard,
+    BusinessAuthGuard,
+    BusinessRolesGuard,
+    RolesGuard,
+    OptionalAuthGuard,
+  ],
 })
 export class AuthModule {}

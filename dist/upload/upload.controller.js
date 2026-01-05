@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const upload_service_1 = require("./upload.service");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let UploadController = class UploadController {
     constructor(uploadService) {
         this.uploadService = uploadService;
@@ -81,7 +80,6 @@ __decorate([
 UploadController = __decorate([
     (0, swagger_1.ApiTags)("File Upload"),
     (0, common_1.Controller)("upload"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [upload_service_1.UploadService])
 ], UploadController);

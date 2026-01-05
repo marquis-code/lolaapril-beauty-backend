@@ -9,12 +9,12 @@ import { BookingAutomationService } from './services/booking-automation.service'
 import { BookingOrchestrator } from './services/booking-orchestrator.service'
 import { Booking, BookingSchema } from './schemas/booking.schema'
 import { BookingEventHandler } from './events/booking.events'
-import { TenantMiddleware } from '../tenant/middleware/tenant.middleware'
+import { TenantMiddleware } from '../business/middleware/tenant.middleware'
 import { SourceTrackingService } from './services/source-tracking.service'
 import { ClientReliabilityService } from './services/client-reliability.service'
 import { ClientReliability, ClientReliabilitySchema } from './schemas/client-reliability.schema'
 import { AvailabilityModule } from '../availability/availability.module'
-import { TenantModule } from '../tenant/tenant.module'
+import { BusinessModule } from '../business/business.module'
 import { NotificationModule } from '../notification/notification.module'
 import { AppointmentModule } from '../appointment/appointment.module'
 import { PaymentModule } from '../payment/payment.module'
@@ -23,6 +23,8 @@ import { ServiceModule } from '../service/service.module'
 import { CommissionModule } from '../commission/commission.module'
 import { CancellationModule } from '../cancellation/cancellation.module'
 import { AnalyticsModule } from '../analytics/analytics.module'
+import { SubscriptionModule } from '../subscription/subscription.module'
+import { BusinessModule } from '../business/business.module' 
 
 @Module({
   imports: [
@@ -30,9 +32,10 @@ import { AnalyticsModule } from '../analytics/analytics.module'
       { name: Booking.name, schema: BookingSchema },
       { name: ClientReliability.name, schema: ClientReliabilitySchema } 
     ]),
+    SubscriptionModule,
+    BusinessModule,
     EventEmitterModule.forRoot(),
     forwardRef(() => AvailabilityModule),
-    TenantModule,
     forwardRef(() => NotificationModule),
     forwardRef(() => AppointmentModule),
     forwardRef(() => PaymentModule),
@@ -65,13 +68,4 @@ import { AnalyticsModule } from '../analytics/analytics.module'
     ClientReliabilityService
   ],
 })
-export class BookingModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware)
-      .forRoutes(
-        { path: 'bookings/*', method: RequestMethod.ALL },
-        { path: 'booking-flow/*', method: RequestMethod.ALL }
-      )
-  }
-}
+export class BookingModule {}

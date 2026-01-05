@@ -16,7 +16,7 @@ const availability_scheduler_service_1 = require("./availability-scheduler.servi
 const business_hours_schema_1 = require("./schemas/business-hours.schema");
 const staff_availability_schema_1 = require("./schemas/staff-availability.schema");
 const auth_module_1 = require("../auth/auth.module");
-const tenant_module_1 = require("../tenant/tenant.module");
+const business_module_1 = require("../business/business.module");
 let AvailabilityModule = class AvailabilityModule {
 };
 AvailabilityModule = __decorate([
@@ -28,7 +28,7 @@ AvailabilityModule = __decorate([
             ]),
             schedule_1.ScheduleModule.forRoot(),
             auth_module_1.AuthModule,
-            tenant_module_1.TenantModule,
+            business_module_1.BusinessModule,
         ],
         controllers: [availability_controller_1.AvailabilityController],
         providers: [

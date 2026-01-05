@@ -1,15 +1,22 @@
-// app.module.ts
+// ============================================================================
+// FILE 6: src/app.module.ts (UPDATE - ADD GLOBAL GUARDS)
+// ============================================================================
 import { Module, MiddlewareConsumer, RequestMethod } from "@nestjs/common"
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { MongooseModule } from "@nestjs/mongoose"
 import { ScheduleModule } from '@nestjs/schedule'
 import { EventEmitterModule } from '@nestjs/event-emitter'
-import { APP_INTERCEPTOR } from "@nestjs/core"
+import { APP_INTERCEPTOR, APP_GUARD } from "@nestjs/core"
 import { WinstonModule } from 'nest-winston'
 import * as winston from 'winston'
-import { ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { RedisModule } from '@nestjs-modules/ioredis'
 
+// Import Global Guards
+import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard"
+import { ValidateBusinessAccessGuard } from "./auth/guards/validate-business-access.guard"
+
+// Import Modules
 import { ClientModule } from "./client/client.module"
 import { ServiceModule } from "./service/service.module"
 import { AppointmentModule } from "./appointment/appointment.module"
@@ -28,22 +35,21 @@ import { CancellationModule } from "./cancellation/cancellation.module"
 import { UploadModule } from "./upload/upload.module"
 import { AvailabilityModule } from './availability/availability.module'
 import { NotificationModule } from './notification/notification.module'
-import { TenantModule } from './tenant/tenant.module'
+import { BusinessModule } from './business/business.module'
 import { StaffModule } from './staff/staff.module'
 import { AuditInterceptor } from './audit/interceptors/audit.interceptor'
-import { TenantMiddleware } from './tenant/middleware/tenant.middleware'
-import { SubdomainRedirectMiddleware } from './tenant/middleware/subdomain-redirect.middleware'
 import { AnalyticsModule } from './analytics/analytics.module'
-import { PricingModule } from './pricing/pricing.module';
-import { BrandingModule } from './branding/branding.module';
-import { SupportModule } from './support/support.module';
-import { IntegrationModule } from './integration/integration.module';
-import { JobsModule } from './jobs/jobs.module';
-import { CacheModule } from './cache/cache.module';
-import { MonitoringModule } from './monitoring/monitoring.module';
-import { WebhookModule } from './webhook/webhook.module';
-import { RateLimiterModule } from './rate-limiter/rate-limiter.module';
-import { MarketplaceModule } from './marketplace/marketplace.module';
+import { PricingModule } from './pricing/pricing.module'
+import { BrandingModule } from './branding/branding.module'
+import { SupportModule } from './support/support.module'
+import { IntegrationModule } from './integration/integration.module'
+import { JobsModule } from './jobs/jobs.module'
+import { CacheModule } from './cache/cache.module'
+import { MonitoringModule } from './monitoring/monitoring.module'
+import { WebhookModule } from './webhook/webhook.module'
+import { RateLimiterModule } from './rate-limiter/rate-limiter.module'
+import { MarketplaceModule } from './marketplace/marketplace.module'
+import { SubscriptionModule } from './subscription/subscription.module'  
 
 @Module({
   imports: [
@@ -53,7 +59,7 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
       envFilePath: '.env'
     }),
 
-    // Redis Configuration - FIXED
+    // Redis Configuration
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -69,10 +75,8 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
         console.log(`   Port: ${redisPort}`);
         console.log(`   Username: ${redisUsername}`);
         console.log(`   Password: ${redisPassword ? '***' : 'not set'}`);
-        console.log(`   REDIS_TLS env: ${redisTls}`);
         console.log(`   TLS: ${redisTls === 'true' ? 'enabled' : 'disabled'}`);
 
-        // Build config object
         const config: any = {
           type: 'single',
           options: {
@@ -90,21 +94,17 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
           },
         };
 
-        // ✅ ONLY add TLS if explicitly set to 'true'
         if (redisTls === 'true') {
           config.options.tls = {
             rejectUnauthorized: false
           };
-          console.log('   ✅ TLS Config Added');
-        } else {
-          console.log('   ✅ TLS Disabled (not added to config)');
         }
 
         return config;
       },
     }),
 
-    // Winston Logger - Global setup
+    // Winston Logger
     WinstonModule.forRoot({
       transports: [
         new winston.transports.Console({
@@ -132,7 +132,7 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
             winston.format.errors({ stack: true }),
             winston.format.json(),
           ),
-          maxsize: 5242880, // 5MB
+          maxsize: 5242880,
           maxFiles: 5,
         }),
         new winston.transports.File({
@@ -141,7 +141,7 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
             winston.format.json(),
           ),
-          maxsize: 5242880, // 5MB
+          maxsize: 5242880,
           maxFiles: 5,
         }),
       ],
@@ -172,11 +172,11 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
       }),
     }),
 
-    // Throttling (alternative to custom rate limiter)
+    // Throttling
     ThrottlerModule.forRoot([
       {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
+        ttl: 60000,
+        limit: 100,
       },
     ]),
 
@@ -187,9 +187,11 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     
-    // Feature Modules
-    TenantModule,
+    // ⚠️ IMPORTANT: AuthModule MUST be imported before using guards
     AuthModule,
+    
+    // Feature Modules
+    BusinessModule,
     AuditModule,
     UploadModule,
     ClientModule,
@@ -209,32 +211,40 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
     CommissionModule,
     CancellationModule,
     AnalyticsModule,
-
-    // Enhanced modules
-    CancellationModule,
-    CommissionModule,
-
-    // New critical modules
     PricingModule,
     BrandingModule,
     SupportModule,
     MarketplaceModule,
-
-    // Integration & background processing
     IntegrationModule,
     JobsModule,
     WebhookModule,
+    SubscriptionModule
   ],
 
   providers: [
+    // Audit Interceptor
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditInterceptor,
-    }
+    },
+    
+    // 🔥 GLOBAL GUARDS - Applied to ALL routes by default
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard, // ✅ Authentication on all routes (opt-out with @Public())
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ValidateBusinessAccessGuard, // ✅ Business validation (opt-in with @ValidateBusiness())
+    },
   ],
 })
-
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
+    // Your existing middleware configuration
   }
 }

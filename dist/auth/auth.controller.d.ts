@@ -32,6 +32,7 @@ import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/busi
 import { UpdateProfileDto, ChangePasswordDto, UpdateEmailDto, UserPreferencesDto } from "./dto/update-profile.dto";
 import { RequestWithUser } from "./types/request-with-user.interface";
 import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator";
+import { SwitchBusinessDto } from "./dto/switch-business.dto";
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -191,5 +192,37 @@ export declare class AuthController {
     getBusinessInfo(businessId: string): Promise<{
         message: string;
         businessId: string;
+    }>;
+    switchBusiness(user: RequestWithUser['user'], switchBusinessDto: SwitchBusinessDto): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        success: boolean;
+        message: string;
+        business: {
+            id: import("mongoose").Types.ObjectId;
+            businessName: string;
+            subdomain: string;
+            businessType: string;
+            status: string;
+        };
+    }>;
+    getUserBusinesses(user: RequestWithUser['user']): Promise<{
+        businesses: {
+            id: any;
+            businessName: any;
+            subdomain: any;
+            businessType: any;
+            status: any;
+            trialEndsAt: any;
+            isOwner: boolean;
+            isCurrent: boolean;
+        }[];
+        currentBusinessId: import("mongoose").Types.ObjectId;
+    }>;
+    clearBusinessContext(user: RequestWithUser['user']): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        success: boolean;
+        message: string;
     }>;
 }

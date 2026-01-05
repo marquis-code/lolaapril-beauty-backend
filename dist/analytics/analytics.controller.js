@@ -16,8 +16,6 @@ exports.AnalyticsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const analytics_service_1 = require("./analytics.service");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
@@ -495,7 +493,6 @@ AnalyticsController = __decorate([
     (0, swagger_1.ApiTags)('Analytics'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('analytics'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     __metadata("design:paramtypes", [analytics_service_1.AnalyticsService])
 ], AnalyticsController);

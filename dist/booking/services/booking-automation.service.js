@@ -18,17 +18,19 @@ const payment_service_1 = require("../../payment/payment.service");
 const notification_service_1 = require("../../notification/notification.service");
 const staff_service_1 = require("../../staff/staff.service");
 const availability_service_1 = require("../../availability/availability.service");
-const tenant_service_1 = require("../../tenant/tenant.service");
+const business_service_1 = require("../../business/business.service");
+const subscription_service_1 = require("../../subscription/subscription.service");
 const event_emitter_1 = require("@nestjs/event-emitter");
 let BookingAutomationService = BookingAutomationService_1 = class BookingAutomationService {
-    constructor(bookingService, appointmentService, paymentService, notificationService, staffService, availabilityService, tenantService, eventEmitter) {
+    constructor(bookingService, appointmentService, paymentService, notificationService, staffService, availabilityService, businessService, subscriptionService, eventEmitter) {
         this.bookingService = bookingService;
         this.appointmentService = appointmentService;
         this.paymentService = paymentService;
         this.notificationService = notificationService;
         this.staffService = staffService;
         this.availabilityService = availabilityService;
-        this.tenantService = tenantService;
+        this.businessService = businessService;
+        this.subscriptionService = subscriptionService;
         this.eventEmitter = eventEmitter;
         this.logger = new common_1.Logger(BookingAutomationService_1.name);
     }
@@ -36,7 +38,7 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
         try {
             this.logger.log(`Creating automated booking for client: ${bookingData.clientId}`);
             const preferredDate = this.parseDate(bookingData.preferredDate);
-            await this.validateTenantLimits(bookingData.businessId);
+            await this.validateBusinessLimits(bookingData.businessId);
             const services = await this.getServicesDetails(bookingData.serviceIds);
             const { totalDuration, totalAmount } = this.calculateBookingTotals(services);
             const estimatedEndTime = this.addMinutesToTime(bookingData.preferredStartTime, totalDuration);
@@ -153,8 +155,8 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
             requiresPayment: false
         };
     }
-    async validateTenantLimits(businessId) {
-        const limitsCheck = await this.tenantService.checkSubscriptionLimits(businessId);
+    async validateBusinessLimits(businessId) {
+        const limitsCheck = await this.subscriptionService.checkLimits(businessId, 'booking');
         if (!limitsCheck.isValid) {
             throw new common_1.BadRequestException(`Subscription limits exceeded: ${limitsCheck.warnings.join(', ')}`);
         }
@@ -301,7 +303,8 @@ BookingAutomationService = BookingAutomationService_1 = __decorate([
         notification_service_1.NotificationService,
         staff_service_1.StaffService,
         availability_service_1.AvailabilityService,
-        tenant_service_1.TenantService,
+        business_service_1.BusinessService,
+        subscription_service_1.SubscriptionService,
         event_emitter_1.EventEmitter2])
 ], BookingAutomationService);
 exports.BookingAutomationService = BookingAutomationService;

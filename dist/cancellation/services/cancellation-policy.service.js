@@ -30,15 +30,17 @@ let CancellationPolicyService = CancellationPolicyService_1 = class Cancellation
         if (serviceId) {
             query.applicableServices = new mongoose_2.Types.ObjectId(serviceId);
         }
-        const policy = await this.policyModel.findOne(query).lean().exec();
+        const policyQuery = this.policyModel.findOne(query).lean();
+        const policy = await policyQuery.exec();
         if (policy) {
             return policy;
         }
-        const defaultPolicy = await this.policyModel.findOne({
+        const defaultQuery = this.policyModel.findOne({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             isActive: true,
             applicableServices: { $size: 0 }
-        }).lean().exec();
+        }).lean();
+        const defaultPolicy = await defaultQuery.exec();
         if (defaultPolicy) {
             return defaultPolicy;
         }
@@ -77,7 +79,8 @@ let CancellationPolicyService = CancellationPolicyService_1 = class Cancellation
         return saved.toObject();
     }
     async getPolicyById(policyId) {
-        const policy = await this.policyModel.findById(policyId).lean().exec();
+        const query = this.policyModel.findById(policyId).lean();
+        const policy = await query.exec();
         if (!policy) {
             throw new common_1.NotFoundException('Policy not found');
         }

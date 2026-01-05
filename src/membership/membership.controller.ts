@@ -15,7 +15,7 @@ import { AuditAction, AuditEntity } from "../audit/schemas/audit-log.schema"
 
 @ApiTags("Memberships")
 @Controller("memberships")
-@UseGuards(JwtAuthGuard, RolesGuard)
+
 @UseInterceptors(AuditInterceptor)
 @ApiBearerAuth()
 export class MembershipController {

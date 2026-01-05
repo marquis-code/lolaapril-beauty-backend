@@ -34,7 +34,7 @@ import { StaffAvailability, StaffAvailabilitySchema } from './schemas/staff-avai
 // Import from Auth module for guards and decorators
 import { AuthModule } from '../auth/auth.module'
 // Import from Tenant module for business management
-import { TenantModule } from '../tenant/tenant.module'
+import { BusinessModule } from '../business/business.module'
 
 @Module({
   imports: [
@@ -44,7 +44,7 @@ import { TenantModule } from '../tenant/tenant.module'
     ]),
     ScheduleModule.forRoot(), // For cron jobs
     AuthModule,  // Provides JWT guards and decorators
-    TenantModule, // Provides business validation
+    BusinessModule, // Provides business validation
   ],
   controllers: [AvailabilityController],
   providers: [

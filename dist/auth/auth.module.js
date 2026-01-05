@@ -12,24 +12,29 @@ const mongoose_1 = require("@nestjs/mongoose");
 const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const passport_1 = require("@nestjs/passport");
+const core_1 = require("@nestjs/core");
 const auth_service_1 = require("./auth.service");
 const auth_controller_1 = require("./auth.controller");
-const business_schema_1 = require("../tenant/schemas/business.schema");
-const subscription_schema_1 = require("../tenant/schemas/subscription.schema");
-const tenant_config_schema_1 = require("../tenant/schemas/tenant-config.schema");
 const user_schema_1 = require("./schemas/user.schema");
+const business_schema_1 = require("../business/schemas/business.schema");
+const subscription_schema_1 = require("../business/schemas/subscription.schema");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const google_strategy_1 = require("./strategies/google.strategy");
+const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
+const validate_business_access_guard_1 = require("./guards/validate-business-access.guard");
+const business_auth_guard_1 = require("./guards/business-auth.guard");
+const roles_guard_1 = require("./guards/roles.guard");
+const optional_auth_guard_1 = require("./guards/optional-auth.guard");
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
+    (0, common_1.Global)(),
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([
                 { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
                 { name: business_schema_1.Business.name, schema: business_schema_1.BusinessSchema },
                 { name: subscription_schema_1.Subscription.name, schema: subscription_schema_1.SubscriptionSchema },
-                { name: tenant_config_schema_1.TenantConfig.name, schema: tenant_config_schema_1.TenantConfigSchema },
             ]),
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             config_1.ConfigModule,
@@ -43,8 +48,27 @@ AuthModule = __decorate([
             }),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, google_strategy_1.GoogleStrategy],
-        exports: [auth_service_1.AuthService],
+        providers: [
+            auth_service_1.AuthService,
+            jwt_strategy_1.JwtStrategy,
+            google_strategy_1.GoogleStrategy,
+            jwt_auth_guard_1.JwtAuthGuard,
+            validate_business_access_guard_1.ValidateBusinessAccessGuard,
+            business_auth_guard_1.BusinessAuthGuard,
+            business_auth_guard_1.BusinessRolesGuard,
+            roles_guard_1.RolesGuard,
+            optional_auth_guard_1.OptionalAuthGuard,
+            core_1.Reflector,
+        ],
+        exports: [
+            auth_service_1.AuthService,
+            jwt_auth_guard_1.JwtAuthGuard,
+            validate_business_access_guard_1.ValidateBusinessAccessGuard,
+            business_auth_guard_1.BusinessAuthGuard,
+            business_auth_guard_1.BusinessRolesGuard,
+            roles_guard_1.RolesGuard,
+            optional_auth_guard_1.OptionalAuthGuard,
+        ],
     })
 ], AuthModule);
 exports.AuthModule = AuthModule;

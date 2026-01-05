@@ -17,12 +17,11 @@ const booking_automation_service_1 = require("./services/booking-automation.serv
 const booking_orchestrator_service_1 = require("./services/booking-orchestrator.service");
 const booking_schema_1 = require("./schemas/booking.schema");
 const booking_events_1 = require("./events/booking.events");
-const tenant_middleware_1 = require("../tenant/middleware/tenant.middleware");
 const source_tracking_service_1 = require("./services/source-tracking.service");
 const client_reliability_service_1 = require("./services/client-reliability.service");
 const client_reliability_schema_1 = require("./schemas/client-reliability.schema");
 const availability_module_1 = require("../availability/availability.module");
-const tenant_module_1 = require("../tenant/tenant.module");
+const business_module_1 = require("../business/business.module");
 const notification_module_1 = require("../notification/notification.module");
 const appointment_module_1 = require("../appointment/appointment.module");
 const payment_module_1 = require("../payment/payment.module");
@@ -31,12 +30,8 @@ const service_module_1 = require("../service/service.module");
 const commission_module_1 = require("../commission/commission.module");
 const cancellation_module_1 = require("../cancellation/cancellation.module");
 const analytics_module_1 = require("../analytics/analytics.module");
+const subscription_module_1 = require("../subscription/subscription.module");
 let BookingModule = class BookingModule {
-    configure(consumer) {
-        consumer
-            .apply(tenant_middleware_1.TenantMiddleware)
-            .forRoutes({ path: 'bookings/*', method: common_1.RequestMethod.ALL }, { path: 'booking-flow/*', method: common_1.RequestMethod.ALL });
-    }
 };
 BookingModule = __decorate([
     (0, common_1.Module)({
@@ -45,9 +40,10 @@ BookingModule = __decorate([
                 { name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema },
                 { name: client_reliability_schema_1.ClientReliability.name, schema: client_reliability_schema_1.ClientReliabilitySchema }
             ]),
+            subscription_module_1.SubscriptionModule,
+            business_module_1.BusinessModule,
             event_emitter_1.EventEmitterModule.forRoot(),
             (0, common_1.forwardRef)(() => availability_module_1.AvailabilityModule),
-            tenant_module_1.TenantModule,
             (0, common_1.forwardRef)(() => notification_module_1.NotificationModule),
             (0, common_1.forwardRef)(() => appointment_module_1.AppointmentModule),
             (0, common_1.forwardRef)(() => payment_module_1.PaymentModule),

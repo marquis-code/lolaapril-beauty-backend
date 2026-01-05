@@ -1,12 +1,11 @@
 import { BookingOrchestrator } from '../services/booking-orchestrator.service';
-import { TenantRequest } from '../../tenant/middleware/tenant.middleware';
 import { ConfirmBookingDto } from '../dto/confirm-booking.dto';
 import { BookingResult, PaymentResult, AppointmentResult, BookingResponse } from '../types/booking.types';
 export declare class BookingFlowController {
     private readonly bookingOrchestrator;
     constructor(bookingOrchestrator: BookingOrchestrator);
-    createBooking(createBookingDto: any, req: any): Promise<BookingResponse<BookingResult>>;
-    confirmBooking(bookingId: string, confirmDto: ConfirmBookingDto, req: TenantRequest): Promise<BookingResponse<AppointmentResult>>;
+    createBooking(createBookingDto: any): Promise<BookingResponse<BookingResult>>;
+    confirmBooking(bookingId: string, confirmDto: ConfirmBookingDto): Promise<BookingResponse<AppointmentResult>>;
     handlePayment(bookingId: string, paymentDto: {
         transactionReference: string;
         amount: number;

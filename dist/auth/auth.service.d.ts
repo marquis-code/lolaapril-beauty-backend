@@ -27,9 +27,8 @@ import { Model, Types } from "mongoose";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { User, UserDocument, UserRole, UserStatus } from "./schemas/user.schema";
-import { BusinessDocument } from "../tenant/schemas/business.schema";
-import { SubscriptionDocument } from "../tenant/schemas/subscription.schema";
-import { TenantConfigDocument } from "../tenant/schemas/tenant-config.schema";
+import { BusinessDocument } from "../business/schemas/business.schema";
+import { SubscriptionDocument } from "../business/schemas/subscription.schema";
 import { RegisterDto } from "./dto/register.dto";
 import { UpdateEmailDto } from "./dto/update-profile.dto";
 import { LoginDto } from "./dto/login.dto";
@@ -39,11 +38,10 @@ export declare class AuthService {
     private userModel;
     private businessModel;
     private subscriptionModel;
-    private tenantConfigModel;
     private jwtService;
     private configService;
     private googleClient;
-    constructor(userModel: Model<UserDocument>, businessModel: Model<BusinessDocument>, subscriptionModel: Model<SubscriptionDocument>, tenantConfigModel: Model<TenantConfigDocument>, jwtService: JwtService, configService: ConfigService);
+    constructor(userModel: Model<UserDocument>, businessModel: Model<BusinessDocument>, subscriptionModel: Model<SubscriptionDocument>, jwtService: JwtService, configService: ConfigService);
     registerBusiness(registerDto: BusinessRegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -91,7 +89,6 @@ export declare class AuthService {
         __v: number;
     }>;
     private createTrialSubscription;
-    private createDefaultTenantConfig;
     login(loginDto: LoginDto): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -187,6 +184,38 @@ export declare class AuthService {
         newEmail: string;
     }>;
     deleteAccount(userId: string, password?: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    switchBusiness(userId: string, businessId: string): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        success: boolean;
+        message: string;
+        business: {
+            id: Types.ObjectId;
+            businessName: string;
+            subdomain: string;
+            businessType: string;
+            status: string;
+        };
+    }>;
+    getUserBusinesses(userId: string): Promise<{
+        businesses: {
+            id: any;
+            businessName: any;
+            subdomain: any;
+            businessType: any;
+            status: any;
+            trialEndsAt: any;
+            isOwner: boolean;
+            isCurrent: boolean;
+        }[];
+        currentBusinessId: Types.ObjectId;
+    }>;
+    clearBusinessContext(userId: string): Promise<{
+        accessToken: string;
+        refreshToken: string;
         success: boolean;
         message: string;
     }>;

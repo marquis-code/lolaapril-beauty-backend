@@ -13,7 +13,7 @@ import { AuditAction, AuditEntity } from "../audit/schemas/audit-log.schema"
 
 @ApiTags("Settings Management")
 @Controller("settings")
-@UseGuards(JwtAuthGuard, RolesGuard)
+
 @UseInterceptors(AuditInterceptor)
 @ApiBearerAuth()
 export class SettingsController {

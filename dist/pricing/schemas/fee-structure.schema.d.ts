@@ -26,7 +26,7 @@
 import { Document, Types } from 'mongoose';
 export type FeeStructureDocument = FeeStructure & Document;
 export declare class FeeStructure {
-    tenantId: Types.ObjectId;
+    businessId: Types.ObjectId;
     pricingTierId: Types.ObjectId;
     effectiveFrom: Date;
     effectiveTo: Date;

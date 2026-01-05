@@ -250,7 +250,6 @@ __decorate([
 CommissionController = __decorate([
     (0, swagger_1.ApiTags)('Commission'),
     (0, common_1.Controller)('commission'),
-    (0, common_1.UseGuards)(auth_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [commission_calculator_service_1.CommissionCalculatorService,
         source_tracking_service_1.SourceTrackingService])

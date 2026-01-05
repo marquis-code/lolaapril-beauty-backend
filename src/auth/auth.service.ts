@@ -1,14 +1,13 @@
 // src/modules/auth/auth.service.ts
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException } from "@nestjs/common"
+import { Injectable, UnauthorizedException, ConflictException, ForbiddenException, BadRequestException, NotFoundException } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model, Types } from "mongoose"
 import { JwtService } from "@nestjs/jwt"
 import { ConfigService } from "@nestjs/config"
 import * as bcrypt from "bcryptjs"
 import { User, UserDocument, UserRole, UserStatus } from "./schemas/user.schema"
-import { Business, BusinessDocument } from "../tenant/schemas/business.schema"
-import { Subscription, SubscriptionDocument } from "../tenant/schemas/subscription.schema"
-import { TenantConfig, TenantConfigDocument } from "../tenant/schemas/tenant-config.schema"
+import { Business, BusinessDocument } from "../business/schemas/business.schema"
+import { Subscription, SubscriptionDocument } from "../business/schemas/subscription.schema"
 import { RegisterDto } from "./dto/register.dto"
 import { UpdateEmailDto } from "./dto/update-profile.dto"
 import { LoginDto } from "./dto/login.dto"
@@ -24,7 +23,6 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
     @InjectModel(Subscription.name) private subscriptionModel: Model<SubscriptionDocument>,
-    @InjectModel(TenantConfig.name) private tenantConfigModel: Model<TenantConfigDocument>,
     private jwtService: JwtService,
     private configService: ConfigService
   ) {
@@ -32,100 +30,214 @@ export class AuthService {
   }
 
   // ==================== BUSINESS REGISTRATION ====================
-  async registerBusiness(registerDto: BusinessRegisterDto) {
-    const { owner, businessName, subdomain, businessType, businessDescription, address, contact } = registerDto
+  // async registerBusiness(registerDto: BusinessRegisterDto) {
+  //   const { owner, businessName, subdomain, businessType, businessDescription, address, contact } = registerDto
 
-    // Check subdomain availability
-    const existingBusiness = await this.businessModel.findOne({ subdomain })
-    if (existingBusiness) {
-      throw new ConflictException("Subdomain already taken")
+  //   // Check subdomain availability
+  //   const existingBusiness = await this.businessModel.findOne({ subdomain })
+  //   if (existingBusiness) {
+  //     throw new ConflictException("Subdomain already taken")
+  //   }
+
+  //   // Check if user exists
+  //   const existingUser = await this.userModel.findOne({ email: owner.email })
+  //   if (existingUser) {
+  //     throw new ConflictException("User with this email already exists")
+  //   }
+
+  //   // Hash password
+  //   const hashedPassword = await bcrypt.hash(owner.password, 12)
+
+  //   // Create business owner user
+  //   const user = new this.userModel({
+  //     firstName: owner.firstName,
+  //     lastName: owner.lastName,
+  //     email: owner.email,
+  //     phone: owner.phone,
+  //     password: hashedPassword,
+  //     role: UserRole.BUSINESS_OWNER,
+  //     status: "active",
+  //     authProvider: "local",
+  //   })
+
+  //   const savedUser = await user.save()
+
+  //   // Create business
+  //   const business = new this.businessModel({
+  //     businessName,
+  //     subdomain,
+  //     businessType,
+  //     businessDescription,
+  //     address,
+  //     contact,
+  //     ownerId: savedUser._id,
+  //     status: "trial",
+  //     trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+  //   })
+
+  //   const savedBusiness = await business.save()
+
+  //   // Update user with business ownership
+  //   await this.userModel.findByIdAndUpdate(savedUser._id, {
+  //     $push: { ownedBusinesses: savedBusiness._id },
+  //     currentBusinessId: savedBusiness._id,
+  //   })
+
+  //   // Create trial subscription
+  //   await this.createTrialSubscription(savedBusiness._id.toString())
+
+  //   // Create default tenant config
+  //   await this.createDefaultTenantConfig(savedBusiness._id.toString())
+
+  //   // Generate tokens
+  //   const tokens = await this.generateTokens(
+  //     savedUser._id.toString(),
+  //     savedUser.email,
+  //     savedUser.role,
+  //     savedBusiness._id.toString(),
+  //     subdomain
+  //   )
+
+  //   // Update user with refresh token
+  //   await this.userModel.findByIdAndUpdate(savedUser._id, {
+  //     refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+  //   })
+
+  //   return {
+  //     user: {
+  //       id: savedUser._id,
+  //       firstName: savedUser.firstName,
+  //       lastName: savedUser.lastName,
+  //       email: savedUser.email,
+  //       role: savedUser.role,
+  //       status: savedUser.status,
+  //     },
+  //     business: {
+  //       id: savedBusiness._id,
+  //       businessName: savedBusiness.businessName,
+  //       subdomain: savedBusiness.subdomain,
+  //       businessType: savedBusiness.businessType,
+  //       status: savedBusiness.status,
+  //       trialEndsAt: savedBusiness.trialEndsAt,
+  //     },
+  //     ...tokens,
+  //   }
+  // }
+
+
+   async registerBusiness(registerDto: BusinessRegisterDto) {
+      const { owner, businessName, subdomain, businessType, businessDescription, address, contact } = registerDto
+  
+      // Check subdomain availability
+      const existingBusiness = await this.businessModel.findOne({ subdomain })
+      if (existingBusiness) {
+        throw new ConflictException("Subdomain already taken")
+      }
+  
+      // Check if user exists
+      const existingUser = await this.userModel.findOne({ email: owner.email })
+      if (existingUser) {
+        throw new ConflictException("User with this email already exists")
+      }
+  
+      // Hash password
+      const hashedPassword = await bcrypt.hash(owner.password, 12)
+  
+      // Create business owner user
+      const user = new this.userModel({
+        firstName: owner.firstName,
+        lastName: owner.lastName,
+        email: owner.email,
+        phone: owner.phone,
+        password: hashedPassword,
+        role: UserRole.BUSINESS_OWNER,
+        status: UserStatus.ACTIVE,
+        authProvider: "local",
+      })
+  
+      const savedUser = await user.save()
+  
+      // Create business with default settings
+      const business = new this.businessModel({
+        businessName,
+        subdomain,
+        businessType,
+        businessDescription,
+        address,
+        contact,
+        ownerId: savedUser._id,
+        status: "trial",
+        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+        // ✅ Default settings are now defined in the Business schema
+        settings: {
+          timezone: "Africa/Lagos",
+          currency: "NGN",
+          language: "en",
+          defaultAppointmentDuration: 30,
+          bufferTimeBetweenAppointments: 15,
+          cancellationPolicyHours: 24,
+          advanceBookingDays: 7,
+          allowOnlineBooking: true,
+          requireEmailVerification: true,
+          requirePhoneVerification: false,
+          taxRate: 10,
+          serviceCharge: 0,
+          notificationSettings: {
+            booking_confirmation: true,
+            payment_reminders: true,
+            appointment_reminders: true,
+            marketing: false,
+          },
+        },
+      })
+  
+      const savedBusiness = await business.save()
+  
+      // Update user with business ownership
+      await this.userModel.findByIdAndUpdate(savedUser._id, {
+        $push: { ownedBusinesses: savedBusiness._id },
+        currentBusinessId: savedBusiness._id,
+      })
+  
+      // Create trial subscription
+      await this.createTrialSubscription(savedBusiness._id.toString())
+  
+      // ✅ REMOVED: createDefaultTenantConfig call
+  
+      // Generate tokens
+      const tokens = await this.generateTokens(
+        savedUser._id.toString(),
+        savedUser.email,
+        savedUser.role,
+        savedBusiness._id.toString(),
+        subdomain
+      )
+  
+      // Update user with refresh token
+      await this.userModel.findByIdAndUpdate(savedUser._id, {
+        refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+      })
+  
+      return {
+        user: {
+          id: savedUser._id,
+          firstName: savedUser.firstName,
+          lastName: savedUser.lastName,
+          email: savedUser.email,
+          role: savedUser.role,
+          status: savedUser.status,
+        },
+        business: {
+          id: savedBusiness._id,
+          businessName: savedBusiness.businessName,
+          subdomain: savedBusiness.subdomain,
+          businessType: savedBusiness.businessType,
+          status: savedBusiness.status,
+          trialEndsAt: savedBusiness.trialEndsAt,
+        },
+        ...tokens,
+      }
     }
-
-    // Check if user exists
-    const existingUser = await this.userModel.findOne({ email: owner.email })
-    if (existingUser) {
-      throw new ConflictException("User with this email already exists")
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(owner.password, 12)
-
-    // Create business owner user
-    const user = new this.userModel({
-      firstName: owner.firstName,
-      lastName: owner.lastName,
-      email: owner.email,
-      phone: owner.phone,
-      password: hashedPassword,
-      role: UserRole.BUSINESS_OWNER,
-      status: "active",
-      authProvider: "local",
-    })
-
-    const savedUser = await user.save()
-
-    // Create business
-    const business = new this.businessModel({
-      businessName,
-      subdomain,
-      businessType,
-      businessDescription,
-      address,
-      contact,
-      ownerId: savedUser._id,
-      status: "trial",
-      trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
-    })
-
-    const savedBusiness = await business.save()
-
-    // Update user with business ownership
-    await this.userModel.findByIdAndUpdate(savedUser._id, {
-      $push: { ownedBusinesses: savedBusiness._id },
-      currentBusinessId: savedBusiness._id,
-    })
-
-    // Create trial subscription
-    await this.createTrialSubscription(savedBusiness._id.toString())
-
-    // Create default tenant config
-    await this.createDefaultTenantConfig(savedBusiness._id.toString())
-
-    // Generate tokens
-    const tokens = await this.generateTokens(
-      savedUser._id.toString(),
-      savedUser.email,
-      savedUser.role,
-      savedBusiness._id.toString(),
-      subdomain
-    )
-
-    // Update user with refresh token
-    await this.userModel.findByIdAndUpdate(savedUser._id, {
-      refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
-    })
-
-    return {
-      user: {
-        id: savedUser._id,
-        firstName: savedUser.firstName,
-        lastName: savedUser.lastName,
-        email: savedUser.email,
-        role: savedUser.role,
-        status: savedUser.status,
-      },
-      business: {
-        id: savedBusiness._id,
-        businessName: savedBusiness.businessName,
-        subdomain: savedBusiness.subdomain,
-        businessType: savedBusiness.businessType,
-        status: savedBusiness.status,
-        trialEndsAt: savedBusiness.trialEndsAt,
-      },
-      ...tokens,
-    }
-  }
-
 
   // ==================== STANDARD USER AUTH ====================
   async register(registerDto: RegisterDto) {
@@ -392,34 +504,34 @@ async handleGoogleCallback(googleUser: any, subdomain?: string) {
     })
   }
 
-  private async createDefaultTenantConfig(businessId: string): Promise<void> {
-    const config = new this.tenantConfigModel({
-      businessId: new Types.ObjectId(businessId),
-      brandColors: {
-        primary: "#007bff",
-        secondary: "#6c757d",
-        accent: "#28a745",
-        background: "#ffffff",
-        text: "#333333",
-      },
-      typography: {
-        fontFamily: "Inter, sans-serif",
-        fontSize: "14px",
-        headerFont: "Inter, sans-serif",
-      },
-      customization: {
-        showBusinessLogo: true,
-        showPoweredBy: true,
-      },
-      integrations: {
-        emailProvider: "smtp",
-        smsProvider: "twilio",
-        paymentProvider: "paystack",
-      },
-    })
+  // private async createDefaultTenantConfig(businessId: string): Promise<void> {
+  //   const config = new this.tenantConfigModel({
+  //     businessId: new Types.ObjectId(businessId),
+  //     brandColors: {
+  //       primary: "#007bff",
+  //       secondary: "#6c757d",
+  //       accent: "#28a745",
+  //       background: "#ffffff",
+  //       text: "#333333",
+  //     },
+  //     typography: {
+  //       fontFamily: "Inter, sans-serif",
+  //       fontSize: "14px",
+  //       headerFont: "Inter, sans-serif",
+  //     },
+  //     customization: {
+  //       showBusinessLogo: true,
+  //       showPoweredBy: true,
+  //     },
+  //     integrations: {
+  //       emailProvider: "smtp",
+  //       smsProvider: "twilio",
+  //       paymentProvider: "paystack",
+  //     },
+  //   })
 
-    await config.save()
-  }
+  //   await config.save()
+  // }
 
   // Updated sections of auth.service.ts
 
@@ -1245,6 +1357,201 @@ async deleteAccount(userId: string, password?: string) {
     }
     console.error('Account deletion error:', error)
     throw new BadRequestException('Failed to delete account')
+  }
+}
+
+// Add after the existing methods
+
+// ==================== BUSINESS CONTEXT MANAGEMENT ====================
+
+/**
+ * Switch user's active business context
+ * Issues new JWT tokens with updated business context
+ */
+async switchBusiness(userId: string, businessId: string) {
+  const user = await this.userModel.findById(userId)
+  
+  if (!user) {
+    throw new NotFoundException('User not found')
+  }
+
+  // Verify user has access to this business
+  const hasAccess = 
+    user.ownedBusinesses.some(id => id.toString() === businessId) ||
+    user.adminBusinesses.some(id => id.toString() === businessId) ||
+    user.staffBusinessId?.toString() === businessId
+
+  if (!hasAccess) {
+    throw new ForbiddenException('You do not have access to this business')
+  }
+
+  // Get business details
+  const business = await this.businessModel.findById(businessId)
+  
+  if (!business) {
+    throw new NotFoundException('Business not found')
+  }
+
+  if (business.status === 'suspended') {
+    throw new UnauthorizedException('Business account is suspended')
+  }
+
+  if (business.status === 'expired') {
+    throw new UnauthorizedException('Business subscription has expired')
+  }
+
+  // Update user's current business in database
+  await this.userModel.findByIdAndUpdate(userId, {
+    currentBusinessId: business._id,
+  })
+
+  // Generate new tokens with updated business context
+  const tokens = await this.generateTokens(
+    user._id.toString(),
+    user.email,
+    user.role,
+    business._id.toString(),
+    business.subdomain
+  )
+
+  // Update refresh token
+  await this.userModel.findByIdAndUpdate(userId, {
+    refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+  })
+
+  return {
+    success: true,
+    message: 'Business context switched successfully',
+    business: {
+      id: business._id,
+      businessName: business.businessName,
+      subdomain: business.subdomain,
+      businessType: business.businessType,
+      status: business.status,
+    },
+    ...tokens,
+  }
+}
+
+/**
+ * Get all businesses user has access to
+ */
+// async getUserBusinesses(userId: string) {
+//   const user = await this.userModel.findById(userId)
+  
+//   if (!user) {
+//     throw new NotFoundException('User not found')
+//   }
+
+//   // Collect all business IDs user has access to
+//   const businessIds = [
+//     ...user.ownedBusinesses,
+//     ...user.adminBusinesses,
+//   ]
+
+//   if (user.staffBusinessId) {
+//     businessIds.push(user.staffBusinessId)
+//   }
+
+//   // Remove duplicates
+//   const uniqueBusinessIds = [...new Set(businessIds.map(id => id.toString()))]
+
+//   const businesses = await this.businessModel
+//     .find({ _id: { $in: uniqueBusinessIds } })
+//     .select('businessName subdomain businessType status trialEndsAt ownerId')
+//     .lean()
+
+//   return {
+//     businesses: businesses.map(b => ({
+//       id: b._id,
+//       businessName: b.businessName,
+//       subdomain: b.subdomain,
+//       businessType: b.businessType,
+//       status: b.status,
+//       trialEndsAt: b.trialEndsAt,
+//       isOwner: b.ownerId.toString() === userId,
+//       isCurrent: b._id.toString() === user.currentBusinessId?.toString(),
+//     })),
+//     currentBusinessId: user.currentBusinessId,
+//   }
+// }
+
+/**
+ * Get all businesses user has access to
+ */
+async getUserBusinesses(userId: string) {
+  const user = await this.userModel.findById(userId)
+  
+  if (!user) {
+    throw new NotFoundException('User not found')
+  }
+
+  // Collect all business IDs user has access to
+  const businessIds = [
+    ...user.ownedBusinesses,
+    ...user.adminBusinesses,
+  ]
+
+  if (user.staffBusinessId) {
+    businessIds.push(user.staffBusinessId)
+  }
+
+  // Remove duplicates
+  const uniqueBusinessIds = [...new Set(businessIds.map(id => id.toString()))]
+
+  // ✅ ULTIMATE FIX: Use Model.find().exec() pattern with explicit any cast
+  const businesses = await this.businessModel
+    .find({ _id: { $in: uniqueBusinessIds } })
+    .select('businessName subdomain businessType status trialEndsAt ownerId')
+    .exec()
+    .then((docs: any) => docs.map((doc: any) => doc.toObject())) as any[]
+
+  return {
+    businesses: businesses.map((b: any) => ({
+      id: b._id,
+      businessName: b.businessName,
+      subdomain: b.subdomain,
+      businessType: b.businessType,
+      status: b.status,
+      trialEndsAt: b.trialEndsAt,
+      isOwner: b.ownerId?.toString() === userId,
+      isCurrent: b._id?.toString() === user.currentBusinessId?.toString(),
+    })),
+    currentBusinessId: user.currentBusinessId,
+  }
+}
+
+/**
+ * Clear business context (for switching to client mode)
+ */
+async clearBusinessContext(userId: string) {
+  const user = await this.userModel.findById(userId)
+  
+  if (!user) {
+    throw new NotFoundException('User not found')
+  }
+
+  // Update user to remove current business
+  await this.userModel.findByIdAndUpdate(userId, {
+    currentBusinessId: null,
+  })
+
+  // Generate new tokens without business context
+  const tokens = await this.generateTokens(
+    user._id.toString(),
+    user.email,
+    user.role
+  )
+
+  // Update refresh token
+  await this.userModel.findByIdAndUpdate(userId, {
+    refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+  })
+
+  return {
+    success: true,
+    message: 'Business context cleared successfully',
+    ...tokens,
   }
 }
 }

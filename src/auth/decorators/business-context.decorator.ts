@@ -16,7 +16,7 @@ export interface BusinessContext {
  * 
  * Usage in controller:
  * @Get('some-endpoint')
- * @UseGuards(JwtAuthGuard)
+ * 
  * async someMethod(@BusinessContext() context: BusinessContext) {
  *   console.log('Business ID:', context.businessId)
  *   console.log('User ID:', context.userId)

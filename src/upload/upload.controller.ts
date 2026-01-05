@@ -15,7 +15,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 
 @ApiTags("File Upload")
 @Controller("upload")
-@UseGuards(JwtAuthGuard)
+
 @ApiBearerAuth()
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}

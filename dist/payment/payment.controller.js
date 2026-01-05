@@ -19,8 +19,6 @@ const payment_service_1 = require("./payment.service");
 const create_payment_dto_1 = require("./dto/create-payment.dto");
 const update_payment_dto_1 = require("./dto/update-payment.dto");
 const payment_query_dto_1 = require("./dto/payment-query.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
@@ -72,7 +70,6 @@ let PaymentController = class PaymentController {
 };
 __decorate([
     (0, common_1.Post)('initialize'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
@@ -87,7 +84,6 @@ __decorate([
 ], PaymentController.prototype, "initializePayment", null);
 __decorate([
     (0, common_1.Get)('verify/:reference'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
@@ -112,7 +108,6 @@ __decorate([
 ], PaymentController.prototype, "handleWebhook", null);
 __decorate([
     (0, common_1.Post)(':reference/refund'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
@@ -128,7 +123,6 @@ __decorate([
 ], PaymentController.prototype, "initiateRefund", null);
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
@@ -142,7 +136,6 @@ __decorate([
 ], PaymentController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, swagger_1.ApiOperation)({ summary: "Get all payments" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payments retrieved successfully" }),
     __param(0, (0, common_1.Query)()),
@@ -152,7 +145,6 @@ __decorate([
 ], PaymentController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("stats"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Get payment statistics" }),
@@ -163,7 +155,6 @@ __decorate([
 ], PaymentController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
@@ -178,7 +169,6 @@ __decorate([
 ], PaymentController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(":id"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
@@ -194,7 +184,6 @@ __decorate([
 ], PaymentController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(":id/status"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
@@ -210,7 +199,6 @@ __decorate([
 ], PaymentController.prototype, "updateStatus", null);
 __decorate([
     (0, common_1.Post)(":id/refund"),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
@@ -226,7 +214,6 @@ __decorate([
 ], PaymentController.prototype, "processRefund", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.DELETE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),

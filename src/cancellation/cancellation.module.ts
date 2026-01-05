@@ -199,10 +199,56 @@
 // })
 // export class CancellationModule {}
 
+// import { Module, forwardRef } from '@nestjs/common';
+// import { MongooseModule } from '@nestjs/mongoose';
+// import { EventEmitterModule } from '@nestjs/event-emitter';
+// import type { Provider } from '@nestjs/common';
+
+// // Controllers
+// import { CancellationController } from './controllers/cancellation.controller';
+
+// // Services
+// import { CancellationPolicyService } from './services/cancellation-policy.service';
+// import { NoShowManagementService } from './services/no-show-management.service';
+
+// // Schemas
+// import { CancellationPolicySchema } from './schemas/cancellation-policy.schema';
+// import { NoShowRecordSchema } from './schemas/no-show-record.schema';
+// import { ClientReliabilitySchema } from './schemas/client-reliability.schema';
+
+// // Import AppointmentModule
+// import { AppointmentModule } from '../appointment/appointment.module';
+
+// // Break type complexity by explicitly typing providers
+// const moduleProviders: Provider[] = [
+//   CancellationPolicyService,
+//   NoShowManagementService
+// ];
+
+// const moduleExports = [
+//   CancellationPolicyService,
+//   NoShowManagementService
+// ];
+
+// @Module({
+//   imports: [
+//     MongooseModule.forFeature([
+//       { name: 'CancellationPolicy', schema: CancellationPolicySchema },
+//       { name: 'NoShowRecord', schema: NoShowRecordSchema },
+//       { name: 'ClientReliability', schema: ClientReliabilitySchema }
+//     ]),
+//     EventEmitterModule.forRoot(),
+//     forwardRef(() => AppointmentModule)
+//   ],
+//   controllers: [CancellationController],
+//   providers: moduleProviders,
+//   exports: moduleExports
+// })
+// export class CancellationModule {}
+
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import type { Provider } from '@nestjs/common';
 
 // Controllers
 import { CancellationController } from './controllers/cancellation.controller';
@@ -219,8 +265,8 @@ import { ClientReliabilitySchema } from './schemas/client-reliability.schema';
 // Import AppointmentModule
 import { AppointmentModule } from '../appointment/appointment.module';
 
-// Break type complexity by explicitly typing providers
-const moduleProviders: Provider[] = [
+// NUCLEAR FIX: Remove type annotation completely
+const moduleProviders = [
   CancellationPolicyService,
   NoShowManagementService
 ];

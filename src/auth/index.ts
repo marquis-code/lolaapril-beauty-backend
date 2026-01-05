@@ -1,3 +1,7 @@
+export { Public } from './decorators/public.decorator'
+export { ValidateBusiness } from './decorators/validate-business.decorator'
+
+// Keep all your existing exports...
 export { 
   BusinessContext, 
   BusinessId, 
@@ -5,7 +9,6 @@ export {
 } from './decorators/business-context.decorator'
 export type { BusinessContext as BusinessContextType } from './decorators/business-context.decorator'
 
-// Guards
 export { JwtAuthGuard } from './guards/jwt-auth.guard'
 export { GoogleAuthGuard } from './guards/google-auth.guard'
 export { RolesGuard } from './guards/roles.guard'
@@ -14,19 +17,18 @@ export {
   BusinessRolesGuard, 
   RequireBusinessRoles 
 } from './guards/business-auth.guard'
+export { ValidateBusinessAccessGuard } from './guards/validate-business-access.guard'
+export { OptionalAuthGuard } from './guards/optional-auth.guard'
 
-// Interfaces
 export type { 
   JwtPayload, 
   RequestWithUser 
 } from './types/request-with-user.interface'
 export { hasBusinessContext } from './types/request-with-user.interface'
 
-// Schemas and Enums
 export { UserRole, UserStatus } from './schemas/user.schema'
 export type { User, UserDocument } from './schemas/user.schema'
 
-// DTOs
 export { RegisterDto } from './dto/register.dto'
 export { LoginDto } from './dto/login.dto'
 export { 
@@ -40,9 +42,7 @@ export {
   UpdateEmailDto, 
   UserPreferencesDto 
 } from './dto/update-profile.dto'
+export { SwitchBusinessDto } from './dto/switch-business.dto'
 
-// Module
 export { AuthModule } from './auth.module'
-
-// Service (if you need to inject it in other modules)
 export { AuthService } from './auth.service'

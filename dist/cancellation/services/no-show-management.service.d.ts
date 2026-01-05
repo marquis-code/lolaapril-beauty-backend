@@ -30,8 +30,8 @@ export declare class NoShowManagementService {
     private eventEmitter;
     private readonly logger;
     constructor(noShowModel: Model<NoShowRecordDocument>, reliabilityModel: Model<ClientReliabilityDocument>, eventEmitter: EventEmitter2);
-    recordNoShow(input: RecordNoShowInput): Promise<NoShowRecordDocument>;
-    recordLateCancellation(input: RecordLateCancellationInput): Promise<NoShowRecordDocument>;
+    recordNoShow(input: RecordNoShowInput): Promise<any>;
+    recordLateCancellation(input: RecordLateCancellationInput): Promise<any>;
     getClientReliability(clientId: string, businessId: string): Promise<ClientReliabilityDocument | null>;
     shouldRequireDeposit(clientId: string, businessId: string): Promise<{
         requiresDeposit: boolean;

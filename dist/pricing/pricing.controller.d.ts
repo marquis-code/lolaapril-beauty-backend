@@ -34,17 +34,26 @@ export declare class PricingController {
     }> & {
         __v: number;
     }>;
-    getActiveTiers(): Promise<(import("mongoose").Document<unknown, {}, import("./schemas/pricing-tier.schema").PricingTierDocument, {}, {}> & import("./schemas/pricing-tier.schema").PricingTier & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }> & {
-        __v: number;
-    })[]>;
-    getTenantFeeStructure(tenantId: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/fee-structure.schema").FeeStructureDocument, {}, {}> & import("./schemas/fee-structure.schema").FeeStructure & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }> & {
-        __v: number;
+    getActiveTiers(): Promise<{
+        [key: string]: any;
+        _id: any;
+        tierName: string;
+        tierLevel: number;
+        commissionRate: number;
+        isActive: boolean;
+    }[]>;
+    getBusisinessFeeStructure(businessId: string): Promise<{
+        [key: string]: any;
+        _id: any;
+        businessId: any;
+        pricingTierId: any;
+        platformFeePercentage: number;
+        platformFeeFixed?: number;
+        effectiveFrom: Date;
+        effectiveTo?: Date;
+        isGrandfathered: boolean;
     }>;
-    calculateFees(tenantId: string, amount: number): Promise<{
+    calculateFees(businessId: string, amount: number): Promise<{
         bookingAmount: number;
         platformFeePercentage: number;
         platformFeeFixed: number;
@@ -52,7 +61,7 @@ export declare class PricingController {
         businessReceives: number;
         isGrandfathered: boolean;
     }>;
-    changePlan(tenantId: string, body: {
+    changePlan(businessId: string, body: {
         newTierId: string;
         changedBy: string;
         reason: string;
@@ -68,18 +77,17 @@ export declare class PricingController {
             __v: number;
         };
     }>;
-    grandfatherPricing(tenantId: string, reason: string): Promise<{
-        success: boolean;
-        message: string;
-        data: import("mongoose").Document<unknown, {}, import("./schemas/fee-structure.schema").FeeStructureDocument, {}, {}> & import("./schemas/fee-structure.schema").FeeStructure & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-            _id: import("mongoose").Types.ObjectId;
-        }> & {
-            __v: number;
-        };
-    }>;
-    getPricingHistory(tenantId: string): Promise<(import("mongoose").Document<unknown, {}, import("./schemas/pricing-history.schema").PricingHistoryDocument, {}, {}> & import("./schemas/pricing-history.schema").PricingHistory & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }> & {
-        __v: number;
-    })[]>;
+    getPricingHistory(businessId: string): Promise<{
+        [key: string]: any;
+        _id: any;
+        businessId: any;
+        changeType: string;
+        oldTierId?: any;
+        newTierId: any;
+        oldCommissionRate?: number;
+        newCommissionRate: number;
+        effectiveDate: Date;
+        reason: string;
+        createdAt: Date;
+    }[]>;
 }

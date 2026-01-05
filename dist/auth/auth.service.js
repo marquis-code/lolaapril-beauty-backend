@@ -20,16 +20,14 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const bcrypt = require("bcryptjs");
 const user_schema_1 = require("./schemas/user.schema");
-const business_schema_1 = require("../tenant/schemas/business.schema");
-const subscription_schema_1 = require("../tenant/schemas/subscription.schema");
-const tenant_config_schema_1 = require("../tenant/schemas/tenant-config.schema");
+const business_schema_1 = require("../business/schemas/business.schema");
+const subscription_schema_1 = require("../business/schemas/subscription.schema");
 const google_auth_library_1 = require("google-auth-library");
 let AuthService = class AuthService {
-    constructor(userModel, businessModel, subscriptionModel, tenantConfigModel, jwtService, configService) {
+    constructor(userModel, businessModel, subscriptionModel, jwtService, configService) {
         this.userModel = userModel;
         this.businessModel = businessModel;
         this.subscriptionModel = subscriptionModel;
-        this.tenantConfigModel = tenantConfigModel;
         this.jwtService = jwtService;
         this.configService = configService;
         this.googleClient = new google_auth_library_1.OAuth2Client(this.configService.get("GOOGLE_CLIENT_ID"));
@@ -52,7 +50,7 @@ let AuthService = class AuthService {
             phone: owner.phone,
             password: hashedPassword,
             role: user_schema_1.UserRole.BUSINESS_OWNER,
-            status: "active",
+            status: user_schema_1.UserStatus.ACTIVE,
             authProvider: "local",
         });
         const savedUser = await user.save();
@@ -66,6 +64,26 @@ let AuthService = class AuthService {
             ownerId: savedUser._id,
             status: "trial",
             trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+            settings: {
+                timezone: "Africa/Lagos",
+                currency: "NGN",
+                language: "en",
+                defaultAppointmentDuration: 30,
+                bufferTimeBetweenAppointments: 15,
+                cancellationPolicyHours: 24,
+                advanceBookingDays: 7,
+                allowOnlineBooking: true,
+                requireEmailVerification: true,
+                requirePhoneVerification: false,
+                taxRate: 10,
+                serviceCharge: 0,
+                notificationSettings: {
+                    booking_confirmation: true,
+                    payment_reminders: true,
+                    appointment_reminders: true,
+                    marketing: false,
+                },
+            },
         });
         const savedBusiness = await business.save();
         await this.userModel.findByIdAndUpdate(savedUser._id, {
@@ -73,7 +91,6 @@ let AuthService = class AuthService {
             currentBusinessId: savedBusiness._id,
         });
         await this.createTrialSubscription(savedBusiness._id.toString());
-        await this.createDefaultTenantConfig(savedBusiness._id.toString());
         const tokens = await this.generateTokens(savedUser._id.toString(), savedUser.email, savedUser.role, savedBusiness._id.toString(), subdomain);
         await this.userModel.findByIdAndUpdate(savedUser._id, {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
@@ -298,33 +315,6 @@ let AuthService = class AuthService {
         await this.businessModel.findByIdAndUpdate(businessId, {
             activeSubscription: savedSubscription._id,
         });
-    }
-    async createDefaultTenantConfig(businessId) {
-        const config = new this.tenantConfigModel({
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            brandColors: {
-                primary: "#007bff",
-                secondary: "#6c757d",
-                accent: "#28a745",
-                background: "#ffffff",
-                text: "#333333",
-            },
-            typography: {
-                fontFamily: "Inter, sans-serif",
-                fontSize: "14px",
-                headerFont: "Inter, sans-serif",
-            },
-            customization: {
-                showBusinessLogo: true,
-                showPoweredBy: true,
-            },
-            integrations: {
-                emailProvider: "smtp",
-                smsProvider: "twilio",
-                paymentProvider: "paystack",
-            },
-        });
-        await config.save();
     }
     async login(loginDto) {
         const { email, password } = loginDto;
@@ -742,15 +732,104 @@ let AuthService = class AuthService {
             throw new common_1.BadRequestException('Failed to delete account');
         }
     }
+    async switchBusiness(userId, businessId) {
+        const user = await this.userModel.findById(userId);
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        const hasAccess = user.ownedBusinesses.some(id => id.toString() === businessId) ||
+            user.adminBusinesses.some(id => id.toString() === businessId) ||
+            user.staffBusinessId?.toString() === businessId;
+        if (!hasAccess) {
+            throw new common_1.ForbiddenException('You do not have access to this business');
+        }
+        const business = await this.businessModel.findById(businessId);
+        if (!business) {
+            throw new common_1.NotFoundException('Business not found');
+        }
+        if (business.status === 'suspended') {
+            throw new common_1.UnauthorizedException('Business account is suspended');
+        }
+        if (business.status === 'expired') {
+            throw new common_1.UnauthorizedException('Business subscription has expired');
+        }
+        await this.userModel.findByIdAndUpdate(userId, {
+            currentBusinessId: business._id,
+        });
+        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, business._id.toString(), business.subdomain);
+        await this.userModel.findByIdAndUpdate(userId, {
+            refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+        });
+        return {
+            success: true,
+            message: 'Business context switched successfully',
+            business: {
+                id: business._id,
+                businessName: business.businessName,
+                subdomain: business.subdomain,
+                businessType: business.businessType,
+                status: business.status,
+            },
+            ...tokens,
+        };
+    }
+    async getUserBusinesses(userId) {
+        const user = await this.userModel.findById(userId);
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        const businessIds = [
+            ...user.ownedBusinesses,
+            ...user.adminBusinesses,
+        ];
+        if (user.staffBusinessId) {
+            businessIds.push(user.staffBusinessId);
+        }
+        const uniqueBusinessIds = [...new Set(businessIds.map(id => id.toString()))];
+        const businesses = await this.businessModel
+            .find({ _id: { $in: uniqueBusinessIds } })
+            .select('businessName subdomain businessType status trialEndsAt ownerId')
+            .exec()
+            .then((docs) => docs.map((doc) => doc.toObject()));
+        return {
+            businesses: businesses.map((b) => ({
+                id: b._id,
+                businessName: b.businessName,
+                subdomain: b.subdomain,
+                businessType: b.businessType,
+                status: b.status,
+                trialEndsAt: b.trialEndsAt,
+                isOwner: b.ownerId?.toString() === userId,
+                isCurrent: b._id?.toString() === user.currentBusinessId?.toString(),
+            })),
+            currentBusinessId: user.currentBusinessId,
+        };
+    }
+    async clearBusinessContext(userId) {
+        const user = await this.userModel.findById(userId);
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        await this.userModel.findByIdAndUpdate(userId, {
+            currentBusinessId: null,
+        });
+        const tokens = await this.generateTokens(user._id.toString(), user.email, user.role);
+        await this.userModel.findByIdAndUpdate(userId, {
+            refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+        });
+        return {
+            success: true,
+            message: 'Business context cleared successfully',
+            ...tokens,
+        };
+    }
 };
 AuthService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
     __param(1, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
     __param(2, (0, mongoose_1.InjectModel)(subscription_schema_1.Subscription.name)),
-    __param(3, (0, mongoose_1.InjectModel)(tenant_config_schema_1.TenantConfig.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         jwt_1.JwtService,

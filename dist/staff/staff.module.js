@@ -15,7 +15,7 @@ const staff_schema_1 = require("./schemas/staff.schema");
 const staff_schedule_schema_1 = require("./schemas/staff-schedule.schema");
 const staff_assignment_schema_1 = require("./schemas/staff-assignment.schema");
 const working_hours_schema_1 = require("./schemas/working-hours.schema");
-const tenant_module_1 = require("../tenant/tenant.module");
+const business_module_1 = require("../business/business.module");
 const auth_module_1 = require("../auth/auth.module");
 const service_module_1 = require("../service/service.module");
 let StaffModule = class StaffModule {
@@ -29,7 +29,7 @@ StaffModule = __decorate([
                 { name: staff_assignment_schema_1.StaffAssignment.name, schema: staff_assignment_schema_1.StaffAssignmentSchema },
                 { name: working_hours_schema_1.WorkingHours.name, schema: working_hours_schema_1.WorkingHoursSchema },
             ]),
-            (0, common_1.forwardRef)(() => tenant_module_1.TenantModule),
+            (0, common_1.forwardRef)(() => business_module_1.BusinessModule),
             (0, common_1.forwardRef)(() => auth_module_1.AuthModule),
             (0, common_1.forwardRef)(() => service_module_1.ServiceModule),
         ],

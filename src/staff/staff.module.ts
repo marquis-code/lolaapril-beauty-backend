@@ -15,7 +15,7 @@ import { StaffAssignment, StaffAssignmentSchema } from './schemas/staff-assignme
 import { WorkingHours, WorkingHoursSchema } from './schemas/working-hours.schema'
 
 // Import related modules (using forwardRef to prevent circular dependencies)
-import { TenantModule } from '../tenant/tenant.module'
+import { BusinessModule } from '../business/business.module'
 import { AuthModule } from '../auth/auth.module'
 import { ServiceModule } from '../service/service.module'
 
@@ -30,7 +30,7 @@ import { ServiceModule } from '../service/service.module'
     ]),
     
     // Related modules
-    forwardRef(() => TenantModule),
+    forwardRef(() => BusinessModule),
     forwardRef(() => AuthModule),
     forwardRef(() => ServiceModule),
   ],

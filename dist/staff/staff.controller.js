@@ -21,8 +21,6 @@ const assign_staff_dto_1 = require("../staff/dto/assign-staff.dto");
 const auto_assign_staff_dto_1 = require("../staff/dto/auto-assign-staff.dto");
 const check_in_staff_dto_1 = require("../staff/dto/check-in-staff.dto");
 const complete_assignment_dto_1 = require("../staff/dto/complete-assignment.dto");
-const tenant_guard_1 = require("../tenant/guards/tenant.guard");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let StaffController = class StaffController {
     constructor(staffService) {
         this.staffService = staffService;
@@ -310,7 +308,6 @@ let StaffController = class StaffController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __param(1, (0, common_1.Request)()),
@@ -320,7 +317,6 @@ __decorate([
 ], StaffController.prototype, "createStaff", null);
 __decorate([
     (0, common_1.Get)('business'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Query)('status')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -329,7 +325,6 @@ __decorate([
 ], StaffController.prototype, "getStaffByBusiness", null);
 __decorate([
     (0, common_1.Get)('available'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Query)('date')),
     __param(1, (0, common_1.Query)('startTime')),
     __param(2, (0, common_1.Query)('endTime')),
@@ -341,7 +336,6 @@ __decorate([
 ], StaffController.prototype, "getAvailableStaff", null);
 __decorate([
     (0, common_1.Post)('schedule'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -350,7 +344,6 @@ __decorate([
 ], StaffController.prototype, "createSchedule", null);
 __decorate([
     (0, common_1.Get)('schedule/:staffId'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Query)('date')),
     __metadata("design:type", Function),
@@ -359,7 +352,6 @@ __decorate([
 ], StaffController.prototype, "getSchedule", null);
 __decorate([
     (0, common_1.Post)('assign'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -368,7 +360,6 @@ __decorate([
 ], StaffController.prototype, "assignStaff", null);
 __decorate([
     (0, common_1.Post)('auto-assign'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [auto_assign_staff_dto_1.AutoAssignStaffDto]),
@@ -376,7 +367,6 @@ __decorate([
 ], StaffController.prototype, "autoAssignStaff", null);
 __decorate([
     (0, common_1.Get)('assignments/:staffId'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Query)('startDate')),
     __param(2, (0, common_1.Query)('endDate')),
@@ -386,7 +376,6 @@ __decorate([
 ], StaffController.prototype, "getAssignments", null);
 __decorate([
     (0, common_1.Put)('assignment/:assignmentId/complete'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('assignmentId')),
     __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
     __metadata("design:type", Function),
@@ -395,7 +384,6 @@ __decorate([
 ], StaffController.prototype, "completeAssignment", null);
 __decorate([
     (0, common_1.Post)('checkin'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -404,7 +392,6 @@ __decorate([
 ], StaffController.prototype, "checkIn", null);
 __decorate([
     (0, common_1.Post)('checkout'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Body)('staffId')),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -413,7 +400,6 @@ __decorate([
 ], StaffController.prototype, "checkOut", null);
 __decorate([
     (0, common_1.Get)('working-hours/:staffId'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Query)('startDate')),
     __param(2, (0, common_1.Query)('endDate')),
@@ -423,7 +409,6 @@ __decorate([
 ], StaffController.prototype, "getWorkingHours", null);
 __decorate([
     (0, common_1.Get)(':staffId'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('staffId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -431,7 +416,6 @@ __decorate([
 ], StaffController.prototype, "getStaffById", null);
 __decorate([
     (0, common_1.Put)(':staffId/skills'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Body)('skills')),
     __metadata("design:type", Function),
@@ -440,7 +424,6 @@ __decorate([
 ], StaffController.prototype, "updateStaffSkills", null);
 __decorate([
     (0, common_1.Put)(':staffId/status'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Body)('status')),
     __param(2, (0, common_1.Body)('reason')),
@@ -450,7 +433,6 @@ __decorate([
 ], StaffController.prototype, "updateStaffStatus", null);
 StaffController = __decorate([
     (0, common_1.Controller)('staff'),
-    (0, common_1.UseGuards)(tenant_guard_1.TenantGuard),
     __metadata("design:paramtypes", [staff_service_1.StaffService])
 ], StaffController);
 exports.StaffController = StaffController;

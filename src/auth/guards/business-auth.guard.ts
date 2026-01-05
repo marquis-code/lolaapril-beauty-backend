@@ -66,7 +66,7 @@ export const BUSINESS_ROLES_KEY = 'businessRoles'
 /**
  * Decorator to specify required business roles
  * Usage:
- * @RequireBusinessRoles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN)
+ * 
  */
 export const RequireBusinessRoles = (...roles: UserRole[]) => {
   return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
@@ -83,8 +83,8 @@ export const RequireBusinessRoles = (...roles: UserRole[]) => {
  * Should be used in combination with JwtAuthGuard
  * 
  * Usage:
- * @UseGuards(JwtAuthGuard, BusinessRolesGuard)
- * @RequireBusinessRoles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN)
+ * 
+ * 
  */
 @Injectable()
 export class BusinessRolesGuard implements CanActivate {
