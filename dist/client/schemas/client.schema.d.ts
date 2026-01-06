@@ -118,6 +118,7 @@ export declare class ClientSettings {
     marketingNotifications: {
         clientAcceptsEmailMarketing: boolean;
     };
+    grokCodeFast1Enabled: boolean;
 }
 export declare const ClientSettingsSchema: import("mongoose").Schema<ClientSettings, import("mongoose").Model<ClientSettings, any, any, any, Document<unknown, any, ClientSettings, any, {}> & ClientSettings & {
     _id: Types.ObjectId;

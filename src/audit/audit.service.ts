@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
+import { EventEmitter2 } from "@nestjs/event-emitter"
 import { AuditLog, AuditLogDocument, AuditAction, AuditEntity } from "./schemas/audit-log.schema"
 
 export interface CreateAuditLogDto {
@@ -18,13 +19,55 @@ export interface CreateAuditLogDto {
 
 @Injectable()
 export class AuditService {
+
   constructor(
-    @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>
+    @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async createLog(createAuditLogDto: CreateAuditLogDto): Promise<AuditLog> {
     const auditLog = new this.auditLogModel(createAuditLogDto)
-    return auditLog.save()
+    const savedLog = await auditLog.save()
+
+    // Emit event for real-time notification
+    // Extract businessId from metadata if available
+    const businessId = createAuditLogDto.metadata?.businessId
+    
+    if (businessId && this.shouldNotifyBusiness(createAuditLogDto)) {
+      this.eventEmitter.emit('audit.created', {
+        businessId,
+        auditLog: savedLog,
+      })
+    }
+
+    return savedLog
+  }
+
+  /**
+   * Determine if audit log should trigger a business notification
+   */
+  private shouldNotifyBusiness(auditLog: CreateAuditLogDto): boolean {
+    // Define critical actions and entities that should trigger notifications
+    const criticalActions = [
+      AuditAction.CREATE,
+      AuditAction.DELETE,
+      AuditAction.UPDATE,
+    ]
+
+    const criticalEntities = [
+      AuditEntity.BOOKING,
+      AuditEntity.PAYMENT,
+      AuditEntity.APPOINTMENT,
+      AuditEntity.CLIENT,
+      AuditEntity.SETTINGS,
+      AuditEntity.SALE,
+      AuditEntity.COMMISSION,
+    ]
+
+    return (
+      criticalActions.includes(auditLog.action) &&
+      criticalEntities.includes(auditLog.entity)
+    )
   }
 
   async getAuditLogs(filters: {

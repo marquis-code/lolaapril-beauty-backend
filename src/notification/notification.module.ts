@@ -1,10 +1,17 @@
-import { Module } from '@nestjs/common'
+import { Module, Global } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { ScheduleModule } from '@nestjs/schedule'
+import { JwtModule } from '@nestjs/jwt'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { NotificationService } from './notification.service'
 import { NotificationController } from './notification.controller'
 import { EmailService } from './email.service'
 import { SMSService } from './sms.service'
+import { ChatService } from './services/chat.service'
+import { ChatSeederService } from './services/chat-seeder.service'
+import { NotificationEventListener } from './services/notification-event.listener'
+import { RealtimeGateway } from './gateways/realtime.gateway'
+import { ChatController } from './controllers/chat.controller'
 import {
   NotificationTemplate,
   NotificationTemplateSchema,
@@ -13,7 +20,20 @@ import {
   NotificationPreference,
   NotificationPreferenceSchema
 } from '../notification/schemas/notification.schema'
+import {
+  ChatRoom,
+  ChatRoomSchema,
+  ChatMessage,
+  ChatMessageSchema,
+  ChatParticipant,
+  ChatParticipantSchema,
+  FAQ,
+  FAQSchema,
+  AutoResponse,
+  AutoResponseSchema,
+} from './schemas/chat.schema'
 
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -29,19 +49,55 @@ import {
         name: NotificationPreference.name,
         schema: NotificationPreferenceSchema,
       },
+      {
+        name: ChatRoom.name,
+        schema: ChatRoomSchema,
+      },
+      {
+        name: ChatMessage.name,
+        schema: ChatMessageSchema,
+      },
+      {
+        name: ChatParticipant.name,
+        schema: ChatParticipantSchema,
+      },
+      {
+        name: FAQ.name,
+        schema: FAQSchema,
+      },
+      {
+        name: AutoResponse.name,
+        schema: AutoResponseSchema,
+      },
     ]),
-    ScheduleModule.forRoot(), // For cron jobs - make sure this is only imported once in your app
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+      }),
+      inject: [ConfigService],
+    }),
+    ScheduleModule.forRoot(),
   ],
-  controllers: [NotificationController],
+  controllers: [NotificationController, ChatController],
+  // @ts-ignore - TS2590: Complex union type fix
   providers: [
     NotificationService,
     EmailService,
     SMSService,
+    ChatService,
+    ChatSeederService,
+    NotificationEventListener,
+    RealtimeGateway,
   ],
+  // @ts-ignore - TS2590: Complex union type fix
   exports: [
     NotificationService,
     EmailService,
     SMSService,
+    ChatService,
+    ChatSeederService,
+    RealtimeGateway,
   ],
 })
 export class NotificationModule {}

@@ -189,6 +189,12 @@ __decorate([
     (0, class_transformer_1.Type)(() => MarketingNotificationsDto),
     __metadata("design:type", MarketingNotificationsDto)
 ], ClientSettingsDto.prototype, "marketingNotifications", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: true, description: 'Enable Grok Code Fast 1 for the client' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], ClientSettingsDto.prototype, "grokCodeFast1Enabled", void 0);
 exports.ClientSettingsDto = ClientSettingsDto;
 class EmergencyContactsDto {
 }

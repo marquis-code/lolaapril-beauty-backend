@@ -153,6 +153,11 @@ export class ClientSettingsDto {
   @ValidateNested()
   @Type(() => MarketingNotificationsDto)
   marketingNotifications?: MarketingNotificationsDto
+
+  @ApiPropertyOptional({ default: true, description: 'Enable Grok Code Fast 1 for the client' })
+  @IsOptional()
+  @IsBoolean()
+  grokCodeFast1Enabled?: boolean
 }
 
 

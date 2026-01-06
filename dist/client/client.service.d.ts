@@ -21,4 +21,5 @@ export declare class ClientService {
         errors: string[];
     }>>;
     getClientStats(businessId: string): Promise<ApiResponse<any>>;
+    enableGrokCodeFast1ForAllClients(businessId?: string): Promise<ApiResponse<any>>;
 }

@@ -16,14 +16,42 @@ exports.AuditService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const event_emitter_1 = require("@nestjs/event-emitter");
 const audit_log_schema_1 = require("./schemas/audit-log.schema");
 let AuditService = class AuditService {
-    constructor(auditLogModel) {
+    constructor(auditLogModel, eventEmitter) {
         this.auditLogModel = auditLogModel;
+        this.eventEmitter = eventEmitter;
     }
     async createLog(createAuditLogDto) {
         const auditLog = new this.auditLogModel(createAuditLogDto);
-        return auditLog.save();
+        const savedLog = await auditLog.save();
+        const businessId = createAuditLogDto.metadata?.businessId;
+        if (businessId && this.shouldNotifyBusiness(createAuditLogDto)) {
+            this.eventEmitter.emit('audit.created', {
+                businessId,
+                auditLog: savedLog,
+            });
+        }
+        return savedLog;
+    }
+    shouldNotifyBusiness(auditLog) {
+        const criticalActions = [
+            audit_log_schema_1.AuditAction.CREATE,
+            audit_log_schema_1.AuditAction.DELETE,
+            audit_log_schema_1.AuditAction.UPDATE,
+        ];
+        const criticalEntities = [
+            audit_log_schema_1.AuditEntity.BOOKING,
+            audit_log_schema_1.AuditEntity.PAYMENT,
+            audit_log_schema_1.AuditEntity.APPOINTMENT,
+            audit_log_schema_1.AuditEntity.CLIENT,
+            audit_log_schema_1.AuditEntity.SETTINGS,
+            audit_log_schema_1.AuditEntity.SALE,
+            audit_log_schema_1.AuditEntity.COMMISSION,
+        ];
+        return (criticalActions.includes(auditLog.action) &&
+            criticalEntities.includes(auditLog.entity));
     }
     async getAuditLogs(filters) {
         const { userId, entity, entityId, action, startDate, endDate, page = 1, limit = 50 } = filters;
@@ -76,7 +104,8 @@ let AuditService = class AuditService {
 AuditService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(audit_log_schema_1.AuditLog.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        event_emitter_1.EventEmitter2])
 ], AuditService);
 exports.AuditService = AuditService;
 //# sourceMappingURL=audit.service.js.map
