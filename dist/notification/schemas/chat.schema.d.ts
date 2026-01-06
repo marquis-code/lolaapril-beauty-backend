@@ -84,6 +84,7 @@ export declare class ChatMessage {
         sentiment?: 'positive' | 'negative' | 'neutral';
         priority?: 'low' | 'medium' | 'high';
         tags?: string[];
+        guestId?: string;
     };
 }
 export declare const ChatMessageSchema: import("mongoose").Schema<ChatMessage, import("mongoose").Model<ChatMessage, any, any, any, Document<unknown, any, ChatMessage, any, {}> & ChatMessage & {

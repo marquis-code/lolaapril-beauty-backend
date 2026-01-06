@@ -1449,72 +1449,150 @@ export class ChatService {
   /**
    * Send a chat message
    */
-  async sendMessage(
-    roomId: string,
-    senderId: string,
-    senderType: 'customer' | 'staff' | 'system' | 'bot',
-    content: string,
-    options?: {
-      senderName?: string
-      messageType?: string
-      attachments?: string[]
-      isAutomated?: boolean
-      isFAQ?: boolean
-      faqId?: string
-      replyToMessageId?: string
-    }
-  ): Promise<ChatMessage> {
-    const room = await this.chatRoomModel.findById(roomId).exec()
-    if (!room) {
-      throw new NotFoundException('Chat room not found')
-    }
+  // async sendMessage(
+  //   roomId: string,
+  //   senderId: string,
+  //   senderType: 'customer' | 'staff' | 'system' | 'bot',
+  //   content: string,
+  //   options?: {
+  //     senderName?: string
+  //     messageType?: string
+  //     attachments?: string[]
+  //     isAutomated?: boolean
+  //     isFAQ?: boolean
+  //     faqId?: string
+  //     replyToMessageId?: string
+  //   }
+  // ): Promise<ChatMessage> {
+  //   const room = await this.chatRoomModel.findById(roomId).exec()
+  //   if (!room) {
+  //     throw new NotFoundException('Chat room not found')
+  //   }
 
-    // Create message
-    const message = new this.chatMessageModel({
-      roomId: new Types.ObjectId(roomId),
-      businessId: room.businessId,
-      senderId: senderId ? new Types.ObjectId(senderId) : null,
-      senderType,
-      senderName: options?.senderName || 'User',
-      messageType: options?.messageType || 'text',
-      content,
-      attachments: options?.attachments || [],
-      isAutomated: options?.isAutomated || false,
-      isFAQ: options?.isFAQ || false,
-      faqId: options?.faqId ? new Types.ObjectId(options.faqId) : null,
-      replyToMessageId: options?.replyToMessageId ? new Types.ObjectId(options.replyToMessageId) : null,
-      metadata: {
-        deliveryStatus: 'sent',
-        language: 'en',
-      },
-    })
+  //   // Create message
+  //   const message = new this.chatMessageModel({
+  //     roomId: new Types.ObjectId(roomId),
+  //     businessId: room.businessId,
+  //     senderId: senderId ? new Types.ObjectId(senderId) : null,
+  //     senderType,
+  //     senderName: options?.senderName || 'User',
+  //     messageType: options?.messageType || 'text',
+  //     content,
+  //     attachments: options?.attachments || [],
+  //     isAutomated: options?.isAutomated || false,
+  //     isFAQ: options?.isFAQ || false,
+  //     faqId: options?.faqId ? new Types.ObjectId(options.faqId) : null,
+  //     replyToMessageId: options?.replyToMessageId ? new Types.ObjectId(options.replyToMessageId) : null,
+  //     metadata: {
+  //       deliveryStatus: 'sent',
+  //       language: 'en',
+  //     },
+  //   })
 
-    await message.save()
+  //   await message.save()
 
-    // Update room's last message
-    await this.chatRoomModel.findByIdAndUpdate(roomId, {
-      lastMessageId: message._id,
-      lastMessageAt: new Date(),
-      $inc: { unreadCount: senderType === 'customer' ? 1 : 0 },
-    }).exec()
+  //   // Update room's last message
+  //   await this.chatRoomModel.findByIdAndUpdate(roomId, {
+  //     lastMessageId: message._id,
+  //     lastMessageAt: new Date(),
+  //     $inc: { unreadCount: senderType === 'customer' ? 1 : 0 },
+  //   }).exec()
 
-    // Serialize message for WebSocket
-    const serializedMessage = this.serializeMessage(message)
+  //   // Serialize message for WebSocket
+  //   const serializedMessage = this.serializeMessage(message)
 
-    // Emit message via WebSocket
-    this.realtimeGateway.emitChatMessage(roomId, serializedMessage)
+  //   // Emit message via WebSocket
+  //   this.realtimeGateway.emitChatMessage(roomId, serializedMessage)
 
-    // Check if this is a customer message and needs automated response
-    if (senderType === 'customer' && !options?.isAutomated) {
-      // Run automation in background (don't await)
-      this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
-        .catch(error => this.logger.error('Automation error:', error))
-    }
+  //   // Check if this is a customer message and needs automated response
+  //   if (senderType === 'customer' && !options?.isAutomated) {
+  //     // Run automation in background (don't await)
+  //     this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
+  //       .catch(error => this.logger.error('Automation error:', error))
+  //   }
 
-    this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}`)
+  //   this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}`)
 
-    return message
+  //   return message
+  // }
+
+  /**
+ * Send a chat message
+ */
+async sendMessage(
+  roomId: string,
+  senderId: string,
+  senderType: 'customer' | 'staff' | 'system' | 'bot',
+  content: string,
+  options?: {
+    senderName?: string
+    messageType?: string
+    attachments?: string[]
+    isAutomated?: boolean
+    isFAQ?: boolean
+    faqId?: string
+    replyToMessageId?: string
   }
+): Promise<ChatMessage> {
+  const room = await this.chatRoomModel.findById(roomId).exec()
+  if (!room) {
+    throw new NotFoundException('Chat room not found')
+  }
+
+  // ✅ FIX: Handle guest users - don't convert guest IDs to ObjectId
+  const isGuestUser = senderId?.startsWith('guest_') || senderType === 'customer'
+  
+  // Create message
+  const message = new this.chatMessageModel({
+    roomId: new Types.ObjectId(roomId),
+    businessId: room.businessId,
+    // ✅ Only convert to ObjectId if it's a valid MongoDB ID (not guest ID)
+    senderId: senderId && !isGuestUser && Types.ObjectId.isValid(senderId) 
+      ? new Types.ObjectId(senderId) 
+      : null,
+    senderType,
+    senderName: options?.senderName || 'User',
+    messageType: options?.messageType || 'text',
+    content,
+    attachments: options?.attachments || [],
+    isAutomated: options?.isAutomated || false,
+    isFAQ: options?.isFAQ || false,
+    faqId: options?.faqId ? new Types.ObjectId(options.faqId) : null,
+    replyToMessageId: options?.replyToMessageId ? new Types.ObjectId(options.replyToMessageId) : null,
+    metadata: {
+      deliveryStatus: 'sent',
+      language: 'en',
+      // ✅ Store guest ID in metadata if it's a guest
+      ...(isGuestUser && senderId ? { guestId: senderId } : {}),
+    },
+  })
+
+  await message.save()
+
+  // Update room's last message
+  await this.chatRoomModel.findByIdAndUpdate(roomId, {
+    lastMessageId: message._id,
+    lastMessageAt: new Date(),
+    $inc: { unreadCount: senderType === 'customer' ? 1 : 0 },
+  }).exec()
+
+  // Serialize message for WebSocket
+  const serializedMessage = this.serializeMessage(message)
+
+  // Emit message via WebSocket
+  this.realtimeGateway.emitChatMessage(roomId, serializedMessage)
+
+  // Check if this is a customer message and needs automated response
+  if (senderType === 'customer' && !options?.isAutomated) {
+    // Run automation in background (don't await)
+    this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
+      .catch(error => this.logger.error('Automation error:', error))
+  }
+
+  this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}${isGuestUser ? ' (guest)' : ''}`)
+
+  return message
+}
 
   /**
    * Get messages for a room

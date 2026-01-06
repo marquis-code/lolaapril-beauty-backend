@@ -149,10 +149,13 @@ let ChatService = ChatService_1 = class ChatService {
         if (!room) {
             throw new common_1.NotFoundException('Chat room not found');
         }
+        const isGuestUser = senderId?.startsWith('guest_') || senderType === 'customer';
         const message = new this.chatMessageModel({
             roomId: new mongoose_2.Types.ObjectId(roomId),
             businessId: room.businessId,
-            senderId: senderId ? new mongoose_2.Types.ObjectId(senderId) : null,
+            senderId: senderId && !isGuestUser && mongoose_2.Types.ObjectId.isValid(senderId)
+                ? new mongoose_2.Types.ObjectId(senderId)
+                : null,
             senderType,
             senderName: options?.senderName || 'User',
             messageType: options?.messageType || 'text',
@@ -165,6 +168,7 @@ let ChatService = ChatService_1 = class ChatService {
             metadata: {
                 deliveryStatus: 'sent',
                 language: 'en',
+                ...(isGuestUser && senderId ? { guestId: senderId } : {}),
             },
         });
         await message.save();
@@ -179,7 +183,7 @@ let ChatService = ChatService_1 = class ChatService {
             this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
                 .catch(error => this.logger.error('Automation error:', error));
         }
-        this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}`);
+        this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}${isGuestUser ? ' (guest)' : ''}`);
         return message;
     }
     async getRoomMessages(roomId, options) {

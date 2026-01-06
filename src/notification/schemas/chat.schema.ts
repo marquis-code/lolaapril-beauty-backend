@@ -59,6 +59,75 @@ ChatRoomSchema.index({ 'metadata.userId': 1 })
 ChatRoomSchema.index({ lastMessageAt: -1 })
 
 // ================== CHAT MESSAGE SCHEMA ==================
+// @Schema({ timestamps: true })
+// export class ChatMessage {
+//   @Prop({ type: Types.ObjectId, ref: 'ChatRoom', required: true, index: true })
+//   roomId: Types.ObjectId
+
+//   @Prop({ type: Types.ObjectId, ref: 'Business', required: true, index: true })
+//   businessId: Types.ObjectId
+
+//   @Prop({ type: Types.ObjectId, ref: 'User' })
+//   senderId: Types.ObjectId
+
+//   @Prop({ type: String, required: true, enum: ['customer', 'staff', 'system', 'bot'] })
+//   senderType: string
+
+//   @Prop({ type: String })
+//   senderName: string
+
+//   @Prop({ type: String, required: true, enum: ['text', 'image', 'file', 'audio', 'video', 'system', 'faq-response'] })
+//   messageType: string
+
+//   @Prop({ type: String, required: true })
+//   content: string
+
+//   @Prop({ type: [String], default: [] })
+//   attachments: string[]
+
+//   @Prop({ type: Boolean, default: false })
+//   isRead: boolean
+
+//   @Prop({ type: Date })
+//   readAt: Date
+
+//   @Prop({ type: Boolean, default: false })
+//   isAutomated: boolean
+
+//   @Prop({ type: Boolean, default: false })
+//   isFAQ: boolean
+
+//   @Prop({ type: Types.ObjectId, ref: 'FAQ' })
+//   faqId: Types.ObjectId
+
+//   @Prop({ type: Types.ObjectId, ref: 'ChatMessage' })
+//   replyToMessageId: Types.ObjectId
+
+//   @Prop({ type: Boolean, default: false })
+//   isEdited: boolean
+
+//   @Prop({ type: Boolean, default: false })
+//   isDeleted: boolean
+
+//   @Prop({ type: Object })
+//   metadata: {
+//     deliveryStatus?: 'sent' | 'delivered' | 'read' | 'failed'
+//     language?: string
+//     sentiment?: 'positive' | 'negative' | 'neutral'
+//     priority?: 'low' | 'medium' | 'high'
+//     tags?: string[]
+//   }
+// }
+
+// export const ChatMessageSchema = SchemaFactory.createForClass(ChatMessage)
+
+// // Indexes for chat messages
+// ChatMessageSchema.index({ roomId: 1, createdAt: -1 })
+// ChatMessageSchema.index({ businessId: 1, createdAt: -1 })
+// ChatMessageSchema.index({ senderId: 1 })
+// ChatMessageSchema.index({ isRead: 1 })
+
+// ================== CHAT MESSAGE SCHEMA ==================
 @Schema({ timestamps: true })
 export class ChatMessage {
   @Prop({ type: Types.ObjectId, ref: 'ChatRoom', required: true, index: true })
@@ -67,7 +136,8 @@ export class ChatMessage {
   @Prop({ type: Types.ObjectId, ref: 'Business', required: true, index: true })
   businessId: Types.ObjectId
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  // ✅ FIX: Make senderId optional (null for guest users)
+  @Prop({ type: Types.ObjectId, ref: 'User', required: false })
   senderId: Types.ObjectId
 
   @Prop({ type: String, required: true, enum: ['customer', 'staff', 'system', 'bot'] })
@@ -116,6 +186,7 @@ export class ChatMessage {
     sentiment?: 'positive' | 'negative' | 'neutral'
     priority?: 'low' | 'medium' | 'high'
     tags?: string[]
+    guestId?: string // ✅ Store guest ID here for guest users
   }
 }
 
@@ -126,6 +197,8 @@ ChatMessageSchema.index({ roomId: 1, createdAt: -1 })
 ChatMessageSchema.index({ businessId: 1, createdAt: -1 })
 ChatMessageSchema.index({ senderId: 1 })
 ChatMessageSchema.index({ isRead: 1 })
+// ✅ Add index for guest messages
+ChatMessageSchema.index({ 'metadata.guestId': 1 })
 
 // ================== CHAT PARTICIPANT SCHEMA ==================
 @Schema({ timestamps: true })
