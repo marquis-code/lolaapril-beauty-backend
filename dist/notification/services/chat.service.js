@@ -29,6 +29,31 @@ let ChatService = ChatService_1 = class ChatService {
         this.realtimeGateway = realtimeGateway;
         this.logger = new common_1.Logger(ChatService_1.name);
     }
+    serializeMessage(message) {
+        const obj = message.toObject ? message.toObject() : message;
+        return {
+            id: obj._id.toString(),
+            roomId: obj.roomId.toString(),
+            businessId: obj.businessId.toString(),
+            senderId: obj.senderId?.toString(),
+            senderType: obj.senderType,
+            senderName: obj.senderName,
+            messageType: obj.messageType,
+            content: obj.content,
+            attachments: obj.attachments || [],
+            isRead: obj.isRead,
+            readAt: obj.readAt,
+            isAutomated: obj.isAutomated,
+            isFAQ: obj.isFAQ,
+            faqId: obj.faqId?.toString(),
+            replyToMessageId: obj.replyToMessageId?.toString(),
+            isEdited: obj.isEdited,
+            isDeleted: obj.isDeleted,
+            createdAt: obj.createdAt,
+            updatedAt: obj.updatedAt,
+            metadata: obj.metadata,
+        };
+    }
     async createOrGetCustomerChatRoom(businessId, userId, userInfo) {
         const isGuest = userInfo.isGuest || false;
         if (isGuest && !userInfo.email) {
@@ -74,13 +99,16 @@ let ChatService = ChatService_1 = class ChatService {
             });
             await this.sendWelcomeMessage(room._id.toString(), businessId);
             this.realtimeGateway.notifyBusinessNewChat(businessId, {
-                roomId: room._id,
+                roomId: room._id.toString(),
                 userName: userInfo.name,
                 userEmail: userInfo.email,
                 isGuest,
                 timestamp: new Date(),
             });
             this.logger.log(`✅ Created new ${isGuest ? 'guest' : 'customer'} chat room ${room._id} for ${userId}`);
+        }
+        else {
+            this.logger.log(`♻️ Found existing room ${room._id} for ${userId}`);
         }
         return room;
     }
@@ -145,9 +173,11 @@ let ChatService = ChatService_1 = class ChatService {
             lastMessageAt: new Date(),
             $inc: { unreadCount: senderType === 'customer' ? 1 : 0 },
         }).exec();
-        this.realtimeGateway.emitChatMessage(roomId, message);
+        const serializedMessage = this.serializeMessage(message);
+        this.realtimeGateway.emitChatMessage(roomId, serializedMessage);
         if (senderType === 'customer' && !options?.isAutomated) {
-            await this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString());
+            this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
+                .catch(error => this.logger.error('Automation error:', error));
         }
         this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}`);
         return message;
@@ -291,9 +321,11 @@ let ChatService = ChatService_1 = class ChatService {
             senderName: 'Auto Assistant',
             isAutomated: true,
         });
-        await this.autoResponseModel.findByIdAndUpdate(offlineResponse?._id, {
-            $inc: { usageCount: 1 },
-        }).exec();
+        if (offlineResponse) {
+            await this.autoResponseModel.findByIdAndUpdate(offlineResponse._id, {
+                $inc: { usageCount: 1 },
+            }).exec();
+        }
     }
     async isBusinessAvailable(businessId) {
         const onlineStaffCount = this.realtimeGateway.getBusinessConnections(businessId);

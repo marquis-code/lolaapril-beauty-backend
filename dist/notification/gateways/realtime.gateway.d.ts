@@ -15,9 +15,6 @@ export declare class RealtimeGateway implements OnGatewayInit, OnGatewayConnecti
     handleConnection(client: Socket): Promise<void>;
     private setupAnonymousUser;
     handleDisconnect(client: Socket): void;
-    emitNotificationToBusiness(businessId: string, notification: any): void;
-    emitNotificationToUser(userId: string, notification: any): void;
-    emitAuditNotification(businessId: string, auditLog: any): void;
     handleJoinRoom(data: {
         roomId?: string;
         businessId?: string;
@@ -27,6 +24,24 @@ export declare class RealtimeGateway implements OnGatewayInit, OnGatewayConnecti
         success: boolean;
         message: string;
         roomId: string;
+        messages: {
+            id: any;
+            roomId: any;
+            businessId: any;
+            senderId: any;
+            senderType: any;
+            senderName: any;
+            messageType: any;
+            content: any;
+            attachments: any;
+            isRead: any;
+            readAt: any;
+            isAutomated: any;
+            isFAQ: any;
+            createdAt: any;
+            updatedAt: any;
+            metadata: any;
+        }[];
         error?: undefined;
         requireEmail?: undefined;
         isGuest?: undefined;
@@ -37,12 +52,31 @@ export declare class RealtimeGateway implements OnGatewayInit, OnGatewayConnecti
         requireEmail: boolean;
         message?: undefined;
         roomId?: undefined;
+        messages?: undefined;
         isGuest?: undefined;
         guestId?: undefined;
     } | {
         success: boolean;
         message: string;
         roomId: any;
+        messages: {
+            id: any;
+            roomId: any;
+            businessId: any;
+            senderId: any;
+            senderType: any;
+            senderName: any;
+            messageType: any;
+            content: any;
+            attachments: any;
+            isRead: any;
+            readAt: any;
+            isAutomated: any;
+            isFAQ: any;
+            createdAt: any;
+            updatedAt: any;
+            metadata: any;
+        }[];
         isGuest: any;
         guestId: any;
         error?: undefined;
@@ -52,6 +86,7 @@ export declare class RealtimeGateway implements OnGatewayInit, OnGatewayConnecti
         error: any;
         message?: undefined;
         roomId?: undefined;
+        messages?: undefined;
         requireEmail?: undefined;
         isGuest?: undefined;
         guestId?: undefined;
@@ -62,16 +97,20 @@ export declare class RealtimeGateway implements OnGatewayInit, OnGatewayConnecti
         success: boolean;
         message: string;
     }>;
-    handleSendMessage(data: any, client: Socket): Promise<{
-        success: boolean;
-        error: string;
-        messageId?: undefined;
-        timestamp?: undefined;
-    } | {
+    handleSendMessage(data: {
+        roomId: string;
+        content: string;
+        attachments?: any[];
+    }, client: Socket): Promise<{
         success: boolean;
         messageId: any;
         timestamp: Date;
         error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        messageId?: undefined;
+        timestamp?: undefined;
     }>;
     handleTyping(data: {
         roomId: string;
@@ -83,6 +122,7 @@ export declare class RealtimeGateway implements OnGatewayInit, OnGatewayConnecti
     }, client: Socket): Promise<{
         success: boolean;
     }>;
+    private serializeMessage;
     emitChatMessage(roomId: string, message: any): void;
     emitAutoResponse(roomId: string, autoResponse: any): void;
     emitFAQResponse(roomId: string, faqResponse: any): void;
@@ -90,4 +130,7 @@ export declare class RealtimeGateway implements OnGatewayInit, OnGatewayConnecti
     getConnectedClientsCount(): number;
     getBusinessConnections(businessId: string): number;
     isUserOnline(userId: string): boolean;
+    emitNotificationToBusiness(businessId: string, notification: any): void;
+    emitNotificationToUser(userId: string, notification: any): void;
+    emitAuditNotification(businessId: string, auditLog: any): void;
 }

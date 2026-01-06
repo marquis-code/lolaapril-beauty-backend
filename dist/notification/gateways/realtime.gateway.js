@@ -36,14 +36,16 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
             const redisHost = this.configService.get('REDIS_HOST');
             const redisPort = this.configService.get('REDIS_PORT');
             const redisPassword = this.configService.get('REDIS_PASSWORD');
-            const pubClient = (0, redis_1.createClient)({
-                url: `redis://${redisHost}:${redisPort}`,
-                password: redisPassword,
-            });
-            const subClient = pubClient.duplicate();
-            await Promise.all([pubClient.connect(), subClient.connect()]);
-            server.adapter((0, redis_adapter_1.createAdapter)(pubClient, subClient));
-            this.logger.log('✅ Redis adapter configured for WebSocket scaling');
+            if (redisHost && redisPort) {
+                const pubClient = (0, redis_1.createClient)({
+                    url: `redis://${redisHost}:${redisPort}`,
+                    password: redisPassword,
+                });
+                const subClient = pubClient.duplicate();
+                await Promise.all([pubClient.connect(), subClient.connect()]);
+                server.adapter((0, redis_adapter_1.createAdapter)(pubClient, subClient));
+                this.logger.log('✅ Redis adapter configured for WebSocket scaling');
+            }
         }
         catch (error) {
             this.logger.warn('⚠️ Redis adapter not configured, running in single-instance mode:', error.message);
@@ -129,38 +131,20 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
         this.connectedClients.delete(client.id);
         this.logger.log(`🔌 Client disconnected: ${client.id}`);
         this.logger.log(`📊 Total connected clients: ${this.connectedClients.size}`);
-        if (clientInfo) {
+        if (clientInfo && clientInfo.businessId) {
             this.server.to(`business:${clientInfo.businessId}`).emit('user:offline', {
                 userId: clientInfo.userId,
                 timestamp: new Date(),
             });
         }
     }
-    emitNotificationToBusiness(businessId, notification) {
-        this.server.to(`business:${businessId}`).emit('notification:new', notification);
-        this.logger.log(`📢 Notification sent to business ${businessId}`);
-    }
-    emitNotificationToUser(userId, notification) {
-        this.server.to(`user:${userId}`).emit('notification:new', notification);
-        this.logger.log(`📧 Notification sent to user ${userId}`);
-    }
-    emitAuditNotification(businessId, auditLog) {
-        const notification = {
-            type: 'audit',
-            action: auditLog.action,
-            entity: auditLog.entity,
-            description: auditLog.description,
-            timestamp: auditLog.createdAt,
-            metadata: auditLog.metadata,
-        };
-        this.server.to(`business:${businessId}`).emit('audit:log', notification);
-        this.logger.log(`🔍 Audit log sent to business ${businessId}: ${auditLog.action} on ${auditLog.entity}`);
-    }
     async handleJoinRoom(data, client) {
         const clientInfo = this.connectedClients.get(client.id);
-        if (!clientInfo)
+        if (!clientInfo) {
             return { success: false, error: 'Not connected' };
+        }
         try {
+            this.logger.log(`💬 Join room request:`, { clientId: client.id, data });
             if (data.roomId) {
                 client.join(`room:${data.roomId}`);
                 this.logger.log(`💬 User ${clientInfo.userId} joined room ${data.roomId}`);
@@ -170,7 +154,16 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
                     roomId: data.roomId,
                     timestamp: new Date(),
                 });
-                return { success: true, message: 'Joined room successfully', roomId: data.roomId };
+                const { ChatService } = await Promise.resolve().then(() => require('../services/chat.service'));
+                const chatService = this.moduleRef.get(ChatService, { strict: false });
+                const { messages } = await chatService.getRoomMessages(data.roomId, { limit: 50 });
+                const serializedMessages = messages.map(msg => this.serializeMessage(msg));
+                return {
+                    success: true,
+                    message: 'Joined room successfully',
+                    roomId: data.roomId,
+                    messages: serializedMessages,
+                };
             }
             if (data.businessId && data.userName) {
                 if (clientInfo.isGuest && !data.email) {
@@ -197,6 +190,7 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
                 if (clientInfo.isGuest) {
                     userInfo.guestInfo = {
                         ...clientInfo.guestInfo,
+                        userName: data.userName,
                         email: data.email,
                     };
                 }
@@ -205,10 +199,13 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
                 client.join(`room:${roomId}`);
                 client.join(`business:${data.businessId}`);
                 this.logger.log(`💬 ${clientInfo.isGuest ? 'Guest' : 'User'} ${clientInfo.userId} created/joined room ${roomId}`);
+                const { messages } = await chatService.getRoomMessages(roomId, { limit: 50 });
+                const serializedMessages = messages.map(msg => this.serializeMessage(msg));
                 return {
                     success: true,
                     message: 'Room created/joined successfully',
                     roomId,
+                    messages: serializedMessages,
                     isGuest: clientInfo.isGuest,
                     guestId: clientInfo.isGuest ? clientInfo.userId : undefined
                 };
@@ -235,9 +232,36 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
     }
     async handleSendMessage(data, client) {
         const clientInfo = this.connectedClients.get(client.id);
-        if (!clientInfo)
-            return { success: false, error: 'Not authenticated' };
-        return { success: true, messageId: data.messageId, timestamp: new Date() };
+        if (!clientInfo) {
+            return { success: false, error: 'Not connected' };
+        }
+        try {
+            this.logger.log(`📤 Send message request:`, {
+                clientId: client.id,
+                roomId: data.roomId,
+                content: data.content.substring(0, 50) + '...'
+            });
+            const { ChatService } = await Promise.resolve().then(() => require('../services/chat.service'));
+            const chatService = this.moduleRef.get(ChatService, { strict: false });
+            const senderType = clientInfo.isGuest ? 'customer' : 'staff';
+            const senderName = clientInfo.isGuest
+                ? (clientInfo.guestInfo?.userName || 'Guest')
+                : 'Staff Member';
+            const message = await chatService.sendMessage(data.roomId, clientInfo.userId, senderType, data.content, {
+                senderName,
+                attachments: data.attachments,
+            });
+            this.logger.log(`✅ Message sent successfully to room ${data.roomId}`);
+            return {
+                success: true,
+                messageId: message._id.toString(),
+                timestamp: new Date()
+            };
+        }
+        catch (error) {
+            this.logger.error(`❌ Error sending message:`, error.message);
+            return { success: false, error: error.message };
+        }
     }
     async handleTyping(data, client) {
         const clientInfo = this.connectedClients.get(client.id);
@@ -245,6 +269,7 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
             return;
         client.to(`room:${data.roomId}`).emit('chat:user-typing', {
             userId: clientInfo.userId,
+            userName: clientInfo.guestInfo?.userName || 'User',
             roomId: data.roomId,
             isTyping: data.isTyping,
             timestamp: new Date(),
@@ -262,9 +287,30 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
         });
         return { success: true };
     }
+    serializeMessage(message) {
+        const obj = message.toObject ? message.toObject() : message;
+        return {
+            id: obj._id.toString(),
+            roomId: obj.roomId.toString(),
+            businessId: obj.businessId.toString(),
+            senderId: obj.senderId?.toString(),
+            senderType: obj.senderType,
+            senderName: obj.senderName,
+            messageType: obj.messageType,
+            content: obj.content,
+            attachments: obj.attachments || [],
+            isRead: obj.isRead,
+            readAt: obj.readAt,
+            isAutomated: obj.isAutomated,
+            isFAQ: obj.isFAQ,
+            createdAt: obj.createdAt,
+            updatedAt: obj.updatedAt,
+            metadata: obj.metadata,
+        };
+    }
     emitChatMessage(roomId, message) {
         this.server.to(`room:${roomId}`).emit('chat:new-message', message);
-        this.logger.log(`💬 Message sent to room ${roomId}`);
+        this.logger.log(`💬 Message broadcasted to room ${roomId}`);
     }
     emitAutoResponse(roomId, autoResponse) {
         this.server.to(`room:${roomId}`).emit('chat:auto-response', autoResponse);
@@ -286,6 +332,26 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
     }
     isUserOnline(userId) {
         return this.server.sockets.adapter.rooms.has(`user:${userId}`);
+    }
+    emitNotificationToBusiness(businessId, notification) {
+        this.server.to(`business:${businessId}`).emit('notification:new', notification);
+        this.logger.log(`📢 Notification sent to business ${businessId}`);
+    }
+    emitNotificationToUser(userId, notification) {
+        this.server.to(`user:${userId}`).emit('notification:new', notification);
+        this.logger.log(`📧 Notification sent to user ${userId}`);
+    }
+    emitAuditNotification(businessId, auditLog) {
+        const notification = {
+            type: 'audit',
+            action: auditLog.action,
+            entity: auditLog.entity,
+            description: auditLog.description,
+            timestamp: auditLog.createdAt,
+            metadata: auditLog.metadata,
+        };
+        this.server.to(`business:${businessId}`).emit('audit:log', notification);
+        this.logger.log(`🔍 Audit log sent to business ${businessId}: ${auditLog.action} on ${auditLog.entity}`);
     }
 };
 __decorate([
@@ -340,6 +406,7 @@ RealtimeGateway = RealtimeGateway_1 = __decorate([
         },
         namespace: 'realtime',
         transports: ['websocket', 'polling'],
+        path: '/socket.io/',
     }),
     __metadata("design:paramtypes", [jwt_1.JwtService,
         config_1.ConfigService,
