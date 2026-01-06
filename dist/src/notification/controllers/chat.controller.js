@@ -172,7 +172,7 @@ __decorate([
     (0, common_1.Get)('faqs'),
     (0, swagger_1.ApiOperation)({ summary: 'Get all FAQs for business' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'FAQs retrieved' }),
-    __param(0, (0, auth_1.BusinessId)()),
+    __param(0, (0, common_1.Query)('businessId')),
     __param(1, (0, common_1.Query)('category')),
     __param(2, (0, common_1.Query)('isActive')),
     __metadata("design:type", Function),
@@ -213,7 +213,7 @@ __decorate([
     (0, common_1.Get)('auto-responses'),
     (0, swagger_1.ApiOperation)({ summary: 'Get all auto-responses for business' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Auto-responses retrieved' }),
-    __param(0, (0, auth_1.BusinessId)()),
+    __param(0, (0, common_1.Query)('businessId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
