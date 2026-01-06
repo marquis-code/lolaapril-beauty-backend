@@ -676,4 +676,34 @@ export class ClientService {
       throw new Error(`Failed to get client stats: ${error.message}`)
     }
   }
+
+  async enableGrokCodeFast1ForAllClients(businessId?: string): Promise<ApiResponse<any>> {
+    try {
+      const filter: any = {}
+      if (businessId) {
+        filter.businessId = businessId
+      }
+
+      const result = await this.clientModel.updateMany(
+        filter,
+        {
+          $set: {
+            "settings.grokCodeFast1Enabled": true,
+            updatedAt: new Date(),
+          },
+        },
+      )
+
+      return {
+        success: true,
+        data: {
+          matched: result.matchedCount,
+          modified: result.modifiedCount,
+        },
+        message: `Grok Code Fast 1 enabled for ${result.modifiedCount} client(s)`,
+      }
+    } catch (error) {
+      throw new Error(`Failed to enable Grok Code Fast 1: ${error.message}`)
+    }
+  }
 }

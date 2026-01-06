@@ -24,6 +24,7 @@
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
 import { Model } from "mongoose";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { AuditLog, AuditLogDocument, AuditAction, AuditEntity } from "./schemas/audit-log.schema";
 export interface CreateAuditLogDto {
     userId: string;
@@ -39,8 +40,10 @@ export interface CreateAuditLogDto {
 }
 export declare class AuditService {
     private auditLogModel;
-    constructor(auditLogModel: Model<AuditLogDocument>);
+    private eventEmitter;
+    constructor(auditLogModel: Model<AuditLogDocument>, eventEmitter: EventEmitter2);
     createLog(createAuditLogDto: CreateAuditLogDto): Promise<AuditLog>;
+    private shouldNotifyBusiness;
     getAuditLogs(filters: {
         userId?: string;
         entity?: AuditEntity;

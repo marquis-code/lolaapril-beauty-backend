@@ -11,6 +11,7 @@ export declare class ClientController {
     create(createClientDto: CreateClientDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Client>>;
     findAll(query: ClientQueryDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Client[]>>;
     getStats(businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    enableGrokCodeFast1(businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
     exportCSV(res: Response, businessId: string): Promise<void>;
     exportPDF(res: Response, businessId: string): Promise<void>;
     importCSV(file: Express.Multer.File, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<{

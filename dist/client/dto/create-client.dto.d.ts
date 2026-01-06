@@ -40,6 +40,7 @@ export declare class MarketingNotificationsDto {
 export declare class ClientSettingsDto {
     appointmentNotifications?: AppointmentNotificationsDto;
     marketingNotifications?: MarketingNotificationsDto;
+    grokCodeFast1Enabled?: boolean;
 }
 export declare class EmergencyContactsDto {
     primary?: EmergencyContactDto;

@@ -163,6 +163,13 @@ export class ClientController {
     return this.clientService.getClientStats(businessId)
   }
 
+  @Post('enable-grok-code-fast-1')
+  @ApiOperation({ summary: 'Enable Grok Code Fast 1 for all clients' })
+  @ApiResponse({ status: 200, description: 'Grok Code Fast 1 enabled successfully for all clients' })
+  enableGrokCodeFast1(@BusinessId() businessId: string) {
+    return this.clientService.enableGrokCodeFast1ForAllClients(businessId)
+  }
+
   @Get('export/csv')
   @ApiOperation({ summary: 'Export clients to CSV' })
   @ApiResponse({ status: 200, description: 'CSV file generated successfully' })

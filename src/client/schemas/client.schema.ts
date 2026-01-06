@@ -400,6 +400,9 @@ export class ClientSettings {
   marketingNotifications: {
     clientAcceptsEmailMarketing: boolean
   }
+
+  @Prop({ type: Boolean, default: true })
+  grokCodeFast1Enabled: boolean
 }
 
 export const ClientSettingsSchema = SchemaFactory.createForClass(ClientSettings)

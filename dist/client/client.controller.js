@@ -36,6 +36,9 @@ let ClientController = class ClientController {
     getStats(businessId) {
         return this.clientService.getClientStats(businessId);
     }
+    enableGrokCodeFast1(businessId) {
+        return this.clientService.enableGrokCodeFast1ForAllClients(businessId);
+    }
     async exportCSV(res, businessId) {
         try {
             const filePath = await this.clientService.exportToCSV(businessId);
@@ -104,6 +107,15 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ClientController.prototype, "getStats", null);
+__decorate([
+    (0, common_1.Post)('enable-grok-code-fast-1'),
+    (0, swagger_1.ApiOperation)({ summary: 'Enable Grok Code Fast 1 for all clients' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Grok Code Fast 1 enabled successfully for all clients' }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ClientController.prototype, "enableGrokCodeFast1", null);
 __decorate([
     (0, common_1.Get)('export/csv'),
     (0, swagger_1.ApiOperation)({ summary: 'Export clients to CSV' }),

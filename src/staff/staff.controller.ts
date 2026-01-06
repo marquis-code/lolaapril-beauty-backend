@@ -32,7 +32,6 @@ export class StaffController {
 
   // ================== STAFF MANAGEMENT ==================
   @Post()
-  
   @HttpCode(HttpStatus.CREATED)
   async createStaff(
     @Body(ValidationPipe) createStaffDto: CreateStaffDto,
@@ -62,7 +61,6 @@ export class StaffController {
   }
 
   @Get('business')
-  
   async getStaffByBusiness(
     @Query('status') status: string,
     @Request() req: any
@@ -87,7 +85,6 @@ export class StaffController {
   }
 
   @Get('available')
-  
   async getAvailableStaff(
     @Query('date') date: string,
     @Query('startTime') startTime: string,
@@ -122,7 +119,6 @@ export class StaffController {
 
   // ================== SCHEDULE MANAGEMENT ==================
   @Post('schedule')
-  
   async createSchedule(
     @Body(ValidationPipe) createScheduleDto: CreateStaffScheduleDto,
     @Request() req: any
@@ -152,7 +148,6 @@ export class StaffController {
   }
 
   @Get('schedule/:staffId')
-  
   async getSchedule(
     @Param('staffId') staffId: string,
     @Query('date') date: string
@@ -179,7 +174,6 @@ export class StaffController {
 
   // ================== ASSIGNMENT MANAGEMENT ==================
   @Post('assign')
-  
   async assignStaff(
     @Body(ValidationPipe) assignStaffDto: AssignStaffDto,
     @Request() req: any
@@ -210,7 +204,6 @@ export class StaffController {
   }
 
   @Post('auto-assign')
-  
   async autoAssignStaff(@Body(ValidationPipe) autoAssignDto: AutoAssignStaffDto) {
     try {
       const assignment = await this.staffService.autoAssignStaff(
@@ -238,7 +231,6 @@ export class StaffController {
   }
 
   @Get('assignments/:staffId')
-  
   async getAssignments(
     @Param('staffId') staffId: string,
     @Query('startDate') startDate: string,
@@ -266,7 +258,6 @@ export class StaffController {
   }
 
   @Put('assignment/:assignmentId/complete')
-  
   async completeAssignment(
     @Param('assignmentId') assignmentId: string,
     @Body(ValidationPipe) completionData: CompleteAssignmentDto
@@ -293,7 +284,6 @@ export class StaffController {
 
   // ================== WORKING HOURS TRACKING ==================
   @Post('checkin')
-  
   async checkIn(
     @Body(ValidationPipe) checkInDto: CheckInStaffDto,
     @Request() req: any
@@ -322,7 +312,6 @@ export class StaffController {
   }
 
   @Post('checkout')
-  
   async checkOut(
     @Body('staffId') staffId: string,
     @Request() req: any

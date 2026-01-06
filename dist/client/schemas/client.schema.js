@@ -195,6 +195,10 @@ __decorate([
     }),
     __metadata("design:type", Object)
 ], ClientSettings.prototype, "marketingNotifications", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Boolean, default: true }),
+    __metadata("design:type", Boolean)
+], ClientSettings.prototype, "grokCodeFast1Enabled", void 0);
 ClientSettings = __decorate([
     (0, mongoose_1.Schema)()
 ], ClientSettings);
