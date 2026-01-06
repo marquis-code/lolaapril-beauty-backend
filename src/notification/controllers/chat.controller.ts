@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
 import { ChatService } from '../services/chat.service'
-import { BusinessId } from '../../auth'
+import { BusinessId, Public } from '../../auth'
 
 @ApiTags('Chat')
 @Controller('chat')
@@ -143,6 +143,7 @@ export class ChatController {
     })
   }
 
+  @Public()
   @Get('faqs')
   @ApiOperation({ summary: 'Get all FAQs for business' })
   @ApiResponse({ status: 200, description: 'FAQs retrieved' })
@@ -196,6 +197,7 @@ export class ChatController {
     })
   }
 
+  @Public()
   @Get('auto-responses')
   @ApiOperation({ summary: 'Get all auto-responses for business' })
   @ApiResponse({ status: 200, description: 'Auto-responses retrieved' })
