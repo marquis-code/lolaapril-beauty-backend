@@ -70,7 +70,7 @@ __decorate([
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], ChatMessage.prototype, "businessId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: false }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], ChatMessage.prototype, "senderId", void 0);
 __decorate([
@@ -138,6 +138,7 @@ exports.ChatMessageSchema.index({ roomId: 1, createdAt: -1 });
 exports.ChatMessageSchema.index({ businessId: 1, createdAt: -1 });
 exports.ChatMessageSchema.index({ senderId: 1 });
 exports.ChatMessageSchema.index({ isRead: 1 });
+exports.ChatMessageSchema.index({ 'metadata.guestId': 1 });
 let ChatParticipant = class ChatParticipant {
 };
 __decorate([

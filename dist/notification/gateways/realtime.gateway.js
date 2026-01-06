@@ -239,15 +239,18 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
             this.logger.log(`📤 Send message request:`, {
                 clientId: client.id,
                 roomId: data.roomId,
-                content: data.content.substring(0, 50) + '...'
+                content: data.content.substring(0, 50) + '...',
+                isGuest: clientInfo.isGuest,
+                userId: clientInfo.userId
             });
             const { ChatService } = await Promise.resolve().then(() => require('../services/chat.service'));
             const chatService = this.moduleRef.get(ChatService, { strict: false });
+            const senderId = clientInfo.userId;
             const senderType = clientInfo.isGuest ? 'customer' : 'staff';
             const senderName = clientInfo.isGuest
                 ? (clientInfo.guestInfo?.userName || 'Guest')
                 : 'Staff Member';
-            const message = await chatService.sendMessage(data.roomId, clientInfo.userId, senderType, data.content, {
+            const message = await chatService.sendMessage(data.roomId, senderId, senderType, data.content, {
                 senderName,
                 attachments: data.attachments,
             });
