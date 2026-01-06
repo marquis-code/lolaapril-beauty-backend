@@ -10,6 +10,7 @@ export declare class ChatService {
     private realtimeGateway;
     private readonly logger;
     constructor(chatRoomModel: Model<ChatRoomDocument>, chatMessageModel: Model<ChatMessageDocument>, chatParticipantModel: Model<ChatParticipantDocument>, faqModel: Model<FAQDocument>, autoResponseModel: Model<AutoResponseDocument>, realtimeGateway: RealtimeGateway);
+    private serializeMessage;
     createOrGetCustomerChatRoom(businessId: string, userId: string, userInfo: {
         name: string;
         email?: string;
