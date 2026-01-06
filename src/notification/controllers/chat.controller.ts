@@ -148,7 +148,7 @@ export class ChatController {
   @ApiOperation({ summary: 'Get all FAQs for business' })
   @ApiResponse({ status: 200, description: 'FAQs retrieved' })
   async getFAQs(
-    @BusinessId() businessId: string,
+    @Query('businessId') businessId: string,
     @Query('category') category?: string,
     @Query('isActive') isActive?: boolean
   ) {
@@ -201,7 +201,7 @@ export class ChatController {
   @Get('auto-responses')
   @ApiOperation({ summary: 'Get all auto-responses for business' })
   @ApiResponse({ status: 200, description: 'Auto-responses retrieved' })
-  async getAutoResponses(@BusinessId() businessId: string) {
+  async getAutoResponses(@Query('businessId') businessId: string) {
     return this.chatService.getBusinessAutoResponses(businessId)
   }
 

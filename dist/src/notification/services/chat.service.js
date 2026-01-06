@@ -348,7 +348,7 @@ let ChatService = ChatService_1 = class ChatService {
         return faq;
     }
     async getBusinessFAQs(businessId, options) {
-        const query = { businessId: new mongoose_2.Types.ObjectId(businessId) };
+        const query = { businessId: businessId };
         if (options?.category)
             query.category = options.category;
         if (options?.isActive !== undefined)
@@ -372,7 +372,7 @@ let ChatService = ChatService_1 = class ChatService {
     }
     async getBusinessAutoResponses(businessId) {
         return this.autoResponseModel.find({
-            businessId: new mongoose_2.Types.ObjectId(businessId),
+            businessId: businessId,
             isActive: true,
         }).exec();
     }
