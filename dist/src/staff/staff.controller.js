@@ -21,13 +21,13 @@ const assign_staff_dto_1 = require("../staff/dto/assign-staff.dto");
 const auto_assign_staff_dto_1 = require("../staff/dto/auto-assign-staff.dto");
 const check_in_staff_dto_1 = require("../staff/dto/check-in-staff.dto");
 const complete_assignment_dto_1 = require("../staff/dto/complete-assignment.dto");
+const auth_1 = require("../auth");
 let StaffController = class StaffController {
     constructor(staffService) {
         this.staffService = staffService;
     }
-    async createStaff(createStaffDto, req) {
+    async createStaff(createStaffDto, businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const staff = await this.staffService.createStaff({
                 ...createStaffDto,
                 businessId
@@ -46,9 +46,8 @@ let StaffController = class StaffController {
             };
         }
     }
-    async getStaffByBusiness(status, req) {
+    async getStaffByBusiness(businessId, status) {
         try {
-            const businessId = req.tenant.businessId;
             const staff = await this.staffService.getStaffByBusiness(businessId, status);
             return {
                 success: true,
@@ -64,9 +63,8 @@ let StaffController = class StaffController {
             };
         }
     }
-    async getAvailableStaff(date, startTime, endTime, serviceId, req) {
+    async getAvailableStaff(businessId, date, startTime, endTime, serviceId) {
         try {
-            const businessId = req.tenant.businessId;
             const availableStaff = await this.staffService.getAvailableStaff(businessId, new Date(date), startTime, endTime, serviceId);
             return {
                 success: true,
@@ -82,9 +80,8 @@ let StaffController = class StaffController {
             };
         }
     }
-    async createSchedule(createScheduleDto, req) {
+    async createSchedule(createScheduleDto, req, businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const createdBy = req.user.id;
             const schedule = await this.staffService.createStaffSchedule({
                 ...createScheduleDto,
@@ -122,9 +119,8 @@ let StaffController = class StaffController {
             };
         }
     }
-    async assignStaff(assignStaffDto, req) {
+    async assignStaff(assignStaffDto, req, businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const assignedBy = req.user.id;
             const assignment = await this.staffService.assignStaffToAppointment({
                 ...assignStaffDto,
@@ -197,9 +193,8 @@ let StaffController = class StaffController {
             };
         }
     }
-    async checkIn(checkInDto, req) {
+    async checkIn(checkInDto, req, businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const checkedInBy = req.user.id;
             await this.staffService.checkInStaff({
                 ...checkInDto,
@@ -219,9 +214,8 @@ let StaffController = class StaffController {
             };
         }
     }
-    async checkOut(staffId, req) {
+    async checkOut(staffId, req, businessId) {
         try {
-            const businessId = req.tenant.businessId;
             const checkedOutBy = req.user.id;
             await this.staffService.checkOutStaff(staffId, businessId, checkedOutBy);
             return {
@@ -308,42 +302,48 @@ let StaffController = class StaffController {
 };
 __decorate([
     (0, common_1.Post)(),
+    (0, auth_1.ValidateBusiness)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
-    __param(1, (0, common_1.Request)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_staff_dto_1.CreateStaffDto, Object]),
+    __metadata("design:paramtypes", [create_staff_dto_1.CreateStaffDto, String]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "createStaff", null);
 __decorate([
     (0, common_1.Get)('business'),
-    __param(0, (0, common_1.Query)('status')),
-    __param(1, (0, common_1.Request)()),
+    (0, auth_1.ValidateBusiness)(),
+    __param(0, (0, auth_1.BusinessId)()),
+    __param(1, (0, common_1.Query)('status')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "getStaffByBusiness", null);
 __decorate([
     (0, common_1.Get)('available'),
-    __param(0, (0, common_1.Query)('date')),
-    __param(1, (0, common_1.Query)('startTime')),
-    __param(2, (0, common_1.Query)('endTime')),
-    __param(3, (0, common_1.Query)('serviceId')),
-    __param(4, (0, common_1.Request)()),
+    (0, auth_1.ValidateBusiness)(),
+    __param(0, (0, auth_1.BusinessId)()),
+    __param(1, (0, common_1.Query)('date')),
+    __param(2, (0, common_1.Query)('startTime')),
+    __param(3, (0, common_1.Query)('endTime')),
+    __param(4, (0, common_1.Query)('serviceId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "getAvailableStaff", null);
 __decorate([
     (0, common_1.Post)('schedule'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_staff_schedule_dto_1.CreateStaffScheduleDto, Object]),
+    __metadata("design:paramtypes", [create_staff_schedule_dto_1.CreateStaffScheduleDto, Object, String]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "createSchedule", null);
 __decorate([
     (0, common_1.Get)('schedule/:staffId'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Query)('date')),
     __metadata("design:type", Function),
@@ -352,14 +352,17 @@ __decorate([
 ], StaffController.prototype, "getSchedule", null);
 __decorate([
     (0, common_1.Post)('assign'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [assign_staff_dto_1.AssignStaffDto, Object]),
+    __metadata("design:paramtypes", [assign_staff_dto_1.AssignStaffDto, Object, String]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "assignStaff", null);
 __decorate([
     (0, common_1.Post)('auto-assign'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [auto_assign_staff_dto_1.AutoAssignStaffDto]),
@@ -367,6 +370,7 @@ __decorate([
 ], StaffController.prototype, "autoAssignStaff", null);
 __decorate([
     (0, common_1.Get)('assignments/:staffId'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Query)('startDate')),
     __param(2, (0, common_1.Query)('endDate')),
@@ -376,6 +380,7 @@ __decorate([
 ], StaffController.prototype, "getAssignments", null);
 __decorate([
     (0, common_1.Put)('assignment/:assignmentId/complete'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Param)('assignmentId')),
     __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
     __metadata("design:type", Function),
@@ -384,22 +389,27 @@ __decorate([
 ], StaffController.prototype, "completeAssignment", null);
 __decorate([
     (0, common_1.Post)('checkin'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [check_in_staff_dto_1.CheckInStaffDto, Object]),
+    __metadata("design:paramtypes", [check_in_staff_dto_1.CheckInStaffDto, Object, String]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "checkIn", null);
 __decorate([
     (0, common_1.Post)('checkout'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Body)('staffId')),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "checkOut", null);
 __decorate([
     (0, common_1.Get)('working-hours/:staffId'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Query)('startDate')),
     __param(2, (0, common_1.Query)('endDate')),
@@ -409,6 +419,7 @@ __decorate([
 ], StaffController.prototype, "getWorkingHours", null);
 __decorate([
     (0, common_1.Get)(':staffId'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Param)('staffId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -416,6 +427,7 @@ __decorate([
 ], StaffController.prototype, "getStaffById", null);
 __decorate([
     (0, common_1.Put)(':staffId/skills'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Body)('skills')),
     __metadata("design:type", Function),
@@ -424,6 +436,7 @@ __decorate([
 ], StaffController.prototype, "updateStaffSkills", null);
 __decorate([
     (0, common_1.Put)(':staffId/status'),
+    (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Param)('staffId')),
     __param(1, (0, common_1.Body)('status')),
     __param(2, (0, common_1.Body)('reason')),

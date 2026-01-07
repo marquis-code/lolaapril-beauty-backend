@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 export type BusinessSettingsDocument = BusinessSettings & Document;
 export interface BusinessHours {
     day: string;
@@ -100,6 +100,7 @@ export interface ClosedPeriod {
     onlineBookingBlocked: boolean;
 }
 export declare class BusinessSettings {
+    businessId: Types.ObjectId;
     businessName: string;
     businessEmail: string;
     businessPhone: {
@@ -130,11 +131,11 @@ export declare class BusinessSettings {
     requireClientConfirmation: boolean;
 }
 export declare const BusinessSettingsSchema: import("mongoose").Schema<BusinessSettings, import("mongoose").Model<BusinessSettings, any, any, any, Document<unknown, any, BusinessSettings, any, {}> & BusinessSettings & {
-    _id: import("mongoose").Types.ObjectId;
+    _id: Types.ObjectId;
 } & {
     __v: number;
 }, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, BusinessSettings, Document<unknown, {}, import("mongoose").FlatRecord<BusinessSettings>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<BusinessSettings> & {
-    _id: import("mongoose").Types.ObjectId;
+    _id: Types.ObjectId;
 } & {
     __v: number;
 }>;

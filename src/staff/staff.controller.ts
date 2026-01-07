@@ -23,7 +23,7 @@ import { AutoAssignStaffDto } from '../staff/dto/auto-assign-staff.dto'
 import { CheckInStaffDto } from '../staff/dto/check-in-staff.dto'
 import { CompleteAssignmentDto } from '../staff/dto/complete-assignment.dto'
 import { GetStaffAssignmentsDto } from '../staff/dto/get-staff-assignments.dto'
-
+import { ValidateBusiness, BusinessId } from "../auth"
 // Import Guards
 
 @Controller('staff')
@@ -32,14 +32,14 @@ export class StaffController {
 
   // ================== STAFF MANAGEMENT ==================
   @Post()
+  @ValidateBusiness()
   @HttpCode(HttpStatus.CREATED)
   async createStaff(
     @Body(ValidationPipe) createStaffDto: CreateStaffDto,
-    @Request() req: any
+    @BusinessId() businessId: string,
   ) {
     try {
       // Get business ID from tenant middleware
-      const businessId = req.tenant.businessId
       
       const staff = await this.staffService.createStaff({
         ...createStaffDto,
@@ -61,12 +61,12 @@ export class StaffController {
   }
 
   @Get('business')
+  @ValidateBusiness()
   async getStaffByBusiness(
+    @BusinessId() businessId: string,
     @Query('status') status: string,
-    @Request() req: any
   ) {
     try {
-      const businessId = req.tenant.businessId
       
       const staff = await this.staffService.getStaffByBusiness(businessId, status)
 
@@ -85,15 +85,15 @@ export class StaffController {
   }
 
   @Get('available')
+  @ValidateBusiness()
   async getAvailableStaff(
+    @BusinessId() businessId: string,
     @Query('date') date: string,
     @Query('startTime') startTime: string,
     @Query('endTime') endTime: string,
     @Query('serviceId') serviceId: string,
-    @Request() req: any
   ) {
     try {
-      const businessId = req.tenant.businessId
       
       const availableStaff = await this.staffService.getAvailableStaff(
         businessId,
@@ -119,12 +119,14 @@ export class StaffController {
 
   // ================== SCHEDULE MANAGEMENT ==================
   @Post('schedule')
+  @ValidateBusiness()
   async createSchedule(
     @Body(ValidationPipe) createScheduleDto: CreateStaffScheduleDto,
-    @Request() req: any
+    @Request() req: any,
+    @BusinessId() businessId: string,
   ) {
     try {
-      const businessId = req.tenant.businessId
+      // const businessId = req.tenant.businessId
       const createdBy = req.user.id
 
       const schedule = await this.staffService.createStaffSchedule({
@@ -148,6 +150,7 @@ export class StaffController {
   }
 
   @Get('schedule/:staffId')
+  @ValidateBusiness()
   async getSchedule(
     @Param('staffId') staffId: string,
     @Query('date') date: string
@@ -174,12 +177,14 @@ export class StaffController {
 
   // ================== ASSIGNMENT MANAGEMENT ==================
   @Post('assign')
+  @ValidateBusiness()
   async assignStaff(
     @Body(ValidationPipe) assignStaffDto: AssignStaffDto,
-    @Request() req: any
+    @Request() req: any,
+    @BusinessId() businessId: string,
   ) {
     try {
-      const businessId = req.tenant.businessId
+      // const businessId = req.tenant.businessId
       const assignedBy = req.user.id
 
       const assignment = await this.staffService.assignStaffToAppointment({
@@ -204,6 +209,7 @@ export class StaffController {
   }
 
   @Post('auto-assign')
+  @ValidateBusiness()
   async autoAssignStaff(@Body(ValidationPipe) autoAssignDto: AutoAssignStaffDto) {
     try {
       const assignment = await this.staffService.autoAssignStaff(
@@ -231,6 +237,7 @@ export class StaffController {
   }
 
   @Get('assignments/:staffId')
+  @ValidateBusiness()
   async getAssignments(
     @Param('staffId') staffId: string,
     @Query('startDate') startDate: string,
@@ -258,6 +265,7 @@ export class StaffController {
   }
 
   @Put('assignment/:assignmentId/complete')
+  @ValidateBusiness()
   async completeAssignment(
     @Param('assignmentId') assignmentId: string,
     @Body(ValidationPipe) completionData: CompleteAssignmentDto
@@ -284,12 +292,13 @@ export class StaffController {
 
   // ================== WORKING HOURS TRACKING ==================
   @Post('checkin')
+  @ValidateBusiness()
   async checkIn(
     @Body(ValidationPipe) checkInDto: CheckInStaffDto,
-    @Request() req: any
+    @Request() req: any,
+    @BusinessId() businessId: string,
   ) {
     try {
-      const businessId = req.tenant.businessId
       const checkedInBy = req.user.id
 
       await this.staffService.checkInStaff({
@@ -312,12 +321,13 @@ export class StaffController {
   }
 
   @Post('checkout')
+  @ValidateBusiness()
   async checkOut(
     @Body('staffId') staffId: string,
-    @Request() req: any
+    @Request() req: any,
+    @BusinessId() businessId: string,
   ) {
     try {
-      const businessId = req.tenant.businessId
       const checkedOutBy = req.user.id
 
       await this.staffService.checkOutStaff(staffId, businessId, checkedOutBy)
@@ -336,7 +346,7 @@ export class StaffController {
   }
 
   @Get('working-hours/:staffId')
-  
+  @ValidateBusiness()
   async getWorkingHours(
     @Param('staffId') staffId: string,
     @Query('startDate') startDate: string,
@@ -365,7 +375,7 @@ export class StaffController {
 
   // ================== STAFF PROFILE MANAGEMENT ==================
   @Get(':staffId')
-  
+  @ValidateBusiness()
   async getStaffById(@Param('staffId') staffId: string) {
     try {
       const staff = await this.staffService.getStaffById(staffId)
@@ -385,7 +395,7 @@ export class StaffController {
   }
 
   @Put(':staffId/skills')
-  
+  @ValidateBusiness()
   async updateStaffSkills(
     @Param('staffId') staffId: string,
     @Body('skills') skills: any[]
@@ -408,7 +418,7 @@ export class StaffController {
   }
 
   @Put(':staffId/status')
-  
+  @ValidateBusiness()
   async updateStaffStatus(
     @Param('staffId') staffId: string,
     @Body('status') status: string,

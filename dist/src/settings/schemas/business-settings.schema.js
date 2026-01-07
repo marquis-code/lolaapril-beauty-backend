@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BusinessSettingsSchema = exports.BusinessSettings = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
 const BusinessHoursSchema = {
     day: { type: String, required: true },
     startTime: { type: String, required: true },
@@ -87,6 +88,10 @@ const ClosedPeriodSchema = {
 };
 let BusinessSettings = class BusinessSettings {
 };
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true, unique: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], BusinessSettings.prototype, "businessId", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
@@ -183,6 +188,7 @@ BusinessSettings = __decorate([
 ], BusinessSettings);
 exports.BusinessSettings = BusinessSettings;
 exports.BusinessSettingsSchema = mongoose_1.SchemaFactory.createForClass(BusinessSettings);
+exports.BusinessSettingsSchema.index({ businessId: 1 }, { unique: true });
 exports.BusinessSettingsSchema.index({ businessName: 1 });
 exports.BusinessSettingsSchema.index({ businessEmail: 1 });
 //# sourceMappingURL=business-settings.schema.js.map

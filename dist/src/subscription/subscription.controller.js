@@ -129,51 +129,56 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "getPlanDetails", null);
 __decorate([
-    (0, common_1.Get)('business/:businessId'),
+    (0, common_1.Get)('business'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get business subscription details' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Subscription retrieved successfully' }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "getBusinessSubscription", null);
 __decorate([
-    (0, common_1.Get)('business/:businessId/limits'),
+    (0, common_1.Get)('business/limits'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Check subscription limits and usage' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Limits checked successfully' }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __param(1, (0, common_1.Query)('context')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "checkLimits", null);
 __decorate([
-    (0, common_1.Get)('business/:businessId/usage'),
+    (0, common_1.Get)('business/usage'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get current usage statistics' }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "getUsage", null);
 __decorate([
-    (0, common_1.Get)('business/:businessId/trial-status'),
+    (0, common_1.Get)('business/trial-status'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get trial status and remaining days' }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "getTrialStatus", null);
 __decorate([
     (0, auth_1.ValidateBusiness)(),
-    (0, common_1.Post)('business/:businessId/upgrade'),
+    (0, common_1.Post)('business/upgrade'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Upgrade subscription plan' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Plan upgraded successfully' }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __param(1, (0, auth_1.BusinessId)()),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -182,10 +187,11 @@ __decorate([
 ], SubscriptionController.prototype, "upgradePlan", null);
 __decorate([
     (0, auth_1.ValidateBusiness)(),
-    (0, common_1.Post)('business/:businessId/downgrade'),
+    (0, common_1.Post)('business/downgrade'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Downgrade subscription plan (effective at end of period)' }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __param(1, (0, auth_1.BusinessId)()),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -194,11 +200,12 @@ __decorate([
 ], SubscriptionController.prototype, "downgradePlan", null);
 __decorate([
     (0, auth_1.ValidateBusiness)(),
-    (0, common_1.Post)('business/:businessId/cancel'),
+    (0, common_1.Post)('business/cancel'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Cancel subscription' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Subscription cancelled' }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __param(1, (0, auth_1.BusinessId)()),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -207,17 +214,19 @@ __decorate([
 ], SubscriptionController.prototype, "cancelSubscription", null);
 __decorate([
     (0, auth_1.ValidateBusiness)(),
-    (0, common_1.Post)('business/:businessId/reactivate'),
+    (0, common_1.Post)('business/reactivate'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Reactivate cancelled subscription' }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "reactivateSubscription", null);
 __decorate([
-    (0, common_1.Get)('business/:businessId/history'),
+    (0, common_1.Get)('business/history'),
+    (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get subscription history' }),
     __param(0, (0, common_1.Param)('businessId')),

@@ -21,44 +21,30 @@ let SettingsService = class SettingsService {
     constructor(settingsModel) {
         this.settingsModel = settingsModel;
     }
-    async create(createSettingsDto) {
-        const settings = new this.settingsModel(createSettingsDto);
+    async create(businessId, createSettingsDto) {
+        const existingSettings = await this.settingsModel.findOne({ businessId: new mongoose_1.Types.ObjectId(businessId) });
+        if (existingSettings) {
+            throw new common_1.ConflictException("Settings already exist for this business. Use update endpoint instead.");
+        }
+        const settings = new this.settingsModel({
+            ...createSettingsDto,
+            businessId: new mongoose_1.Types.ObjectId(businessId)
+        });
         return settings.save();
     }
-    async findAll() {
-        return this.settingsModel.find().exec();
-    }
-    async findOne(id) {
-        const settings = await this.settingsModel.findById(id);
+    async findByBusinessId(businessId) {
+        const settings = await this.settingsModel.findOne({ businessId: new mongoose_1.Types.ObjectId(businessId) });
         if (!settings) {
-            throw new common_1.NotFoundException("Settings not found");
+            throw new common_1.NotFoundException("Settings not found for this business");
         }
         return settings;
     }
-    async findByType(settingType) {
-        return this.settingsModel.find().exec();
+    async getBusinessHours(businessId) {
+        const settings = await this.findByBusinessId(businessId);
+        return settings.businessHours || [];
     }
-    async update(id, updateSettingsDto) {
-        const settings = await this.settingsModel.findByIdAndUpdate(id, updateSettingsDto, { new: true });
-        if (!settings) {
-            throw new common_1.NotFoundException("Settings not found");
-        }
-        return settings;
-    }
-    async remove(id) {
-        const result = await this.settingsModel.findByIdAndDelete(id);
-        if (!result) {
-            throw new common_1.NotFoundException("Settings not found");
-        }
-    }
-    async getBusinessHours() {
-        const settings = await this.settingsModel.findOne().exec();
-        return settings?.businessHours || [];
-    }
-    async getAppointmentSettings() {
-        const settings = await this.settingsModel.findOne().exec();
-        if (!settings)
-            return null;
+    async getAppointmentSettings(businessId) {
+        const settings = await this.findByBusinessId(businessId);
         return {
             appointmentStatuses: settings.appointmentStatuses,
             cancellationReasons: settings.cancellationReasons,
@@ -68,10 +54,8 @@ let SettingsService = class SettingsService {
             requireClientConfirmation: settings.requireClientConfirmation
         };
     }
-    async getPaymentSettings() {
-        const settings = await this.settingsModel.findOne().exec();
-        if (!settings)
-            return null;
+    async getPaymentSettings(businessId) {
+        const settings = await this.findByBusinessId(businessId);
         return {
             paymentMethods: settings.paymentMethods,
             serviceCharges: settings.serviceCharges,
@@ -79,21 +63,28 @@ let SettingsService = class SettingsService {
             defaultCurrency: settings.defaultCurrency
         };
     }
-    async getNotificationSettings() {
+    async getNotificationSettings(businessId) {
+        const settings = await this.findByBusinessId(businessId);
         throw new Error("Notification settings not implemented in current schema");
     }
-    async updateBusinessHours(businessHours) {
-        let settings = await this.settingsModel.findOne();
+    async update(businessId, updateSettingsDto) {
+        const settings = await this.settingsModel.findOneAndUpdate({ businessId: new mongoose_1.Types.ObjectId(businessId) }, updateSettingsDto, { new: true, runValidators: true });
         if (!settings) {
-            throw new common_1.NotFoundException("Business settings not found. Please create business settings first.");
+            throw new common_1.NotFoundException("Settings not found for this business");
         }
-        settings.businessHours = businessHours;
-        return settings.save();
+        return settings;
     }
-    async updateAppointmentSettings(appointmentSettings) {
-        let settings = await this.settingsModel.findOne();
+    async updateBusinessHours(businessId, businessHours) {
+        const settings = await this.settingsModel.findOneAndUpdate({ businessId: new mongoose_1.Types.ObjectId(businessId) }, { businessHours }, { new: true, runValidators: true });
         if (!settings) {
-            throw new common_1.NotFoundException("Business settings not found. Please create business settings first.");
+            throw new common_1.NotFoundException("Settings not found for this business");
+        }
+        return settings;
+    }
+    async updateAppointmentSettings(businessId, appointmentSettings) {
+        const settings = await this.settingsModel.findOne({ businessId: new mongoose_1.Types.ObjectId(businessId) });
+        if (!settings) {
+            throw new common_1.NotFoundException("Settings not found for this business");
         }
         if (appointmentSettings.appointmentStatuses) {
             settings.appointmentStatuses = appointmentSettings.appointmentStatuses;
@@ -114,6 +105,34 @@ let SettingsService = class SettingsService {
             settings.requireClientConfirmation = appointmentSettings.requireClientConfirmation;
         }
         return settings.save();
+    }
+    async remove(businessId) {
+        const result = await this.settingsModel.findOneAndDelete({
+            businessId: new mongoose_1.Types.ObjectId(businessId)
+        });
+        if (!result) {
+            throw new common_1.NotFoundException("Settings not found for this business");
+        }
+    }
+    async getOrCreateBusinessSettings(businessId) {
+        let settings = await this.settingsModel.findOne({ businessId: new mongoose_1.Types.ObjectId(businessId) });
+        if (!settings) {
+            throw new common_1.NotFoundException("No business settings found. Please create business settings first.");
+        }
+        return settings;
+    }
+    async findAll() {
+        return this.settingsModel.find().exec();
+    }
+    async findOne(id) {
+        const settings = await this.settingsModel.findById(id);
+        if (!settings) {
+            throw new common_1.NotFoundException("Settings not found");
+        }
+        return settings;
+    }
+    async findByType(settingType) {
+        return this.settingsModel.find().exec();
     }
     async updatePaymentSettings(id, paymentSettings) {
         const updateData = {};
@@ -137,13 +156,6 @@ let SettingsService = class SettingsService {
     }
     async getBusinessSettings() {
         return this.settingsModel.findOne().exec();
-    }
-    async getOrCreateBusinessSettings() {
-        let settings = await this.settingsModel.findOne().exec();
-        if (!settings) {
-            throw new Error("No business settings found. Please create business settings first.");
-        }
-        return settings;
     }
 };
 SettingsService = __decorate([

@@ -39,11 +39,12 @@ export class SubscriptionController {
 
   // ==================== BUSINESS SUBSCRIPTION ====================
   
-  @Get('business/:businessId')
+  @Get('business')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get business subscription details' })
   @ApiResponse({ status: 200, description: 'Subscription retrieved successfully' })
-  async getBusinessSubscription(@Param('businessId') businessId: string) {
+  async getBusinessSubscription(@BusinessId() businessId: string,) {
     const data = await this.subscriptionService.getSubscriptionWithBusiness(businessId)
     return {
       success: true,
@@ -52,12 +53,13 @@ export class SubscriptionController {
     }
   }
 
-  @Get('business/:businessId/limits')
+  @Get('business/limits')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Check subscription limits and usage' })
   @ApiResponse({ status: 200, description: 'Limits checked successfully' })
   async checkLimits(
-    @Param('businessId') businessId: string,
+    @BusinessId() businessId: string,
     @Query('context') context?: 'booking' | 'staff' | 'service'
   ) {
     const limits = await this.subscriptionService.checkLimits(businessId, context)
@@ -70,10 +72,11 @@ export class SubscriptionController {
     }
   }
 
-  @Get('business/:businessId/usage')
+  @Get('business/usage')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current usage statistics' })
-  async getUsage(@Param('businessId') businessId: string) {
+  async getUsage(@BusinessId() businessId: string,) {
     const usage = await this.subscriptionService.getCurrentUsage(businessId)
     return {
       success: true,
@@ -82,10 +85,11 @@ export class SubscriptionController {
     }
   }
 
-  @Get('business/:businessId/trial-status')
+  @Get('business/trial-status')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get trial status and remaining days' })
-  async getTrialStatus(@Param('businessId') businessId: string) {
+  async getTrialStatus(@BusinessId() businessId: string) {
     const remainingDays = await this.subscriptionService.getRemainingTrialDays(businessId)
     const subscription = await this.subscriptionService.getBusinessSubscription(businessId)
 
@@ -102,12 +106,13 @@ export class SubscriptionController {
   // ==================== SUBSCRIPTION MANAGEMENT ====================
   
   @ValidateBusiness()
-  @Post('business/:businessId/upgrade')
+  @Post('business/upgrade')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Upgrade subscription plan' })
   @ApiResponse({ status: 200, description: 'Plan upgraded successfully' })
   async upgradePlan(
-    @Param('businessId') businessId: string,
+    @BusinessId() businessId: string,
     @BusinessId() activeBusinessId: string,
     @Body() dto: UpgradePlanDto
   ) {
@@ -125,11 +130,12 @@ export class SubscriptionController {
   }
 
   @ValidateBusiness()
-  @Post('business/:businessId/downgrade')
+  @Post('business/downgrade')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Downgrade subscription plan (effective at end of period)' })
   async downgradePlan(
-    @Param('businessId') businessId: string,
+    @BusinessId() businessId: string,
     @BusinessId() activeBusinessId: string,
     @Body() dto: UpgradePlanDto
   ) {
@@ -141,12 +147,13 @@ export class SubscriptionController {
   }
 
   @ValidateBusiness()
-  @Post('business/:businessId/cancel')
+  @Post('business/cancel')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cancel subscription' })
   @ApiResponse({ status: 200, description: 'Subscription cancelled' })
   async cancelSubscription(
-    @Param('businessId') businessId: string,
+    @BusinessId() businessId: string,
     @BusinessId() activeBusinessId: string,
     @Body() dto: CancelSubscriptionDto
   ) {
@@ -162,11 +169,12 @@ export class SubscriptionController {
   }
 
   @ValidateBusiness()
-  @Post('business/:businessId/reactivate')
+  @Post('business/reactivate')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Reactivate cancelled subscription' })
   async reactivateSubscription(
-    @Param('businessId') businessId: string,
+    @BusinessId() businessId: string,
     @BusinessId() activeBusinessId: string
   ) {
     if (businessId !== activeBusinessId) {
@@ -176,7 +184,8 @@ export class SubscriptionController {
     return this.subscriptionService.reactivateSubscription(businessId)
   }
 
-  @Get('business/:businessId/history')
+  @Get('business/history')
+  @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get subscription history' })
   async getHistory(@Param('businessId') businessId: string) {
