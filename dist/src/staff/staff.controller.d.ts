@@ -8,7 +8,7 @@ import { CompleteAssignmentDto } from '../staff/dto/complete-assignment.dto';
 export declare class StaffController {
     private readonly staffService;
     constructor(staffService: StaffService);
-    createStaff(createStaffDto: CreateStaffDto, req: any): Promise<{
+    createStaff(createStaffDto: CreateStaffDto, businessId: string): Promise<{
         success: boolean;
         data: import("./schemas/staff.schema").StaffDocument;
         message: string;
@@ -21,7 +21,7 @@ export declare class StaffController {
         data?: undefined;
         message?: undefined;
     }>;
-    getStaffByBusiness(status: string, req: any): Promise<{
+    getStaffByBusiness(businessId: string, status: string): Promise<{
         success: boolean;
         data: any;
         message: string;
@@ -34,7 +34,7 @@ export declare class StaffController {
         data?: undefined;
         message?: undefined;
     }>;
-    getAvailableStaff(date: string, startTime: string, endTime: string, serviceId: string, req: any): Promise<{
+    getAvailableStaff(businessId: string, date: string, startTime: string, endTime: string, serviceId: string): Promise<{
         success: boolean;
         data: import("./schemas/staff.schema").StaffDocument[];
         message: string;
@@ -47,7 +47,7 @@ export declare class StaffController {
         data?: undefined;
         message?: undefined;
     }>;
-    createSchedule(createScheduleDto: CreateStaffScheduleDto, req: any): Promise<{
+    createSchedule(createScheduleDto: CreateStaffScheduleDto, req: any, businessId: string): Promise<{
         success: boolean;
         data: import("./schemas/staff-schedule.schema").StaffScheduleDocument;
         message: string;
@@ -73,7 +73,7 @@ export declare class StaffController {
         data?: undefined;
         message?: undefined;
     }>;
-    assignStaff(assignStaffDto: AssignStaffDto, req: any): Promise<{
+    assignStaff(assignStaffDto: AssignStaffDto, req: any, businessId: string): Promise<{
         success: boolean;
         data: {
             staffId: string;
@@ -141,7 +141,7 @@ export declare class StaffController {
         data?: undefined;
         message?: undefined;
     }>;
-    checkIn(checkInDto: CheckInStaffDto, req: any): Promise<{
+    checkIn(checkInDto: CheckInStaffDto, req: any, businessId: string): Promise<{
         success: boolean;
         message: string;
         error?: undefined;
@@ -152,7 +152,7 @@ export declare class StaffController {
         code: string;
         message?: undefined;
     }>;
-    checkOut(staffId: string, req: any): Promise<{
+    checkOut(staffId: string, req: any, businessId: string): Promise<{
         success: boolean;
         message: string;
         error?: undefined;
