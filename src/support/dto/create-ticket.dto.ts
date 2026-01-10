@@ -7,7 +7,7 @@ export class CreateTicketDto {
 
   @IsString()
   @IsOptional()
-  tenantId?: string;
+  businessId?: string;
 
   @IsString()
   @IsOptional()

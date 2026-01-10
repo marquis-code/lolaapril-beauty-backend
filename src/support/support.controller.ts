@@ -2,6 +2,7 @@
 import { Controller, Get, Post, Put, Body, Param, Query } from '@nestjs/common';
 import { SupportService } from './support.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { Public, ValidateBusiness, CurrentUser, BusinessId } from '../auth'
 
 @Controller('support')
 export class SupportController {
@@ -42,9 +43,10 @@ export class SupportController {
     return this.supportService.getMessages(id, includeInternal);
   }
 
+  @ValidateBusiness()
   @Get('stats')
-  getStats(@Query('tenantId') tenantId?: string) {
-    return this.supportService.getTicketStats(tenantId);
+  getStats( @BusinessId() businessId: string,) {
+    return this.supportService.getTicketStats(businessId);
   }
 
   @Post('tickets/:id/call')
