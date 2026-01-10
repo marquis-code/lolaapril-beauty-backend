@@ -27,12 +27,6 @@ let SettingsController = class SettingsController {
     constructor(settingsService) {
         this.settingsService = settingsService;
     }
-    create(businessId, createSettingsDto) {
-        return this.settingsService.create(businessId, createSettingsDto);
-    }
-    findAll(businessId) {
-        return this.settingsService.findByBusinessId(businessId);
-    }
     getBusinessHours(businessId) {
         return this.settingsService.getBusinessHours(businessId);
     }
@@ -44,6 +38,12 @@ let SettingsController = class SettingsController {
     }
     getNotificationSettings(businessId) {
         return this.settingsService.getNotificationSettings(businessId);
+    }
+    create(businessId, createSettingsDto) {
+        return this.settingsService.create(businessId, createSettingsDto);
+    }
+    findAll(businessId) {
+        return this.settingsService.findByBusinessId(businessId);
     }
     update(businessId, updateSettingsDto) {
         return this.settingsService.update(businessId, updateSettingsDto);
@@ -64,30 +64,6 @@ let SettingsController = class SettingsController {
         return this.settingsService.findOne(id);
     }
 };
-__decorate([
-    (0, common_1.Post)(),
-    (0, auth_1.ValidateBusiness)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.BUSINESS_OWNER),
-    (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
-    (0, swagger_1.ApiOperation)({ summary: "Create settings for current business" }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: "Settings created successfully" }),
-    (0, swagger_1.ApiResponse)({ status: 409, description: "Settings already exist for this business" }),
-    __param(0, (0, auth_1.BusinessId)()),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, create_business_settings_dto_1.CreateBusinessSettingsDto]),
-    __metadata("design:returntype", void 0)
-], SettingsController.prototype, "create", null);
-__decorate([
-    (0, common_1.Get)(),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: "Get settings for current business" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Settings retrieved successfully" }),
-    __param(0, (0, auth_1.BusinessId)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], SettingsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("business-hours"),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.STAFF),
@@ -128,6 +104,30 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], SettingsController.prototype, "getNotificationSettings", null);
+__decorate([
+    (0, common_1.Post)(),
+    (0, auth_1.ValidateBusiness)(),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.BUSINESS_OWNER),
+    (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.SETTINGS }),
+    (0, swagger_1.ApiOperation)({ summary: "Create settings for current business" }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "Settings created successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: "Settings already exist for this business" }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, create_business_settings_dto_1.CreateBusinessSettingsDto]),
+    __metadata("design:returntype", void 0)
+], SettingsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.STAFF),
+    (0, swagger_1.ApiOperation)({ summary: "Get settings for current business" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Settings retrieved successfully" }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], SettingsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Patch)(),
     (0, auth_1.ValidateBusiness)(),

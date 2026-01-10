@@ -22,7 +22,7 @@ export class SupportService {
     const ticketNumber = await this.generateTicketNumber();
     
     // Get SLA config for priority
-    const slaConfig = await this.getSLAConfig(createDto.tenantId, createDto.priority);
+    const slaConfig = await this.getSLAConfig(createDto.businessId, createDto.priority);
     
     const now = new Date();
     const sla = slaConfig ? {
@@ -34,7 +34,8 @@ export class SupportService {
     const ticket = new this.ticketModel({
       ticketNumber,
       clientId: new Types.ObjectId(createDto.clientId),
-      tenantId: createDto.tenantId ? new Types.ObjectId(createDto.tenantId) : null,
+      // businessId: createDto.businessId ? new Types.ObjectId(createDto.businessId) : null,
+      businessId: createDto.businessId ? createDto.businessId : null,
       bookingId: createDto.bookingId ? new Types.ObjectId(createDto.bookingId) : null,
       subject: createDto.subject,
       description: createDto.description,
@@ -65,7 +66,7 @@ export class SupportService {
       .findById(ticketId)
       .populate('clientId', 'firstName lastName email phone')
       .populate('assignedTo', 'firstName lastName email')
-      .populate('tenantId', 'businessName')
+      .populate('businessId', 'businessName')
       .exec();
 
     if (!ticket) {
@@ -79,7 +80,7 @@ export class SupportService {
     status?: string;
     priority?: string;
     assignedTo?: string;
-    tenantId?: string;
+    businessId?: string;
     page?: number;
     limit?: number;
   }) {
@@ -88,7 +89,7 @@ export class SupportService {
     if (filter.status) query.status = filter.status;
     if (filter.priority) query.priority = filter.priority;
     if (filter.assignedTo) query.assignedTo = new Types.ObjectId(filter.assignedTo);
-    if (filter.tenantId) query.tenantId = new Types.ObjectId(filter.tenantId);
+    if (filter.businessId) query.businessId = new Types.ObjectId(filter.businessId);
 
     const page = filter.page || 1;
     const limit = filter.limit || 20;
@@ -224,18 +225,18 @@ export class SupportService {
   }
 
   // ========== SLA MANAGEMENT ==========
-  async createSLAConfig(tenantId: string, config: any) {
+  async createSLAConfig(businessId: string, config: any) {
     const slaConfig = new this.slaConfigModel({
-      tenantId: new Types.ObjectId(tenantId),
+      businessId: new Types.ObjectId(businessId),
       ...config,
     });
 
     return slaConfig.save();
   }
 
-  async getSLAConfig(tenantId: string, priority: string) {
+  async getSLAConfig(businessId: string, priority: string) {
     return this.slaConfigModel.findOne({
-      tenantId: tenantId ? new Types.ObjectId(tenantId) : null,
+      businessId: businessId ? new Types.ObjectId(businessId) : null,
       priority,
       isActive: true,
     });
@@ -266,9 +267,9 @@ export class SupportService {
   }
 
   // ========== ANALYTICS ==========
-  async getTicketStats(tenantId?: string) {
+  async getTicketStats(businessId?: string) {
     const match: any = {};
-    if (tenantId) match.tenantId = new Types.ObjectId(tenantId);
+    if (businessId) match.businessId = new Types.ObjectId(businessId);
 
     const [statusStats, priorityStats, avgResolutionTime] = await Promise.all([
       this.ticketModel.aggregate([
