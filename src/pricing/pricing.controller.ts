@@ -5,12 +5,12 @@ import { CreatePricingTierDto } from './dto/create-pricing-tier.dto'
 import { Public, ValidateBusiness, BusinessId } from '../auth'
 
 @ApiTags('Pricing & Fees')
+@ApiBearerAuth()
 @Controller('pricing')
 export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
   @Post('tiers')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create pricing tier (Admin only)' })
   async createTier(@Body() createDto: CreatePricingTierDto) {
     return this.pricingService.createTier(createDto)
@@ -18,26 +18,30 @@ export class PricingController {
 
   @Public()
   @Get('tiers')
+  @ApiOperation({ summary: 'Get all active pricing tiers' })
   async getActiveTiers() {
     return this.pricingService.getActiveTiers()
   }
 
-  @Get('business/:businessId/fee-structure')
-  async getBusisinessFeeStructure(@Param('businessId') businessId: string) {
+  @Get('fee-structure')
+  @ApiOperation({ summary: 'Get business fee structure' })
+  async getBusinessFeeStructure(@BusinessId() businessId: string) {
     return this.pricingService.getBusinessFeeStructure(businessId)
   }
 
-  @Post('business/:businessId/calculate-fees')
+  @Post('calculate-fees')
+  @ApiOperation({ summary: 'Calculate fees for a transaction' })
   async calculateFees(
-    @Param('businessId') businessId: string, 
+    @BusinessId() businessId: string,
     @Body('amount') amount: number
   ) {
     return this.pricingService.calculateFees(businessId, amount)
   }
 
-  @Post('business/:businessId/change-plan')
+  @Post('change-plan')
+  @ApiOperation({ summary: 'Change business pricing plan' })
   async changePlan(
-    @Param('businessId') businessId: string,
+    @BusinessId() businessId: string,
     @Body() body: { newTierId: string; changedBy: string; reason: string },
   ) {
     return this.pricingService.changePlan(
@@ -47,8 +51,9 @@ export class PricingController {
     )
   }
 
-  @Get('business/:businessId/history')
-  async getPricingHistory(@Param('businessId') businessId: string) {
+  @Get('history')
+  @ApiOperation({ summary: 'Get pricing history for business' })
+  async getPricingHistory(@BusinessId() businessId: string) {
     return this.pricingService.getPricingHistory(businessId)
   }
 }
