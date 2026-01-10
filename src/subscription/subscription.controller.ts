@@ -44,12 +44,25 @@ export class SubscriptionController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get business subscription details' })
   @ApiResponse({ status: 200, description: 'Subscription retrieved successfully' })
-  async getBusinessSubscription(@BusinessId() businessId: string,) {
+  async getBusinessSubscription(@BusinessId() businessId: string) {
     const data = await this.subscriptionService.getSubscriptionWithBusiness(businessId)
     return {
       success: true,
       data,
       message: 'Subscription retrieved successfully'
+    }
+  }
+
+  @Get('business/history')
+  @ValidateBusiness()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get subscription history' })
+  async getHistory(@BusinessId() businessId: string) {
+    const history = await this.subscriptionService.getSubscriptionHistory(businessId)
+    return {
+      success: true,
+      data: history,
+      message: 'History retrieved successfully'
     }
   }
 
@@ -76,7 +89,7 @@ export class SubscriptionController {
   @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current usage statistics' })
-  async getUsage(@BusinessId() businessId: string,) {
+  async getUsage(@BusinessId() businessId: string) {
     const usage = await this.subscriptionService.getCurrentUsage(businessId)
     return {
       success: true,
@@ -105,7 +118,6 @@ export class SubscriptionController {
 
   // ==================== SUBSCRIPTION MANAGEMENT ====================
   
-  @ValidateBusiness()
   @Post('business/upgrade')
   @ValidateBusiness()
   @ApiBearerAuth()
@@ -113,13 +125,8 @@ export class SubscriptionController {
   @ApiResponse({ status: 200, description: 'Plan upgraded successfully' })
   async upgradePlan(
     @BusinessId() businessId: string,
-    @BusinessId() activeBusinessId: string,
     @Body() dto: UpgradePlanDto
   ) {
-    if (businessId !== activeBusinessId) {
-      return { success: false, error: 'You can only upgrade your active business' }
-    }
-
     const result = await this.subscriptionService.upgradePlan(
       businessId,
       dto.planType,
@@ -129,24 +136,17 @@ export class SubscriptionController {
     return result
   }
 
-  @ValidateBusiness()
   @Post('business/downgrade')
   @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Downgrade subscription plan (effective at end of period)' })
   async downgradePlan(
     @BusinessId() businessId: string,
-    @BusinessId() activeBusinessId: string,
     @Body() dto: UpgradePlanDto
   ) {
-    if (businessId !== activeBusinessId) {
-      return { success: false, error: 'Access denied' }
-    }
-
     return this.subscriptionService.downgradePlan(businessId, dto.planType)
   }
 
-  @ValidateBusiness()
   @Post('business/cancel')
   @ValidateBusiness()
   @ApiBearerAuth()
@@ -154,13 +154,8 @@ export class SubscriptionController {
   @ApiResponse({ status: 200, description: 'Subscription cancelled' })
   async cancelSubscription(
     @BusinessId() businessId: string,
-    @BusinessId() activeBusinessId: string,
     @Body() dto: CancelSubscriptionDto
   ) {
-    if (businessId !== activeBusinessId) {
-      return { success: false, error: 'Access denied' }
-    }
-
     return this.subscriptionService.cancelSubscription(
       businessId,
       dto.reason,
@@ -168,32 +163,11 @@ export class SubscriptionController {
     )
   }
 
-  @ValidateBusiness()
   @Post('business/reactivate')
   @ValidateBusiness()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Reactivate cancelled subscription' })
-  async reactivateSubscription(
-    @BusinessId() businessId: string,
-    @BusinessId() activeBusinessId: string
-  ) {
-    if (businessId !== activeBusinessId) {
-      return { success: false, error: 'Access denied' }
-    }
-
+  async reactivateSubscription(@BusinessId() businessId: string) {
     return this.subscriptionService.reactivateSubscription(businessId)
-  }
-
-  @Get('business/history')
-  @ValidateBusiness()
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get subscription history' })
-  async getHistory(@Param('businessId') businessId: string) {
-    const history = await this.subscriptionService.getSubscriptionHistory(businessId)
-    return {
-      success: true,
-      data: history,
-      message: 'History retrieved successfully'
-    }
   }
 }
