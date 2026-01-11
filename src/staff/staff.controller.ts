@@ -24,42 +24,13 @@ import { CheckInStaffDto } from '../staff/dto/check-in-staff.dto'
 import { CompleteAssignmentDto } from '../staff/dto/complete-assignment.dto'
 import { GetStaffAssignmentsDto } from '../staff/dto/get-staff-assignments.dto'
 import { ValidateBusiness, BusinessId } from "../auth"
-// Import Guards
 
 @Controller('staff')
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
-  // ================== STAFF MANAGEMENT ==================
-  @Post()
-  @ValidateBusiness()
-  @HttpCode(HttpStatus.CREATED)
-  async createStaff(
-    @Body(ValidationPipe) createStaffDto: CreateStaffDto,
-    @BusinessId() businessId: string,
-  ) {
-    try {
-      // Get business ID from tenant middleware
-      
-      const staff = await this.staffService.createStaff({
-        ...createStaffDto,
-        businessId
-      })
-
-      return {
-        success: true,
-        data: staff,
-        message: 'Staff member created successfully'
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        code: 'STAFF_CREATION_FAILED'
-      }
-    }
-  }
-
+  // ================== STAFF MANAGEMENT (SPECIFIC ROUTES FIRST) ==================
+  
   @Get('business')
   @ValidateBusiness()
   async getStaffByBusiness(
@@ -67,7 +38,6 @@ export class StaffController {
     @Query('status') status: string,
   ) {
     try {
-      
       const staff = await this.staffService.getStaffByBusiness(businessId, status)
 
       return {
@@ -94,7 +64,6 @@ export class StaffController {
     @Query('serviceId') serviceId: string,
   ) {
     try {
-      
       const availableStaff = await this.staffService.getAvailableStaff(
         businessId,
         new Date(date),
@@ -118,6 +87,7 @@ export class StaffController {
   }
 
   // ================== SCHEDULE MANAGEMENT ==================
+  
   @Post('schedule')
   @ValidateBusiness()
   async createSchedule(
@@ -126,7 +96,6 @@ export class StaffController {
     @BusinessId() businessId: string,
   ) {
     try {
-      // const businessId = req.tenant.businessId
       const createdBy = req.user.id
 
       const schedule = await this.staffService.createStaffSchedule({
@@ -149,33 +118,8 @@ export class StaffController {
     }
   }
 
-  @Get('schedule/:staffId')
-  @ValidateBusiness()
-  async getSchedule(
-    @Param('staffId') staffId: string,
-    @Query('date') date: string
-  ) {
-    try {
-      const schedule = await this.staffService.getStaffSchedule(
-        staffId, 
-        new Date(date)
-      )
-
-      return {
-        success: true,
-        data: schedule,
-        message: 'Staff schedule retrieved successfully'
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        code: 'SCHEDULE_RETRIEVAL_FAILED'
-      }
-    }
-  }
-
   // ================== ASSIGNMENT MANAGEMENT ==================
+  
   @Post('assign')
   @ValidateBusiness()
   async assignStaff(
@@ -184,7 +128,6 @@ export class StaffController {
     @BusinessId() businessId: string,
   ) {
     try {
-      // const businessId = req.tenant.businessId
       const assignedBy = req.user.id
 
       const assignment = await this.staffService.assignStaffToAppointment({
@@ -236,61 +179,8 @@ export class StaffController {
     }
   }
 
-  @Get('assignments/:staffId')
-  @ValidateBusiness()
-  async getAssignments(
-    @Param('staffId') staffId: string,
-    @Query('startDate') startDate: string,
-    @Query('endDate') endDate: string
-  ) {
-    try {
-      const assignments = await this.staffService.getStaffAssignments(
-        staffId,
-        new Date(startDate),
-        new Date(endDate)
-      )
-
-      return {
-        success: true,
-        data: assignments,
-        message: 'Staff assignments retrieved successfully'
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        code: 'ASSIGNMENTS_RETRIEVAL_FAILED'
-      }
-    }
-  }
-
-  @Put('assignment/:assignmentId/complete')
-  @ValidateBusiness()
-  async completeAssignment(
-    @Param('assignmentId') assignmentId: string,
-    @Body(ValidationPipe) completionData: CompleteAssignmentDto
-  ) {
-    try {
-      const assignment = await this.staffService.completeStaffAssignment(
-        assignmentId, 
-        completionData
-      )
-
-      return {
-        success: true,
-        data: assignment,
-        message: 'Assignment completed successfully'
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        code: 'ASSIGNMENT_COMPLETION_FAILED'
-      }
-    }
-  }
-
   // ================== WORKING HOURS TRACKING ==================
+  
   @Post('checkin')
   @ValidateBusiness()
   async checkIn(
@@ -345,6 +235,62 @@ export class StaffController {
     }
   }
 
+  // ================== ROUTES WITH PARAMETERS (MUST COME AFTER SPECIFIC ROUTES) ==================
+  
+  @Get('schedule/:staffId')
+  @ValidateBusiness()
+  async getSchedule(
+    @Param('staffId') staffId: string,
+    @Query('date') date: string
+  ) {
+    try {
+      const schedule = await this.staffService.getStaffSchedule(
+        staffId, 
+        new Date(date)
+      )
+
+      return {
+        success: true,
+        data: schedule,
+        message: 'Staff schedule retrieved successfully'
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        code: 'SCHEDULE_RETRIEVAL_FAILED'
+      }
+    }
+  }
+
+  @Get('assignments/:staffId')
+  @ValidateBusiness()
+  async getAssignments(
+    @Param('staffId') staffId: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string
+  ) {
+    try {
+      const assignments = await this.staffService.getStaffAssignments(
+        staffId,
+        new Date(startDate),
+        new Date(endDate)
+      )
+
+      return {
+        success: true,
+        data: assignments,
+        message: 'Staff assignments retrieved successfully'
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        code: 'ASSIGNMENTS_RETRIEVAL_FAILED'
+      }
+    }
+  }
+
   @Get('working-hours/:staffId')
   @ValidateBusiness()
   async getWorkingHours(
@@ -373,23 +319,28 @@ export class StaffController {
     }
   }
 
-  // ================== STAFF PROFILE MANAGEMENT ==================
-  @Get(':staffId')
+  @Put('assignment/:assignmentId/complete')
   @ValidateBusiness()
-  async getStaffById(@Param('staffId') staffId: string) {
+  async completeAssignment(
+    @Param('assignmentId') assignmentId: string,
+    @Body(ValidationPipe) completionData: CompleteAssignmentDto
+  ) {
     try {
-      const staff = await this.staffService.getStaffById(staffId)
+      const assignment = await this.staffService.completeStaffAssignment(
+        assignmentId, 
+        completionData
+      )
 
       return {
         success: true,
-        data: staff,
-        message: 'Staff profile retrieved successfully'
+        data: assignment,
+        message: 'Assignment completed successfully'
       }
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        code: 'STAFF_PROFILE_RETRIEVAL_FAILED'
+        code: 'ASSIGNMENT_COMPLETION_FAILED'
       }
     }
   }
@@ -437,6 +388,54 @@ export class StaffController {
         success: false,
         error: error.message,
         code: 'STATUS_UPDATE_FAILED'
+      }
+    }
+  }
+
+  // Generic :staffId route MUST be last
+  @Get(':staffId')
+  @ValidateBusiness()
+  async getStaffById(@Param('staffId') staffId: string) {
+    try {
+      const staff = await this.staffService.getStaffById(staffId)
+
+      return {
+        success: true,
+        data: staff,
+        message: 'Staff profile retrieved successfully'
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        code: 'STAFF_PROFILE_RETRIEVAL_FAILED'
+      }
+    }
+  }
+
+  @Post()
+  @ValidateBusiness()
+  @HttpCode(HttpStatus.CREATED)
+  async createStaff(
+    @Body(ValidationPipe) createStaffDto: CreateStaffDto,
+    @BusinessId() businessId: string,
+  ) {
+    try {
+      const staff = await this.staffService.createStaff({
+        ...createStaffDto,
+        businessId
+      })
+
+      return {
+        success: true,
+        data: staff,
+        message: 'Staff member created successfully'
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        code: 'STAFF_CREATION_FAILED'
       }
     }
   }
