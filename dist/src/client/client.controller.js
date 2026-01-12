@@ -191,8 +191,9 @@ __decorate([
 ], ClientController.prototype, "remove", null);
 ClientController = __decorate([
     (0, swagger_1.ApiTags)("Clients"),
-    (0, common_1.Controller)("clients"),
     (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.UseGuards)(auth_1.JwtAuthGuard),
+    (0, common_1.Controller)("clients"),
     __metadata("design:paramtypes", [client_service_1.ClientService])
 ], ClientController);
 exports.ClientController = ClientController;

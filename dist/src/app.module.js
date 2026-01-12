@@ -5,6 +5,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
@@ -53,7 +56,15 @@ const rate_limiter_module_1 = require("./rate-limiter/rate-limiter.module");
 const marketplace_module_1 = require("./marketplace/marketplace.module");
 const subscription_module_1 = require("./subscription/subscription.module");
 let AppModule = class AppModule {
+    constructor() {
+        console.log('🚀 Application Module Initialized');
+        console.log(`📅 Startup Time: ${new Date().toISOString()}`);
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`📍 Node Version: ${process.version}`);
+        console.log('═'.repeat(80));
+    }
     configure(consumer) {
+        console.log('⚙️  Configuring middleware...');
     }
 };
 AppModule = __decorate([
@@ -88,6 +99,7 @@ AppModule = __decorate([
                             username: redisUsername,
                             retryStrategy: (times) => {
                                 const delay = Math.min(times * 50, 2000);
+                                console.log(`🔄 Redis retry attempt ${times}, waiting ${delay}ms`);
                                 return delay;
                             },
                             maxRetriesPerRequest: 3,
@@ -106,13 +118,17 @@ AppModule = __decorate([
             nest_winston_1.WinstonModule.forRoot({
                 transports: [
                     new winston.transports.Console({
-                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.ms(), winston.format.errors({ stack: true }), winston.format.splat(), winston.format.colorize(), winston.format.printf(({ level, message, timestamp, ms, ...meta }) => {
-                            let log = `${timestamp} [${level}]: ${message}`;
-                            if (Object.keys(meta).length > 0) {
-                                log += ` ${JSON.stringify(meta, null, 2)}`;
-                            }
+                        level: 'debug',
+                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.ms(), winston.format.errors({ stack: true }), winston.format.splat(), winston.format.colorize({ all: true }), winston.format.printf(({ level, message, timestamp, ms, context, stack, ...meta }) => {
+                            let log = `${timestamp} [${context || 'Application'}] ${level}: ${message}`;
                             if (ms)
-                                log += ` (${ms})`;
+                                log += ` ${ms}`;
+                            if (Object.keys(meta).length > 0) {
+                                log += `\n   📋 Meta: ${JSON.stringify(meta, null, 2)}`;
+                            }
+                            if (stack) {
+                                log += `\n   🔥 Stack: ${stack}`;
+                            }
                             return log;
                         })),
                     }),
@@ -121,15 +137,41 @@ AppModule = __decorate([
                         level: 'error',
                         format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.errors({ stack: true }), winston.format.json()),
                         maxsize: 5242880,
-                        maxFiles: 5,
+                        maxFiles: 10,
                     }),
                     new winston.transports.File({
                         filename: 'logs/combined.log',
+                        level: 'debug',
+                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.json()),
+                        maxsize: 5242880,
+                        maxFiles: 10,
+                    }),
+                    new winston.transports.File({
+                        filename: 'logs/http.log',
+                        level: 'http',
+                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.json()),
+                        maxsize: 5242880,
+                        maxFiles: 5,
+                    }),
+                    new winston.transports.File({
+                        filename: 'logs/database.log',
+                        level: 'debug',
+                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.json()),
+                        maxsize: 5242880,
+                        maxFiles: 5,
+                    }),
+                    new winston.transports.File({
+                        filename: 'logs/auth.log',
+                        level: 'info',
                         format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.json()),
                         maxsize: 5242880,
                         maxFiles: 5,
                     }),
                 ],
+                defaultMeta: {
+                    service: 'lola-beauty-backend',
+                    environment: process.env.NODE_ENV || 'development'
+                },
             }),
             mongoose_1.MongooseModule.forRootAsync({
                 imports: [config_1.ConfigModule],
@@ -137,16 +179,35 @@ AppModule = __decorate([
                 useFactory: async (configService) => ({
                     uri: configService.get('MONGO_URL'),
                     connectionFactory: (connection) => {
+                        connection.set('debug', (collectionName, method, query, doc) => {
+                            console.log(`📊 MongoDB Query: ${collectionName}.${method}`, {
+                                query: JSON.stringify(query),
+                                doc: doc ? JSON.stringify(doc) : undefined,
+                                timestamp: new Date().toISOString()
+                            });
+                        });
                         connection.on('connected', () => {
                             console.log('✅ MongoDB connected successfully');
                             console.log(`📍 Database: ${connection.name}`);
                             console.log(`🔗 Host: ${connection.host}:${connection.port}`);
+                            console.log(`⏰ Connected at: ${new Date().toISOString()}`);
                         });
                         connection.on('error', (error) => {
-                            console.error('❌ MongoDB connection error:', error.message);
+                            console.error('❌ MongoDB connection error:', {
+                                message: error.message,
+                                code: error.code,
+                                name: error.name,
+                                timestamp: new Date().toISOString()
+                            });
                         });
                         connection.on('disconnected', () => {
-                            console.log('⚠️  MongoDB disconnected');
+                            console.log('⚠️  MongoDB disconnected at:', new Date().toISOString());
+                        });
+                        connection.on('reconnected', () => {
+                            console.log('🔄 MongoDB reconnected at:', new Date().toISOString());
+                        });
+                        connection.on('close', () => {
+                            console.log('🔴 MongoDB connection closed at:', new Date().toISOString());
                         });
                         return connection;
                     },
@@ -211,7 +272,8 @@ AppModule = __decorate([
                 useClass: validate_business_access_guard_1.ValidateBusinessAccessGuard,
             },
         ],
-    })
+    }),
+    __metadata("design:paramtypes", [])
 ], AppModule);
 exports.AppModule = AppModule;
 //# sourceMappingURL=app.module.js.map
