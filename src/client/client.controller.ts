@@ -13,9 +13,9 @@ import { ApiResponseWrapper, ApiPaginatedResponse } from "../common/decorators/a
 import { JwtAuthGuard, BusinessId } from "../auth"
 
 @ApiTags("Clients")
-@Controller("clients")
-
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller("clients")
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 

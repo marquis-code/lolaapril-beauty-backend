@@ -1,12 +1,12 @@
 // ============================================================================
-// FILE 6: src/app.module.ts (UPDATE - ADD GLOBAL GUARDS)
+// FILE: src/app.module.ts (UPDATED - COMPREHENSIVE LOGGING)
 // ============================================================================
 import { Module, MiddlewareConsumer, RequestMethod } from "@nestjs/common"
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { MongooseModule } from "@nestjs/mongoose"
 import { ScheduleModule } from '@nestjs/schedule'
 import { EventEmitterModule } from '@nestjs/event-emitter'
-import { APP_INTERCEPTOR, APP_GUARD } from "@nestjs/core"
+import { APP_INTERCEPTOR, APP_GUARD, APP_FILTER } from "@nestjs/core"
 import { WinstonModule } from 'nest-winston'
 import * as winston from 'winston'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
@@ -49,7 +49,7 @@ import { MonitoringModule } from './monitoring/monitoring.module'
 import { WebhookModule } from './webhook/webhook.module'
 import { RateLimiterModule } from './rate-limiter/rate-limiter.module'
 import { MarketplaceModule } from './marketplace/marketplace.module'
-import { SubscriptionModule } from './subscription/subscription.module'  
+import { SubscriptionModule } from './subscription/subscription.module'
 
 @Module({
   imports: [
@@ -59,7 +59,7 @@ import { SubscriptionModule } from './subscription/subscription.module'
       envFilePath: '.env'
     }),
 
-    // Redis Configuration
+    // Redis Configuration with Enhanced Logging
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -86,6 +86,7 @@ import { SubscriptionModule } from './subscription/subscription.module'
             username: redisUsername,
             retryStrategy: (times: number) => {
               const delay = Math.min(times * 50, 2000);
+              console.log(`🔄 Redis retry attempt ${times}, waiting ${delay}ms`);
               return delay;
             },
             maxRetriesPerRequest: 3,
@@ -104,26 +105,40 @@ import { SubscriptionModule } from './subscription/subscription.module'
       },
     }),
 
-    // Winston Logger
+    // Winston Logger - Enhanced Configuration
     WinstonModule.forRoot({
       transports: [
+        // Console Transport - Detailed colored output
         new winston.transports.Console({
+          level: 'debug', // Log everything to console
           format: winston.format.combine(
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
             winston.format.ms(),
             winston.format.errors({ stack: true }),
             winston.format.splat(),
-            winston.format.colorize(),
-            winston.format.printf(({ level, message, timestamp, ms, ...meta }) => {
-              let log = `${timestamp} [${level}]: ${message}`
+            winston.format.colorize({ all: true }),
+            winston.format.printf(({ level, message, timestamp, ms, context, stack, ...meta }) => {
+              let log = `${timestamp} [${context || 'Application'}] ${level}: ${message}`;
+              
+              // Add execution time if available
+              if (ms) log += ` ${ms}`;
+              
+              // Add metadata if present
               if (Object.keys(meta).length > 0) {
-                log += ` ${JSON.stringify(meta, null, 2)}`
+                log += `\n   📋 Meta: ${JSON.stringify(meta, null, 2)}`;
               }
-              if (ms) log += ` (${ms})`
-              return log
+              
+              // Add stack trace for errors
+              if (stack) {
+                log += `\n   🔥 Stack: ${stack}`;
+              }
+              
+              return log;
             }),
           ),
         }),
+
+        // Error Log File - Only errors
         new winston.transports.File({
           filename: 'logs/error.log',
           level: 'error',
@@ -132,47 +147,116 @@ import { SubscriptionModule } from './subscription/subscription.module'
             winston.format.errors({ stack: true }),
             winston.format.json(),
           ),
-          maxsize: 5242880,
-          maxFiles: 5,
+          maxsize: 5242880, // 5MB
+          maxFiles: 10,
         }),
+
+        // Combined Log File - All logs
         new winston.transports.File({
           filename: 'logs/combined.log',
+          level: 'debug',
           format: winston.format.combine(
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
             winston.format.json(),
           ),
-          maxsize: 5242880,
+          maxsize: 5242880, // 5MB
+          maxFiles: 10,
+        }),
+
+        // HTTP Requests Log File
+        new winston.transports.File({
+          filename: 'logs/http.log',
+          level: 'http',
+          format: winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            winston.format.json(),
+          ),
+          maxsize: 5242880, // 5MB
+          maxFiles: 5,
+        }),
+
+        // Database Operations Log File
+        new winston.transports.File({
+          filename: 'logs/database.log',
+          level: 'debug',
+          format: winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            winston.format.json(),
+          ),
+          maxsize: 5242880, // 5MB
+          maxFiles: 5,
+        }),
+
+        // Authentication Log File
+        new winston.transports.File({
+          filename: 'logs/auth.log',
+          level: 'info',
+          format: winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            winston.format.json(),
+          ),
+          maxsize: 5242880, // 5MB
           maxFiles: 5,
         }),
       ],
+      // Set default metadata
+      defaultMeta: { 
+        service: 'lola-beauty-backend',
+        environment: process.env.NODE_ENV || 'development'
+      },
     }),
 
+    // MongoDB Configuration with Enhanced Logging
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URL'),
+        // Enable Mongoose debugging
         connectionFactory: (connection) => {
+          // Set mongoose debug mode
+          connection.set('debug', (collectionName: string, method: string, query: any, doc: any) => {
+            console.log(`📊 MongoDB Query: ${collectionName}.${method}`, {
+              query: JSON.stringify(query),
+              doc: doc ? JSON.stringify(doc) : undefined,
+              timestamp: new Date().toISOString()
+            });
+          });
+
           connection.on('connected', () => {
-            console.log('✅ MongoDB connected successfully')
-            console.log(`📍 Database: ${connection.name}`)
-            console.log(`🔗 Host: ${connection.host}:${connection.port}`)
-          })
+            console.log('✅ MongoDB connected successfully');
+            console.log(`📍 Database: ${connection.name}`);
+            console.log(`🔗 Host: ${connection.host}:${connection.port}`);
+            console.log(`⏰ Connected at: ${new Date().toISOString()}`);
+          });
           
           connection.on('error', (error: any) => {
-            console.error('❌ MongoDB connection error:', error.message)
-          })
+            console.error('❌ MongoDB connection error:', {
+              message: error.message,
+              code: error.code,
+              name: error.name,
+              timestamp: new Date().toISOString()
+            });
+          });
           
           connection.on('disconnected', () => {
-            console.log('⚠️  MongoDB disconnected')
-          })
+            console.log('⚠️  MongoDB disconnected at:', new Date().toISOString());
+          });
+
+          connection.on('reconnected', () => {
+            console.log('🔄 MongoDB reconnected at:', new Date().toISOString());
+          });
+
+          connection.on('close', () => {
+            console.log('🔴 MongoDB connection closed at:', new Date().toISOString());
+          });
           
-          return connection
+          return connection;
         },
       }),
     }),
 
-    // Throttling
+    // Throttling with Logging
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
@@ -244,7 +328,17 @@ import { SubscriptionModule } from './subscription/subscription.module'
   ],
 })
 export class AppModule {
+  constructor() {
+    // Log application startup
+    console.log('🚀 Application Module Initialized');
+    console.log(`📅 Startup Time: ${new Date().toISOString()}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📍 Node Version: ${process.version}`);
+    console.log('═'.repeat(80));
+  }
+
   configure(consumer: MiddlewareConsumer) {
     // Your existing middleware configuration
+    console.log('⚙️  Configuring middleware...');
   }
 }
