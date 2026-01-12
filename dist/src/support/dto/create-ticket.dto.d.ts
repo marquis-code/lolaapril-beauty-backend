@@ -1,6 +1,6 @@
 export declare class CreateTicketDto {
     clientId: string;
-    tenantId?: string;
+    businessId?: string;
     bookingId?: string;
     subject: string;
     description: string;

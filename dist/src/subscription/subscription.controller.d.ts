@@ -68,6 +68,11 @@ export declare class SubscriptionController {
         };
         message: string;
     }>;
+    getHistory(businessId: string): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
     checkLimits(businessId: string, context?: 'booking' | 'staff' | 'service'): Promise<{
         success: boolean;
         data: {
@@ -98,45 +103,28 @@ export declare class SubscriptionController {
             endDate: any;
         };
     }>;
-    upgradePlan(businessId: string, activeBusinessId: string, dto: UpgradePlanDto): Promise<{
+    upgradePlan(businessId: string, dto: UpgradePlanDto): Promise<{
         success: boolean;
         message: string;
         oldPlan: any;
         newPlan: any;
         subscription: any;
-    } | {
-        success: boolean;
-        error: string;
     }>;
-    downgradePlan(businessId: string, activeBusinessId: string, dto: UpgradePlanDto): Promise<{
+    downgradePlan(businessId: string, dto: UpgradePlanDto): Promise<{
         success: boolean;
         message: string;
         currentPlan: any;
         scheduledPlan: string;
         effectiveDate: any;
-    } | {
-        success: boolean;
-        error: string;
     }>;
-    cancelSubscription(businessId: string, activeBusinessId: string, dto: CancelSubscriptionDto): Promise<{
+    cancelSubscription(businessId: string, dto: CancelSubscriptionDto): Promise<{
         success: boolean;
         message: string;
         effectiveDate: any;
-    } | {
-        success: boolean;
-        error: string;
     }>;
-    reactivateSubscription(businessId: string, activeBusinessId: string): Promise<{
+    reactivateSubscription(businessId: string): Promise<{
         success: boolean;
         message: string;
         subscription: any;
-    } | {
-        success: boolean;
-        error: string;
-    }>;
-    getHistory(businessId: string): Promise<{
-        success: boolean;
-        data: any;
-        message: string;
     }>;
 }

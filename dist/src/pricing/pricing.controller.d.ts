@@ -42,7 +42,7 @@ export declare class PricingController {
         commissionRate: number;
         isActive: boolean;
     }[]>;
-    getBusisinessFeeStructure(businessId: string): Promise<{
+    getBusinessFeeStructure(businessId: string): Promise<{
         [key: string]: any;
         _id: any;
         businessId: any;

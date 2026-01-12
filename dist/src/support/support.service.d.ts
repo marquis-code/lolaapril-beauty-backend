@@ -49,7 +49,7 @@ export declare class SupportService {
         status?: string;
         priority?: string;
         assignedTo?: string;
-        tenantId?: string;
+        businessId?: string;
         page?: number;
         limit?: number;
     }): Promise<{
@@ -92,18 +92,18 @@ export declare class SupportService {
     }> & {
         __v: number;
     })[]>;
-    createSLAConfig(tenantId: string, config: any): Promise<import("mongoose").Document<unknown, {}, SLAConfigDocument, {}, {}> & SLAConfig & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    createSLAConfig(businessId: string, config: any): Promise<import("mongoose").Document<unknown, {}, SLAConfigDocument, {}, {}> & SLAConfig & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: Types.ObjectId;
     }> & {
         __v: number;
     }>;
-    getSLAConfig(tenantId: string, priority: string): Promise<import("mongoose").Document<unknown, {}, SLAConfigDocument, {}, {}> & SLAConfig & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    getSLAConfig(businessId: string, priority: string): Promise<import("mongoose").Document<unknown, {}, SLAConfigDocument, {}, {}> & SLAConfig & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: Types.ObjectId;
     }> & {
         __v: number;
     }>;
     checkSLABreaches(): Promise<number>;
-    getTicketStats(tenantId?: string): Promise<{
+    getTicketStats(businessId?: string): Promise<{
         statusStats: any[];
         priorityStats: any[];
         avgResolutionTimeMinutes: number;

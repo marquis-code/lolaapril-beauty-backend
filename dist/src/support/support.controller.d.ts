@@ -75,7 +75,7 @@ export declare class SupportController {
     }> & {
         __v: number;
     })[]>;
-    getStats(tenantId?: string): Promise<{
+    getStats(businessId: string): Promise<{
         statusStats: any[];
         priorityStats: any[];
         avgResolutionTimeMinutes: number;

@@ -29,7 +29,7 @@ let SupportService = class SupportService {
     }
     async createTicket(createDto) {
         const ticketNumber = await this.generateTicketNumber();
-        const slaConfig = await this.getSLAConfig(createDto.tenantId, createDto.priority);
+        const slaConfig = await this.getSLAConfig(createDto.businessId, createDto.priority);
         const now = new Date();
         const sla = slaConfig ? {
             responseDeadline: new Date(now.getTime() + slaConfig.firstResponseTime * 60000),
@@ -39,7 +39,7 @@ let SupportService = class SupportService {
         const ticket = new this.ticketModel({
             ticketNumber,
             clientId: new mongoose_2.Types.ObjectId(createDto.clientId),
-            tenantId: createDto.tenantId ? new mongoose_2.Types.ObjectId(createDto.tenantId) : null,
+            businessId: createDto.businessId ? createDto.businessId : null,
             bookingId: createDto.bookingId ? new mongoose_2.Types.ObjectId(createDto.bookingId) : null,
             subject: createDto.subject,
             description: createDto.description,
@@ -65,7 +65,7 @@ let SupportService = class SupportService {
             .findById(ticketId)
             .populate('clientId', 'firstName lastName email phone')
             .populate('assignedTo', 'firstName lastName email')
-            .populate('tenantId', 'businessName')
+            .populate('businessId', 'businessName')
             .exec();
         if (!ticket) {
             throw new common_1.NotFoundException('Ticket not found');
@@ -80,8 +80,8 @@ let SupportService = class SupportService {
             query.priority = filter.priority;
         if (filter.assignedTo)
             query.assignedTo = new mongoose_2.Types.ObjectId(filter.assignedTo);
-        if (filter.tenantId)
-            query.tenantId = new mongoose_2.Types.ObjectId(filter.tenantId);
+        if (filter.businessId)
+            query.businessId = new mongoose_2.Types.ObjectId(filter.businessId);
         const page = filter.page || 1;
         const limit = filter.limit || 20;
         const skip = (page - 1) * limit;
@@ -175,16 +175,16 @@ let SupportService = class SupportService {
             .sort({ createdAt: 1 })
             .exec();
     }
-    async createSLAConfig(tenantId, config) {
+    async createSLAConfig(businessId, config) {
         const slaConfig = new this.slaConfigModel({
-            tenantId: new mongoose_2.Types.ObjectId(tenantId),
+            businessId: new mongoose_2.Types.ObjectId(businessId),
             ...config,
         });
         return slaConfig.save();
     }
-    async getSLAConfig(tenantId, priority) {
+    async getSLAConfig(businessId, priority) {
         return this.slaConfigModel.findOne({
-            tenantId: tenantId ? new mongoose_2.Types.ObjectId(tenantId) : null,
+            businessId: businessId ? new mongoose_2.Types.ObjectId(businessId) : null,
             priority,
             isActive: true,
         });
@@ -206,10 +206,10 @@ let SupportService = class SupportService {
         }
         return breachedTickets.length;
     }
-    async getTicketStats(tenantId) {
+    async getTicketStats(businessId) {
         const match = {};
-        if (tenantId)
-            match.tenantId = new mongoose_2.Types.ObjectId(tenantId);
+        if (businessId)
+            match.businessId = new mongoose_2.Types.ObjectId(businessId);
         const [statusStats, priorityStats, avgResolutionTime] = await Promise.all([
             this.ticketModel.aggregate([
                 { $match: match },

@@ -46,6 +46,14 @@ let SubscriptionController = class SubscriptionController {
             message: 'Subscription retrieved successfully'
         };
     }
+    async getHistory(businessId) {
+        const history = await this.subscriptionService.getSubscriptionHistory(businessId);
+        return {
+            success: true,
+            data: history,
+            message: 'History retrieved successfully'
+        };
+    }
     async checkLimits(businessId, context) {
         const limits = await this.subscriptionService.checkLimits(businessId, context);
         return {
@@ -76,38 +84,18 @@ let SubscriptionController = class SubscriptionController {
             }
         };
     }
-    async upgradePlan(businessId, activeBusinessId, dto) {
-        if (businessId !== activeBusinessId) {
-            return { success: false, error: 'You can only upgrade your active business' };
-        }
+    async upgradePlan(businessId, dto) {
         const result = await this.subscriptionService.upgradePlan(businessId, dto.planType, dto.billingCycle || 'monthly');
         return result;
     }
-    async downgradePlan(businessId, activeBusinessId, dto) {
-        if (businessId !== activeBusinessId) {
-            return { success: false, error: 'Access denied' };
-        }
+    async downgradePlan(businessId, dto) {
         return this.subscriptionService.downgradePlan(businessId, dto.planType);
     }
-    async cancelSubscription(businessId, activeBusinessId, dto) {
-        if (businessId !== activeBusinessId) {
-            return { success: false, error: 'Access denied' };
-        }
+    async cancelSubscription(businessId, dto) {
         return this.subscriptionService.cancelSubscription(businessId, dto.reason, dto.immediate || false);
     }
-    async reactivateSubscription(businessId, activeBusinessId) {
-        if (businessId !== activeBusinessId) {
-            return { success: false, error: 'Access denied' };
-        }
+    async reactivateSubscription(businessId) {
         return this.subscriptionService.reactivateSubscription(businessId);
-    }
-    async getHistory(businessId) {
-        const history = await this.subscriptionService.getSubscriptionHistory(businessId);
-        return {
-            success: true,
-            data: history,
-            message: 'History retrieved successfully'
-        };
     }
 };
 __decorate([
@@ -139,6 +127,16 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "getBusinessSubscription", null);
+__decorate([
+    (0, common_1.Get)('business/history'),
+    (0, auth_1.ValidateBusiness)(),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get subscription history' }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], SubscriptionController.prototype, "getHistory", null);
 __decorate([
     (0, common_1.Get)('business/limits'),
     (0, auth_1.ValidateBusiness)(),
@@ -172,68 +170,50 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "getTrialStatus", null);
 __decorate([
-    (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)('business/upgrade'),
     (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Upgrade subscription plan' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Plan upgraded successfully' }),
     __param(0, (0, auth_1.BusinessId)()),
-    __param(1, (0, auth_1.BusinessId)()),
-    __param(2, (0, common_1.Body)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, subscription_dto_1.UpgradePlanDto]),
+    __metadata("design:paramtypes", [String, subscription_dto_1.UpgradePlanDto]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "upgradePlan", null);
 __decorate([
-    (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)('business/downgrade'),
     (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Downgrade subscription plan (effective at end of period)' }),
     __param(0, (0, auth_1.BusinessId)()),
-    __param(1, (0, auth_1.BusinessId)()),
-    __param(2, (0, common_1.Body)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, subscription_dto_1.UpgradePlanDto]),
+    __metadata("design:paramtypes", [String, subscription_dto_1.UpgradePlanDto]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "downgradePlan", null);
 __decorate([
-    (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)('business/cancel'),
     (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Cancel subscription' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Subscription cancelled' }),
     __param(0, (0, auth_1.BusinessId)()),
-    __param(1, (0, auth_1.BusinessId)()),
-    __param(2, (0, common_1.Body)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, subscription_dto_1.CancelSubscriptionDto]),
+    __metadata("design:paramtypes", [String, subscription_dto_1.CancelSubscriptionDto]),
     __metadata("design:returntype", Promise)
 ], SubscriptionController.prototype, "cancelSubscription", null);
 __decorate([
-    (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)('business/reactivate'),
     (0, auth_1.ValidateBusiness)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Reactivate cancelled subscription' }),
     __param(0, (0, auth_1.BusinessId)()),
-    __param(1, (0, auth_1.BusinessId)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", Promise)
-], SubscriptionController.prototype, "reactivateSubscription", null);
-__decorate([
-    (0, common_1.Get)('business/history'),
-    (0, auth_1.ValidateBusiness)(),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get subscription history' }),
-    __param(0, (0, common_1.Param)('businessId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], SubscriptionController.prototype, "getHistory", null);
+], SubscriptionController.prototype, "reactivateSubscription", null);
 SubscriptionController = __decorate([
     (0, swagger_1.ApiTags)('Subscriptions'),
     (0, common_1.Controller)('subscriptions'),

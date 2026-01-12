@@ -8,22 +8,9 @@ import { CompleteAssignmentDto } from '../staff/dto/complete-assignment.dto';
 export declare class StaffController {
     private readonly staffService;
     constructor(staffService: StaffService);
-    createStaff(createStaffDto: CreateStaffDto, businessId: string): Promise<{
-        success: boolean;
-        data: import("./schemas/staff.schema").StaffDocument;
-        message: string;
-        error?: undefined;
-        code?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        code: string;
-        data?: undefined;
-        message?: undefined;
-    }>;
     getStaffByBusiness(businessId: string, status: string): Promise<{
         success: boolean;
-        data: any;
+        data: any[];
         message: string;
         error?: undefined;
         code?: undefined;
@@ -36,7 +23,7 @@ export declare class StaffController {
     }>;
     getAvailableStaff(businessId: string, date: string, startTime: string, endTime: string, serviceId: string): Promise<{
         success: boolean;
-        data: import("./schemas/staff.schema").StaffDocument[];
+        data: any[];
         message: string;
         error?: undefined;
         code?: undefined;
@@ -49,20 +36,7 @@ export declare class StaffController {
     }>;
     createSchedule(createScheduleDto: CreateStaffScheduleDto, req: any, businessId: string): Promise<{
         success: boolean;
-        data: import("./schemas/staff-schedule.schema").StaffScheduleDocument;
-        message: string;
-        error?: undefined;
-        code?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        code: string;
-        data?: undefined;
-        message?: undefined;
-    }>;
-    getSchedule(staffId: string, date: string): Promise<{
-        success: boolean;
-        data: import("./schemas/staff-schedule.schema").StaffScheduleDocument;
+        data: any;
         message: string;
         error?: undefined;
         code?: undefined;
@@ -115,32 +89,6 @@ export declare class StaffController {
         data?: undefined;
         message?: undefined;
     }>;
-    getAssignments(staffId: string, startDate: string, endDate: string): Promise<{
-        success: boolean;
-        data: any[];
-        message: string;
-        error?: undefined;
-        code?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        code: string;
-        data?: undefined;
-        message?: undefined;
-    }>;
-    completeAssignment(assignmentId: string, completionData: CompleteAssignmentDto): Promise<{
-        success: boolean;
-        data: import("./schemas/staff-assignment.schema").StaffAssignmentDocument;
-        message: string;
-        error?: undefined;
-        code?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        code: string;
-        data?: undefined;
-        message?: undefined;
-    }>;
     checkIn(checkInDto: CheckInStaffDto, req: any, businessId: string): Promise<{
         success: boolean;
         message: string;
@@ -163,9 +111,9 @@ export declare class StaffController {
         code: string;
         message?: undefined;
     }>;
-    getWorkingHours(staffId: string, startDate: string, endDate: string): Promise<{
+    getSchedule(staffId: string, date: string): Promise<{
         success: boolean;
-        data: import("./schemas/working-hours.schema").WorkingHoursDocument[];
+        data: any;
         message: string;
         error?: undefined;
         code?: undefined;
@@ -176,9 +124,35 @@ export declare class StaffController {
         data?: undefined;
         message?: undefined;
     }>;
-    getStaffById(staffId: string): Promise<{
+    getAssignments(staffId: string, startDate: string, endDate: string): Promise<{
         success: boolean;
-        data: import("./schemas/staff.schema").StaffDocument;
+        data: any[];
+        message: string;
+        error?: undefined;
+        code?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        code: string;
+        data?: undefined;
+        message?: undefined;
+    }>;
+    getWorkingHours(staffId: string, startDate: string, endDate: string): Promise<{
+        success: boolean;
+        data: any[];
+        message: string;
+        error?: undefined;
+        code?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        code: string;
+        data?: undefined;
+        message?: undefined;
+    }>;
+    completeAssignment(assignmentId: string, completionData: CompleteAssignmentDto): Promise<{
+        success: boolean;
+        data: any;
         message: string;
         error?: undefined;
         code?: undefined;
@@ -203,6 +177,32 @@ export declare class StaffController {
         message?: undefined;
     }>;
     updateStaffStatus(staffId: string, status: string, reason?: string): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+        error?: undefined;
+        code?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        code: string;
+        data?: undefined;
+        message?: undefined;
+    }>;
+    getStaffById(staffId: string): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+        error?: undefined;
+        code?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        code: string;
+        data?: undefined;
+        message?: undefined;
+    }>;
+    createStaff(createStaffDto: CreateStaffDto, businessId: string): Promise<{
         success: boolean;
         data: any;
         message: string;
