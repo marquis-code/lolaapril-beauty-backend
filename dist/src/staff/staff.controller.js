@@ -26,26 +26,6 @@ let StaffController = class StaffController {
     constructor(staffService) {
         this.staffService = staffService;
     }
-    async createStaff(createStaffDto, businessId) {
-        try {
-            const staff = await this.staffService.createStaff({
-                ...createStaffDto,
-                businessId
-            });
-            return {
-                success: true,
-                data: staff,
-                message: 'Staff member created successfully'
-            };
-        }
-        catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                code: 'STAFF_CREATION_FAILED'
-            };
-        }
-    }
     async getStaffByBusiness(businessId, status) {
         try {
             const staff = await this.staffService.getStaffByBusiness(businessId, status);
@@ -102,23 +82,6 @@ let StaffController = class StaffController {
             };
         }
     }
-    async getSchedule(staffId, date) {
-        try {
-            const schedule = await this.staffService.getStaffSchedule(staffId, new Date(date));
-            return {
-                success: true,
-                data: schedule,
-                message: 'Staff schedule retrieved successfully'
-            };
-        }
-        catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                code: 'SCHEDULE_RETRIEVAL_FAILED'
-            };
-        }
-    }
     async assignStaff(assignStaffDto, req, businessId) {
         try {
             const assignedBy = req.user.id;
@@ -156,40 +119,6 @@ let StaffController = class StaffController {
                 success: false,
                 error: error.message,
                 code: 'AUTO_ASSIGNMENT_FAILED'
-            };
-        }
-    }
-    async getAssignments(staffId, startDate, endDate) {
-        try {
-            const assignments = await this.staffService.getStaffAssignments(staffId, new Date(startDate), new Date(endDate));
-            return {
-                success: true,
-                data: assignments,
-                message: 'Staff assignments retrieved successfully'
-            };
-        }
-        catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                code: 'ASSIGNMENTS_RETRIEVAL_FAILED'
-            };
-        }
-    }
-    async completeAssignment(assignmentId, completionData) {
-        try {
-            const assignment = await this.staffService.completeStaffAssignment(assignmentId, completionData);
-            return {
-                success: true,
-                data: assignment,
-                message: 'Assignment completed successfully'
-            };
-        }
-        catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                code: 'ASSIGNMENT_COMPLETION_FAILED'
             };
         }
     }
@@ -231,6 +160,40 @@ let StaffController = class StaffController {
             };
         }
     }
+    async getSchedule(staffId, date) {
+        try {
+            const schedule = await this.staffService.getStaffSchedule(staffId, new Date(date));
+            return {
+                success: true,
+                data: schedule,
+                message: 'Staff schedule retrieved successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                code: 'SCHEDULE_RETRIEVAL_FAILED'
+            };
+        }
+    }
+    async getAssignments(staffId, startDate, endDate) {
+        try {
+            const assignments = await this.staffService.getStaffAssignments(staffId, new Date(startDate), new Date(endDate));
+            return {
+                success: true,
+                data: assignments,
+                message: 'Staff assignments retrieved successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                code: 'ASSIGNMENTS_RETRIEVAL_FAILED'
+            };
+        }
+    }
     async getWorkingHours(staffId, startDate, endDate) {
         try {
             const workingHours = await this.staffService.getStaffWorkingHours(staffId, new Date(startDate), new Date(endDate));
@@ -248,20 +211,20 @@ let StaffController = class StaffController {
             };
         }
     }
-    async getStaffById(staffId) {
+    async completeAssignment(assignmentId, completionData) {
         try {
-            const staff = await this.staffService.getStaffById(staffId);
+            const assignment = await this.staffService.completeStaffAssignment(assignmentId, completionData);
             return {
                 success: true,
-                data: staff,
-                message: 'Staff profile retrieved successfully'
+                data: assignment,
+                message: 'Assignment completed successfully'
             };
         }
         catch (error) {
             return {
                 success: false,
                 error: error.message,
-                code: 'STAFF_PROFILE_RETRIEVAL_FAILED'
+                code: 'ASSIGNMENT_COMPLETION_FAILED'
             };
         }
     }
@@ -299,17 +262,44 @@ let StaffController = class StaffController {
             };
         }
     }
+    async getStaffById(staffId) {
+        try {
+            const staff = await this.staffService.getStaffById(staffId);
+            return {
+                success: true,
+                data: staff,
+                message: 'Staff profile retrieved successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                code: 'STAFF_PROFILE_RETRIEVAL_FAILED'
+            };
+        }
+    }
+    async createStaff(createStaffDto, businessId) {
+        try {
+            const staff = await this.staffService.createStaff({
+                ...createStaffDto,
+                businessId
+            });
+            return {
+                success: true,
+                data: staff,
+                message: 'Staff member created successfully'
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                code: 'STAFF_CREATION_FAILED'
+            };
+        }
+    }
 };
-__decorate([
-    (0, common_1.Post)(),
-    (0, auth_1.ValidateBusiness)(),
-    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
-    __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
-    __param(1, (0, auth_1.BusinessId)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_staff_dto_1.CreateStaffDto, String]),
-    __metadata("design:returntype", Promise)
-], StaffController.prototype, "createStaff", null);
 __decorate([
     (0, common_1.Get)('business'),
     (0, auth_1.ValidateBusiness)(),
@@ -342,15 +332,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "createSchedule", null);
 __decorate([
-    (0, common_1.Get)('schedule/:staffId'),
-    (0, auth_1.ValidateBusiness)(),
-    __param(0, (0, common_1.Param)('staffId')),
-    __param(1, (0, common_1.Query)('date')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", Promise)
-], StaffController.prototype, "getSchedule", null);
-__decorate([
     (0, common_1.Post)('assign'),
     (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
@@ -368,25 +349,6 @@ __decorate([
     __metadata("design:paramtypes", [auto_assign_staff_dto_1.AutoAssignStaffDto]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "autoAssignStaff", null);
-__decorate([
-    (0, common_1.Get)('assignments/:staffId'),
-    (0, auth_1.ValidateBusiness)(),
-    __param(0, (0, common_1.Param)('staffId')),
-    __param(1, (0, common_1.Query)('startDate')),
-    __param(2, (0, common_1.Query)('endDate')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
-    __metadata("design:returntype", Promise)
-], StaffController.prototype, "getAssignments", null);
-__decorate([
-    (0, common_1.Put)('assignment/:assignmentId/complete'),
-    (0, auth_1.ValidateBusiness)(),
-    __param(0, (0, common_1.Param)('assignmentId')),
-    __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, complete_assignment_dto_1.CompleteAssignmentDto]),
-    __metadata("design:returntype", Promise)
-], StaffController.prototype, "completeAssignment", null);
 __decorate([
     (0, common_1.Post)('checkin'),
     (0, auth_1.ValidateBusiness)(),
@@ -408,6 +370,25 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "checkOut", null);
 __decorate([
+    (0, common_1.Get)('schedule/:staffId'),
+    (0, auth_1.ValidateBusiness)(),
+    __param(0, (0, common_1.Param)('staffId')),
+    __param(1, (0, common_1.Query)('date')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], StaffController.prototype, "getSchedule", null);
+__decorate([
+    (0, common_1.Get)('assignments/:staffId'),
+    (0, auth_1.ValidateBusiness)(),
+    __param(0, (0, common_1.Param)('staffId')),
+    __param(1, (0, common_1.Query)('startDate')),
+    __param(2, (0, common_1.Query)('endDate')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], StaffController.prototype, "getAssignments", null);
+__decorate([
     (0, common_1.Get)('working-hours/:staffId'),
     (0, auth_1.ValidateBusiness)(),
     __param(0, (0, common_1.Param)('staffId')),
@@ -418,13 +399,14 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "getWorkingHours", null);
 __decorate([
-    (0, common_1.Get)(':staffId'),
+    (0, common_1.Put)('assignment/:assignmentId/complete'),
     (0, auth_1.ValidateBusiness)(),
-    __param(0, (0, common_1.Param)('staffId')),
+    __param(0, (0, common_1.Param)('assignmentId')),
+    __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, complete_assignment_dto_1.CompleteAssignmentDto]),
     __metadata("design:returntype", Promise)
-], StaffController.prototype, "getStaffById", null);
+], StaffController.prototype, "completeAssignment", null);
 __decorate([
     (0, common_1.Put)(':staffId/skills'),
     (0, auth_1.ValidateBusiness)(),
@@ -444,6 +426,24 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], StaffController.prototype, "updateStaffStatus", null);
+__decorate([
+    (0, common_1.Get)(':staffId'),
+    (0, auth_1.ValidateBusiness)(),
+    __param(0, (0, common_1.Param)('staffId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], StaffController.prototype, "getStaffById", null);
+__decorate([
+    (0, common_1.Post)(),
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)(common_1.ValidationPipe)),
+    __param(1, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_staff_dto_1.CreateStaffDto, String]),
+    __metadata("design:returntype", Promise)
+], StaffController.prototype, "createStaff", null);
 StaffController = __decorate([
     (0, common_1.Controller)('staff'),
     __metadata("design:paramtypes", [staff_service_1.StaffService])

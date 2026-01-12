@@ -1,4 +1,48 @@
-// src/modules/staff/staff.module.ts
+// // src/modules/staff/staff.module.ts
+// import { Module, forwardRef } from '@nestjs/common'
+// import { MongooseModule } from '@nestjs/mongoose'
+
+// // Controllers
+// import { StaffController } from './staff.controller'
+
+// // Services
+// import { StaffService } from './staff.service'
+
+// // Schemas
+// import { Staff, StaffSchema } from './schemas/staff.schema'
+// import { StaffSchedule, StaffScheduleSchema } from './schemas/staff-schedule.schema'
+// import { StaffAssignment, StaffAssignmentSchema } from './schemas/staff-assignment.schema'
+// import { WorkingHours, WorkingHoursSchema } from './schemas/working-hours.schema'
+
+// // Import related modules (using forwardRef to prevent circular dependencies)
+// import { BusinessModule } from '../business/business.module'
+// import { AuthModule } from '../auth/auth.module'
+// import { ServiceModule } from '../service/service.module'
+
+// @Module({
+//   imports: [
+//     // Database schemas
+//     MongooseModule.forFeature([
+//       { name: Staff.name, schema: StaffSchema },
+//       { name: StaffSchedule.name, schema: StaffScheduleSchema },
+//       { name: StaffAssignment.name, schema: StaffAssignmentSchema },
+//       { name: WorkingHours.name, schema: WorkingHoursSchema },
+//     ]),
+    
+//     // Related modules
+//     forwardRef(() => BusinessModule),
+//     forwardRef(() => AuthModule),
+//     forwardRef(() => ServiceModule),
+//   ],
+  
+//   controllers: [StaffController],
+  
+//   providers: [StaffService],
+  
+//   exports: [StaffService],
+// })
+// export class StaffModule {}
+
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
@@ -14,7 +58,10 @@ import { StaffSchedule, StaffScheduleSchema } from './schemas/staff-schedule.sch
 import { StaffAssignment, StaffAssignmentSchema } from './schemas/staff-assignment.schema'
 import { WorkingHours, WorkingHoursSchema } from './schemas/working-hours.schema'
 
-// Import related modules (using forwardRef to prevent circular dependencies)
+// ✅ CRITICAL: Import User schema from Auth module
+import { User, UserSchema } from '../auth/schemas/user.schema'
+
+// Import related modules
 import { BusinessModule } from '../business/business.module'
 import { AuthModule } from '../auth/auth.module'
 import { ServiceModule } from '../service/service.module'
@@ -27,9 +74,10 @@ import { ServiceModule } from '../service/service.module'
       { name: StaffSchedule.name, schema: StaffScheduleSchema },
       { name: StaffAssignment.name, schema: StaffAssignmentSchema },
       { name: WorkingHours.name, schema: WorkingHoursSchema },
+      { name: User.name, schema: UserSchema }, // ✅ ADD THIS - Required for creating staff users
     ]),
     
-    // Related modules
+    // Related modules (use forwardRef if there are circular dependencies)
     forwardRef(() => BusinessModule),
     forwardRef(() => AuthModule),
     forwardRef(() => ServiceModule),

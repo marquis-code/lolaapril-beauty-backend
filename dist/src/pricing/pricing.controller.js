@@ -28,7 +28,7 @@ let PricingController = class PricingController {
     async getActiveTiers() {
         return this.pricingService.getActiveTiers();
     }
-    async getBusisinessFeeStructure(businessId) {
+    async getBusinessFeeStructure(businessId) {
         return this.pricingService.getBusinessFeeStructure(businessId);
     }
     async calculateFees(businessId, amount) {
@@ -43,7 +43,6 @@ let PricingController = class PricingController {
 };
 __decorate([
     (0, common_1.Post)('tiers'),
-    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Create pricing tier (Admin only)' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -53,42 +52,48 @@ __decorate([
 __decorate([
     (0, auth_1.Public)(),
     (0, common_1.Get)('tiers'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all active pricing tiers' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], PricingController.prototype, "getActiveTiers", null);
 __decorate([
-    (0, common_1.Get)('business/:businessId/fee-structure'),
-    __param(0, (0, common_1.Param)('businessId')),
+    (0, common_1.Get)('fee-structure'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get business fee structure' }),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], PricingController.prototype, "getBusisinessFeeStructure", null);
+], PricingController.prototype, "getBusinessFeeStructure", null);
 __decorate([
-    (0, common_1.Post)('business/:businessId/calculate-fees'),
-    __param(0, (0, common_1.Param)('businessId')),
+    (0, common_1.Post)('calculate-fees'),
+    (0, swagger_1.ApiOperation)({ summary: 'Calculate fees for a transaction' }),
+    __param(0, (0, auth_1.BusinessId)()),
     __param(1, (0, common_1.Body)('amount')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", Promise)
 ], PricingController.prototype, "calculateFees", null);
 __decorate([
-    (0, common_1.Post)('business/:businessId/change-plan'),
-    __param(0, (0, common_1.Param)('businessId')),
+    (0, common_1.Post)('change-plan'),
+    (0, swagger_1.ApiOperation)({ summary: 'Change business pricing plan' }),
+    __param(0, (0, auth_1.BusinessId)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], PricingController.prototype, "changePlan", null);
 __decorate([
-    (0, common_1.Get)('business/:businessId/history'),
-    __param(0, (0, common_1.Param)('businessId')),
+    (0, common_1.Get)('history'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get pricing history for business' }),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], PricingController.prototype, "getPricingHistory", null);
 PricingController = __decorate([
     (0, swagger_1.ApiTags)('Pricing & Fees'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('pricing'),
     __metadata("design:paramtypes", [pricing_service_1.PricingService])
 ], PricingController);

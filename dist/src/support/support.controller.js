@@ -16,6 +16,7 @@ exports.SupportController = void 0;
 const common_1 = require("@nestjs/common");
 const support_service_1 = require("./support.service");
 const create_ticket_dto_1 = require("./dto/create-ticket.dto");
+const auth_1 = require("../auth");
 let SupportController = class SupportController {
     constructor(supportService) {
         this.supportService = supportService;
@@ -41,8 +42,8 @@ let SupportController = class SupportController {
     getMessages(id, includeInternal) {
         return this.supportService.getMessages(id, includeInternal);
     }
-    getStats(tenantId) {
-        return this.supportService.getTicketStats(tenantId);
+    getStats(businessId) {
+        return this.supportService.getTicketStats(businessId);
     }
     makeCall(id, body) {
         return this.supportService.makeCall(id, body.phoneNumber, body.agentId);
@@ -105,8 +106,9 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SupportController.prototype, "getMessages", null);
 __decorate([
+    (0, auth_1.ValidateBusiness)(),
     (0, common_1.Get)('stats'),
-    __param(0, (0, common_1.Query)('tenantId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
