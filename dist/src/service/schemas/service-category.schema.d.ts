@@ -23,22 +23,23 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import type { Document } from "mongoose";
+import { Document, Types } from 'mongoose';
 export type ServiceCategoryDocument = ServiceCategory & Document;
 export declare class ServiceCategory {
     categoryName: string;
     appointmentColor: string;
     description: string;
+    businessId: Types.ObjectId;
     isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 export declare const ServiceCategorySchema: import("mongoose").Schema<ServiceCategory, import("mongoose").Model<ServiceCategory, any, any, any, Document<unknown, any, ServiceCategory, any, {}> & ServiceCategory & {
-    _id: import("mongoose").Types.ObjectId;
+    _id: Types.ObjectId;
 } & {
     __v: number;
 }, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, ServiceCategory, Document<unknown, {}, import("mongoose").FlatRecord<ServiceCategory>, {}, import("mongoose").ResolveSchemaOptions<import("mongoose").DefaultSchemaOptions>> & import("mongoose").FlatRecord<ServiceCategory> & {
-    _id: import("mongoose").Types.ObjectId;
+    _id: Types.ObjectId;
 } & {
     __v: number;
 }>;
