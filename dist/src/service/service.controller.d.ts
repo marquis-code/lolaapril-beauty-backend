@@ -10,14 +10,15 @@ import { ServiceQueryDto } from "./dto/service-query.dto";
 import { ServiceCategory } from "./schemas/service-category.schema";
 import { Service } from "./schemas/service.schema";
 import { ServiceBundle } from "./schemas/service-bundle.schema";
+import { RequestWithUser } from "../auth/types/request-with-user.interface";
 export declare class ServiceController {
     private readonly serviceService;
     constructor(serviceService: ServiceService);
     createCategory(createCategoryDto: CreateServiceCategoryDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceCategory>>;
-    findAllCategories(subdomain?: string, businessId?: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceCategory[]>>;
+    findAllCategories(subdomain?: string, businessId?: string, req?: RequestWithUser): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceCategory[]>>;
     updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceCategory>>;
     create(createServiceDto: CreateServiceDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
-    findAll(query: ServiceQueryDto, businessId?: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Service[]>>;
+    findAll(query: ServiceQueryDto, businessId?: string, req?: RequestWithUser): Promise<import("../common/interfaces/common.interface").ApiResponse<Service[]>>;
     getStats(businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
     createBundle(createBundleDto: CreateServiceBundleDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle>>;
     findAllBundles(subdomain?: string, businessId?: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle[]>>;
