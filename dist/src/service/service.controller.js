@@ -96,13 +96,12 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new service category" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory, 201, "Service category created successfully"),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, auth_1.BusinessId)()),
+    __param(1, (0, auth_1.OptionalBusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_service_category_dto_1.CreateServiceCategoryDto, String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "createCategory", null);
 __decorate([
-    (0, auth_1.Public)(),
     (0, common_1.Get)("categories"),
     (0, swagger_1.ApiOperation)({ summary: "Get all service categories (Public with subdomain or authenticated)" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory),
@@ -130,7 +129,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new service" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service, 201, "Service created successfully"),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, auth_1.BusinessId)()),
+    __param(1, (0, auth_1.OptionalBusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_service_dto_1.CreateServiceDto, String]),
     __metadata("design:returntype", void 0)
@@ -151,7 +150,7 @@ __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Get service statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Service statistics retrieved successfully" }),
-    __param(0, (0, auth_1.BusinessId)()),
+    __param(0, (0, auth_1.OptionalBusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
@@ -162,7 +161,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new service bundle" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle, 201, "Service bundle created successfully"),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, auth_1.BusinessId)()),
+    __param(1, (0, auth_1.OptionalBusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_service_bundle_dto_1.CreateServiceBundleDto, String]),
     __metadata("design:returntype", void 0)

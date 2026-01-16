@@ -14,13 +14,13 @@ import { RequestWithUser } from "../auth/types/request-with-user.interface";
 export declare class ServiceController {
     private readonly serviceService;
     constructor(serviceService: ServiceService);
-    createCategory(createCategoryDto: CreateServiceCategoryDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceCategory>>;
+    createCategory(createCategoryDto: CreateServiceCategoryDto, businessId?: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceCategory>>;
     findAllCategories(subdomain?: string, businessId?: string, req?: RequestWithUser): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceCategory[]>>;
     updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceCategory>>;
-    create(createServiceDto: CreateServiceDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
+    create(createServiceDto: CreateServiceDto, businessId?: string): Promise<import("../common/interfaces/common.interface").ApiResponse<Service>>;
     findAll(query: ServiceQueryDto, businessId?: string, req?: RequestWithUser): Promise<import("../common/interfaces/common.interface").ApiResponse<Service[]>>;
-    getStats(businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    createBundle(createBundleDto: CreateServiceBundleDto, businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle>>;
+    getStats(businessId?: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    createBundle(createBundleDto: CreateServiceBundleDto, businessId?: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle>>;
     findAllBundles(subdomain?: string, businessId?: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle[]>>;
     findOneBundle(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle>>;
     updateBundle(id: string, updateBundleDto: UpdateServiceBundleDto): Promise<import("../common/interfaces/common.interface").ApiResponse<ServiceBundle>>;
