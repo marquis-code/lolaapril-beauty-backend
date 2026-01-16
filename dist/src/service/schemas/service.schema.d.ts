@@ -204,6 +204,7 @@ export declare class Service {
     serviceAddOns: Types.ObjectId[];
     settings: ServiceSettings;
     variants: ServiceVariant[];
+    businessId: Types.ObjectId;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;

@@ -4,6 +4,11 @@ import { ApiPropertyOptional } from "@nestjs/swagger"
 import { PaginationDto } from "../../common/dto/pagination.dto"
 
 export class ServiceQueryDto extends PaginationDto {
+  @ApiPropertyOptional({ description: 'Business subdomain' })
+  @IsOptional()
+  @IsString()
+  subdomain?: string
+  
   @ApiPropertyOptional({ description: "Search by service name or description" })
   @IsOptional()
   @IsString()

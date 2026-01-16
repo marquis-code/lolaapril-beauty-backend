@@ -28,33 +28,34 @@ const service_category_schema_1 = require("./schemas/service-category.schema");
 const service_schema_1 = require("./schemas/service.schema");
 const service_bundle_schema_1 = require("./schemas/service-bundle.schema");
 const api_response_decorator_1 = require("../common/decorators/api-response.decorator");
+const auth_1 = require("../auth");
 let ServiceController = class ServiceController {
     constructor(serviceService) {
         this.serviceService = serviceService;
     }
-    createCategory(createCategoryDto) {
-        return this.serviceService.createCategory(createCategoryDto);
+    createCategory(createCategoryDto, businessId) {
+        return this.serviceService.createCategory(createCategoryDto, businessId);
     }
-    findAllCategories() {
-        return this.serviceService.findAllCategories();
+    findAllCategories(subdomain, businessId) {
+        return this.serviceService.findAllCategories(subdomain, businessId);
     }
     updateCategory(id, updateCategoryDto) {
         return this.serviceService.updateCategory(id, updateCategoryDto);
     }
-    create(createServiceDto) {
-        return this.serviceService.createService(createServiceDto);
+    create(createServiceDto, businessId) {
+        return this.serviceService.createService(createServiceDto, businessId);
     }
-    findAll(query) {
-        return this.serviceService.findAllServices(query);
+    findAll(query, businessId) {
+        return this.serviceService.findAllServices(query, businessId);
     }
-    getStats() {
-        return this.serviceService.getServiceStats();
+    getStats(businessId) {
+        return this.serviceService.getServiceStats(businessId);
     }
-    createBundle(createBundleDto) {
-        return this.serviceService.createBundle(createBundleDto);
+    createBundle(createBundleDto, businessId) {
+        return this.serviceService.createBundle(createBundleDto, businessId);
     }
-    findAllBundles() {
-        return this.serviceService.findAllBundles();
+    findAllBundles(subdomain, businessId) {
+        return this.serviceService.findAllBundles(subdomain, businessId);
     }
     findOneBundle(id) {
         return this.serviceService.findOneBundle(id);
@@ -63,7 +64,7 @@ let ServiceController = class ServiceController {
         return this.serviceService.updateBundle(id, updateBundleDto);
     }
     findOne(id) {
-        console.log(id, 'seevice id');
+        console.log(id, 'service id');
         return this.serviceService.findOneService(id);
     }
     update(id, updateServiceDto) {
@@ -78,23 +79,29 @@ let ServiceController = class ServiceController {
 };
 __decorate([
     (0, common_1.Post)("categories"),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Create a new service category" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory, 201, "Service category created successfully"),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_service_category_dto_1.CreateServiceCategoryDto]),
+    __metadata("design:paramtypes", [create_service_category_dto_1.CreateServiceCategoryDto, String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "createCategory", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)("categories"),
-    (0, swagger_1.ApiOperation)({ summary: "Get all service categories" }),
+    (0, swagger_1.ApiOperation)({ summary: "Get all service categories (Public with subdomain or authenticated)" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory),
+    __param(0, (0, common_1.Query)('subdomain')),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "findAllCategories", null);
 __decorate([
     (0, common_1.Patch)("categories/:id"),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Update a service category" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory),
     __param(0, (0, common_1.Param)('id')),
@@ -105,50 +112,62 @@ __decorate([
 ], ServiceController.prototype, "updateCategory", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Create a new service" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service, 201, "Service created successfully"),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_service_dto_1.CreateServiceDto]),
+    __metadata("design:paramtypes", [create_service_dto_1.CreateServiceDto, String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "create", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: "Get all services with filtering and pagination" }),
+    (0, swagger_1.ApiOperation)({ summary: "Get all services with filtering and pagination (Public with subdomain or authenticated)" }),
     (0, api_response_decorator_1.ApiPaginatedResponse)(service_schema_1.Service),
     __param(0, (0, common_1.Query)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [service_query_dto_1.ServiceQueryDto]),
+    __metadata("design:paramtypes", [service_query_dto_1.ServiceQueryDto, String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)("stats"),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Get service statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Service statistics retrieved successfully" }),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Post)("bundles"),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Create a new service bundle" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle, 201, "Service bundle created successfully"),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_service_bundle_dto_1.CreateServiceBundleDto]),
+    __metadata("design:paramtypes", [create_service_bundle_dto_1.CreateServiceBundleDto, String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "createBundle", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)("bundles"),
-    (0, swagger_1.ApiOperation)({ summary: "Get all service bundles" }),
+    (0, swagger_1.ApiOperation)({ summary: "Get all service bundles (Public with subdomain or authenticated)" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
+    __param(0, (0, common_1.Query)('subdomain')),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "findAllBundles", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)('bundles/:id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get a service bundle by ID' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get a service bundle by ID (Public)' }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -157,6 +176,7 @@ __decorate([
 ], ServiceController.prototype, "findOneBundle", null);
 __decorate([
     (0, common_1.Patch)("bundles/:id"),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Update a service bundle" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
     __param(0, (0, common_1.Param)('id')),
@@ -166,8 +186,9 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "updateBundle", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get a service by ID' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get a service by ID (Public)' }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -176,6 +197,7 @@ __decorate([
 ], ServiceController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(":id"),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Update a service" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service),
     __param(0, (0, common_1.Param)('id')),
@@ -186,6 +208,7 @@ __decorate([
 ], ServiceController.prototype, "update", null);
 __decorate([
     (0, common_1.Post)(":id/variants"),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Add a variant to a service" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_schema_1.Service),
     __param(0, (0, common_1.Param)('id')),
@@ -196,6 +219,7 @@ __decorate([
 ], ServiceController.prototype, "addVariant", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Deactivate a service' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Service deactivated successfully' }),
     __param(0, (0, common_1.Param)('id')),

@@ -231,6 +231,10 @@ export class Service {
   @Prop({ type: [ServiceVariantSchema], default: [] })
   variants: ServiceVariant[]
 
+   // NEW: Add business reference
+  @Prop({ type: Types.ObjectId, ref: 'Business', required: true })
+  businessId: Types.ObjectId
+
   @Prop({ default: true })
   isActive: boolean
 
@@ -249,3 +253,4 @@ ServiceSchema.index({ "basicDetails.category": 1 })
 ServiceSchema.index({ "basicDetails.serviceType": 1 })
 ServiceSchema.index({ isActive: 1 })
 ServiceSchema.index({ createdAt: -1 })
+ServiceSchema.index({ businessId: 1 })
