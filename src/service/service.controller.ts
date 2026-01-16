@@ -520,7 +520,7 @@ export class ServiceController {
     return this.serviceService.createCategory(createCategoryDto, businessId)
   }
 
-  @Public()
+  // @Public()
   @Get("categories")
   @ApiOperation({ summary: "Get all service categories (Public with subdomain or authenticated)" })
   @ApiResponseWrapper(ServiceCategory)
