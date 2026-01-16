@@ -58,12 +58,64 @@ export class ServiceService {
   //   }
   // }
 
-  async createCategory(
+//   async createCategory(
+//   createCategoryDto: CreateServiceCategoryDto, 
+//   businessId: string
+// ): Promise<ApiResponse<ServiceCategory>> {
+//   try {
+//     this.validateObjectId(businessId, "Business")
+
+//     const existingCategory = await this.serviceCategoryModel.findOne({
+//       categoryName: createCategoryDto.categoryName,
+//       businessId: new Types.ObjectId(businessId),
+//     })
+
+//     if (existingCategory) {
+//       throw new ConflictException("Service category with this name already exists")
+//     }
+
+//     const category = new this.serviceCategoryModel({
+//       ...createCategoryDto,
+//       businessId: new Types.ObjectId(businessId),
+//     })
+//     const savedCategory = await category.save()
+
+//     return {
+//       success: true,
+//       data: savedCategory,
+//       message: "Service category created successfully",
+//     }
+//   } catch (error) {
+//     if (error instanceof ConflictException || error instanceof NotFoundException) {
+//       throw error
+//     }
+//     throw new Error(`Failed to create service category: ${error.message}`)
+//   }
+// }
+
+async createCategory(
   createCategoryDto: CreateServiceCategoryDto, 
   businessId: string
 ): Promise<ApiResponse<ServiceCategory>> {
   try {
+    console.log('🔧 Creating category:')
+    console.log('  - businessId received:', businessId)
+    console.log('  - businessId type:', typeof businessId)
+    console.log('  - categoryData:', createCategoryDto)
+
+    if (!businessId) {
+      throw new Error("Business ID is required to create a category")
+    }
+
     this.validateObjectId(businessId, "Business")
+
+    // Verify business exists
+    const businessExists = await this.businessModel.findById(businessId)
+    if (!businessExists) {
+      throw new NotFoundException(`Business with ID ${businessId} not found`)
+    }
+
+    console.log('  - Business found:', businessExists.businessName)
 
     const existingCategory = await this.serviceCategoryModel.findOne({
       categoryName: createCategoryDto.categoryName,
@@ -78,7 +130,9 @@ export class ServiceService {
       ...createCategoryDto,
       businessId: new Types.ObjectId(businessId),
     })
+    
     const savedCategory = await category.save()
+    console.log('  - Category saved:', savedCategory._id)
 
     return {
       success: true,
@@ -86,12 +140,14 @@ export class ServiceService {
       message: "Service category created successfully",
     }
   } catch (error) {
+    console.error('❌ Error creating category:', error)
     if (error instanceof ConflictException || error instanceof NotFoundException) {
       throw error
     }
     throw new Error(`Failed to create service category: ${error.message}`)
   }
 }
+
 
   // async findAllCategories(): Promise<ApiResponse<ServiceCategory[]>> {
   //   try {
@@ -105,11 +161,114 @@ export class ServiceService {
   //   }
   // }
 
-  async findAllCategories(
+//   async findAllCategories(
+//   subdomain?: string, 
+//   businessId?: string
+// ): Promise<ApiResponse<ServiceCategory[]>> {
+//   try {
+//     const filter: any = { isActive: true }
+
+//     if (subdomain) {
+//       // Find business by subdomain
+//       const business = await this.businessModel.findOne({ 
+//         subdomain: subdomain.toLowerCase() 
+//       })
+      
+//       if (!business) {
+//         throw new NotFoundException(`Business with subdomain '${subdomain}' not found`)
+//       }
+      
+//       filter.businessId = business._id
+//     } else if (businessId) {
+//       // Use businessId from context
+//       this.validateObjectId(businessId, "Business")
+//       filter.businessId = new Types.ObjectId(businessId)
+//     } else {
+//       throw new Error("Either subdomain or businessId must be provided")
+//     }
+
+//     const categories = await this.serviceCategoryModel
+//       .find(filter)
+//       .sort({ createdAt: -1 })
+
+//     return {
+//       success: true,
+//       data: categories,
+//     }
+//   } catch (error) {
+//     if (error instanceof NotFoundException) {
+//       throw error
+//     }
+//     throw new Error(`Failed to fetch service categories: ${error.message}`)
+//   }
+// }
+
+// async findAllCategories(
+//   subdomain?: string, 
+//   businessId?: string
+// ): Promise<ApiResponse<ServiceCategory[]>> {
+//   try {
+//     console.log('🔍 Finding categories:')
+//     console.log('  - subdomain:', subdomain)
+//     console.log('  - businessId:', businessId)
+
+//     const filter: any = { isActive: true }
+
+//     if (subdomain) {
+//       // Find business by subdomain
+//       const business = await this.businessModel.findOne({ 
+//         subdomain: subdomain.toLowerCase() 
+//       })
+      
+//       if (!business) {
+//         throw new NotFoundException(`Business with subdomain '${subdomain}' not found`)
+//       }
+      
+//       console.log('  - Business found by subdomain:', business._id)
+//       filter.businessId = business._id
+//     } else if (businessId) {
+//       // Use businessId from context
+//       this.validateObjectId(businessId, "Business")
+//       filter.businessId = new Types.ObjectId(businessId)
+//       console.log('  - Using businessId from context:', filter.businessId)
+//     } else {
+//       throw new Error("Either subdomain or businessId must be provided")
+//     }
+
+//     console.log('  - Final filter:', JSON.stringify(filter))
+
+//     const categories = await this.serviceCategoryModel
+//       .find(filter)
+//       .sort({ createdAt: -1 })
+
+//     console.log('  - Categories found:', categories.length)
+//     if (categories.length > 0) {
+//       // console.log('  - Sample category businessId:', categories[0].businessId)
+//     }
+
+//     return {
+//       success: true,
+//       data: categories,
+//     }
+//   } catch (error) {
+//     console.error('❌ Error finding categories:', error)
+//     if (error instanceof NotFoundException) {
+//       throw error
+//     }
+//     throw new Error(`Failed to fetch service categories: ${error.message}`)
+//   }
+// }
+
+async findAllCategories(
   subdomain?: string, 
   businessId?: string
 ): Promise<ApiResponse<ServiceCategory[]>> {
   try {
+    console.log('🔍 Finding categories:')
+    console.log('  - subdomain:', subdomain)
+    console.log('  - businessId (raw):', businessId)
+    console.log('  - businessId type:', typeof businessId)
+
     const filter: any = { isActive: true }
 
     if (subdomain) {
@@ -122,28 +281,105 @@ export class ServiceService {
         throw new NotFoundException(`Business with subdomain '${subdomain}' not found`)
       }
       
+      console.log('  - Business found by subdomain:', business._id)
       filter.businessId = business._id
     } else if (businessId) {
       // Use businessId from context
       this.validateObjectId(businessId, "Business")
-      filter.businessId = new Types.ObjectId(businessId)
+      const objectId = new Types.ObjectId(businessId)
+      filter.businessId = objectId
+      console.log('  - Using businessId from context (ObjectId):', objectId)
     } else {
       throw new Error("Either subdomain or businessId must be provided")
     }
 
+    console.log('  - Filter businessId type:', filter.businessId.constructor.name)
+    console.log('  - Filter businessId toString:', filter.businessId.toString())
+
+    // First, let's check what's actually in the database
+    const allCategories = await this.serviceCategoryModel.find({ isActive: true })
+    console.log('  - Total active categories in DB:', allCategories.length)
+    
+    if (allCategories.length > 0) {
+      console.log('  - Sample category from DB:')
+      console.log('    - _id:', allCategories[0]._id)
+      console.log('    - businessId:', allCategories[0].businessId)
+      console.log('    - businessId type:', typeof allCategories[0].businessId)
+      console.log('    - businessId constructor:', allCategories[0].businessId?.constructor?.name)
+      console.log('    - categoryName:', allCategories[0].categoryName)
+    }
+
+    // Now try the filtered query
     const categories = await this.serviceCategoryModel
       .find(filter)
       .sort({ createdAt: -1 })
+
+    console.log('  - Categories found with filter:', categories.length)
+
+    // If no results, try alternative queries for debugging
+    if (categories.length === 0 && businessId) {
+      console.log('  - Trying alternative query with string businessId...')
+      const altCategories = await this.serviceCategoryModel.find({
+        isActive: true,
+        businessId: businessId // Try as string
+      })
+      console.log('  - Alternative query (string) results:', altCategories.length)
+
+      // Try with $or to match both string and ObjectId
+      const orCategories = await this.serviceCategoryModel.find({
+        isActive: true,
+        $or: [
+          { businessId: new Types.ObjectId(businessId) },
+          { businessId: businessId }
+        ]
+      })
+      console.log('  - $or query results:', orCategories.length)
+    }
 
     return {
       success: true,
       data: categories,
     }
   } catch (error) {
+    console.error('❌ Error finding categories:', error)
     if (error instanceof NotFoundException) {
       throw error
     }
     throw new Error(`Failed to fetch service categories: ${error.message}`)
+  }
+}
+
+
+async fixCategoryBusinessIds(): Promise<void> {
+  try {
+    console.log('🔧 Fixing category businessIds...')
+    
+    // Find all categories
+    const categories = await this.serviceCategoryModel.find({})
+    console.log(`  - Found ${categories.length} categories`)
+    
+    for (const category of categories) {
+      if (category.businessId) {
+        const businessIdType = typeof category.businessId
+        console.log(`  - Category ${category._id}: businessId type = ${businessIdType}`)
+        
+        // If businessId is a string, convert to ObjectId
+        if (businessIdType === 'string') {
+          const objectId = new Types.ObjectId(category.businessId as any)
+          await this.serviceCategoryModel.updateOne(
+            { _id: category._id },
+            { $set: { businessId: objectId } }
+          )
+          console.log(`    ✅ Converted string to ObjectId`)
+        }
+      } else {
+        console.log(`  - Category ${category._id}: businessId is missing!`)
+      }
+    }
+    
+    console.log('✅ Category businessIds fixed')
+  } catch (error) {
+    console.error('❌ Error fixing category businessIds:', error)
   }
 }
 
@@ -727,57 +963,6 @@ async getServicesByIds(serviceIds: string[]): Promise<ServiceDocument[]> {
     }
   }
 
-  // Service Bundles
-  // async createBundle(createBundleDto: CreateServiceBundleDto): Promise<ApiResponse<ServiceBundle>> {
-  //   try {
-  //     // Validate category ObjectId
-  //     if (createBundleDto.basicInfo?.category) {
-  //       this.validateObjectId(createBundleDto.basicInfo.category.toString(), "Service category")
-        
-  //       // Check if category exists
-  //       const categoryExists = await this.serviceCategoryModel.findById(createBundleDto.basicInfo.category)
-  //       if (!categoryExists) {
-  //         throw new NotFoundException("Service category not found")
-  //       }
-  //     }
-
-  //     // Validate service ObjectIds in the bundle
-  //     if (createBundleDto.services && createBundleDto.services.length > 0) {
-  //       for (const service of createBundleDto.services) {
-  //         this.validateObjectId(service.serviceId.toString(), "Service")
-          
-  //         // Check if service exists
-  //         const serviceExists = await this.serviceModel.findById(service.serviceId)
-  //         if (!serviceExists) {
-  //           throw new NotFoundException(`Service with ID ${service.serviceId} not found`)
-  //         }
-  //       }
-  //     }
-
-  //     const existingBundle = await this.serviceBundleModel.findOne({
-  //       "basicInfo.bundleName": createBundleDto.basicInfo.bundleName,
-  //     })
-
-  //     if (existingBundle) {
-  //       throw new ConflictException("Service bundle with this name already exists")
-  //     }
-
-  //     const bundle = new this.serviceBundleModel(createBundleDto)
-  //     const savedBundle = await bundle.save()
-
-  //     return {
-  //       success: true,
-  //       data: savedBundle,
-  //       message: "Service bundle created successfully",
-  //     }
-  //   } catch (error) {
-  //     if (error instanceof ConflictException || error instanceof NotFoundException) {
-  //       throw error
-  //     }
-  //     throw new Error(`Failed to create service bundle: ${error.message}`)
-  //   }
-  // }
-
   async createBundle(
   createBundleDto: CreateServiceBundleDto, 
   businessId: string
@@ -844,24 +1029,6 @@ async getServicesByIds(serviceIds: string[]): Promise<ServiceDocument[]> {
     throw new Error(`Failed to create service bundle: ${error.message}`)
   }
 }
-
-  // async findAllBundles(): Promise<ApiResponse<ServiceBundle[]>> {
-  //   try {
-  //     const bundles = await this.serviceBundleModel
-  //       .find({ isActive: true })
-  //       .populate('basicInfo.category', 'categoryName appointmentColor')
-  //       .populate('services.serviceId', 'basicDetails.serviceName')
-  //       .sort({ createdAt: -1 })
-
-  //     return {
-  //       success: true,
-  //       data: bundles,
-  //     }
-  //   } catch (error) {
-  //     throw new Error(`Failed to fetch service bundles: ${error.message}`)
-  //   }
-  // }
-
   async findAllBundles(
   subdomain?: string, 
   businessId?: string

@@ -21,6 +21,7 @@ export declare class ServiceService {
     private validateObjectId;
     createCategory(createCategoryDto: CreateServiceCategoryDto, businessId: string): Promise<ApiResponse<ServiceCategory>>;
     findAllCategories(subdomain?: string, businessId?: string): Promise<ApiResponse<ServiceCategory[]>>;
+    fixCategoryBusinessIds(): Promise<void>;
     updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>>;
     createService(createServiceDto: CreateServiceDto, businessId: string): Promise<ApiResponse<Service>>;
     findAllServices(query: ServiceQueryDto, businessId?: string): Promise<ApiResponse<Service[]>>;

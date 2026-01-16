@@ -34,7 +34,19 @@ let ServiceService = class ServiceService {
     }
     async createCategory(createCategoryDto, businessId) {
         try {
+            console.log('🔧 Creating category:');
+            console.log('  - businessId received:', businessId);
+            console.log('  - businessId type:', typeof businessId);
+            console.log('  - categoryData:', createCategoryDto);
+            if (!businessId) {
+                throw new Error("Business ID is required to create a category");
+            }
             this.validateObjectId(businessId, "Business");
+            const businessExists = await this.businessModel.findById(businessId);
+            if (!businessExists) {
+                throw new common_1.NotFoundException(`Business with ID ${businessId} not found`);
+            }
+            console.log('  - Business found:', businessExists.businessName);
             const existingCategory = await this.serviceCategoryModel.findOne({
                 categoryName: createCategoryDto.categoryName,
                 businessId: new mongoose_1.Types.ObjectId(businessId),
@@ -47,6 +59,7 @@ let ServiceService = class ServiceService {
                 businessId: new mongoose_1.Types.ObjectId(businessId),
             });
             const savedCategory = await category.save();
+            console.log('  - Category saved:', savedCategory._id);
             return {
                 success: true,
                 data: savedCategory,
@@ -54,6 +67,7 @@ let ServiceService = class ServiceService {
             };
         }
         catch (error) {
+            console.error('❌ Error creating category:', error);
             if (error instanceof common_1.ConflictException || error instanceof common_1.NotFoundException) {
                 throw error;
             }
@@ -62,6 +76,10 @@ let ServiceService = class ServiceService {
     }
     async findAllCategories(subdomain, businessId) {
         try {
+            console.log('🔍 Finding categories:');
+            console.log('  - subdomain:', subdomain);
+            console.log('  - businessId (raw):', businessId);
+            console.log('  - businessId type:', typeof businessId);
             const filter = { isActive: true };
             if (subdomain) {
                 const business = await this.businessModel.findOne({
@@ -70,28 +88,86 @@ let ServiceService = class ServiceService {
                 if (!business) {
                     throw new common_1.NotFoundException(`Business with subdomain '${subdomain}' not found`);
                 }
+                console.log('  - Business found by subdomain:', business._id);
                 filter.businessId = business._id;
             }
             else if (businessId) {
                 this.validateObjectId(businessId, "Business");
-                filter.businessId = new mongoose_1.Types.ObjectId(businessId);
+                const objectId = new mongoose_1.Types.ObjectId(businessId);
+                filter.businessId = objectId;
+                console.log('  - Using businessId from context (ObjectId):', objectId);
             }
             else {
                 throw new Error("Either subdomain or businessId must be provided");
             }
+            console.log('  - Filter businessId type:', filter.businessId.constructor.name);
+            console.log('  - Filter businessId toString:', filter.businessId.toString());
+            const allCategories = await this.serviceCategoryModel.find({ isActive: true });
+            console.log('  - Total active categories in DB:', allCategories.length);
+            if (allCategories.length > 0) {
+                console.log('  - Sample category from DB:');
+                console.log('    - _id:', allCategories[0]._id);
+                console.log('    - businessId:', allCategories[0].businessId);
+                console.log('    - businessId type:', typeof allCategories[0].businessId);
+                console.log('    - businessId constructor:', allCategories[0].businessId?.constructor?.name);
+                console.log('    - categoryName:', allCategories[0].categoryName);
+            }
             const categories = await this.serviceCategoryModel
                 .find(filter)
                 .sort({ createdAt: -1 });
+            console.log('  - Categories found with filter:', categories.length);
+            if (categories.length === 0 && businessId) {
+                console.log('  - Trying alternative query with string businessId...');
+                const altCategories = await this.serviceCategoryModel.find({
+                    isActive: true,
+                    businessId: businessId
+                });
+                console.log('  - Alternative query (string) results:', altCategories.length);
+                const orCategories = await this.serviceCategoryModel.find({
+                    isActive: true,
+                    $or: [
+                        { businessId: new mongoose_1.Types.ObjectId(businessId) },
+                        { businessId: businessId }
+                    ]
+                });
+                console.log('  - $or query results:', orCategories.length);
+            }
             return {
                 success: true,
                 data: categories,
             };
         }
         catch (error) {
+            console.error('❌ Error finding categories:', error);
             if (error instanceof common_1.NotFoundException) {
                 throw error;
             }
             throw new Error(`Failed to fetch service categories: ${error.message}`);
+        }
+    }
+    async fixCategoryBusinessIds() {
+        try {
+            console.log('🔧 Fixing category businessIds...');
+            const categories = await this.serviceCategoryModel.find({});
+            console.log(`  - Found ${categories.length} categories`);
+            for (const category of categories) {
+                if (category.businessId) {
+                    const businessIdType = typeof category.businessId;
+                    console.log(`  - Category ${category._id}: businessId type = ${businessIdType}`);
+                    if (businessIdType === 'string') {
+                        const objectId = new mongoose_1.Types.ObjectId(category.businessId);
+                        await this.serviceCategoryModel.updateOne({ _id: category._id }, { $set: { businessId: objectId } });
+                        console.log(`    ✅ Converted string to ObjectId`);
+                    }
+                }
+                else {
+                    console.log(`  - Category ${category._id}: businessId is missing!`);
+                }
+            }
+            console.log('✅ Category businessIds fixed');
+        }
+        catch (error) {
+            console.error('❌ Error fixing category businessIds:', error);
         }
     }
     async updateCategory(id, updateCategoryDto) {
