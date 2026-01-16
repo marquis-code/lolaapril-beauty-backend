@@ -157,7 +157,7 @@
 //   @ApiResponseWrapper(ServiceCategory, 201, "Service category created successfully")
 //   createCategory(
 //     @Body() createCategoryDto: CreateServiceCategoryDto,
-//     @BusinessId() businessId: string
+//     @OptionalBusinessId() businessId?: string businessId: string
 //   ) {
 //     return this.serviceService.createCategory(createCategoryDto, businessId)
 //   }
@@ -168,7 +168,7 @@
 //   @ApiResponseWrapper(ServiceCategory)
 //   findAllCategories(
 //     @Query('subdomain') subdomain?: string,
-//     @BusinessId() businessId?: string  // Will be undefined if not authenticated
+//     @OptionalBusinessId() businessId?: string businessId?: string  // Will be undefined if not authenticated
 //   ) {
 //     return this.serviceService.findAllCategories(subdomain, businessId)
 //   }
@@ -192,7 +192,7 @@
 //   @ApiResponseWrapper(Service, 201, "Service created successfully")
 //   create(
 //     @Body() createServiceDto: CreateServiceDto,
-//     @BusinessId() businessId: string
+//     @OptionalBusinessId() businessId?: string businessId: string
 //   ) {
 //     return this.serviceService.createService(createServiceDto, businessId)
 //   }
@@ -203,7 +203,7 @@
 //   @ApiPaginatedResponse(Service)
 //   findAll(
 //     @Query() query: ServiceQueryDto,
-//     @BusinessId() businessId?: string
+//     @OptionalBusinessId() businessId?: string businessId?: string
 //   ) {
 //     return this.serviceService.findAllServices(query, businessId)
 //   }
@@ -212,7 +212,7 @@
 //   @ApiBearerAuth()
 //   @ApiOperation({ summary: "Get service statistics" })
 //   @ApiResponse({ status: 200, description: "Service statistics retrieved successfully" })
-//   getStats(@BusinessId() businessId: string) {
+//   getStats(@OptionalBusinessId() businessId?: string businessId: string) {
 //     return this.serviceService.getServiceStats(businessId)
 //   }
 
@@ -225,7 +225,7 @@
 //   @ApiResponseWrapper(ServiceBundle, 201, "Service bundle created successfully")
 //   createBundle(
 //     @Body() createBundleDto: CreateServiceBundleDto,
-//     @BusinessId() businessId: string
+//     @OptionalBusinessId() businessId?: string businessId: string
 //   ) {
 //     return this.serviceService.createBundle(createBundleDto, businessId)
 //   }
@@ -236,7 +236,7 @@
 //   @ApiResponseWrapper(ServiceBundle)
 //   findAllBundles(
 //     @Query('subdomain') subdomain?: string,
-//     @BusinessId() businessId?: string  // Will be undefined if not authenticated
+//     @OptionalBusinessId() businessId?: string businessId?: string  // Will be undefined if not authenticated
 //   ) {
 //     return this.serviceService.findAllBundles(subdomain, businessId)
 //   }
@@ -332,7 +332,7 @@
 //   @ApiResponseWrapper(ServiceCategory, 201, "Service category created successfully")
 //   createCategory(
 //     @Body() createCategoryDto: CreateServiceCategoryDto,
-//     @BusinessId() businessId: string // Required for authenticated routes
+//     @OptionalBusinessId() businessId?: string businessId: string // Required for authenticated routes
 //   ) {
 //     return this.serviceService.createCategory(createCategoryDto, businessId)
 //   }
@@ -368,7 +368,7 @@
 //   @ApiResponseWrapper(Service, 201, "Service created successfully")
 //   create(
 //     @Body() createServiceDto: CreateServiceDto,
-//     @BusinessId() businessId: string // Required for authenticated routes
+//     @OptionalBusinessId() businessId?: string businessId: string // Required for authenticated routes
 //   ) {
 //     return this.serviceService.createService(createServiceDto, businessId)
 //   }
@@ -394,7 +394,7 @@
 //   @ApiBearerAuth()
 //   @ApiOperation({ summary: "Get service statistics" })
 //   @ApiResponse({ status: 200, description: "Service statistics retrieved successfully" })
-//   getStats(@BusinessId() businessId: string) { // Required for authenticated routes
+//   getStats(@OptionalBusinessId() businessId?: string businessId: string) { // Required for authenticated routes
 //     return this.serviceService.getServiceStats(businessId)
 //   }
 
@@ -406,7 +406,7 @@
 //   @ApiResponseWrapper(ServiceBundle, 201, "Service bundle created successfully")
 //   createBundle(
 //     @Body() createBundleDto: CreateServiceBundleDto,
-//     @BusinessId() businessId: string // Required for authenticated routes
+//     @OptionalBusinessId() businessId?: string businessId: string // Required for authenticated routes
 //   ) {
 //     return this.serviceService.createBundle(createBundleDto, businessId)
 //   }
@@ -515,7 +515,7 @@ export class ServiceController {
   @ApiResponseWrapper(ServiceCategory, 201, "Service category created successfully")
   createCategory(
     @Body() createCategoryDto: CreateServiceCategoryDto,
-    @BusinessId() businessId: string
+    @OptionalBusinessId() businessId?: string
   ) {
     return this.serviceService.createCategory(createCategoryDto, businessId)
   }
@@ -557,7 +557,7 @@ export class ServiceController {
   @ApiResponseWrapper(Service, 201, "Service created successfully")
   create(
     @Body() createServiceDto: CreateServiceDto,
-    @BusinessId() businessId: string
+    @OptionalBusinessId() businessId?: string
   ) {
     return this.serviceService.createService(createServiceDto, businessId)
   }
@@ -586,7 +586,7 @@ export class ServiceController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get service statistics" })
   @ApiResponse({ status: 200, description: "Service statistics retrieved successfully" })
-  getStats(@BusinessId() businessId: string) {
+  getStats(@OptionalBusinessId() businessId?: string) {
     return this.serviceService.getServiceStats(businessId)
   }
 
@@ -598,7 +598,7 @@ export class ServiceController {
   @ApiResponseWrapper(ServiceBundle, 201, "Service bundle created successfully")
   createBundle(
     @Body() createBundleDto: CreateServiceBundleDto,
-    @BusinessId() businessId: string
+    @OptionalBusinessId() businessId?: string
   ) {
     return this.serviceService.createBundle(createBundleDto, businessId)
   }
