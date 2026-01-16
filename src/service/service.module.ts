@@ -5,6 +5,7 @@ import { ServiceController } from "../service/service.controller"
 import { ServiceCategory, ServiceCategorySchema } from "../service/schemas/service-category.schema"
 import { Service, ServiceSchema } from "../service/schemas/service.schema"
 import { ServiceBundle, ServiceBundleSchema } from "../service/schemas/service-bundle.schema"
+import { Business, BusinessSchema } from '../business/schemas/business.schema';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ServiceBundle, ServiceBundleSchema } from "../service/schemas/service-b
       { name: ServiceCategory.name, schema: ServiceCategorySchema },
       { name: Service.name, schema: ServiceSchema },
       { name: ServiceBundle.name, schema: ServiceBundleSchema },
+      { name: Business.name, schema: BusinessSchema },
     ]),
   ],
   controllers: [ServiceController],

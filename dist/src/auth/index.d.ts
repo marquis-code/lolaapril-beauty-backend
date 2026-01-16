@@ -1,6 +1,6 @@
 export { Public } from './decorators/public.decorator';
 export { ValidateBusiness } from './decorators/validate-business.decorator';
-export { BusinessContext, BusinessId, CurrentUser } from './decorators/business-context.decorator';
+export { BusinessContext, BusinessId, CurrentUser, OptionalBusinessId, OptionalBusinessContext } from './decorators/business-context.decorator';
 export type { BusinessContext as BusinessContextType } from './decorators/business-context.decorator';
 export { JwtAuthGuard } from './guards/jwt-auth.guard';
 export { GoogleAuthGuard } from './guards/google-auth.guard';

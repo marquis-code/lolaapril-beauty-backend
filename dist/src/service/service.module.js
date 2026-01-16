@@ -14,6 +14,7 @@ const service_controller_1 = require("../service/service.controller");
 const service_category_schema_1 = require("../service/schemas/service-category.schema");
 const service_schema_1 = require("../service/schemas/service.schema");
 const service_bundle_schema_1 = require("../service/schemas/service-bundle.schema");
+const business_schema_1 = require("../business/schemas/business.schema");
 let ServiceModule = class ServiceModule {
 };
 ServiceModule = __decorate([
@@ -23,6 +24,7 @@ ServiceModule = __decorate([
                 { name: service_category_schema_1.ServiceCategory.name, schema: service_category_schema_1.ServiceCategorySchema },
                 { name: service_schema_1.Service.name, schema: service_schema_1.ServiceSchema },
                 { name: service_bundle_schema_1.ServiceBundle.name, schema: service_bundle_schema_1.ServiceBundleSchema },
+                { name: business_schema_1.Business.name, schema: business_schema_1.BusinessSchema },
             ]),
         ],
         controllers: [service_controller_1.ServiceController],

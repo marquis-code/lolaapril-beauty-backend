@@ -290,6 +290,10 @@ __decorate([
     __metadata("design:type", Array)
 ], Service.prototype, "variants", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Service.prototype, "businessId", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ default: true }),
     __metadata("design:type", Boolean)
 ], Service.prototype, "isActive", void 0);
@@ -311,4 +315,5 @@ exports.ServiceSchema.index({ "basicDetails.category": 1 });
 exports.ServiceSchema.index({ "basicDetails.serviceType": 1 });
 exports.ServiceSchema.index({ isActive: 1 });
 exports.ServiceSchema.index({ createdAt: -1 });
+exports.ServiceSchema.index({ businessId: 1 });
 //# sourceMappingURL=service.schema.js.map

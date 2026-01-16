@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthService = exports.AuthModule = exports.SwitchBusinessDto = exports.UserPreferencesDto = exports.UpdateEmailDto = exports.ChangePasswordDto = exports.UpdateProfileDto = exports.GoogleAuthDto = exports.BusinessLoginDto = exports.BusinessRegisterDto = exports.LoginDto = exports.RegisterDto = exports.UserStatus = exports.UserRole = exports.hasBusinessContext = exports.OptionalAuthGuard = exports.ValidateBusinessAccessGuard = exports.RequireBusinessRoles = exports.BusinessRolesGuard = exports.BusinessAuthGuard = exports.RolesGuard = exports.GoogleAuthGuard = exports.JwtAuthGuard = exports.CurrentUser = exports.BusinessId = exports.BusinessContext = exports.ValidateBusiness = exports.Public = void 0;
+exports.AuthService = exports.AuthModule = exports.SwitchBusinessDto = exports.UserPreferencesDto = exports.UpdateEmailDto = exports.ChangePasswordDto = exports.UpdateProfileDto = exports.GoogleAuthDto = exports.BusinessLoginDto = exports.BusinessRegisterDto = exports.LoginDto = exports.RegisterDto = exports.UserStatus = exports.UserRole = exports.hasBusinessContext = exports.OptionalAuthGuard = exports.ValidateBusinessAccessGuard = exports.RequireBusinessRoles = exports.BusinessRolesGuard = exports.BusinessAuthGuard = exports.RolesGuard = exports.GoogleAuthGuard = exports.JwtAuthGuard = exports.OptionalBusinessContext = exports.OptionalBusinessId = exports.CurrentUser = exports.BusinessId = exports.BusinessContext = exports.ValidateBusiness = exports.Public = void 0;
 var public_decorator_1 = require("./decorators/public.decorator");
 Object.defineProperty(exports, "Public", { enumerable: true, get: function () { return public_decorator_1.Public; } });
 var validate_business_decorator_1 = require("./decorators/validate-business.decorator");
@@ -9,6 +9,8 @@ var business_context_decorator_1 = require("./decorators/business-context.decora
 Object.defineProperty(exports, "BusinessContext", { enumerable: true, get: function () { return business_context_decorator_1.BusinessContext; } });
 Object.defineProperty(exports, "BusinessId", { enumerable: true, get: function () { return business_context_decorator_1.BusinessId; } });
 Object.defineProperty(exports, "CurrentUser", { enumerable: true, get: function () { return business_context_decorator_1.CurrentUser; } });
+Object.defineProperty(exports, "OptionalBusinessId", { enumerable: true, get: function () { return business_context_decorator_1.OptionalBusinessId; } });
+Object.defineProperty(exports, "OptionalBusinessContext", { enumerable: true, get: function () { return business_context_decorator_1.OptionalBusinessContext; } });
 var jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 Object.defineProperty(exports, "JwtAuthGuard", { enumerable: true, get: function () { return jwt_auth_guard_1.JwtAuthGuard; } });
 var google_auth_guard_1 = require("./guards/google-auth.guard");

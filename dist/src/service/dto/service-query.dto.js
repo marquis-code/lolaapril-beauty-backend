@@ -17,6 +17,12 @@ const pagination_dto_1 = require("../../common/dto/pagination.dto");
 class ServiceQueryDto extends pagination_dto_1.PaginationDto {
 }
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Business subdomain' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ServiceQueryDto.prototype, "subdomain", void 0);
+__decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: "Search by service name or description" }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

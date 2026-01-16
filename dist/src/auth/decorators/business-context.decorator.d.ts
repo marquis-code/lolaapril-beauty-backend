@@ -8,3 +8,5 @@ export interface BusinessContext {
 export declare const BusinessContext: (...dataOrPipes: unknown[]) => ParameterDecorator;
 export declare const BusinessId: (...dataOrPipes: unknown[]) => ParameterDecorator;
 export declare const CurrentUser: (...dataOrPipes: unknown[]) => ParameterDecorator;
+export declare const OptionalBusinessId: (...dataOrPipes: unknown[]) => ParameterDecorator;
+export declare const OptionalBusinessContext: (...dataOrPipes: unknown[]) => ParameterDecorator;

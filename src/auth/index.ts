@@ -5,7 +5,9 @@ export { ValidateBusiness } from './decorators/validate-business.decorator'
 export { 
   BusinessContext, 
   BusinessId, 
-  CurrentUser 
+  CurrentUser ,
+  OptionalBusinessId,
+  OptionalBusinessContext
 } from './decorators/business-context.decorator'
 export type { BusinessContext as BusinessContextType } from './decorators/business-context.decorator'
 

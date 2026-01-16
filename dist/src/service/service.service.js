@@ -18,27 +18,34 @@ const mongoose_1 = require("mongoose");
 const service_category_schema_1 = require("./schemas/service-category.schema");
 const service_schema_1 = require("./schemas/service.schema");
 const service_bundle_schema_1 = require("./schemas/service-bundle.schema");
+const business_schema_1 = require("../business/schemas/business.schema");
 const mongoose_2 = require("@nestjs/mongoose");
 let ServiceService = class ServiceService {
-    constructor(serviceCategoryModel, serviceModel, serviceBundleModel) {
+    constructor(serviceCategoryModel, serviceModel, serviceBundleModel, businessModel) {
         this.serviceCategoryModel = serviceCategoryModel;
         this.serviceModel = serviceModel;
         this.serviceBundleModel = serviceBundleModel;
+        this.businessModel = businessModel;
     }
     validateObjectId(id, entityName = "Entity") {
         if (!mongoose_1.Types.ObjectId.isValid(id)) {
             throw new common_1.NotFoundException(`${entityName} not found`);
         }
     }
-    async createCategory(createCategoryDto) {
+    async createCategory(createCategoryDto, businessId) {
         try {
+            this.validateObjectId(businessId, "Business");
             const existingCategory = await this.serviceCategoryModel.findOne({
                 categoryName: createCategoryDto.categoryName,
+                businessId: new mongoose_1.Types.ObjectId(businessId),
             });
             if (existingCategory) {
                 throw new common_1.ConflictException("Service category with this name already exists");
             }
-            const category = new this.serviceCategoryModel(createCategoryDto);
+            const category = new this.serviceCategoryModel({
+                ...createCategoryDto,
+                businessId: new mongoose_1.Types.ObjectId(businessId),
+            });
             const savedCategory = await category.save();
             return {
                 success: true,
@@ -47,21 +54,43 @@ let ServiceService = class ServiceService {
             };
         }
         catch (error) {
-            if (error instanceof common_1.ConflictException) {
+            if (error instanceof common_1.ConflictException || error instanceof common_1.NotFoundException) {
                 throw error;
             }
             throw new Error(`Failed to create service category: ${error.message}`);
         }
     }
-    async findAllCategories() {
+    async findAllCategories(subdomain, businessId) {
         try {
-            const categories = await this.serviceCategoryModel.find({ isActive: true }).sort({ createdAt: -1 });
+            const filter = { isActive: true };
+            if (subdomain) {
+                const business = await this.businessModel.findOne({
+                    subdomain: subdomain.toLowerCase()
+                });
+                if (!business) {
+                    throw new common_1.NotFoundException(`Business with subdomain '${subdomain}' not found`);
+                }
+                filter.businessId = business._id;
+            }
+            else if (businessId) {
+                this.validateObjectId(businessId, "Business");
+                filter.businessId = new mongoose_1.Types.ObjectId(businessId);
+            }
+            else {
+                throw new Error("Either subdomain or businessId must be provided");
+            }
+            const categories = await this.serviceCategoryModel
+                .find(filter)
+                .sort({ createdAt: -1 });
             return {
                 success: true,
                 data: categories,
             };
         }
         catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
             throw new Error(`Failed to fetch service categories: ${error.message}`);
         }
     }
@@ -94,22 +123,30 @@ let ServiceService = class ServiceService {
             throw new Error(`Failed to update service category: ${error.message}`);
         }
     }
-    async createService(createServiceDto) {
+    async createService(createServiceDto, businessId) {
         try {
+            this.validateObjectId(businessId, "Business");
             if (createServiceDto.basicDetails?.category) {
                 this.validateObjectId(createServiceDto.basicDetails.category.toString(), "Service category");
-                const categoryExists = await this.serviceCategoryModel.findById(createServiceDto.basicDetails.category);
+                const categoryExists = await this.serviceCategoryModel.findOne({
+                    _id: createServiceDto.basicDetails.category,
+                    businessId: new mongoose_1.Types.ObjectId(businessId),
+                });
                 if (!categoryExists) {
-                    throw new common_1.NotFoundException("Service category not found");
+                    throw new common_1.NotFoundException("Service category not found or does not belong to this business");
                 }
             }
             const existingService = await this.serviceModel.findOne({
                 "basicDetails.serviceName": createServiceDto.basicDetails.serviceName,
+                businessId: new mongoose_1.Types.ObjectId(businessId),
             });
             if (existingService) {
                 throw new common_1.ConflictException("Service with this name already exists");
             }
-            const service = new this.serviceModel(createServiceDto);
+            const service = new this.serviceModel({
+                ...createServiceDto,
+                businessId: new mongoose_1.Types.ObjectId(businessId),
+            });
             const savedService = await service.save();
             return {
                 success: true,
@@ -124,10 +161,26 @@ let ServiceService = class ServiceService {
             throw new Error(`Failed to create service: ${error.message}`);
         }
     }
-    async findAllServices(query) {
+    async findAllServices(query, businessId) {
         try {
-            const { page = 1, limit = 10, sortBy = "createdAt", sortOrder = "desc", search, category, serviceType, priceType, isActive, onlineBookingEnabled, } = query;
+            const { page = 1, limit = 10, sortBy = "createdAt", sortOrder = "desc", search, category, serviceType, priceType, isActive, onlineBookingEnabled, subdomain, } = query;
             const filter = {};
+            if (subdomain) {
+                const business = await this.businessModel.findOne({
+                    subdomain: subdomain.toLowerCase()
+                });
+                if (!business) {
+                    throw new common_1.NotFoundException(`Business with subdomain '${subdomain}' not found`);
+                }
+                filter.businessId = business._id;
+            }
+            else if (businessId) {
+                this.validateObjectId(businessId, "Business");
+                filter.businessId = new mongoose_1.Types.ObjectId(businessId);
+            }
+            else {
+                throw new Error("Either subdomain or businessId must be provided");
+            }
             if (search) {
                 filter.$or = [
                     { "basicDetails.serviceName": { $regex: search, $options: "i" } },
@@ -152,6 +205,7 @@ let ServiceService = class ServiceService {
             const services = await this.serviceModel
                 .find(filter)
                 .populate('basicDetails.category', 'categoryName appointmentColor')
+                .populate('businessId', 'businessName subdomain logo')
                 .sort(sortOptions)
                 .skip(skip)
                 .limit(limit)
@@ -169,6 +223,9 @@ let ServiceService = class ServiceService {
             };
         }
         catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
             throw new Error(`Failed to fetch services: ${error.message}`);
         }
     }
@@ -266,31 +323,42 @@ let ServiceService = class ServiceService {
             throw new Error(`Failed to add service variant: ${error.message}`);
         }
     }
-    async createBundle(createBundleDto) {
+    async createBundle(createBundleDto, businessId) {
         try {
+            this.validateObjectId(businessId, "Business");
             if (createBundleDto.basicInfo?.category) {
                 this.validateObjectId(createBundleDto.basicInfo.category.toString(), "Service category");
-                const categoryExists = await this.serviceCategoryModel.findById(createBundleDto.basicInfo.category);
+                const categoryExists = await this.serviceCategoryModel.findOne({
+                    _id: createBundleDto.basicInfo.category,
+                    businessId: new mongoose_1.Types.ObjectId(businessId),
+                });
                 if (!categoryExists) {
-                    throw new common_1.NotFoundException("Service category not found");
+                    throw new common_1.NotFoundException("Service category not found or does not belong to this business");
                 }
             }
             if (createBundleDto.services && createBundleDto.services.length > 0) {
                 for (const service of createBundleDto.services) {
                     this.validateObjectId(service.serviceId.toString(), "Service");
-                    const serviceExists = await this.serviceModel.findById(service.serviceId);
+                    const serviceExists = await this.serviceModel.findOne({
+                        _id: service.serviceId,
+                        businessId: new mongoose_1.Types.ObjectId(businessId),
+                    });
                     if (!serviceExists) {
-                        throw new common_1.NotFoundException(`Service with ID ${service.serviceId} not found`);
+                        throw new common_1.NotFoundException(`Service with ID ${service.serviceId} not found or does not belong to this business`);
                     }
                 }
             }
             const existingBundle = await this.serviceBundleModel.findOne({
                 "basicInfo.bundleName": createBundleDto.basicInfo.bundleName,
+                businessId: new mongoose_1.Types.ObjectId(businessId),
             });
             if (existingBundle) {
                 throw new common_1.ConflictException("Service bundle with this name already exists");
             }
-            const bundle = new this.serviceBundleModel(createBundleDto);
+            const bundle = new this.serviceBundleModel({
+                ...createBundleDto,
+                businessId: new mongoose_1.Types.ObjectId(businessId),
+            });
             const savedBundle = await bundle.save();
             return {
                 success: true,
@@ -305,10 +373,27 @@ let ServiceService = class ServiceService {
             throw new Error(`Failed to create service bundle: ${error.message}`);
         }
     }
-    async findAllBundles() {
+    async findAllBundles(subdomain, businessId) {
         try {
+            const filter = { isActive: true };
+            if (subdomain) {
+                const business = await this.businessModel.findOne({
+                    subdomain: subdomain.toLowerCase()
+                });
+                if (!business) {
+                    throw new common_1.NotFoundException(`Business with subdomain '${subdomain}' not found`);
+                }
+                filter.businessId = business._id;
+            }
+            else if (businessId) {
+                this.validateObjectId(businessId, "Business");
+                filter.businessId = new mongoose_1.Types.ObjectId(businessId);
+            }
+            else {
+                throw new Error("Either subdomain or businessId must be provided");
+            }
             const bundles = await this.serviceBundleModel
-                .find({ isActive: true })
+                .find(filter)
                 .populate('basicInfo.category', 'categoryName appointmentColor')
                 .populate('services.serviceId', 'basicDetails.serviceName')
                 .sort({ createdAt: -1 });
@@ -318,6 +403,9 @@ let ServiceService = class ServiceService {
             };
         }
         catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
             throw new Error(`Failed to fetch service bundles: ${error.message}`);
         }
     }
@@ -409,16 +497,18 @@ let ServiceService = class ServiceService {
             throw new Error(`Failed to deactivate service: ${error.message}`);
         }
     }
-    async getServiceStats() {
+    async getServiceStats(businessId) {
         try {
+            this.validateObjectId(businessId, "Business");
+            const businessFilter = { businessId: new mongoose_1.Types.ObjectId(businessId) };
             const [totalServices, activeServices, totalCategories, totalBundles] = await Promise.all([
-                this.serviceModel.countDocuments(),
-                this.serviceModel.countDocuments({ isActive: true }),
-                this.serviceCategoryModel.countDocuments({ isActive: true }),
-                this.serviceBundleModel.countDocuments({ isActive: true }),
+                this.serviceModel.countDocuments(businessFilter),
+                this.serviceModel.countDocuments({ ...businessFilter, isActive: true }),
+                this.serviceCategoryModel.countDocuments({ ...businessFilter, isActive: true }),
+                this.serviceBundleModel.countDocuments({ ...businessFilter, isActive: true }),
             ]);
             const servicesByCategory = await this.serviceModel.aggregate([
-                { $match: { isActive: true } },
+                { $match: { ...businessFilter, isActive: true } },
                 {
                     $lookup: {
                         from: 'servicecategories',
@@ -458,7 +548,9 @@ ServiceService = __decorate([
     __param(0, (0, mongoose_2.InjectModel)(service_category_schema_1.ServiceCategory.name)),
     __param(1, (0, mongoose_2.InjectModel)(service_schema_1.Service.name)),
     __param(2, (0, mongoose_2.InjectModel)(service_bundle_schema_1.ServiceBundle.name)),
+    __param(3, (0, mongoose_2.InjectModel)(business_schema_1.Business.name)),
     __metadata("design:paramtypes", [mongoose_1.Model,
+        mongoose_1.Model,
         mongoose_1.Model,
         mongoose_1.Model])
 ], ServiceService);
