@@ -36,7 +36,12 @@ let ServiceController = class ServiceController {
     createCategory(createCategoryDto, businessId) {
         return this.serviceService.createCategory(createCategoryDto, businessId);
     }
-    findAllCategories(subdomain, businessId) {
+    findAllCategories(subdomain, businessId, req) {
+        console.log('📂 Categories Request DEBUG:');
+        console.log('  - subdomain param:', subdomain);
+        console.log('  - businessId from decorator:', businessId);
+        console.log('  - req.user:', req?.user);
+        console.log('  - req.headers.authorization:', req?.headers?.authorization ? '✅ Present' : '❌ Missing');
         return this.serviceService.findAllCategories(subdomain, businessId);
     }
     updateCategory(id, updateCategoryDto) {
@@ -45,7 +50,14 @@ let ServiceController = class ServiceController {
     create(createServiceDto, businessId) {
         return this.serviceService.createService(createServiceDto, businessId);
     }
-    findAll(query, businessId) {
+    findAll(query, businessId, req) {
+        console.log('🔍 Services Request DEBUG:');
+        console.log('  - subdomain param:', query.subdomain);
+        console.log('  - businessId from decorator:', businessId);
+        console.log('  - req.user exists:', !!req?.user);
+        console.log('  - req.user full:', JSON.stringify(req?.user, null, 2));
+        console.log('  - Authorization header:', req?.headers?.authorization ?
+            `✅ ${req.headers.authorization.substring(0, 20)}...` : '❌ Missing');
         return this.serviceService.findAllServices(query, businessId);
     }
     getStats(businessId) {
@@ -55,6 +67,7 @@ let ServiceController = class ServiceController {
         return this.serviceService.createBundle(createBundleDto, businessId);
     }
     findAllBundles(subdomain, businessId) {
+        console.log('📦 Bundles Request:', { subdomain, businessId });
         return this.serviceService.findAllBundles(subdomain, businessId);
     }
     findOneBundle(id) {
@@ -64,7 +77,7 @@ let ServiceController = class ServiceController {
         return this.serviceService.updateBundle(id, updateBundleDto);
     }
     findOne(id) {
-        console.log(id, 'service id');
+        console.log('🎯 Service by ID:', id);
         return this.serviceService.findOneService(id);
     }
     update(id, updateServiceDto) {
@@ -94,9 +107,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all service categories (Public with subdomain or authenticated)" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_category_schema_1.ServiceCategory),
     __param(0, (0, common_1.Query)('subdomain')),
-    __param(1, (0, auth_1.BusinessId)()),
+    __param(1, (0, auth_1.OptionalBusinessId)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "findAllCategories", null);
 __decorate([
@@ -122,14 +136,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "create", null);
 __decorate([
-    (0, auth_1.Public)(),
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: "Get all services with filtering and pagination (Public with subdomain or authenticated)" }),
     (0, api_response_decorator_1.ApiPaginatedResponse)(service_schema_1.Service),
     __param(0, (0, common_1.Query)()),
-    __param(1, (0, auth_1.BusinessId)()),
+    __param(1, (0, auth_1.OptionalBusinessId)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [service_query_dto_1.ServiceQueryDto, String]),
+    __metadata("design:paramtypes", [service_query_dto_1.ServiceQueryDto, String, Object]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "findAll", null);
 __decorate([
@@ -159,7 +173,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get all service bundles (Public with subdomain or authenticated)" }),
     (0, api_response_decorator_1.ApiResponseWrapper)(service_bundle_schema_1.ServiceBundle),
     __param(0, (0, common_1.Query)('subdomain')),
-    __param(1, (0, auth_1.BusinessId)()),
+    __param(1, (0, auth_1.OptionalBusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
