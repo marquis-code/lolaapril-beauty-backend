@@ -22,17 +22,15 @@ const get_all_slots_dto_1 = require("./dto/get-all-slots.dto");
 const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const business_auth_guard_1 = require("../auth/guards/business-auth.guard");
 const user_schema_1 = require("../auth/schemas/user.schema");
+const auth_1 = require("../auth");
 let AvailabilityController = class AvailabilityController {
     constructor(availabilityService) {
         this.availabilityService = availabilityService;
     }
-    async getAvailableSlots(dto) {
-        if (!dto.businessId) {
-            throw new common_1.BadRequestException('businessId is required in query parameters');
-        }
+    async getAvailableSlots(dto, businessId) {
         return {
             success: true,
-            data: await this.availabilityService.getAvailableSlots(dto)
+            data: await this.availabilityService.getAvailableSlots(dto, businessId)
         };
     }
     async checkSlotAvailability(dto) {
@@ -46,13 +44,10 @@ let AvailabilityController = class AvailabilityController {
             }
         };
     }
-    async getAllSlots(dto) {
-        if (!dto.businessId) {
-            throw new common_1.BadRequestException('businessId is required in query parameters');
-        }
+    async getAllSlots(dto, businessId) {
         return {
             success: true,
-            data: await this.availabilityService.getAllSlots(dto)
+            data: await this.availabilityService.getAllSlots(dto, businessId)
         };
     }
     async createMyAvailability(context, dto) {
@@ -103,6 +98,22 @@ let AvailabilityController = class AvailabilityController {
             message: 'Staff time blocked successfully'
         };
     }
+    async createSimpleBusinessHours(context, dto) {
+        if (dto.operates24x7) {
+            return {
+                success: true,
+                data: await this.availabilityService.createBusinessHours24x7(context.businessId),
+                message: '24/7 operations enabled successfully'
+            };
+        }
+        else {
+            return {
+                success: true,
+                data: await this.availabilityService.createCustomBusinessHours(context.businessId, dto.weeklySchedule || this.getDefaultWeeklySchedule()),
+                message: 'Business hours created successfully'
+            };
+        }
+    }
     async createBusinessHours(businessId) {
         return {
             success: true,
@@ -139,6 +150,17 @@ let AvailabilityController = class AvailabilityController {
             message: 'Business initialized with continuous 24/7 availability'
         };
     }
+    getDefaultWeeklySchedule() {
+        return [
+            { dayOfWeek: 0, isOpen: false, timeSlots: [] },
+            { dayOfWeek: 1, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+            { dayOfWeek: 2, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+            { dayOfWeek: 3, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+            { dayOfWeek: 4, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+            { dayOfWeek: 5, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+            { dayOfWeek: 6, isOpen: false, timeSlots: [] },
+        ];
+    }
     async setupAvailability(user, dto) {
         await this.availabilityService.setupAvailabilityForBusiness(dto.businessId, dto.staffIds, dto.startDate, dto.endDate, user.sub);
         return {
@@ -173,14 +195,17 @@ let AvailabilityController = class AvailabilityController {
 };
 __decorate([
     (0, common_1.Get)('slots'),
+    (0, auth_1.Public)(),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
-        summary: 'Get available time slots (Public - for booking)',
-        description: 'Used by clients to view available appointment slots. Requires businessId in query params.'
+        summary: 'Get available time slots (Public with subdomain or authenticated)',
+        description: 'Used by clients to view available appointment slots. Provide either subdomain in query params or use authentication.'
     }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Available slots retrieved successfully' }),
     __param(0, (0, common_1.Query)(common_1.ValidationPipe)),
+    __param(1, (0, auth_1.OptionalBusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [get_available_slots_dto_1.GetAvailableSlotsDto]),
+    __metadata("design:paramtypes", [get_available_slots_dto_1.GetAvailableSlotsDto, String]),
     __metadata("design:returntype", Promise)
 ], AvailabilityController.prototype, "getAvailableSlots", null);
 __decorate([
@@ -197,14 +222,52 @@ __decorate([
 ], AvailabilityController.prototype, "checkSlotAvailability", null);
 __decorate([
     (0, common_1.Get)('all-slots'),
+    (0, auth_1.Public)(),
     (0, swagger_1.ApiOperation)({
         summary: 'Get all slots summary (Public - for calendar view)',
-        description: 'Returns a summary of available slots for date range'
+        description: 'Returns a summary of available slots for date range. Provide either subdomain or businessId in query params, or use authentication.'
     }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Slots summary retrieved successfully' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Slots summary retrieved successfully',
+        schema: {
+            example: {
+                success: true,
+                data: {
+                    dateRange: {
+                        start: '2026-01-20',
+                        end: '2026-04-20'
+                    },
+                    slots: [
+                        {
+                            date: '2026-01-20',
+                            hasSlots: true,
+                            availableSlotCount: 24,
+                            totalSlots: 32,
+                            staffAvailable: 3
+                        }
+                    ],
+                    summary: {
+                        totalDates: 90,
+                        datesWithAvailability: 75,
+                        datesFullyBooked: 5
+                    }
+                }
+            }
+        }
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Bad Request - Missing businessId/subdomain'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 404,
+        description: 'Business not found'
+    }),
     __param(0, (0, common_1.Query)(common_1.ValidationPipe)),
+    __param(1, (0, auth_1.OptionalBusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [get_all_slots_dto_1.GetAllSlotsDto]),
+    __metadata("design:paramtypes", [get_all_slots_dto_1.GetAllSlotsDto, String]),
     __metadata("design:returntype", Promise)
 ], AvailabilityController.prototype, "getAllSlots", null);
 __decorate([
@@ -265,6 +328,20 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AvailabilityController.prototype, "blockStaffTime", null);
+__decorate([
+    (0, common_1.Post)('business-hours/simple'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Create simple business hours (Owner)',
+        description: 'Set up basic business operating hours without staff dependency'
+    }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Business hours created successfully' }),
+    __param(0, (0, business_context_decorator_1.BusinessContext)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AvailabilityController.prototype, "createSimpleBusinessHours", null);
 __decorate([
     (0, common_1.Post)('business-hours'),
     (0, swagger_1.ApiBearerAuth)(),

@@ -10,7 +10,7 @@ import type { RequestWithUser } from '../auth/types/request-with-user.interface'
 export declare class AvailabilityController {
     private readonly availabilityService;
     constructor(availabilityService: AvailabilityService);
-    getAvailableSlots(dto: GetAvailableSlotsDto): Promise<{
+    getAvailableSlots(dto: GetAvailableSlotsDto, businessId?: string): Promise<{
         success: boolean;
         data: import("./availability.service").AvailabilitySlot[];
     }>;
@@ -20,7 +20,7 @@ export declare class AvailabilityController {
             isAvailable: boolean;
         };
     }>;
-    getAllSlots(dto: GetAllSlotsDto): Promise<{
+    getAllSlots(dto: GetAllSlotsDto, businessId?: string): Promise<{
         success: boolean;
         data: {
             dateRange: {
@@ -59,6 +59,21 @@ export declare class AvailabilityController {
         success: boolean;
         message: string;
     }>;
+    createSimpleBusinessHours(context: BusinessCtx, dto: {
+        operates24x7?: boolean;
+        weeklySchedule?: Array<{
+            dayOfWeek: number;
+            isOpen: boolean;
+            timeSlots: Array<{
+                startTime: string;
+                endTime: string;
+            }>;
+        }>;
+    }): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
     createBusinessHours(businessId: string): Promise<{
         success: boolean;
         data: any;
@@ -82,6 +97,7 @@ export declare class AvailabilityController {
         success: boolean;
         message: string;
     }>;
+    private getDefaultWeeklySchedule;
     setupAvailability(user: RequestWithUser['user'], dto: {
         businessId: string;
         staffIds: string[];

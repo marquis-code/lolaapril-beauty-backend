@@ -1,3 +1,4 @@
+import { OnModuleInit } from "@nestjs/common";
 import { Model } from "mongoose";
 import { ServiceCategory, ServiceCategoryDocument } from "./schemas/service-category.schema";
 import { Service, ServiceDocument } from "./schemas/service.schema";
@@ -12,12 +13,14 @@ import { UpdateServiceBundleDto } from "./dto/update-service-bundle.dto";
 import { ServiceQueryDto } from "./dto/service-query.dto";
 import { ApiResponse } from "../common/interfaces/common.interface";
 import { BusinessDocument } from "../business/schemas/business.schema";
-export declare class ServiceService {
+export declare class ServiceService implements OnModuleInit {
     private serviceCategoryModel;
     private serviceModel;
     private serviceBundleModel;
     private businessModel;
+    private readonly logger;
     constructor(serviceCategoryModel: Model<ServiceCategoryDocument>, serviceModel: Model<ServiceDocument>, serviceBundleModel: Model<ServiceBundleDocument>, businessModel: Model<BusinessDocument>);
+    onModuleInit(): Promise<void>;
     private validateObjectId;
     createCategory(createCategoryDto: CreateServiceCategoryDto, businessId: string): Promise<ApiResponse<ServiceCategory>>;
     findAllCategories(subdomain?: string, businessId?: string): Promise<ApiResponse<ServiceCategory[]>>;

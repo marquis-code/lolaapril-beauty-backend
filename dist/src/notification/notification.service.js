@@ -119,15 +119,30 @@ let NotificationService = class NotificationService {
     }
     async notifyStaffNewBooking(booking) {
         try {
-            const template = await this.getTemplate(booking.businessId.toString(), 'new_booking');
+            if (!booking) {
+                console.error('notifyStaffNewBooking: booking is undefined or null');
+                return;
+            }
+            if (!booking.businessId) {
+                console.error('notifyStaffNewBooking: booking.businessId is undefined', booking);
+                return;
+            }
+            const businessId = booking.businessId.toString ? booking.businessId.toString() : String(booking.businessId);
+            const template = await this.getTemplate(businessId, 'new_booking');
+            const services = Array.isArray(booking.services) ? booking.services : [];
+            const serviceName = services.length > 0
+                ? services.map(s => s.serviceName || 'Service').join(', ')
+                : 'N/A';
             const variables = {
                 staffName: 'Team',
-                clientName: booking.clientName,
-                serviceName: booking.services.map(s => s.serviceName).join(', '),
-                appointmentDate: new Date(booking.preferredDate).toLocaleDateString(),
-                appointmentTime: booking.preferredStartTime,
+                clientName: booking.clientName || 'Customer',
+                serviceName,
+                appointmentDate: booking.preferredDate
+                    ? new Date(booking.preferredDate).toLocaleDateString()
+                    : 'N/A',
+                appointmentTime: booking.preferredStartTime || 'N/A',
                 businessName: booking.businessName || 'Your Business',
-                bookingNumber: booking.bookingNumber,
+                bookingNumber: booking.bookingNumber || 'N/A',
                 specialRequests: booking.specialRequests || 'None',
                 estimatedTotal: booking.estimatedTotal || 0,
                 estimatedDuration: booking.totalDuration || 0,
@@ -136,9 +151,11 @@ let NotificationService = class NotificationService {
             const subject = this.replaceTemplateVariables(template.subject, variables);
             const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL || 'staff@business.com';
             const staffPhone = process.env.STAFF_NOTIFICATION_PHONE || '';
+            const bookingId = booking._id ? (booking._id.toString ? booking._id.toString() : String(booking._id)) : 'unknown';
+            const templateId = template._id ? (template._id.toString ? template._id.toString() : String(template._id)) : 'unknown';
             await this.sendNotification({
-                businessId: booking.businessId.toString(),
-                recipientId: booking.businessId.toString(),
+                businessId,
+                recipientId: businessId,
                 recipientType: 'staff',
                 recipient: staffEmail,
                 recipientPhone: staffPhone,
@@ -146,13 +163,14 @@ let NotificationService = class NotificationService {
                 content,
                 channel: template.channel,
                 preferences: { email: true, sms: false },
-                templateId: template._id.toString(),
-                relatedEntityId: booking._id.toString(),
+                templateId,
+                relatedEntityId: bookingId,
                 relatedEntityType: 'booking'
             });
         }
         catch (error) {
             console.error(`Failed to send new booking notification: ${error.message}`);
+            console.error('Booking object:', JSON.stringify(booking, null, 2));
         }
     }
     async notifySlotUnavailableRefund(bookingId, clientId, businessId, details) {

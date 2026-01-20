@@ -3,6 +3,26 @@ import { IsString, IsOptional, IsEnum, IsEmail, IsUrl, IsNumber, IsBoolean, Vali
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+class BusinessHoursDto {
+  @ApiProperty()
+  @IsString()
+  day: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  isOpen: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  openTime?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  closeTime?: string;
+}
+
 class BusinessAddressDto {
   @ApiProperty()
   @IsString()
@@ -362,4 +382,11 @@ export class UpdateBusinessDto {
   @ValidateNested()
   @Type(() => BusinessDocumentsDto)
   businessDocuments?: BusinessDocumentsDto;
+
+  @ApiPropertyOptional({ type: [BusinessHoursDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BusinessHoursDto)
+  businessHours?: BusinessHoursDto[];
 }

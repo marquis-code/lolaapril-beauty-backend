@@ -18,21 +18,38 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const business_hours_schema_1 = require("./schemas/business-hours.schema");
 const staff_availability_schema_1 = require("./schemas/staff-availability.schema");
+const business_schema_1 = require("../business/schemas/business.schema");
 let AvailabilityService = class AvailabilityService {
-    constructor(businessHoursModel, staffAvailabilityModel) {
+    constructor(businessHoursModel, staffAvailabilityModel, businessModel) {
         this.businessHoursModel = businessHoursModel;
         this.staffAvailabilityModel = staffAvailabilityModel;
+        this.businessModel = businessModel;
     }
-    async getAvailableSlots(dto) {
-        if (!dto.businessId) {
-            throw new common_1.BadRequestException('Business ID is required');
+    async getAvailableSlots(dto, authenticatedBusinessId) {
+        let businessId;
+        if (dto.subdomain) {
+            const business = await this.businessModel.findOne({
+                subdomain: dto.subdomain.toLowerCase()
+            });
+            if (!business) {
+                throw new common_1.NotFoundException(`Business with subdomain '${dto.subdomain}' not found`);
+            }
+            businessId = business._id.toString();
+        }
+        else if (dto.businessId) {
+            businessId = dto.businessId;
+        }
+        else if (authenticatedBusinessId) {
+            businessId = authenticatedBusinessId;
+        }
+        else {
+            throw new common_1.BadRequestException('Either subdomain or businessId must be provided, or user must be authenticated');
         }
         if (!dto.serviceIds || dto.serviceIds.length === 0) {
             throw new common_1.BadRequestException('At least one service must be selected');
         }
-        await this.ensureAllStaffAvailability(dto.businessId, 90);
         const date = this.parseDate(dto.date);
-        const businessHours = await this.getBusinessHours(dto.businessId, date);
+        const businessHours = await this.getBusinessHours(businessId, date);
         if (!businessHours || businessHours.length === 0) {
             return [];
         }
@@ -42,25 +59,125 @@ let AvailabilityService = class AvailabilityService {
         }
         const calculatedDuration = this.calculateTotalDuration(services, dto.bookingType || 'sequential', dto.bufferTime || 0);
         const totalDuration = dto.durationOverride || calculatedDuration;
-        console.log(`📋 Multi-service booking:`, {
-            serviceCount: services.length,
-            services: services.map(s => s.name),
-            calculatedDuration,
-            totalDuration,
-            bookingType: dto.bookingType,
-            durationOverride: dto.durationOverride
+        let eligibleStaff = [];
+        if (dto.staffId) {
+            const normalizedDate = this.normalizeDate(date);
+            const staffAvailability = await this.staffAvailabilityModel
+                .findOne({
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                staffId: new mongoose_2.Types.ObjectId(dto.staffId),
+                date: normalizedDate,
+                status: { $ne: 'unavailable' }
+            })
+                .lean()
+                .exec();
+            if (staffAvailability) {
+                eligibleStaff = [staffAvailability];
+            }
+        }
+        return this.generateSlotsFromBusinessHours(businessHours, eligibleStaff, totalDuration, dto.staffId ? true : false);
+    }
+    generateSlotsFromBusinessHours(businessHours, staff, duration, requireStaff) {
+        const slots = [];
+        for (const hours of businessHours) {
+            const startMinutes = this.timeToMinutes(hours.startTime);
+            const endMinutes = this.timeToMinutes(hours.endTime);
+            for (let currentMinutes = startMinutes; currentMinutes + duration <= endMinutes; currentMinutes += 30) {
+                const slotStart = this.minutesToTime(currentMinutes);
+                const slotEnd = this.minutesToTime(currentMinutes + duration);
+                let availableStaffIds = [];
+                let isAvailable = true;
+                if (requireStaff && staff.length > 0) {
+                    const availableStaff = staff.filter(s => {
+                        const isSlotAvailable = this.isTimeSlotAvailable(s.availableSlots || [], slotStart, slotEnd);
+                        const isNotBlocked = !this.isTimeSlotBlocked(s.blockedSlots || [], slotStart, slotEnd);
+                        return isSlotAvailable && isNotBlocked;
+                    });
+                    availableStaffIds = availableStaff.map(s => s.staffId);
+                    isAvailable = availableStaffIds.length > 0;
+                }
+                else {
+                    isAvailable = true;
+                    availableStaffIds = [];
+                }
+                if (isAvailable) {
+                    slots.push({
+                        startTime: slotStart,
+                        endTime: slotEnd,
+                        duration: duration,
+                        availableStaff: availableStaffIds,
+                        availableResources: [],
+                        isBookable: true
+                    });
+                }
+            }
+        }
+        return slots;
+    }
+    async createCustomBusinessHours(businessId, weeklySchedule) {
+        const existing = await this.businessHoursModel.findOne({ businessId: new mongoose_2.Types.ObjectId(businessId) });
+        if (existing) {
+            existing.weeklySchedule = weeklySchedule.map(day => ({
+                dayOfWeek: day.dayOfWeek,
+                isOpen: day.isOpen,
+                timeSlots: day.timeSlots.map(slot => ({
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    isBreak: false
+                })),
+                is24Hours: false
+            }));
+            existing.operates24x7 = false;
+            return await existing.save();
+        }
+        return await this.businessHoursModel.create({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            weeklySchedule: weeklySchedule.map(day => ({
+                dayOfWeek: day.dayOfWeek,
+                isOpen: day.isOpen,
+                timeSlots: day.timeSlots.map(slot => ({
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    isBreak: false
+                })),
+                is24Hours: false
+            })),
+            operates24x7: false
         });
-        const normalizedDate = this.normalizeDate(date);
-        const staffAvailability = await this.staffAvailabilityModel
-            .find({
-            businessId: new mongoose_2.Types.ObjectId(dto.businessId),
-            date: normalizedDate,
-            status: { $ne: 'unavailable' }
-        })
-            .lean()
-            .exec();
-        const eligibleStaff = await this.getEligibleStaffForServices(staffAvailability, services);
-        return this.generateAvailableSlots(businessHours, eligibleStaff, totalDuration);
+    }
+    generateAvailableSlotsBusinessFirst(businessHours, staff, duration) {
+        const slots = [];
+        for (const hours of businessHours) {
+            const startMinutes = this.timeToMinutes(hours.startTime);
+            const endMinutes = this.timeToMinutes(hours.endTime);
+            for (let currentMinutes = startMinutes; currentMinutes + duration <= endMinutes; currentMinutes += 30) {
+                const slotStart = this.minutesToTime(currentMinutes);
+                const slotEnd = this.minutesToTime(currentMinutes + duration);
+                let availableStaffIds = [];
+                if (staff.length > 0) {
+                    const availableStaff = staff.filter(s => {
+                        const isSlotAvailable = this.isTimeSlotAvailable(s.availableSlots || [], slotStart, slotEnd);
+                        const isNotBlocked = !this.isTimeSlotBlocked(s.blockedSlots || [], slotStart, slotEnd);
+                        return isSlotAvailable && isNotBlocked;
+                    });
+                    availableStaffIds = availableStaff.map(s => s.staffId);
+                }
+                else {
+                    availableStaffIds = [];
+                }
+                if (availableStaffIds.length > 0 || staff.length === 0) {
+                    slots.push({
+                        startTime: slotStart,
+                        endTime: slotEnd,
+                        duration: duration,
+                        availableStaff: availableStaffIds,
+                        availableResources: [],
+                        isBookable: true
+                    });
+                }
+            }
+        }
+        return slots;
     }
     async getServicesByIds(serviceIds) {
         console.warn('⚠️ Using mock service data - implement getServicesByIds with real Service model');
@@ -224,21 +341,36 @@ let AvailabilityService = class AvailabilityService {
         }
         await availability.save();
     }
-    async getAllSlots(dto) {
-        if (!dto.businessId) {
-            throw new common_1.BadRequestException('Business ID is required');
+    async getAllSlots(dto, authenticatedBusinessId) {
+        let businessId;
+        if (dto.subdomain) {
+            const business = await this.businessModel.findOne({
+                subdomain: dto.subdomain.toLowerCase()
+            });
+            if (!business) {
+                throw new common_1.NotFoundException(`Business with subdomain '${dto.subdomain}' not found`);
+            }
+            businessId = business._id.toString();
+        }
+        else if (dto.businessId) {
+            businessId = dto.businessId;
+        }
+        else if (authenticatedBusinessId) {
+            businessId = authenticatedBusinessId;
+        }
+        else {
+            throw new common_1.BadRequestException('Either subdomain or businessId must be provided, or user must be authenticated');
         }
         const startDate = dto.startDate ? this.parseDate(dto.startDate) : new Date();
         const endDate = dto.endDate
             ? this.parseDate(dto.endDate)
             : new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000);
-        await this.ensureAllStaffAvailability(dto.businessId, 90);
         const slotsData = {};
         for (let currentDate = new Date(startDate); currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
             const date = new Date(currentDate);
             const dateString = date.toISOString().split('T')[0];
             const normalizedDate = this.normalizeDate(date);
-            const businessHours = await this.getBusinessHours(dto.businessId, date);
+            const businessHours = await this.getBusinessHours(businessId, date);
             if (businessHours.length === 0) {
                 slotsData[dateString] = {
                     date: dateString,
@@ -249,47 +381,47 @@ let AvailabilityService = class AvailabilityService {
                 };
                 continue;
             }
-            const staffQuery = {
-                businessId: new mongoose_2.Types.ObjectId(dto.businessId),
-                date: normalizedDate
-            };
-            if (dto.staffId) {
-                staffQuery.staffId = new mongoose_2.Types.ObjectId(dto.staffId);
-            }
-            const staffAvailability = await this.staffAvailabilityModel
-                .find(staffQuery)
-                .lean()
-                .exec();
             let totalSlots = 0;
             let availableSlotCount = 0;
-            const availableStaffCount = staffAvailability.filter(staff => staff.status !== 'unavailable' &&
-                staff.availableSlots &&
-                staff.availableSlots.length > 0).length;
             for (const businessHour of businessHours) {
                 const startMinutes = this.timeToMinutes(businessHour.startTime);
                 const endMinutes = this.timeToMinutes(businessHour.endTime);
                 const defaultDuration = 30;
                 const possibleSlots = Math.floor((endMinutes - startMinutes) / defaultDuration);
                 totalSlots += possibleSlots;
-                for (let currentMinutes = startMinutes; currentMinutes + defaultDuration <= endMinutes; currentMinutes += defaultDuration) {
-                    const slotStart = this.minutesToTime(currentMinutes);
-                    const slotEnd = this.minutesToTime(currentMinutes + defaultDuration);
-                    const hasAvailableStaff = staffAvailability.some(staff => {
-                        const isSlotAvailable = this.isTimeSlotAvailable(staff.availableSlots || [], slotStart, slotEnd);
-                        const isNotBlocked = !this.isTimeSlotBlocked(staff.blockedSlots || [], slotStart, slotEnd);
-                        return staff.status !== 'unavailable' && isSlotAvailable && isNotBlocked;
-                    });
-                    if (hasAvailableStaff) {
-                        availableSlotCount++;
-                    }
+                availableSlotCount += possibleSlots;
+            }
+            let staffAvailableCount = 0;
+            if (dto.staffId) {
+                const staffAvailability = await this.staffAvailabilityModel
+                    .findOne({
+                    businessId: new mongoose_2.Types.ObjectId(businessId),
+                    staffId: new mongoose_2.Types.ObjectId(dto.staffId),
+                    date: normalizedDate,
+                    status: { $ne: 'unavailable' }
+                })
+                    .lean()
+                    .exec();
+                staffAvailableCount = staffAvailability ? 1 : 0;
+                if (!staffAvailability) {
+                    availableSlotCount = 0;
                 }
+            }
+            else {
+                const staffCount = await this.staffAvailabilityModel
+                    .countDocuments({
+                    businessId: new mongoose_2.Types.ObjectId(businessId),
+                    date: normalizedDate,
+                    status: { $ne: 'unavailable' }
+                });
+                staffAvailableCount = staffCount;
             }
             slotsData[dateString] = {
                 date: dateString,
                 hasSlots: availableSlotCount > 0,
                 availableSlotCount,
                 totalSlots,
-                staffAvailable: availableStaffCount
+                staffAvailable: staffAvailableCount
             };
         }
         const result = Object.values(slotsData).sort((a, b) => a.date.localeCompare(b.date));
@@ -845,7 +977,9 @@ AvailabilityService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(business_hours_schema_1.BusinessHours.name)),
     __param(1, (0, mongoose_1.InjectModel)(staff_availability_schema_1.StaffAvailability.name)),
+    __param(2, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model])
 ], AvailabilityService);
 exports.AvailabilityService = AvailabilityService;

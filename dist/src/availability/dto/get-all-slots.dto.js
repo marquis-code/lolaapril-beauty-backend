@@ -11,12 +11,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetAllSlotsDto = void 0;
 const class_validator_1 = require("class-validator");
+const swagger_1 = require("@nestjs/swagger");
 class GetAllSlotsDto {
 }
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Business ID (use either businessId or subdomain)'
+    }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], GetAllSlotsDto.prototype, "businessId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Business subdomain (use either businessId or subdomain)',
+        example: 'luxebeauty'
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GetAllSlotsDto.prototype, "subdomain", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),

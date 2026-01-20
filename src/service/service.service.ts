@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from "@nestjs/common"
+import { Injectable, NotFoundException, ConflictException, Logger, OnModuleInit } from "@nestjs/common"
 import { Model, SortOrder, Types } from "mongoose"
 import { ServiceCategory, ServiceCategoryDocument } from "./schemas/service-category.schema"
 import { Service, ServiceDocument } from "./schemas/service.schema"
@@ -16,13 +16,35 @@ import { Business, BusinessDocument } from "../business/schemas/business.schema"
 import { InjectModel } from "@nestjs/mongoose"
 
 @Injectable()
-export class ServiceService {
+export class ServiceService implements OnModuleInit {
+   private readonly logger = new Logger(ServiceService.name)
   constructor(
     @InjectModel(ServiceCategory.name) private serviceCategoryModel: Model<ServiceCategoryDocument>,
     @InjectModel(Service.name) private serviceModel: Model<ServiceDocument>,
     @InjectModel(ServiceBundle.name) private serviceBundleModel: Model<ServiceBundleDocument>,
     @InjectModel(Business.name) private businessModel: Model<BusinessDocument>, // NEW
   ) {}
+
+
+   // This runs automatically when the application starts
+  async onModuleInit() {
+    try {
+      this.logger.log('🔄 Running index cleanup migration...')
+      
+      // Drop the old categoryName_1 index
+      await this.serviceCategoryModel.collection.dropIndex('categoryName_1')
+      
+      this.logger.log('✅ Successfully dropped old categoryName_1 index')
+    } catch (error) {
+      // If index doesn't exist (code 27 or IndexNotFound), that's fine
+      if (error.code === 27 || error.codeName === 'IndexNotFound') {
+        this.logger.log('ℹ️  categoryName_1 index does not exist (already removed)')
+      } else {
+        // Log other errors but don't crash the app
+        this.logger.warn('⚠️  Index cleanup warning:', error.message)
+      }
+    }
+  }
 
   // Utility method to validate ObjectId
   private validateObjectId(id: string, entityName: string = "Entity"): void {

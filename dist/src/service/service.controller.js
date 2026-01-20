@@ -146,6 +146,7 @@ __decorate([
 ], ServiceController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, auth_1.Public)(),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Get all services with filtering and pagination (Public with subdomain or authenticated)" }),
     (0, api_response_decorator_1.ApiPaginatedResponse)(service_schema_1.Service),

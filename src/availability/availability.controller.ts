@@ -24,6 +24,7 @@ import { BusinessAuthGuard, BusinessRolesGuard, RequireBusinessRoles } from '../
 import { UserRole } from '../auth/schemas/user.schema'
 import type { BusinessContext as BusinessCtx } from '../auth/decorators/business-context.decorator'
 import type { RequestWithUser } from '../auth/types/request-with-user.interface'
+import { Public, OptionalBusinessId } from "../auth"
 
 @ApiTags('Availability')
 @Controller('availability')
@@ -34,23 +35,23 @@ export class AvailabilityController {
   // PUBLIC ENDPOINTS - For clients booking appointments (no auth required)
   // ==========================================================================
 
-  @Get('slots')
-  @ApiOperation({ 
-    summary: 'Get available time slots (Public - for booking)',
-    description: 'Used by clients to view available appointment slots. Requires businessId in query params.'
-  })
-  @ApiResponse({ status: 200, description: 'Available slots retrieved successfully' })
-  async getAvailableSlots(@Query(ValidationPipe) dto: GetAvailableSlotsDto) {
-    // For public booking, businessId MUST be in query params
-    if (!dto.businessId) {
-      throw new BadRequestException('businessId is required in query parameters')
-    }
-    
-    return {
-      success: true,
-      data: await this.availabilityService.getAvailableSlots(dto)
-    }
+@Get('slots')
+@Public()
+@ApiBearerAuth()
+@ApiOperation({ 
+  summary: 'Get available time slots (Public with subdomain or authenticated)',
+  description: 'Used by clients to view available appointment slots. Provide either subdomain in query params or use authentication.'
+})
+@ApiResponse({ status: 200, description: 'Available slots retrieved successfully' })
+async getAvailableSlots(
+  @Query(ValidationPipe) dto: GetAvailableSlotsDto,
+  @OptionalBusinessId() businessId?: string
+) {
+  return {
+    success: true,
+    data: await this.availabilityService.getAvailableSlots(dto, businessId)
   }
+}
 
   @Get('check')
   @ApiOperation({ 
@@ -71,29 +72,82 @@ export class AvailabilityController {
     }
   }
 
-  @Get('all-slots')
-  @ApiOperation({ 
-    summary: 'Get all slots summary (Public - for calendar view)',
-    description: 'Returns a summary of available slots for date range'
-  })
-  @ApiResponse({ status: 200, description: 'Slots summary retrieved successfully' })
-  async getAllSlots(@Query(ValidationPipe) dto: GetAllSlotsDto) {
-    if (!dto.businessId) {
-      throw new BadRequestException('businessId is required in query parameters')
-    }
+  // @Get('all-slots')
+  // @Public()
+  // @ApiOperation({ 
+  //   summary: 'Get all slots summary (Public - for calendar view)',
+  //   description: 'Returns a summary of available slots for date range'
+  // })
+  // @ApiResponse({ status: 200, description: 'Slots summary retrieved successfully' })
+  // async getAllSlots(@Query(ValidationPipe) dto: GetAllSlotsDto, @OptionalBusinessId() businessId?: string) {
+  //   if (!dto.businessId) {
+  //     throw new BadRequestException('businessId is required in query parameters')
+  //   }
     
-    return {
+  //   return {
+  //     success: true,
+  //     data: await this.availabilityService.getAllSlots(dto)
+  //   }
+  // }
+
+@Get('all-slots')
+@Public()
+@ApiOperation({ 
+  summary: 'Get all slots summary (Public - for calendar view)',
+  description: 'Returns a summary of available slots for date range. Provide either subdomain or businessId in query params, or use authentication.'
+})
+@ApiResponse({ 
+  status: 200, 
+  description: 'Slots summary retrieved successfully',
+  schema: {
+    example: {
       success: true,
-      data: await this.availabilityService.getAllSlots(dto)
+      data: {
+        dateRange: {
+          start: '2026-01-20',
+          end: '2026-04-20'
+        },
+        slots: [
+          {
+            date: '2026-01-20',
+            hasSlots: true,
+            availableSlotCount: 24,
+            totalSlots: 32,
+            staffAvailable: 3
+          }
+        ],
+        summary: {
+          totalDates: 90,
+          datesWithAvailability: 75,
+          datesFullyBooked: 5
+        }
+      }
     }
   }
+})
+@ApiResponse({ 
+  status: 400, 
+  description: 'Bad Request - Missing businessId/subdomain' 
+})
+@ApiResponse({ 
+  status: 404, 
+  description: 'Business not found' 
+})
+async getAllSlots(
+  @Query(ValidationPipe) dto: GetAllSlotsDto,
+  @OptionalBusinessId() businessId?: string
+) {
+  return {
+    success: true,
+    data: await this.availabilityService.getAllSlots(dto, businessId)
+  }
+}
 
   // ==========================================================================
   // BUSINESS STAFF ENDPOINTS - For staff managing their own availability
   // ==========================================================================
 
   @Post('staff/my-availability')
-  
   @RequireBusinessRoles(UserRole.STAFF, UserRole.BUSINESS_ADMIN, UserRole.BUSINESS_OWNER)
   @ApiBearerAuth()
   @ApiOperation({ 
@@ -151,8 +205,6 @@ export class AvailabilityController {
   // ==========================================================================
 
   @Post('staff/availability')
-  
-  
   @ApiBearerAuth()
   @ApiOperation({ 
     summary: 'Create staff availability (Admin/Owner)',
@@ -199,9 +251,47 @@ export class AvailabilityController {
     }
   }
 
+  @Post('business-hours/simple')
+@ApiBearerAuth()
+@ApiOperation({ 
+  summary: 'Create simple business hours (Owner)',
+  description: 'Set up basic business operating hours without staff dependency'
+})
+@ApiResponse({ status: 201, description: 'Business hours created successfully' })
+async createSimpleBusinessHours(
+  @BusinessContext() context: BusinessCtx,
+  @Body() dto: {
+    operates24x7?: boolean
+    weeklySchedule?: Array<{
+      dayOfWeek: number // 0-6
+      isOpen: boolean
+      timeSlots: Array<{
+        startTime: string
+        endTime: string
+      }>
+    }>
+  }
+) {
+  if (dto.operates24x7) {
+    return {
+      success: true,
+      data: await this.availabilityService.createBusinessHours24x7(context.businessId),
+      message: '24/7 operations enabled successfully'
+    }
+  } else {
+    // Create custom business hours
+    return {
+      success: true,
+      data: await this.availabilityService.createCustomBusinessHours(
+        context.businessId,
+        dto.weeklySchedule || this.getDefaultWeeklySchedule()
+      ),
+      message: 'Business hours created successfully'
+    }
+  }
+}
+
   @Post('business-hours')
-  
-  
   @ApiBearerAuth()
   @ApiOperation({ 
     summary: 'Create business hours (Admin/Owner)',
@@ -217,8 +307,6 @@ export class AvailabilityController {
   }
 
   @Post('business-hours/24x7')
-  
-  
   @ApiBearerAuth()
   @ApiOperation({ 
     summary: 'Enable 24/7 operations (Owner only)',
@@ -234,8 +322,6 @@ export class AvailabilityController {
   }
 
   @Post('extend-availability')
-  
-  
   @ApiBearerAuth()
   @ApiOperation({ 
     summary: 'Extend staff availability (Admin/Owner)',
@@ -269,8 +355,6 @@ export class AvailabilityController {
   }
 
   @Post('initialize-business')
-  
-  
   @ApiBearerAuth()
   @ApiOperation({ 
     summary: 'Initialize business availability (Owner only)',
@@ -302,6 +386,21 @@ export class AvailabilityController {
       message: 'Business initialized with continuous 24/7 availability'
     }
   }
+
+  // In your controller, add a simpler endpoint for business owners
+
+private getDefaultWeeklySchedule() {
+  // Monday to Friday: 9 AM - 5 PM
+  return [
+    { dayOfWeek: 0, isOpen: false, timeSlots: [] }, // Sunday
+    { dayOfWeek: 1, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] }, // Monday
+    { dayOfWeek: 2, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    { dayOfWeek: 3, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    { dayOfWeek: 4, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    { dayOfWeek: 5, isOpen: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] }, // Friday
+    { dayOfWeek: 6, isOpen: false, timeSlots: [] }, // Saturday
+  ]
+}
 
   // ==========================================================================
   // PLATFORM ADMIN ENDPOINTS - For system administrators
@@ -337,8 +436,6 @@ export class AvailabilityController {
   }
 
   @Post('admin/check-fully-booked')
-  
-  
   @ApiBearerAuth()
   @ApiOperation({ 
     summary: 'Check if time slot is fully booked (Platform Admin)',

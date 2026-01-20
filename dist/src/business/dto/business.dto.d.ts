@@ -1,3 +1,9 @@
+declare class BusinessHoursDto {
+    day: string;
+    isOpen: boolean;
+    openTime?: string;
+    closeTime?: string;
+}
 declare class BusinessAddressDto {
     street: string;
     city: string;
@@ -83,5 +89,6 @@ export declare class UpdateBusinessDto {
     trialEndsAt?: string;
     activeSubscription?: string;
     businessDocuments?: BusinessDocumentsDto;
+    businessHours?: BusinessHoursDto[];
 }
 export {};

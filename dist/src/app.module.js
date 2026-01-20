@@ -55,6 +55,7 @@ const webhook_module_1 = require("./webhook/webhook.module");
 const rate_limiter_module_1 = require("./rate-limiter/rate-limiter.module");
 const marketplace_module_1 = require("./marketplace/marketplace.module");
 const subscription_module_1 = require("./subscription/subscription.module");
+const migrations_module_1 = require("./migrations/migrations.module");
 let AppModule = class AppModule {
     constructor() {
         console.log('🚀 Application Module Initialized');
@@ -252,7 +253,8 @@ AppModule = __decorate([
             integration_module_1.IntegrationModule,
             jobs_module_1.JobsModule,
             webhook_module_1.WebhookModule,
-            subscription_module_1.SubscriptionModule
+            subscription_module_1.SubscriptionModule,
+            migrations_module_1.MigrationsModule,
         ],
         providers: [
             {

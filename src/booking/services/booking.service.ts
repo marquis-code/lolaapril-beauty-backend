@@ -82,7 +82,10 @@ export class BookingService {
     }
     
     // Emit event for any listeners
-    this.eventEmitter.emit('booking.created', bookingResult)
+    this.eventEmitter.emit('booking.created', {
+      businessId: bookingResult.businessId.toString(),
+      booking: bookingResult
+    })
     
     this.logger.log(`Booking created: ${bookingResult.bookingNumber} - Total: ₦${bookingResult.estimatedTotal}`)
     

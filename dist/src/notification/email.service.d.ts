@@ -1,5 +1,5 @@
 export declare class EmailService {
-    private transporter;
+    private resend;
     constructor();
     sendEmail(to: string, subject: string, html: string, from?: string): Promise<{
         messageId: string;

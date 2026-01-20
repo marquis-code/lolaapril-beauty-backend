@@ -13,6 +13,30 @@ exports.UpdateBusinessDto = exports.CreateBusinessDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+class BusinessHoursDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BusinessHoursDto.prototype, "day", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], BusinessHoursDto.prototype, "isOpen", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BusinessHoursDto.prototype, "openTime", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BusinessHoursDto.prototype, "closeTime", void 0);
 class BusinessAddressDto {
 }
 __decorate([
@@ -443,5 +467,13 @@ __decorate([
     (0, class_transformer_1.Type)(() => BusinessDocumentsDto),
     __metadata("design:type", BusinessDocumentsDto)
 ], UpdateBusinessDto.prototype, "businessDocuments", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: [BusinessHoursDto] }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => BusinessHoursDto),
+    __metadata("design:type", Array)
+], UpdateBusinessDto.prototype, "businessHours", void 0);
 exports.UpdateBusinessDto = UpdateBusinessDto;
 //# sourceMappingURL=business.dto.js.map

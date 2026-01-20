@@ -1,9 +1,10 @@
 import { Model, Types } from 'mongoose';
-import { BusinessHoursDocument } from './schemas/business-hours.schema';
+import { BusinessHours, BusinessHoursDocument } from './schemas/business-hours.schema';
 import { StaffAvailabilityDocument } from './schemas/staff-availability.schema';
 import { CreateStaffAvailabilityDto } from './dto/create-staff-availability.dto';
 import { CheckAvailabilityDto } from './dto/check-availability.dto';
 import { GetAvailableSlotsDto } from './dto/get-available-slots.dto';
+import { BusinessDocument } from '../business/schemas/business.schema';
 import { BlockStaffTimeDto } from './dto/block-staff-time.dto';
 import { GetAllSlotsDto } from "./dto/get-all-slots.dto";
 export interface AvailabilitySlot {
@@ -17,8 +18,19 @@ export interface AvailabilitySlot {
 export declare class AvailabilityService {
     private businessHoursModel;
     private staffAvailabilityModel;
-    constructor(businessHoursModel: Model<BusinessHoursDocument>, staffAvailabilityModel: Model<StaffAvailabilityDocument>);
-    getAvailableSlots(dto: GetAvailableSlotsDto): Promise<AvailabilitySlot[]>;
+    private businessModel;
+    constructor(businessHoursModel: Model<BusinessHoursDocument>, staffAvailabilityModel: Model<StaffAvailabilityDocument>, businessModel: Model<BusinessDocument>);
+    getAvailableSlots(dto: GetAvailableSlotsDto, authenticatedBusinessId?: string): Promise<AvailabilitySlot[]>;
+    private generateSlotsFromBusinessHours;
+    createCustomBusinessHours(businessId: string, weeklySchedule: Array<{
+        dayOfWeek: number;
+        isOpen: boolean;
+        timeSlots: Array<{
+            startTime: string;
+            endTime: string;
+        }>;
+    }>): Promise<BusinessHours>;
+    private generateAvailableSlotsBusinessFirst;
     private getServicesByIds;
     private calculateTotalDuration;
     private getEligibleStaffForServices;
@@ -44,7 +56,7 @@ export declare class AvailabilityService {
     private buildServiceTimeline;
     createStaffAvailability(dto: CreateStaffAvailabilityDto): Promise<StaffAvailabilityDocument>;
     blockStaffTime(dto: BlockStaffTimeDto): Promise<void>;
-    getAllSlots(dto: GetAllSlotsDto): Promise<{
+    getAllSlots(dto: GetAllSlotsDto, authenticatedBusinessId?: string): Promise<{
         dateRange: {
             start: string;
             end: string;

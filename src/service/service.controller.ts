@@ -82,6 +82,7 @@ export class ServiceController {
   }
 
   @Get()
+  @Public()
   @ApiBearerAuth()  // Added ApiBearerAuth
   @ApiOperation({ summary: "Get all services with filtering and pagination (Public with subdomain or authenticated)" })
   @ApiPaginatedResponse(Service)

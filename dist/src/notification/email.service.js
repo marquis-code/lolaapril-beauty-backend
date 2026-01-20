@@ -11,33 +11,39 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailService = void 0;
 const common_1 = require("@nestjs/common");
-const nodemailer = require("nodemailer");
+const resend_1 = require("resend");
 let EmailService = class EmailService {
     constructor() {
-        this.transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: false,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-        });
+        const apiKey = process.env.RESEND_API_KEY;
+        if (!apiKey) {
+            console.warn('⚠️  RESEND_API_KEY not found in environment variables');
+        }
+        this.resend = new resend_1.Resend(apiKey || 'demo_key');
     }
     async sendEmail(to, subject, html, from) {
         try {
-            const info = await this.transporter.sendMail({
-                from: from || process.env.FROM_EMAIL || 'noreply@salon.com',
-                to,
+            const fromEmail = from || process.env.FROM_EMAIL || 'onboarding@resend.dev';
+            const { data, error } = await this.resend.emails.send({
+                from: fromEmail,
+                to: [to],
                 subject,
                 html,
             });
+            if (error) {
+                console.error('❌ Resend email error:', error);
+                return {
+                    messageId: '',
+                    success: false,
+                    error: error.message || JSON.stringify(error),
+                };
+            }
             return {
-                messageId: info.messageId,
+                messageId: data?.id || '',
                 success: true,
             };
         }
         catch (error) {
+            console.error('❌ Email sending failed:', error);
             return {
                 messageId: '',
                 success: false,

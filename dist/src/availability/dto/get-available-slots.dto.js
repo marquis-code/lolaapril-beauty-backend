@@ -24,21 +24,39 @@ __decorate([
     __metadata("design:type", String)
 ], GetAvailableSlotsDto.prototype, "businessId", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GetAvailableSlotsDto.prototype, "subdomain", void 0);
+__decorate([
     (0, class_validator_1.IsDateString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], GetAvailableSlotsDto.prototype, "date", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)({ message: 'At least one service must be selected' }),
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsArray)({ message: 'serviceIds must be an array' }),
+    (0, class_validator_1.IsString)({ each: true, message: 'each value in serviceIds must be a string' }),
     (0, class_transformer_1.Transform)(({ value }) => {
+        if (!value)
+            return [];
+        if (Array.isArray(value))
+            return value;
         if (typeof value === 'string')
             return [value];
-        return Array.isArray(value) ? value : [];
+        if (typeof value === 'object') {
+            const values = Object.values(value);
+            return values.filter(v => typeof v === 'string');
+        }
+        return [];
     }),
     __metadata("design:type", Array)
 ], GetAvailableSlotsDto.prototype, "serviceIds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GetAvailableSlotsDto.prototype, "staffId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),

@@ -1,21 +1,17 @@
 
 import { Injectable } from '@nestjs/common'
-import * as nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter
+  private resend: Resend
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    })
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      console.warn('⚠️  RESEND_API_KEY not found in environment variables')
+    }
+    this.resend = new Resend(apiKey || 'demo_key')
   }
 
   async sendEmail(
@@ -25,18 +21,30 @@ export class EmailService {
     from?: string
   ): Promise<{ messageId: string; success: boolean; error?: string }> {
     try {
-      const info = await this.transporter.sendMail({
-        from: from || process.env.FROM_EMAIL || 'noreply@salon.com',
-        to,
+      const fromEmail = from || process.env.FROM_EMAIL || 'onboarding@resend.dev'
+      
+      const { data, error } = await this.resend.emails.send({
+        from: fromEmail,
+        to: [to],
         subject,
         html,
       })
 
+      if (error) {
+        console.error('❌ Resend email error:', error)
+        return {
+          messageId: '',
+          success: false,
+          error: error.message || JSON.stringify(error),
+        }
+      }
+
       return {
-        messageId: info.messageId,
+        messageId: data?.id || '',
         success: true,
       }
     } catch (error) {
+      console.error('❌ Email sending failed:', error)
       return {
         messageId: '',
         success: false,

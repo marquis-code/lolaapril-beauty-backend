@@ -184,10 +184,14 @@ let BookingOrchestrator = class BookingOrchestrator {
                 sourceTracking: normalizedBookingSource
             });
             const totalDuration = this.calculateTotalDuration(services);
+            console.log(`[v0] Checking availability for business ${createBookingDto.businessId}`);
+            console.log(`[v0] Date: ${preferredDate.toISOString()}, Time: ${createBookingDto.preferredStartTime}, Duration: ${totalDuration}min`);
             const isAvailable = await this.checkAvailabilityForAllServices(createBookingDto.businessId, serviceIds, preferredDate, createBookingDto.preferredStartTime, totalDuration);
             if (!isAvailable) {
+                console.error(`[v0] Availability check failed for business ${createBookingDto.businessId}`);
                 throw new common_1.BadRequestException('Selected time slot is not available');
             }
+            console.log(`[v0] ✅ Time slot is available, proceeding with booking`);
             const bookingData = {
                 clientId: createBookingDto.clientId,
                 businessId: createBookingDto.businessId,
@@ -225,7 +229,10 @@ let BookingOrchestrator = class BookingOrchestrator {
                 await this.sourceTrackingService.recordConversion(normalizedBookingSource.trackingCode);
             }
             await this.notificationService.notifyStaffNewBooking(booking);
-            this.eventEmitter.emit('booking.created', booking);
+            this.eventEmitter.emit('booking.created', {
+                businessId: booking.businessId.toString(),
+                booking
+            });
             return {
                 bookingId: booking._id.toString(),
                 bookingNumber: booking.bookingNumber,
@@ -282,13 +289,52 @@ let BookingOrchestrator = class BookingOrchestrator {
         return `${year}-${month}-${day}`;
     }
     async checkAvailabilityForAllServices(businessId, serviceIds, date, startTime, totalDuration) {
-        return await this.availabilityService.checkSlotAvailability({
-            businessId,
-            serviceIds: serviceIds,
-            date: this.formatDateForAvailability(date),
-            startTime,
-            duration: totalDuration
-        });
+        return await this.checkBusinessWorkingHours(businessId, date, startTime, totalDuration);
+    }
+    async checkBusinessWorkingHours(businessId, date, startTime, totalDuration) {
+        try {
+            const business = await this.businessService.getById(businessId);
+            if (!business) {
+                throw new common_1.BadRequestException('Business not found');
+            }
+            const dayOfWeek = date.getDay();
+            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const currentDay = dayNames[dayOfWeek];
+            const businessHours = business.businessHours;
+            if (!businessHours || businessHours.length === 0) {
+                console.log(`⚠️  No business hours configured - allowing booking (assuming 24/7 operation)`);
+                return true;
+            }
+            const daySchedule = businessHours.find(schedule => schedule.day.toLowerCase() === currentDay);
+            if (!daySchedule) {
+                console.log(`⚠️  No schedule found for ${currentDay} - allowing booking`);
+                return true;
+            }
+            if (!daySchedule.isOpen) {
+                console.log(`❌ Business marked as closed on ${currentDay}`);
+                return false;
+            }
+            const [openHour, openMin] = (daySchedule.openTime || '09:00').split(':').map(Number);
+            const [closeHour, closeMin] = (daySchedule.closeTime || '17:00').split(':').map(Number);
+            const [reqHour, reqMin] = startTime.split(':').map(Number);
+            const openingMins = openHour * 60 + openMin;
+            const closingMins = closeHour * 60 + closeMin;
+            const requestStartMins = reqHour * 60 + reqMin;
+            const requestEndMins = requestStartMins + totalDuration;
+            console.log(`⏰ Business hours: ${openHour}:${openMin.toString().padStart(2, '0')} - ${closeHour}:${closeMin.toString().padStart(2, '0')}`);
+            console.log(`📅 Requested slot: ${reqHour}:${reqMin.toString().padStart(2, '0')} - ${Math.floor(requestEndMins / 60)}:${(requestEndMins % 60).toString().padStart(2, '0')}`);
+            const isWithinHours = requestStartMins >= openingMins && requestEndMins <= closingMins;
+            if (!isWithinHours) {
+                console.log(`❌ Requested time slot is outside business hours`);
+                return false;
+            }
+            console.log(`✅ Time slot is available within business hours`);
+            return true;
+        }
+        catch (error) {
+            console.error(`❌ Error checking business hours: ${error.message}`);
+            return false;
+        }
     }
     async handlePaymentFailure(bookingId, transactionReference, errorMessage) {
         await this.bookingService.updateBookingStatus(bookingId, 'payment_failed');

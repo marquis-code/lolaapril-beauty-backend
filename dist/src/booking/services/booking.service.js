@@ -72,7 +72,10 @@ let BookingService = BookingService_1 = class BookingService {
             if (!bookingResult) {
                 throw new Error('Failed to retrieve saved booking');
             }
-            this.eventEmitter.emit('booking.created', bookingResult);
+            this.eventEmitter.emit('booking.created', {
+                businessId: bookingResult.businessId.toString(),
+                booking: bookingResult
+            });
             this.logger.log(`Booking created: ${bookingResult.bookingNumber} - Total: ₦${bookingResult.estimatedTotal}`);
             return bookingResult;
         }

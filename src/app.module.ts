@@ -50,6 +50,7 @@ import { WebhookModule } from './webhook/webhook.module'
 import { RateLimiterModule } from './rate-limiter/rate-limiter.module'
 import { MarketplaceModule } from './marketplace/marketplace.module'
 import { SubscriptionModule } from './subscription/subscription.module'
+import { MigrationsModule } from './migrations/migrations.module';
 
 @Module({
   imports: [
@@ -302,7 +303,8 @@ import { SubscriptionModule } from './subscription/subscription.module'
     IntegrationModule,
     JobsModule,
     WebhookModule,
-    SubscriptionModule
+    SubscriptionModule,
+    MigrationsModule,
   ],
 
   providers: [

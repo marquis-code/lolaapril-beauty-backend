@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var ServiceService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServiceService = void 0;
 const common_1 = require("@nestjs/common");
@@ -20,12 +21,28 @@ const service_schema_1 = require("./schemas/service.schema");
 const service_bundle_schema_1 = require("./schemas/service-bundle.schema");
 const business_schema_1 = require("../business/schemas/business.schema");
 const mongoose_2 = require("@nestjs/mongoose");
-let ServiceService = class ServiceService {
+let ServiceService = ServiceService_1 = class ServiceService {
     constructor(serviceCategoryModel, serviceModel, serviceBundleModel, businessModel) {
         this.serviceCategoryModel = serviceCategoryModel;
         this.serviceModel = serviceModel;
         this.serviceBundleModel = serviceBundleModel;
         this.businessModel = businessModel;
+        this.logger = new common_1.Logger(ServiceService_1.name);
+    }
+    async onModuleInit() {
+        try {
+            this.logger.log('🔄 Running index cleanup migration...');
+            await this.serviceCategoryModel.collection.dropIndex('categoryName_1');
+            this.logger.log('✅ Successfully dropped old categoryName_1 index');
+        }
+        catch (error) {
+            if (error.code === 27 || error.codeName === 'IndexNotFound') {
+                this.logger.log('ℹ️  categoryName_1 index does not exist (already removed)');
+            }
+            else {
+                this.logger.warn('⚠️  Index cleanup warning:', error.message);
+            }
+        }
     }
     validateObjectId(id, entityName = "Entity") {
         if (!mongoose_1.Types.ObjectId.isValid(id)) {
@@ -619,7 +636,7 @@ let ServiceService = class ServiceService {
         }
     }
 };
-ServiceService = __decorate([
+ServiceService = ServiceService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(service_category_schema_1.ServiceCategory.name)),
     __param(1, (0, mongoose_2.InjectModel)(service_schema_1.Service.name)),
