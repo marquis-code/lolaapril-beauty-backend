@@ -248,19 +248,58 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({
         type: {
-            businessRegistration: String,
-            taxIdentification: String,
+            businessRegistration: {
+                number: String,
+                documentUrl: String,
+                uploadedAt: Date,
+            },
+            taxIdentification: {
+                number: String,
+                documentUrl: String,
+                uploadedAt: Date,
+            },
+            proofOfAddress: {
+                documentUrl: String,
+                uploadedAt: Date,
+            },
+            governmentId: {
+                type: { type: String, enum: ['national_id', 'passport', 'drivers_license'] },
+                number: String,
+                documentUrl: String,
+                uploadedAt: Date,
+            },
             bankAccount: {
                 accountName: String,
                 accountNumber: String,
                 bankName: String,
                 bankCode: String,
+                bankStatementUrl: String,
             },
+            kycStatus: {
+                type: String,
+                enum: ['pending', 'verified', 'rejected'],
+                default: 'pending',
+            },
+            kycVerifiedAt: Date,
+            kycVerifiedBy: { type: mongoose_2.Types.ObjectId, ref: 'User' },
+            rejectionReason: String,
         },
         default: {},
     }),
     __metadata("design:type", Object)
 ], Business.prototype, "businessDocuments", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: {
+            paystackSubaccountCode: String,
+            paystackRecipientCode: String,
+            percentageCharge: { type: Number, default: 0 },
+            subaccountCreatedAt: Date,
+        },
+        default: {},
+    }),
+    __metadata("design:type", Object)
+], Business.prototype, "paymentSettings", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)

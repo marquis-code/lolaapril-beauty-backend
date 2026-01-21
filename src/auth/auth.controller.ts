@@ -7,6 +7,7 @@ import { RegisterDto } from "./dto/register.dto"
 import { LoginDto } from "./dto/login.dto"
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto"
 import { UpdateProfileDto, ChangePasswordDto, UpdateEmailDto, UserPreferencesDto } from "./dto/update-profile.dto"
+import { ForgotPasswordDto, ResetPasswordDto, VerifyResetOTPDto } from "./dto/password-reset.dto"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 import { GoogleAuthGuard } from "./guards/google-auth.guard"
 import { RequestWithUser } from "./types/request-with-user.interface"
@@ -300,4 +301,71 @@ async addBusiness(
 ) {
   return this.authService.addBusinessToUser(user.sub, addBusinessDto)
 }
+
+  // ========== PASSWORD RESET ==========
+
+  @Public()
+  @Post('forgot-password')
+  @ApiOperation({ 
+    summary: 'Request password reset OTP',
+    description: 'Sends a 6-digit OTP to the user\'s email if the account exists (valid for 15 minutes)'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Password reset OTP sent (or account not found)',
+    schema: {
+      example: {
+        success: true,
+        message: 'If an account with that email exists, a password reset OTP has been sent.'
+      }
+    }
+  })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Public()
+  @Post('verify-reset-otp')
+  @ApiOperation({ 
+    summary: 'Verify password reset OTP',
+    description: 'Check if a 6-digit OTP is valid and not expired'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'OTP validation result',
+    schema: {
+      example: {
+        valid: true,
+        message: 'OTP is valid'
+      }
+    }
+  })
+  async verifyResetOTP(@Body() verifyOTPDto: VerifyResetOTPDto) {
+    return this.authService.verifyResetOTP(verifyOTPDto.email, verifyOTPDto.otp);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @ApiOperation({ 
+    summary: 'Reset password with valid OTP',
+    description: 'Updates the user\'s password using a valid 6-digit OTP'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Password reset successful',
+    schema: {
+      example: {
+        success: true,
+        message: 'Password has been reset successfully. Please login with your new password.'
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Invalid or expired OTP' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      resetPasswordDto.email,
+      resetPasswordDto.otp,
+      resetPasswordDto.newPassword
+    );
+  }
 }

@@ -94,14 +94,43 @@ export declare class Business {
     trialEndsAt: Date;
     activeSubscription: Types.ObjectId;
     businessDocuments: {
-        businessRegistration?: string;
-        taxIdentification?: string;
+        businessRegistration?: {
+            number?: string;
+            documentUrl?: string;
+            uploadedAt?: Date;
+        };
+        taxIdentification?: {
+            number?: string;
+            documentUrl?: string;
+            uploadedAt?: Date;
+        };
+        proofOfAddress?: {
+            documentUrl?: string;
+            uploadedAt?: Date;
+        };
+        governmentId?: {
+            type?: string;
+            number?: string;
+            documentUrl?: string;
+            uploadedAt?: Date;
+        };
         bankAccount?: {
             accountName?: string;
             accountNumber?: string;
             bankName?: string;
             bankCode?: string;
+            bankStatementUrl?: string;
         };
+        kycStatus?: string;
+        kycVerifiedAt?: Date;
+        kycVerifiedBy?: Types.ObjectId;
+        rejectionReason?: string;
+    };
+    paymentSettings: {
+        paystackSubaccountCode?: string;
+        paystackRecipientCode?: string;
+        percentageCharge?: number;
+        subaccountCreatedAt?: Date;
     };
     totalAppointments: number;
     totalRevenue: number;

@@ -37,6 +37,25 @@ let PricingService = class PricingService {
         const result = await query.exec();
         return result;
     }
+    async createFeeStructure(businessId, createDto) {
+        const existingStructure = await this.getBusinessFeeStructure(businessId);
+        if (existingStructure) {
+            await this.feeStructureModel.findByIdAndUpdate(existingStructure._id, {
+                effectiveTo: new Date()
+            });
+        }
+        const feeStructure = await this.feeStructureModel.create({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            pricingTierId: createDto.pricingTierId ? new mongoose_2.Types.ObjectId(createDto.pricingTierId) : null,
+            effectiveFrom: createDto.effectiveFrom ? new Date(createDto.effectiveFrom) : new Date(),
+            effectiveTo: createDto.effectiveTo ? new Date(createDto.effectiveTo) : null,
+            platformFeePercentage: createDto.platformFeePercentage,
+            platformFeeFixed: createDto.platformFeeFixed || 0,
+            isGrandfathered: createDto.isGrandfathered || false,
+            customRules: createDto.customRules || {}
+        });
+        return feeStructure;
+    }
     async getBusinessFeeStructure(businessId) {
         const now = new Date();
         const query = this.feeStructureModel

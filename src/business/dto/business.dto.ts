@@ -214,18 +214,85 @@ class BankAccountDto {
   @IsOptional()
   @IsString()
   bankCode?: string;
+
+  @ApiPropertyOptional({ description: 'URL to uploaded bank statement for verification' })
+  @IsOptional()
+  @IsString()
+  bankStatementUrl?: string;
+}
+
+class BusinessRegistrationDto {
+  @ApiPropertyOptional({ description: 'Business registration number' })
+  @IsOptional()
+  @IsString()
+  number?: string;
+
+  @ApiPropertyOptional({ description: 'URL to uploaded business registration certificate' })
+  @IsOptional()
+  @IsString()
+  documentUrl?: string;
+}
+
+class TaxIdentificationDto {
+  @ApiPropertyOptional({ description: 'Tax identification number' })
+  @IsOptional()
+  @IsString()
+  number?: string;
+
+  @ApiPropertyOptional({ description: 'URL to uploaded tax certificate' })
+  @IsOptional()
+  @IsString()
+  documentUrl?: string;
+}
+
+class ProofOfAddressDto {
+  @ApiPropertyOptional({ description: 'URL to utility bill or bank statement as proof of address' })
+  @IsOptional()
+  @IsString()
+  documentUrl?: string;
+}
+
+class GovernmentIdDto {
+  @ApiPropertyOptional({ enum: ['national_id', 'passport', 'drivers_license'] })
+  @IsOptional()
+  @IsEnum(['national_id', 'passport', 'drivers_license'])
+  type?: string;
+
+  @ApiPropertyOptional({ description: 'ID number' })
+  @IsOptional()
+  @IsString()
+  number?: string;
+
+  @ApiPropertyOptional({ description: 'URL to uploaded government ID document' })
+  @IsOptional()
+  @IsString()
+  documentUrl?: string;
 }
 
 class BusinessDocumentsDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: BusinessRegistrationDto })
   @IsOptional()
-  @IsString()
-  businessRegistration?: string;
+  @ValidateNested()
+  @Type(() => BusinessRegistrationDto)
+  businessRegistration?: BusinessRegistrationDto;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: TaxIdentificationDto })
   @IsOptional()
-  @IsString()
-  taxIdentification?: string;
+  @ValidateNested()
+  @Type(() => TaxIdentificationDto)
+  taxIdentification?: TaxIdentificationDto;
+
+  @ApiPropertyOptional({ type: ProofOfAddressDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ProofOfAddressDto)
+  proofOfAddress?: ProofOfAddressDto;
+
+  @ApiPropertyOptional({ type: GovernmentIdDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => GovernmentIdDto)
+  governmentId?: GovernmentIdDto;
 
   @ApiPropertyOptional({ type: BankAccountDto })
   @IsOptional()

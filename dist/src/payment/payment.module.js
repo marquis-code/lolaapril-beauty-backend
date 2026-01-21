@@ -21,11 +21,16 @@ const integration_module_1 = require("../integration/integration.module");
 const jobs_module_1 = require("../jobs/jobs.module");
 const cache_module_1 = require("../cache/cache.module");
 const pricing_module_1 = require("../pricing/pricing.module");
+const business_module_1 = require("../business/business.module");
 let PaymentModule = class PaymentModule {
 };
 PaymentModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: payment_schema_1.Payment.name, schema: payment_schema_1.PaymentSchema }, { name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema }]),
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: payment_schema_1.Payment.name, schema: payment_schema_1.PaymentSchema },
+                { name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema }
+            ]),
             config_1.ConfigModule,
             (0, common_1.forwardRef)(() => notification_module_1.NotificationModule),
             audit_module_1.AuditModule,
@@ -34,6 +39,7 @@ PaymentModule = __decorate([
             integration_module_1.IntegrationModule,
             jobs_module_1.JobsModule,
             cache_module_1.CacheModule,
+            business_module_1.BusinessModule,
         ],
         controllers: [payment_controller_1.PaymentController],
         providers: [payment_service_1.PaymentService],

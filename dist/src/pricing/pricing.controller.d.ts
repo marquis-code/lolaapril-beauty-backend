@@ -26,6 +26,7 @@
 /// <reference types="mongoose/types/inferrawdoctype" />
 import { PricingService } from './pricing.service';
 import { CreatePricingTierDto } from './dto/create-pricing-tier.dto';
+import { CreateFeeStructureDto } from './dto/create-fee-structure.dto';
 export declare class PricingController {
     private readonly pricingService;
     constructor(pricingService: PricingService);
@@ -52,6 +53,11 @@ export declare class PricingController {
         effectiveFrom: Date;
         effectiveTo?: Date;
         isGrandfathered: boolean;
+    }>;
+    createFeeStructure(businessId: string, createDto: CreateFeeStructureDto): Promise<import("mongoose").Document<unknown, {}, import("./schemas/fee-structure.schema").FeeStructureDocument, {}, {}> & import("./schemas/fee-structure.schema").FeeStructure & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
     }>;
     calculateFees(businessId: string, amount: number): Promise<{
         bookingAmount: number;

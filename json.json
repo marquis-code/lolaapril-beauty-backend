@@ -1,0 +1,3053 @@
+{
+  "services": [
+{
+  "basicDetails": {
+    "serviceName": "Dear Wife Series",
+    "serviceType": "Spa Package",
+    "category": "6970bb8b16e216f6d1aa4e61",
+    "description": "A Mother's Day Package for your Dear Wife. We welcome her with a refreshing drink and a relaxing spa experience."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 80000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 2,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "2h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Dear Wife: You're Super!",
+      "variantDescription": "2-hour spa package designed for your super wife",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 80000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "Dear Wife: You're Amazing!",
+      "variantDescription": "2-hour 45-minute spa package for your amazing wife",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 127000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "Dear Wife: You're Premium!",
+      "variantDescription": "4-hour 30-minute premium spa experience",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 148000
+        },
+        "duration": {
+          "value": 4,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Dear Mum Series",
+    "serviceType": "Spa Package",
+    "category": "6970bb8b16e216f6d1aa4e61",
+    "description": "A Mother's Day Experience for your Dear Mum. Includes Infrared Therapy (IR) to relieve joint and muscle pain, improve circulation, and promote relaxation."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 72500
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 2,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "2h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Dear Mum: You're Amazing!",
+      "variantDescription": "2-hour spa experience for your amazing mum",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 72500
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "Dear Mum: You're Special",
+      "variantDescription": "2-hour 45-minute special spa package",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 130000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "Dear Mum: You're The Best!",
+      "variantDescription": "3-hour 45-minute ultimate spa experience",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 167500
+        },
+        "duration": {
+          "value": 3,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "Infrared Therapy",
+      "variantDescription": "1-hour standalone infrared therapy session",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 30000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "THE KUNLE REMI (KR) PACKAGE",
+    "serviceType": "Spa Package",
+    "category": "6970bb8c16e216f6d1aa4e64",
+    "description": "An exclusive Spa experience enjoyed by Kunle Remi and shared with you! Perfect for couples or friends seeking a premium wellness experience."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 260000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 5,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "5h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Couples Refresh",
+    "serviceType": "Spa Package",
+    "category": "6970bb8c16e216f6d1aa4e64",
+    "description": "A time out for couples to refresh their skin through the detoxifying and exfoliating benefits of our spa treatments."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 200000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    },
+    "extraTimeOptions": {
+      "processingTime": "3 services included"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Couples Day Spa",
+    "serviceType": "Spa Package",
+    "category": "6970bb8c16e216f6d1aa4e64",
+    "description": "Facial can be replaced with Body scrub/polish + Sauna. Treatment can be upgraded to Mandelic & Azelaic Peel or Hydrating & Brightening Treatment."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 238000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "totalDuration": "1h 30min"
+    },
+    "extraTimeOptions": {
+      "processingTime": "4 services included"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Couples Treat",
+    "serviceType": "Spa Package",
+    "category": "6970bb8c16e216f6d1aa4e64",
+    "description": "A special treat package for couples featuring massage and pedicure services."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 166000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 2,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "totalDuration": "2h 30min"
+    },
+    "extraTimeOptions": {
+      "processingTime": "2 services included"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Self Care (Solo Package)",
+    "serviceType": "Spa Package",
+    "category": "6970bb8c16e216f6d1aa4e64",
+    "description": "A comprehensive solo spa package for ultimate self-care and relaxation."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 130000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 3,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 50,
+        "unit": "min"
+      },
+      "totalDuration": "3h 50min"
+    },
+    "extraTimeOptions": {
+      "processingTime": "4 services included"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "PAMPER ME PLEASE",
+    "serviceType": "Spa Package",
+    "category": "6970bb8c16e216f6d1aa4e67",
+    "description": "Sauna - Rose-Berry Milk or Citrus Boost body Soak - 1hr Full Body Massage (Swedish)"
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 80000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 2,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "2h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "PAMPER ME PLEASE",
+      "variantDescription": "Sauna - Rose-Berry Milk or Citrus Boost body Soak - 1hr Full Body Massage (Swedish)",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 80000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "PMP+ Add on Pedicure",
+      "variantDescription": "PAMPER ME PLEASE package with additional pedicure service",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 97000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      },
+      "settings": {
+        "sku": "PMP-PEDICURE"
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Terahertz Therapy",
+    "serviceType": "Massage Therapy",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Advanced terahertz wave therapy for pain relief and wellness."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 30000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Terahertz Therapy",
+      "variantDescription": "30-minute terahertz therapy session",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 30000
+        },
+        "duration": {
+          "value": 30,
+          "unit": "min"
+        }
+      }
+    },
+    {
+      "variantName": "Terahertz Therapy",
+      "variantDescription": "1-hour terahertz therapy session",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 60000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Infrared Light Therapy (Add-on to any Massage)",
+    "serviceType": "Massage Add-on",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Infrared light penetrates about 2-7cm deep, reaching the muscles, nerves and bones. Perfect add-on to enhance any massage therapy."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 20000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Recover (Classic European Massage)",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Recover offers a soothing soft-tissue massage designed to alleviate stress and mild aches in the body by using long, flowing strokes with medium pressure."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 30000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Pick me up",
+      "variantDescription": "30-minute quick recovery massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 30000
+        },
+        "duration": {
+          "value": 30,
+          "unit": "min"
+        }
+      }
+    },
+    {
+      "variantName": "Classic",
+      "variantDescription": "1-hour classic European massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 50000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "A little longer",
+      "variantDescription": "1-hour 30-minute extended massage session",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 68000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "Recover Together (For two)",
+      "variantDescription": "1-hour 30-minute couples massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 130000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour ultimate relaxation massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 100000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Deep Tissue Massage",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Deep Tissue Massage is particularly beneficial for individuals involved in rigorous physical activities, targeting chronic muscle tension with firm pressure."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 75000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Classic",
+      "variantDescription": "1-hour deep tissue massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 75000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "A little longer",
+      "variantDescription": "1-hour 30-minute extended deep tissue massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 90000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour comprehensive deep tissue massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 145000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "LA Signature Massage",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Experience the perfect blend of relaxation and therapeutic relief with our Signature Massage, combining deep tissue and Swedish techniques."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 65000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Classic",
+      "variantDescription": "1-hour signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 65000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "A little longer",
+      "variantDescription": "1-hour 30-minute extended signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 80000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "For me & mine (Classic)",
+      "variantDescription": "1-hour couples signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 130000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "For me & mine (a little longer)",
+      "variantDescription": "1-hour 30-minute couples signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 160000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour ultimate signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 95000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "For me and mine (All the time)",
+      "variantDescription": "2-hour couples signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 190000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Terahertz Therapy",
+    "serviceType": "Massage Therapy",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Advanced terahertz wave therapy for pain relief and wellness."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 30000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Terahertz Therapy",
+      "variantDescription": "30-minute terahertz therapy session",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 30000
+        },
+        "duration": {
+          "value": 30,
+          "unit": "min"
+        }
+      }
+    },
+    {
+      "variantName": "Terahertz Therapy",
+      "variantDescription": "1-hour terahertz therapy session",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 60000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Infrared Light Therapy (Add-on to any Massage)",
+    "serviceType": "Massage Add-on",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Infrared light penetrates about 2-7cm deep, reaching the muscles, nerves and bones. Perfect add-on to enhance any massage therapy."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 20000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Recover (Classic European Massage)",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Recover offers a soothing soft-tissue massage designed to alleviate stress and mild aches in the body by using long, flowing strokes with medium pressure."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 30000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Pick me up",
+      "variantDescription": "30-minute quick recovery massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 30000
+        },
+        "duration": {
+          "value": 30,
+          "unit": "min"
+        }
+      }
+    },
+    {
+      "variantName": "Classic",
+      "variantDescription": "1-hour classic European massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 50000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "A little longer",
+      "variantDescription": "1-hour 30-minute extended massage session",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 68000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "Recover Together (For two)",
+      "variantDescription": "1-hour 30-minute couples massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 130000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour ultimate relaxation massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 100000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Deep Tissue Massage",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Deep Tissue Massage is particularly beneficial for individuals involved in rigorous physical activities, targeting chronic muscle tension with firm pressure."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 75000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Classic",
+      "variantDescription": "1-hour deep tissue massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 75000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "A little longer",
+      "variantDescription": "1-hour 30-minute extended deep tissue massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 90000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour comprehensive deep tissue massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 145000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "LA Signature Massage",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Experience the perfect blend of relaxation and therapeutic relief with our Signature Massage, combining deep tissue and Swedish techniques."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 65000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Classic",
+      "variantDescription": "1-hour signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 65000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "A little longer",
+      "variantDescription": "1-hour 30-minute extended signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 80000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "For me & mine (Classic)",
+      "variantDescription": "1-hour couples signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 130000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "For me & mine (a little longer)",
+      "variantDescription": "1-hour 30-minute couples signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 160000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour ultimate signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 95000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "For me and mine (All the time)",
+      "variantDescription": "2-hour couples signature massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 190000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Aromatherapy Massage",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Indulge in our Aromatherapy Massage, where the therapeutic benefits of essential oils elevate your relaxation experience."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 65000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Classic",
+      "variantDescription": "1-hour aromatherapy massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 65000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "A little longer",
+      "variantDescription": "1-hour 30-minute aromatherapy massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 80000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "For me and mine",
+      "variantDescription": "1-hour 30-minute couples aromatherapy massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 160000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour aromatherapy massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 130000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Hot or Cold Stone Massage Therapy",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Stone massage is a thermotherapy treatment designed to induce a profound state of relaxation and rejuvenation for your body and mind."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 100000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "totalDuration": "1h 30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Hot or Cold Stone Massage",
+      "variantDescription": "1-hour 30-minute stone massage therapy",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 100000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour stone massage therapy",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 135000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Mom-to-Be Massage",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "Light massage for pregnant women in their 2nd-3rd trimester to ease pregnancy discomforts like swelling, back pain, and tension."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 60000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  },
+  "variants": [
+    {
+      "variantName": "Classic",
+      "variantDescription": "1-hour prenatal massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 60000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "All the time I need",
+      "variantDescription": "2-hour prenatal massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 120000
+        },
+        "duration": {
+          "value": 2,
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "variantName": "A little longer",
+      "variantDescription": "1-hour 30-minute prenatal massage",
+      "pricing": {
+        "priceType": "Fixed",
+        "price": {
+          "currency": "NGN",
+          "amount": 90000
+        },
+        "duration": {
+          "value": 1,
+          "unit": "h"
+        }
+      }
+    }
+  ]
+},
+{
+  "basicDetails": {
+    "serviceName": "Chair Massage",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "This rejuvenating mobile massage is crafted to revitalize you during moments of waiting, providing quick relief and relaxation."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 10000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 10,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "10min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Head Massage",
+    "serviceType": "Massage",
+    "category": "6970bb8d16e216f6d1aa4e6a",
+    "description": "To alleviate symptoms of tension, headaches, migraines, and stress while promoting healthy hair growth and overall relaxation."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 10000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 10,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "10min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Consultation",
+    "serviceType": "Facial",
+    "category": "6970bb8e16e216f6d1aa4e73",
+    "description": "Our Consultation Session offers an in-depth skin analysis conducted by a licensed esthetician to determine the best treatment plan for your unique skin needs."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 30000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Illuminating Facial",
+    "serviceType": "Facial",
+    "category": "6970bb8e16e216f6d1aa4e73",
+    "description": "This facial nourishes and pampers your skin, as well as cleansing it thoroughly, leaving you with a radiant, glowing complexion."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 30000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 45,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "45min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Illuminating Dermaplane Facial",
+    "serviceType": "Facial",
+    "category": "6970bb8e16e216f6d1aa4e73",
+    "description": "This includes a brightening facial and dermaplaning to eliminate vellus hairs and dead skin for smoother, brighter skin."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 45000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Dermaplaning",
+    "serviceType": "Facial",
+    "category": "6970bb8e16e216f6d1aa4e73",
+    "description": "Excellent for the removal of fine vellus hairs and the exfoliation of dead skin buildup for a smoother complexion."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 15000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 15,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "15min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "LA Signature Facial",
+    "serviceType": "Facial",
+    "category": "6970bb8e16e216f6d1aa4e73",
+    "description": "Indulge in our Signature Facial, great for a regular pick-me-up and maintenance facial to keep your skin healthy and glowing."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 38000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Gentleman's Treat",
+    "serviceType": "Facial",
+    "category": "6970bb8e16e216f6d1aa4e73",
+    "description": "Research shows that men may need regular facials more than women, owing to thicker skin and larger pores. This treatment addresses men's specific skincare needs."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 38000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 45,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "45min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Hydroboost Facial",
+    "serviceType": "Facial",
+    "category": "6970bb8e16e216f6d1aa4e73",
+    "description": "Hydrating Facial is designed to soothe skin sensitivity and irritations by stopping the bacteria that cause breakouts and inflammation."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 30000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Classic Manicure",
+    "serviceType": "Manicure",
+    "category": "6970bb8e16e216f6d1aa4e70",
+    "description": "Traditional manicure including cuticle care, filing, hand exfoliation, followed by a moisturizing hand massage and polish application."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 10000,
+      "minimumAmount": 10000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min - 1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    },
+    "generalSettings": {
+      "note": "Duration varies based on selected polish type"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "TNC Signature Manicure",
+    "serviceType": "Manicure",
+    "category": "6970bb8e16e216f6d1aa4e70",
+    "description": "Our spa manicure is a refreshing hand treatment, featuring a lavish organic hand soak, gentle exfoliation, and a soothing massage with warm towels."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 15000,
+      "minimumAmount": 15000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h - 1h 15min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Hot Stone Manicure",
+    "serviceType": "Manicure",
+    "category": "6970bb8e16e216f6d1aa4e70",
+    "description": "Spa manicure using heated basalt stones to provide deep relaxation, ease muscle tension, and improve circulation in the hands."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 18000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "totalDuration": "1h 30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Khalav & Dvash Manicure(Goat Milk&Honey)",
+    "serviceType": "Manicure",
+    "category": "6970bb8e16e216f6d1aa4e70",
+    "description": "Milk and Honey are an ancient beauty ritual for soft, brighter and glowing skin. This luxurious treatment nourishes and rejuvenates hands."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 15000,
+      "minimumAmount": 15000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 15,
+        "unit": "min"
+      },
+      "totalDuration": "1h 15min - 1h 45min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Hot Oil Manicure",
+    "serviceType": "Manicure",
+    "category": "6970bb8e16e216f6d1aa4e70",
+    "description": "Hot oil Manicure is the most luxurious hand treatment all over the world. We use warm essential oils to deeply moisturize and condition hands and cuticles."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 27000,
+      "minimumAmount": 27000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "totalDuration": "1h 30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Jelly Treatment (Add-on service)",
+    "serviceType": "Manicure Add-on",
+    "category": "6970bb8e16e216f6d1aa4e70",
+    "description": "Jelly enhances the toxin removal from the skin, and softens the skin. Jelly helps to heal dry skin and soothes sore and tired muscles."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 6000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 20,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "20min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Paraffin Treatment ( Add-on Service)",
+    "serviceType": "Manicure Add-on",
+    "category": "6970bb8e16e216f6d1aa4e70",
+    "description": "This treatment uses paraffin wax therapy and aromatherapy to relive muscle tension and deeply moisturize the skin."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 6000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 20,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "20min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Polish Service",
+    "serviceType": "Manicure",
+    "category": "6970bb8e16e216f6d1aa4e70",
+    "description": "Nail polish application service only."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Free",
+    "price": {
+      "currency": "NGN",
+      "amount": 0
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 25,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "25min - 50min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Classic Pedicure",
+    "serviceType": "Pedicure",
+    "category": "6970bb8d16e216f6d1aa4e6d",
+    "description": "Our Classic Pedicure is a quick treatment that pampers your feet with a soothing foot soak, nail care, and polish application."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 12500
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "TNC Signature Pedicure",
+    "serviceType": "Pedicure",
+    "category": "6970bb8d16e216f6d1aa4e6d",
+    "description": "Immerse yourself in our spa pedicure featuring a lavish organic foot soak, meticulous exfoliation, and a rejuvenating massage with warm towels."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 18000,
+      "minimumAmount": 18000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h - 1h 20min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Royal Feet",
+    "serviceType": "Pedicure",
+    "category": "6970bb8d16e216f6d1aa4e6d",
+    "description": "Super luxurious treatment that includes all the benefits of our signature pedicure plus hot stone massage and paraffin treatment."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 33500
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 2,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "2h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Hot Stone Pedicure",
+    "serviceType": "Pedicure",
+    "category": "6970bb8d16e216f6d1aa4e6d",
+    "description": "Premium pedicure infused with heated or cooled basalt stones to deliver profound relaxation and therapeutic benefits."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 25000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "totalDuration": "1h 30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Khalav & Dvash Pedicure (Goat Milk& Honey)",
+    "serviceType": "Pedicure",
+    "category": "6970bb8d16e216f6d1aa4e6d",
+    "description": "Milk and Honey are an ancient beauty ritual for soft, brighter and glowing skin. This treatment brings luxury to your feet."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 18000,
+      "minimumAmount": 18000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 15,
+        "unit": "min"
+      },
+      "totalDuration": "1h 15min - 1h 45min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Gel Polish Removal",
+    "serviceType": "Pedicure",
+    "category": "6970bb8d16e216f6d1aa4e6d",
+    "description": "Removal of Gel Polish on Natural nails"
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 4000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Jelly Treatment (Add-on service)",
+    "serviceType": "Pedicure Add-on",
+    "category": "6970bb8d16e216f6d1aa4e6d",
+    "description": "Jelly enhances the toxin removal from the skin, and softens the skin. Jelly helps to heal dry skin and soothes sore and tired feet."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 6000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 20,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "20min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Paraffin Treatment ( Add-on Service)",
+    "serviceType": "Pedicure Add-on",
+    "category": "6970bb8d16e216f6d1aa4e6d",
+    "description": "This treatment uses wax therapy and aromatherapy to relive muscle tension and deeply moisturize feet."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 6000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 20,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "20min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Mandelic & Azelaic Peel",
+    "serviceType": "Treatment",
+    "category": "6970bb8e16e216f6d1aa4e76",
+    "description": "Excellent for skin resurfacing, acne management, pigmentation issues including melasma and post-inflammatory hyperpigmentation."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 55000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 45,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "45min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Hydrating & Brightening Treatment",
+    "serviceType": "Treatment",
+    "category": "6970bb8e16e216f6d1aa4e76",
+    "description": "Lactic acid is shown to inhibit tyrosinase enzyme activity directly, so it is a key performer in brightening treatments for hyperpigmentation."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 55000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 45,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "45min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "BIRTHDAY RADIANCE TREAT",
+    "serviceType": "Spa Package",
+    "category": "6970bb8f16e216f6d1aa4e79",
+    "description": "Signature Massage (1hr) - Signature Pedicure - Illuminating Facials. A perfect combination to make your birthday celebration memorable."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 113000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 2,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 45,
+        "unit": "min"
+      },
+      "totalDuration": "2h 45min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "IMPERIAL BIRTHDAY DELIGHT",
+    "serviceType": "Spa Package",
+    "category": "6970bb8f16e216f6d1aa4e79",
+    "description": "LA Signature Massage (1hr) - Jelly Pedicure - Signature Manicure - Sauna - Body Scrub/Polish. The ultimate birthday pampering experience."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 154000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 5,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "5h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "GENTLEMAN'S SELF-CARE",
+    "serviceType": "Spa Package",
+    "category": "6970bb8f16e216f6d1aa4e7c",
+    "description": "Deep Tissue Massage (1hr) - TNC Signature Pedicure - Sauna. Designed specifically for men's wellness needs."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 108000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 2,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 15,
+        "unit": "min"
+      },
+      "totalDuration": "2h 15min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "GENTLEMAN'S SELFCARE UPGRADE",
+    "serviceType": "Spa Package",
+    "category": "6970bb8f16e216f6d1aa4e7c",
+    "description": "Sauna - Deep Tissue 1hr - TNC Signature Pedicure - Gentleman's Facial. The complete self-care package for men."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 146000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 3,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 15,
+        "unit": "min"
+      },
+      "totalDuration": "3h 15min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Zen Nook",
+    "serviceType": "Lodging",
+    "category": "6970bb9016e216f6d1aa4e7f",
+    "description": "Step into our cozy deluxe BnB room, where simplicity meets comfort seamlessly. Perfect for a peaceful overnight stay."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 15000,
+      "minimumAmount": 15000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min - 12h"
+    },
+    "extraTimeOptions": {
+      "processingTime": "Flexible duration based on booking"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Imperial Suite",
+    "serviceType": "Lodging",
+    "category": "6970bb9016e216f6d1aa4e7f",
+    "description": "Transform your getaway into a lavish retreat in our exclusive Imperial Room, where luxury and tranquility blend seamlessly."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 15000,
+      "minimumAmount": 15000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min - 12h"
+    },
+    "extraTimeOptions": {
+      "processingTime": "Flexible duration based on booking"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Bliss",
+    "serviceType": "Spa Package",
+    "category": "6970bb9016e216f6d1aa4e82",
+    "description": "Elevate your physical and emotional health by indulging in a warm, cozy bath, gentle massage, and soothing facial designed for expecting mothers."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 110000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 2,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "totalDuration": "2h 30min"
+    },
+    "extraTimeOptions": {
+      "processingTime": "3 services included"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "LA Signature Exfoliation",
+    "serviceType": "Body Treatment",
+    "category": "6970bb9016e216f6d1aa4e85",
+    "description": "Revitalize your skin with our Full Body Clarifying Scrub Treatment. This invigorating experience exfoliates and smoothens your entire body."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 20000,
+      "minimumAmount": 20000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 1,
+        "unit": "h"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "1h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Rose-Berry Body Polish",
+    "serviceType": "Body Treatment",
+    "category": "6970bb9016e216f6d1aa4e85",
+    "description": "This hydrating body polish infuses the brightening properties of rose and berries to nourish and rejuvenate your skin."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 20000,
+      "minimumAmount": 20000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 40,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "40min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Sauna",
+    "serviceType": "Body Treatment",
+    "category": "6970bb9016e216f6d1aa4e85",
+    "description": "Experience the transformative power of our Infrared Sauna. Detoxify, boost circulation, and unwind as the gentle heat works its magic."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 15000,
+      "minimumAmount": 15000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 20,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "20min - 30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Citrus bath",
+    "serviceType": "Bath Soak",
+    "category": "6970bb9116e216f6d1aa4e88",
+    "description": "Dive into the revitalizing Citrus Bath, where the zesty blend of citrus fruits not only invigorates your senses but also nourishes your skin."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 15000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Rose-Berry Milk Soak",
+    "serviceType": "Bath Soak",
+    "category": "6970bb9116e216f6d1aa4e88",
+    "description": "A decadent fusion of floral bliss and nourishing hydration. Immerse yourself in the luxurious blend of roses and berries with milk."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 20000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Royal Treatment",
+    "serviceType": "Bath Soak",
+    "category": "6970bb9116e216f6d1aa4e88",
+    "description": "Exfoliating Body scrub and Mask Treatment - 60 mins European Massage - Paraffin Hand Treatment - Your choice of Bath Soak."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "From",
+    "price": {
+      "currency": "NGN",
+      "amount": 91000,
+      "minimumAmount": 91000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 20,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "20min - 3h"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+},
+{
+  "basicDetails": {
+    "serviceName": "Acne Treatment",
+    "serviceType": "Treatment",
+    "category": "6970bb9116e216f6d1aa4e8b",
+    "description": "Lunch peel to reduce sebum production in the back and unclog the pores. For all skin types including sensitive skin."
+  },
+  "teamMembers": {
+    "allTeamMembers": true,
+    "selectedMembers": []
+  },
+  "pricingAndDuration": {
+    "priceType": "Fixed",
+    "price": {
+      "currency": "NGN",
+      "amount": 50000
+    },
+    "duration": {
+      "servicingTime": {
+        "value": 30,
+        "unit": "min"
+      },
+      "processingTime": {
+        "value": 0,
+        "unit": "min"
+      },
+      "totalDuration": "30min"
+    }
+  },
+  "settings": {
+    "onlineBooking": {
+      "enabled": true,
+      "availableFor": "All clients"
+    }
+  }
+}
+  ]
+}

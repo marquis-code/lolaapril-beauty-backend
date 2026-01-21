@@ -185,7 +185,12 @@ async getBookings(query: GetBookingsDto & { businessId: string }): Promise<{
   }
 
   if (query.status) {
-    filter.status = query.status
+    // Handle both single status string and array of statuses
+    if (Array.isArray(query.status)) {
+      filter.status = { $in: query.status }
+    } else {
+      filter.status = query.status
+    }
   }
 
   if (query.startDate && query.endDate) {
@@ -496,15 +501,95 @@ async getUpcomingBookings(
     this.logger.log(`Booking ${booking?.bookingNumber} cancelled: ${reason}`)
   }
 
+  async rescheduleBooking(
+    bookingId: string,
+    newPreferredDate: Date,
+    newPreferredStartTime: string,
+    reason?: string,
+    rescheduledBy?: string
+  ): Promise<BookingDocument> {
+    const bookingDoc = await this.bookingModel.findById(bookingId).exec()
+
+    if (!bookingDoc) {
+      throw new NotFoundException('Booking not found')
+    }
+
+    if (['cancelled', 'expired', 'completed'].includes(bookingDoc.status)) {
+      throw new BadRequestException(
+        `Cannot reschedule booking with status: ${bookingDoc.status}`
+      )
+    }
+
+    // Calculate new estimated end time based on total duration
+    const totalDuration = bookingDoc.totalDuration || 60
+    const [hours, minutes] = newPreferredStartTime.split(':').map(Number)
+    const startDate = new Date(newPreferredDate)
+    startDate.setHours(hours, minutes, 0, 0)
+    const endDate = new Date(startDate.getTime() + totalDuration * 60000)
+    const newEstimatedEndTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`
+
+    // Store old date/time for history
+    const oldDate = bookingDoc.preferredDate
+    const oldTime = bookingDoc.preferredStartTime
+
+    // Update booking with new schedule
+    bookingDoc.preferredDate = newPreferredDate
+    bookingDoc.preferredStartTime = newPreferredStartTime
+    bookingDoc.estimatedEndTime = newEstimatedEndTime
+    bookingDoc.updatedAt = new Date()
+
+    if (rescheduledBy) {
+      bookingDoc.processedBy = new Types.ObjectId(rescheduledBy)
+    }
+
+    await bookingDoc.save()
+
+    // Fetch updated booking for return
+    const booking = await this.bookingModel
+      .findById(bookingId)
+      .lean<BookingDocument>()
+      .exec()
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found after update')
+    }
+
+    // Emit rescheduled event
+    this.eventEmitter.emit('booking.rescheduled', {
+      booking,
+      oldDate,
+      oldTime,
+      newDate: newPreferredDate,
+      newTime: newPreferredStartTime,
+      reason
+    })
+
+    this.logger.log(
+      `Booking ${booking.bookingNumber} rescheduled from ${oldDate.toISOString().split('T')[0]} ${oldTime} to ${newPreferredDate.toISOString().split('T')[0]} ${newPreferredStartTime}`
+    )
+
+    return booking
+  }
 
   async getClientBookings(clientId: string, status?: string): Promise<BookingDocument[]> {
+    console.log('🔍 [GET CLIENT BOOKINGS] Searching for clientId:', clientId)
+    console.log('🔍 [GET CLIENT BOOKINGS] Status filter:', status)
+    
     const filter: any = {
       clientId: new Types.ObjectId(clientId)
     }
 
+    // If status is provided, filter by it, otherwise return all bookings for the client
     if (status) {
-      filter.status = status
+      if (Array.isArray(status)) {
+        filter.status = { $in: status }
+      } else {
+        filter.status = status
+      }
     }
+    // No else clause - return all bookings regardless of status when no filter provided
+
+    console.log('🔍 [GET CLIENT BOOKINGS] Filter:', JSON.stringify(filter, null, 2))
 
     const bookings = await this.bookingModel
       .find(filter)
@@ -513,6 +598,34 @@ async getUpcomingBookings(
       .sort({ createdAt: -1 })
       .lean<BookingDocument[]>()
       .exec()
+
+    console.log('✅ [GET CLIENT BOOKINGS] Found bookings:', bookings.length)
+    if (bookings.length > 0) {
+      bookings.forEach((booking, index) => {
+        console.log(`📋 Booking ${index + 1}:`, {
+          bookingNumber: booking.bookingNumber,
+          status: booking.status,
+          clientId: booking.clientId.toString(),
+          amount: booking.estimatedTotal,
+          date: booking.preferredDate
+        })
+      })
+    } else {
+      console.log('⚠️ [GET CLIENT BOOKINGS] No bookings found for clientId:', clientId)
+      
+      // Debug: Check all bookings in DB to help troubleshoot
+      const allBookings = await this.bookingModel
+        .find()
+        .select('clientId bookingNumber status')
+        .limit(10)
+        .lean()
+        .exec()
+      
+      console.log('🔍 [DEBUG] Sample bookings in database:')
+      allBookings.forEach(b => {
+        console.log(`  - ${b.bookingNumber}: clientId=${b.clientId.toString()}, status=${(b as any).status}`)
+      })
+    }
 
     return bookings
   }

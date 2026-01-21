@@ -1,0 +1,1731 @@
+
+> lola-april-backend@1.0.0 start:dev
+> nest start --watch
+
+c[[90m10:44:11 PM[0m] Starting compilation in watch mode...
+
+[[90m10:44:25 PM[0m] Found 0 errors. Watching for file changes.
+
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"googleId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"facebookId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"subdomain":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"businessId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"paymentReference":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"bookingNumber":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"code":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"saleNumber":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"businessId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"voucherCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"date":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"tenantId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"tenantId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"domain":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"tenantId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:15686) [MONGOOSE] Warning: Duplicate schema index on {"widgetId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+🚀 Application Module Initialized
+📅 Startup Time: 2026-01-21T06:44:30.849Z
+🌍 Environment: development
+📍 Node Version: v25.3.0
+════════════════════════════════════════════════════════════════════════════════
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRedisModule dependencies initialized[39m[38;5;3m +33ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMulterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMulterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mWinstonModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mThrottlerModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDiscoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+🔴 Redis Configuration:
+   Host: redis-12686.c270.us-east-1-3.ec2.cloud.redislabs.com
+   Port: 12686
+   Username: default
+   Password: ***
+   TLS: disabled
+🔴 Cache Module - Redis Configuration:
+   Host: redis-12686.c270.us-east-1-3.ec2.cloud.redislabs.com
+   Port: 12686
+   Username: default
+   Password: ✓ Set
+   REDIS_TLS: false
+   Using TLS: false
+   Environment: development
+   ✅ TLS disabled (not added to socket config)
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m🔴 Initializing Redis Cache Service[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m   Host: redis-12686.c270.us-east-1-3.ec2.cloud.redislabs.com[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m   Port: 12686[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m   Username: default[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m   Password: ✓ Set[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m   TLS Explicitly Set: false[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m   Using TLS: false[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m   Is Redis Cloud: true[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m   Environment: development[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +5ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEventEmitterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mBullModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEventEmitterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEventEmitterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCacheModule dependencies initialized[39m[38;5;3m +12ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMonitoringModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mBullModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRateLimiterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRedisCoreModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mIntegrationModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUploadModule dependencies initialized[39m[38;5;3m +6ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:30 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mBullModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:31 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m✅ Redis client connected successfully[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:31 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCacheModule dependencies initialized[39m[38;5;3m +314ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:32 PM [32m    LOG[39m [38;5;3m[CacheService] [39m[32m✅ Redis client ready to receive commands[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseCoreModule dependencies initialized[39m[38;5;3m +3056ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMigrationsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuditModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mServiceModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPricingModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSubscriptionModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSettingsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mReportsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSupportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMarketplaceModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mWebhookModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJobsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCommissionModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mBusinessModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mNotificationModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppointmentModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mStaffModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAnalyticsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSalesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTeamModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVoucherModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMembershipModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAvailabilityModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPaymentModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mBrandingModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mClientModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mBookingModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCancellationModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RealtimeGateway] [39m[32m🚀 WebSocket Gateway Initialized[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRealtimeGateway subscribed to the "chat:join-room" message[39m[38;5;3m +15ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRealtimeGateway subscribed to the "chat:leave-room" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRealtimeGateway subscribed to the "chat:send-message" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRealtimeGateway subscribed to the "chat:typing" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mRealtimeGateway subscribed to the "chat:read-messages" message[39m[38;5;3m +0ms[39m
+⚙️  Configuring middleware...
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +3ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/google, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/google/callback, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/google/token, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/business/register, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/business/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/register, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/logout, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/profile, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/refresh, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/profile, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/preferences, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/change-password, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/email, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/account, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/business/context, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/business/info, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/switch-business, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/businesses, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/clear-business-context, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/business/add, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mBusinessController {/businesses}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/check-subdomain, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/subdomain/:subdomain, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/:id/staff, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/:id/staff/:staffId, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/:id/admin/:adminId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/:id/admin/:adminId, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/:id/settings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/businesses/:id/settings, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUploadController {/upload}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/upload/image, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/upload/images, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/upload/document, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/upload/image/:publicId, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mClientController {/clients}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients/enable-grok-code-fast-1, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients/export/csv, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients/export/pdf, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients/import/csv, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/clients/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mServiceController {/services}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/categories, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/categories, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/categories/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/bundles, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/bundles, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/bundles/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/bundles/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/:id/variants, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/services/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppointmentController {/appointments}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/available-slots/:date, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/by-date/:date, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/by-staff/:staffId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/:id/assign-staff, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/appointments/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPaymentController {/payments}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/initialize, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/verify/:reference, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/webhook, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/:reference/refund, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/:id/refund, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/payments/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mNotificationController {/notifications}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/notifications/templates/:businessId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/notifications/logs/:businessId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/notifications/preferences, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/notifications/preferences/:userId/:businessId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/notifications/send-custom, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/notifications/templates, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/notifications/templates/:templateId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/notifications/seed-templates, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mChatController {/chat}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/rooms/create, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/rooms, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/rooms/:roomId/archive, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/rooms/:roomId/messages, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/rooms/:roomId/messages, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/rooms/:roomId/messages/read, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/faqs, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/faqs, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/faqs/:faqId, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/faqs/:faqId, DELETE} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/auto-responses, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/auto-responses, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/chat/auto-responses/:responseId, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPricingController {/pricing}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/pricing/tiers, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/pricing/tiers, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/pricing/fee-structure, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/pricing/fee-structure, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/pricing/calculate-fees, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/pricing/change-plan, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/pricing/history, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCommissionController {/commission}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/commission/tracking-codes, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/commission/tracking-codes, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/commission/tracking-codes/:code/validate, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/commission/bookings/:bookingId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/commission/business/summary, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/commission/:commissionId/dispute, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/commission/analytics/source-breakdown, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mQRCodeController {/qr}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/qr/:code, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/qr/:code/download, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mStaffController {/staff}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/business, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/available, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/schedule, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/assign, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/auto-assign, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/checkin, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/checkout, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/schedule/:staffId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/assignments/:staffId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/working-hours/:staffId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/assignment/:assignmentId/complete, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/:staffId/skills, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/:staffId/status, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff/:staffId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/staff, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mBookingController {/bookings}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/my/bookings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/today/bookings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/pending/bookings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/upcoming/bookings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id/confirm, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id/payment, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id/status, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id/reject, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id/cancel, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id/reschedule, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id/extend, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/stats/overview, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/bookings/:id/reset-for-retry, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mBookingFlowController {/booking-flow}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/booking-flow/create, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/booking-flow/confirm/:bookingId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/booking-flow/payment/:bookingId, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSubscriptionController {/subscriptions}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/plans, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/plans/:planType, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business/history, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business/limits, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business/usage, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business/trial-status, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business/upgrade, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business/downgrade, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business/cancel, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/subscriptions/business/reactivate, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAvailabilityController {/availability}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/slots, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/check, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/all-slots, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/staff/my-availability, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/staff/block-time, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/staff/availability, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/staff/block, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/business-hours/simple, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/business-hours, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/business-hours/24x7, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/extend-availability, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/initialize-business, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/admin/setup, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/admin/check-fully-booked, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/availability/slots/detailed, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCancellationController {/cancellation}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/policy, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/policy/service/:serviceId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/policy, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/policy, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/appointments/:appointmentId/cancel, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/calculate-refund, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/appointments/:appointmentId/no-show, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/clients/:clientId/reliability, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/clients/:clientId/history, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/clients/:clientId/deposit-check, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/analytics/no-shows, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/analytics/summary, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/analytics/trends, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cancellation/calculate-deposit, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAnalyticsController {/analytics}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/reports/generate, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/reports/:reportId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/commissions/breakdown, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/dashboard/:businessId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/fee-comparison/:businessId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/reports/:reportId/export, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/quick-stats/:businessId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/revenue/trends, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/sources/performance, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/analytics/commissions/insights/:businessId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSalesController {/sales}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/top-services, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/revenue-by-period, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/:id/complete, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/:id/payment-status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sales/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTeamController {/team}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team/stats, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team/role/:role, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team/department/:department, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/team/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSettingsController {/settings}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings/business-hours, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings/appointment-settings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings/payment-settings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings/notification-settings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings/business-hours, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings/appointment-settings, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings/type/:type, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVoucherController {/vouchers}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers/stats, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers/validate, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers/:code/use, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers/code/:code, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vouchers/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMembershipController {/memberships}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/stats, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/enroll, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/client/:clientId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/client/:clientId/benefits, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/client-membership/:id/points/add, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/client-membership/:id/points/redeem, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/memberships/client-membership/:id/spending, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mReportsController {/reports}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/reports/daily-sales/:date, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/reports/daily-sales/:date, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/reports/weekly-sales, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/reports/monthly-sales, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mBrandingController {/branding}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/theme, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/theme, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/theme, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/domain, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/domain/:domainId/verify, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/domains, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/domain/:domainId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/email-template, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/email-template/:templateType, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/email-templates, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/email-template/:templateId, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/widget, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/widget/:widgetId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/widgets, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/widget/:widgetId, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/widget/:widgetId/impression, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/widget/:widgetId/conversion, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/widget/:widgetId/analytics, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/overview, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/branding/preview/theme, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSupportController {/support}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets/:id/status, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets/:id/assign, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets/:id/messages, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets/:id/messages, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets/:id/call, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/support/tickets/:id/sms, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMarketplaceController {/marketplace}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/verification/:tenantId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/verification/:id/status, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/verification/:tenantId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/verification/pending, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/reviews, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/reviews/business/:businessId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/reviews/:id/moderate, PUT} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/reviews/:id/respond, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/reviews/:id/helpful, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/quality/:tenantId/update, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/quality/:tenantId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/search, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/marketplace/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mWebhookController {/webhooks}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/webhooks/paystack, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/webhooks/stripe, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/webhooks/square, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[ServiceService] [39m[32m🔄 Running index cleanup migration...[39m
+📊 MongoDB Query: servicecategories.dropIndex {
+  query: '"categoryName_1"',
+  doc: undefined,
+  timestamp: '2026-01-21T06:44:35.468Z'
+}
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[ServiceService] [39m[32mℹ️  categoryName_1 index does not exist (already removed)[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:44:35 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +73ms[39m
+Application is running on: http://[::1]:3000
+🔐 JWT Secret configured: true
+🌐 CORS enabled for ALL origins
+📊 MongoDB Query: subscriptions.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:36.021Z'
+}
+[33m[Nest] 15686  - [39m01/20/2026, 10:44:36 PM [33m   WARN[39m [38;5;3m[RealtimeGateway] [39m[33m⚠️ Redis adapter not configured, running in single-instance mode:[39m
+[33m[Nest] 15686  - [39m01/20/2026, 10:44:36 PM [33m   WARN[39m [38;5;3m[RealtimeGateway] [39m[33mserver.adapter is not a function[39m
+📊 MongoDB Query: auditlogs.createIndex {
+  query: '{"userId":1,"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:36.240Z'
+}
+📊 MongoDB Query: clients.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:36.454Z'
+}
+📊 MongoDB Query: servicecategories.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:36.656Z'
+}
+📊 MongoDB Query: services.createIndex {
+  query: '{"basicDetails.serviceName":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:36.847Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"email":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:37.009Z'
+}
+📊 MongoDB Query: appointments.createIndex {
+  query: '{"clientId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.054Z'
+}
+📊 MongoDB Query: businesses.createIndex {
+  query: '{"businessName":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:37.089Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"bookingNumber":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:37.217Z'
+}
+📊 MongoDB Query: notificationtemplates.createIndex {
+  query: '{"businessId":1,"templateType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.269Z'
+}
+📊 MongoDB Query: notificationlogs.createIndex {
+  query: '{"businessId":1,"recipientId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.313Z'
+}
+📊 MongoDB Query: notificationpreferences.createIndex {
+  query: '{"userId":1,"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.428Z'
+}
+📊 MongoDB Query: chatrooms.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.504Z'
+}
+📊 MongoDB Query: chatmessages.createIndex {
+  query: '{"roomId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.546Z'
+}
+📊 MongoDB Query: chatparticipants.createIndex {
+  query: '{"roomId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.617Z'
+}
+📊 MongoDB Query: faqs.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.723Z'
+}
+📊 MongoDB Query: autoresponses.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:37.770Z'
+}
+📊 MongoDB Query: pricingtiers.createIndex {
+  query: '{"tierName":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:37.826Z'
+}
+📊 MongoDB Query: commissions.createIndex {
+  query: '{"bookingId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.016Z'
+}
+📊 MongoDB Query: trackingcodes.createIndex {
+  query: '{"code":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:38.174Z'
+}
+📊 MongoDB Query: staffs.createIndex {
+  query: '{"businessId":1,"userId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.209Z'
+}
+📊 MongoDB Query: staffschedules.createIndex {
+  query: '{"staffId":1,"effectiveDate":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.225Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"staffId":1,"assignmentDate":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.393Z'
+}
+📊 MongoDB Query: payments.createIndex {
+  query: '{"paymentReference":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:38.407Z'
+}
+📊 MongoDB Query: clientreliabilities.createIndex {
+  query: '{"clientId":1,"businessId":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:38.414Z'
+}
+📊 MongoDB Query: businesshours.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.431Z'
+}
+📊 MongoDB Query: staffavailabilities.createIndex {
+  query: '{"staffId":1,"date":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.624Z'
+}
+📊 MongoDB Query: financialreports.createIndex {
+  query: '{"businessId":1,"reportPeriod":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.630Z'
+}
+📊 MongoDB Query: noshowrecords.createIndex {
+  query: '{"clientId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.657Z'
+}
+📊 MongoDB Query: cancellationpolicies.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.658Z'
+}
+📊 MongoDB Query: servicebundles.createIndex {
+  query: '{"basicInfo.bundleName":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.787Z'
+}
+📊 MongoDB Query: teammembers.createIndex {
+  query: '{"email":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:38.818Z'
+}
+📊 MongoDB Query: businesssettings.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:38.856Z'
+}
+📊 MongoDB Query: vouchers.createIndex {
+  query: '{"voucherCode":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:38.867Z'
+}
+📊 MongoDB Query: memberships.createIndex {
+  query: '{"membershipName":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:38.869Z'
+}
+📊 MongoDB Query: dailysalessummaries.createIndex {
+  query: '{"date":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:39.020Z'
+}
+📊 MongoDB Query: themes.createIndex {
+  query: '{"tenantId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.065Z'
+}
+📊 MongoDB Query: customdomains.createIndex {
+  query: '{"tenantId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.089Z'
+}
+📊 MongoDB Query: emailtemplates.createIndex {
+  query: '{"tenantId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.090Z'
+}
+📊 MongoDB Query: bookingwidgets.createIndex {
+  query: '{"tenantId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.245Z'
+}
+📊 MongoDB Query: tickets.createIndex {
+  query: '{"ticketNumber":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:39.281Z'
+}
+📊 MongoDB Query: businessverifications.createIndex {
+  query: '{"tenantId":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:39.454Z'
+}
+📊 MongoDB Query: clientmemberships.createIndex {
+  query: '{"clientId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.483Z'
+}
+📊 MongoDB Query: reviews.createIndex {
+  query: '{"businessId":1,"rating":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.509Z'
+}
+📊 MongoDB Query: subscriptions.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.683Z'
+}
+📊 MongoDB Query: auditlogs.createIndex {
+  query: '{"entity":1,"entityId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.708Z'
+}
+📊 MongoDB Query: clients.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.716Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"googleId":1}',
+  doc: '{"unique":true,"sparse":true,"background":true}',
+  timestamp: '2026-01-21T06:44:39.733Z'
+}
+📊 MongoDB Query: workinghours.createIndex {
+  query: '{"staffId":1,"date":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.744Z'
+}
+📊 MongoDB Query: services.createIndex {
+  query: '{"basicDetails.category":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.758Z'
+}
+📊 MongoDB Query: appointments.createIndex {
+  query: '{"selectedDate":1,"selectedTime":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.904Z'
+}
+📊 MongoDB Query: businesses.createIndex {
+  query: '{"subdomain":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:39.925Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"clientId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.955Z'
+}
+📊 MongoDB Query: notificationlogs.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:39.958Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"saleNumber":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:40.095Z'
+}
+📊 MongoDB Query: chatmessages.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.099Z'
+}
+📊 MongoDB Query: chatparticipants.createIndex {
+  query: '{"roomId":1,"userId":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:40.155Z'
+}
+📊 MongoDB Query: commissions.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.174Z'
+}
+📊 MongoDB Query: autoresponses.createIndex {
+  query: '{"businessId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.181Z'
+}
+📊 MongoDB Query: faqs.createIndex {
+  query: '{"businessId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.182Z'
+}
+📊 MongoDB Query: trackingcodes.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.331Z'
+}
+📊 MongoDB Query: staffs.createIndex {
+  query: '{"businessId":1,"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.334Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"appointmentId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.456Z'
+}
+📊 MongoDB Query: payments.createIndex {
+  query: '{"paymentReference":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.458Z'
+}
+📊 MongoDB Query: clientreliabilities.createIndex {
+  query: '{"reliabilityScore":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.460Z'
+}
+📊 MongoDB Query: staffavailabilities.createIndex {
+  query: '{"businessId":1,"date":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.576Z'
+}
+📊 MongoDB Query: financialreports.createIndex {
+  query: '{"startDate":1,"endDate":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.578Z'
+}
+📊 MongoDB Query: cancellationpolicies.createIndex {
+  query: '{"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.730Z'
+}
+📊 MongoDB Query: teammembers.createIndex {
+  query: '{"email":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.732Z'
+}
+📊 MongoDB Query: noshowrecords.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.733Z'
+}
+📊 MongoDB Query: servicebundles.createIndex {
+  query: '{"basicInfo.category":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.734Z'
+}
+📊 MongoDB Query: businesssettings.createIndex {
+  query: '{"appointmentStatuses.statusName":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:40.773Z'
+}
+📊 MongoDB Query: vouchers.createIndex {
+  query: '{"voucherCode":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.775Z'
+}
+📊 MongoDB Query: staffschedules.createIndex {
+  query: '{"businessId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.846Z'
+}
+📊 MongoDB Query: memberships.createIndex {
+  query: '{"membershipType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.974Z'
+}
+📊 MongoDB Query: themes.createIndex {
+  query: '{"tenantId":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:40.976Z'
+}
+📊 MongoDB Query: customdomains.createIndex {
+  query: '{"domain":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:40.976Z'
+}
+📊 MongoDB Query: dailysalessummaries.createIndex {
+  query: '{"date":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:40.977Z'
+}
+📊 MongoDB Query: bookingwidgets.createIndex {
+  query: '{"widgetId":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:40.994Z'
+}
+📊 MongoDB Query: emailtemplates.createIndex {
+  query: '{"tenantId":1,"templateType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.000Z'
+}
+📊 MongoDB Query: servicecategories.createIndex {
+  query: '{"businessId":1,"categoryName":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:41.182Z'
+}
+📊 MongoDB Query: subscriptions.createIndex {
+  query: '{"endDate":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.192Z'
+}
+📊 MongoDB Query: clientmemberships.createIndex {
+  query: '{"membershipId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.193Z'
+}
+📊 MongoDB Query: reviews.createIndex {
+  query: '{"clientId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.194Z'
+}
+📊 MongoDB Query: auditlogs.createIndex {
+  query: '{"action":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.214Z'
+}
+📊 MongoDB Query: clients.createIndex {
+  query: '{"businessId":1,"profile.email":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:41.222Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"facebookId":1}',
+  doc: '{"unique":true,"sparse":true,"background":true}',
+  timestamp: '2026-01-21T06:44:41.224Z'
+}
+📊 MongoDB Query: workinghours.createIndex {
+  query: '{"businessId":1,"date":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.286Z'
+}
+📊 MongoDB Query: businesses.createIndex {
+  query: '{"subdomain":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.440Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"saleNumber":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.441Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.441Z'
+}
+📊 MongoDB Query: chatmessages.createIndex {
+  query: '{"roomId":1,"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.442Z'
+}
+📊 MongoDB Query: appointments.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.442Z'
+}
+📊 MongoDB Query: notificationlogs.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.443Z'
+}
+📊 MongoDB Query: services.createIndex {
+  query: '{"basicDetails.serviceType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.444Z'
+}
+📊 MongoDB Query: chatparticipants.createIndex {
+  query: '{"userId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.522Z'
+}
+📊 MongoDB Query: chatrooms.createIndex {
+  query: '{"businessId":1,"roomType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.641Z'
+}
+📊 MongoDB Query: staffs.createIndex {
+  query: '{"staffId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.665Z'
+}
+📊 MongoDB Query: autoresponses.createIndex {
+  query: '{"responseType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.668Z'
+}
+📊 MongoDB Query: faqs.createIndex {
+  query: '{"keywords":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.669Z'
+}
+📊 MongoDB Query: trackingcodes.createIndex {
+  query: '{"code":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:41.670Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"businessId":1,"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.670Z'
+}
+📊 MongoDB Query: payments.createIndex {
+  query: '{"clientId":1,"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.671Z'
+}
+📊 MongoDB Query: clientreliabilities.createIndex {
+  query: '{"requiresDeposit":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.673Z'
+}
+📊 MongoDB Query: financialreports.createIndex {
+  query: '{"generatedAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.865Z'
+}
+📊 MongoDB Query: noshowrecords.createIndex {
+  query: '{"appointmentId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.901Z'
+}
+📊 MongoDB Query: businesssettings.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:41.905Z'
+}
+📊 MongoDB Query: teammembers.createIndex {
+  query: '{"role":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.907Z'
+}
+📊 MongoDB Query: servicebundles.createIndex {
+  query: '{"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.914Z'
+}
+📊 MongoDB Query: vouchers.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.915Z'
+}
+📊 MongoDB Query: staffschedules.createIndex {
+  query: '{"staffId":1,"isDefault24_7":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.916Z'
+}
+📊 MongoDB Query: memberships.createIndex {
+  query: '{"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:41.926Z'
+}
+📊 MongoDB Query: dailysalessummaries.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.123Z'
+}
+📊 MongoDB Query: customdomains.createIndex {
+  query: '{"tenantId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.123Z'
+}
+📊 MongoDB Query: emailtemplates.createIndex {
+  query: '{"tenantId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.124Z'
+}
+📊 MongoDB Query: bookingwidgets.createIndex {
+  query: '{"tenantId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.124Z'
+}
+📊 MongoDB Query: servicecategories.createIndex {
+  query: '{"businessId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.146Z'
+}
+📊 MongoDB Query: clientmemberships.createIndex {
+  query: '{"membershipNumber":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.147Z'
+}
+📊 MongoDB Query: reviews.createIndex {
+  query: '{"bookingId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.154Z'
+}
+📊 MongoDB Query: auditlogs.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.301Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"email":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:42.341Z'
+}
+📊 MongoDB Query: businesses.createIndex {
+  query: '{"ownerId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.346Z'
+}
+📊 MongoDB Query: clients.createIndex {
+  query: '{"businessId":1,"profile.firstName":1,"profile.lastName":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.362Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"bookingNumber":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.366Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"clientId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.372Z'
+}
+📊 MongoDB Query: chatmessages.createIndex {
+  query: '{"businessId":1,"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.373Z'
+}
+📊 MongoDB Query: appointments.createIndex {
+  query: '{"assignedStaff":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.383Z'
+}
+📊 MongoDB Query: services.createIndex {
+  query: '{"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.534Z'
+}
+📊 MongoDB Query: chatrooms.createIndex {
+  query: '{"businessId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.602Z'
+}
+📊 MongoDB Query: trackingcodes.createIndex {
+  query: '{"codeType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.603Z'
+}
+📊 MongoDB Query: faqs.createIndex {
+  query: '{"category":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.604Z'
+}
+📊 MongoDB Query: payments.createIndex {
+  query: '{"status":1,"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.611Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"clientId":1,"assignmentDate":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.613Z'
+}
+📊 MongoDB Query: clientreliabilities.createIndex {
+  query: '{"isBlacklisted":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.758Z'
+}
+📊 MongoDB Query: noshowrecords.createIndex {
+  query: '{"type":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.772Z'
+}
+📊 MongoDB Query: businesssettings.createIndex {
+  query: '{"businessName":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.792Z'
+}
+📊 MongoDB Query: teammembers.createIndex {
+  query: '{"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.837Z'
+}
+📊 MongoDB Query: servicebundles.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.844Z'
+}
+📊 MongoDB Query: vouchers.createIndex {
+  query: '{"validFrom":1,"validUntil":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.846Z'
+}
+📊 MongoDB Query: customdomains.createIndex {
+  query: '{"domain":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:42.986Z'
+}
+📊 MongoDB Query: commissions.createIndex {
+  query: '{"clientId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:42.987Z'
+}
+📊 MongoDB Query: clientmemberships.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.016Z'
+}
+📊 MongoDB Query: reviews.createIndex {
+  query: '{"moderationStatus":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.045Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"role":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.078Z'
+}
+📊 MongoDB Query: businesses.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.082Z'
+}
+📊 MongoDB Query: clients.createIndex {
+  query: '{"businessId":1,"profile.phone.number":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.084Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"preferredDate":1,"preferredStartTime":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.085Z'
+}
+📊 MongoDB Query: services.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.222Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"appointmentId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.223Z'
+}
+📊 MongoDB Query: chatmessages.createIndex {
+  query: '{"senderId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.224Z'
+}
+📊 MongoDB Query: chatrooms.createIndex {
+  query: '{"metadata.userId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.227Z'
+}
+📊 MongoDB Query: appointments.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.230Z'
+}
+📊 MongoDB Query: trackingcodes.createIndex {
+  query: '{"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.273Z'
+}
+📊 MongoDB Query: faqs.createIndex {
+  query: '{"priority":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.282Z'
+}
+📊 MongoDB Query: payments.createIndex {
+  query: '{"bookingId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.304Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"businessId":1,"assignmentDate":1,"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.306Z'
+}
+📊 MongoDB Query: noshowrecords.createIndex {
+  query: '{"recordedAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.307Z'
+}
+📊 MongoDB Query: businesssettings.createIndex {
+  query: '{"businessEmail":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.444Z'
+}
+📊 MongoDB Query: teammembers.createIndex {
+  query: '{"employmentType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.448Z'
+}
+📊 MongoDB Query: vouchers.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.461Z'
+}
+📊 MongoDB Query: customdomains.createIndex {
+  query: '{"verificationStatus":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.466Z'
+}
+📊 MongoDB Query: commissions.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.515Z'
+}
+📊 MongoDB Query: clientmemberships.createIndex {
+  query: '{"joinDate":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.517Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.532Z'
+}
+📊 MongoDB Query: businesses.createIndex {
+  query: '{"businessType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.533Z'
+}
+📊 MongoDB Query: clients.createIndex {
+  query: '{"businessId":1,"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.534Z'
+}
+📊 MongoDB Query: services.createIndex {
+  query: '{"businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.677Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.682Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"bookingId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.684Z'
+}
+📊 MongoDB Query: chatmessages.createIndex {
+  query: '{"isRead":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.696Z'
+}
+📊 MongoDB Query: chatrooms.createIndex {
+  query: '{"lastMessageAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.700Z'
+}
+📊 MongoDB Query: payments.createIndex {
+  query: '{"appointmentId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.760Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"staffId":1,"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.761Z'
+}
+📊 MongoDB Query: appointments.createIndex {
+  query: '{"businessInfo.businessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.767Z'
+}
+📊 MongoDB Query: teammembers.createIndex {
+  query: '{"skills.services":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.910Z'
+}
+📊 MongoDB Query: commissions.createIndex {
+  query: '{"isCommissionable":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.925Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"ownedBusinesses":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.977Z'
+}
+📊 MongoDB Query: clients.createIndex {
+  query: '{"businessId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:43.993Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"bookingSource":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.001Z'
+}
+📊 MongoDB Query: businesses.createIndex {
+  query: '{"adminIds":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.004Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.118Z'
+}
+📊 MongoDB Query: payments.createIndex {
+  query: '{"transactionId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.138Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"assignmentDate":1,"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.156Z'
+}
+📊 MongoDB Query: chatmessages.createIndex {
+  query: '{"metadata.guestId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.159Z'
+}
+📊 MongoDB Query: teammembers.createIndex {
+  query: '{"commissions.serviceId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.188Z'
+}
+📊 MongoDB Query: commissions.createIndex {
+  query: '{"calculatedAt":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.219Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"adminBusinesses":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.235Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.243Z'
+}
+📊 MongoDB Query: businesses.createIndex {
+  query: '{"staffIds":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.244Z'
+}
+📊 MongoDB Query: bookingwidgets.createIndex {
+  query: '{"widgetId":1}',
+  doc: '{"unique":true,"background":true}',
+  timestamp: '2026-01-21T06:44:44.308Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"paymentStatus":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.322Z'
+}
+📊 MongoDB Query: payments.createIndex {
+  query: '{"gateway":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.379Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"assignmentDetails.serviceId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.380Z'
+}
+📊 MongoDB Query: commissions.createIndex {
+  query: '{"sourceTracking.sourceType":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.460Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"staffBusinessId":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.477Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"expiresAt":1}',
+  doc: '{"expireAfterSeconds":0,"background":true}',
+  timestamp: '2026-01-21T06:44:44.482Z'
+}
+📊 MongoDB Query: bookingwidgets.createIndex {
+  query: '{"tenantId":1,"isActive":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.541Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"createdAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.542Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"commissionPaid":1,"paymentDate":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.583Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"googleId":1}',
+  doc: '{"unique":true,"sparse":true,"background":true}',
+  timestamp: '2026-01-21T06:44:44.683Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"clientEmail":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.685Z'
+}
+📊 MongoDB Query: sales.createIndex {
+  query: '{"completedAt":-1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.750Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"followUpRequired":1,"followUpDate":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.805Z'
+}
+📊 MongoDB Query: bookings.createIndex {
+  query: '{"clientPhone":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:44.901Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"facebookId":1}',
+  doc: '{"unique":true,"sparse":true,"background":true}',
+  timestamp: '2026-01-21T06:44:44.916Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"businessId":1,"staffId":1,"assignmentDate":1,"status":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:45.037Z'
+}
+📊 MongoDB Query: users.createIndex {
+  query: '{"authProvider":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:45.139Z'
+}
+📊 MongoDB Query: staffassignments.createIndex {
+  query: '{"businessId":1,"assignmentDate":1,"assignmentDetails.startTime":1}',
+  doc: '{"background":true}',
+  timestamp: '2026-01-21T06:44:45.253Z'
+}
+📊 MongoDB Query: bookings.find {
+  query: '{"$or":[{"lastReminderAt":{"$exists":false}},{"lastReminderAt":{"$lt":"2026-01-21T06:35:00.008Z"}}],"status":"pending","remindersSent":{"$lt":3},"expiresAt":{"$gt":"2026-01-21T06:45:00.008Z"}}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.016Z'
+}
+📊 MongoDB Query: bookings.find {
+  query: '{"$or":[{"lastReminderAt":{"$exists":false}},{"lastReminderAt":{"$lt":"2026-01-21T06:35:00.021Z"}}],"status":"pending","remindersSent":{"$lt":3},"expiresAt":{"$gt":"2026-01-21T06:45:00.021Z"}}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.023Z'
+}
+📊 MongoDB Query: bookings.find {
+  query: '{"$or":[{"lastReminderAt":{"$exists":false}},{"lastReminderAt":{"$lt":"2026-01-21T06:35:00.026Z"}}],"status":"pending","remindersSent":{"$lt":3},"expiresAt":{"$gt":"2026-01-21T06:45:00.026Z"}}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.026Z'
+}
+📊 MongoDB Query: bookings.find {
+  query: '{"$or":[{"lastReminderAt":{"$exists":false}},{"lastReminderAt":{"$lt":"2026-01-21T06:35:00.028Z"}}],"status":"pending","remindersSent":{"$lt":3},"expiresAt":{"$gt":"2026-01-21T06:45:00.028Z"}}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.029Z'
+}
+📊 MongoDB Query: bookings.findOne {
+  query: '{"_id":"697074fe0de8db3f222fa2dc"}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.245Z'
+}
+📊 MongoDB Query: bookings.findOne {
+  query: '{"_id":"697074fe0de8db3f222fa2dc"}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.247Z'
+}
+📊 MongoDB Query: bookings.findOne {
+  query: '{"_id":"697074fe0de8db3f222fa2dc"}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.249Z'
+}
+📊 MongoDB Query: bookings.findOne {
+  query: '{"_id":"697074fe0de8db3f222fa2dc"}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.250Z'
+}
+[32m[Nest] 15686  - [39m01/20/2026, 10:45:00 PM [32m    LOG[39m [38;5;3m[BookingEventHandler] [39m[32mSending payment reminder for booking: BK-20260120-0002[39m
+📊 MongoDB Query: bookings.updateOne {
+  query: '{"_id":"697074fe0de8db3f222fa2dc"}',
+  doc: '{"$set":{"remindersSent":1,"lastReminderAt":"2026-01-21T06:45:00.446Z","updatedAt":"2026-01-21T06:45:00.455Z"}}',
+  timestamp: '2026-01-21T06:45:00.456Z'
+}
+📊 MongoDB Query: notificationtemplates.findOne {
+  query: '{"businessId":"69586ea89286e50b04bccfdb","templateType":"payment_failed","isActive":true}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.458Z'
+}
+[32m[Nest] 15686  - [39m01/20/2026, 10:45:00 PM [32m    LOG[39m [38;5;3m[BookingEventHandler] [39m[32mSending payment reminder for booking: BK-20260120-0002[39m
+📊 MongoDB Query: bookings.updateOne {
+  query: '{"_id":"697074fe0de8db3f222fa2dc"}',
+  doc: '{"$set":{"remindersSent":1,"lastReminderAt":"2026-01-21T06:45:00.459Z","updatedAt":"2026-01-21T06:45:00.461Z"}}',
+  timestamp: '2026-01-21T06:45:00.461Z'
+}
+📊 MongoDB Query: notificationtemplates.findOne {
+  query: '{"businessId":"69586ea89286e50b04bccfdb","templateType":"payment_failed","isActive":true}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.461Z'
+}
+[32m[Nest] 15686  - [39m01/20/2026, 10:45:00 PM [32m    LOG[39m [38;5;3m[BookingEventHandler] [39m[32mSending payment reminder for booking: BK-20260120-0002[39m
+📊 MongoDB Query: bookings.updateOne {
+  query: '{"_id":"697074fe0de8db3f222fa2dc"}',
+  doc: '{"$set":{"remindersSent":1,"lastReminderAt":"2026-01-21T06:45:00.462Z","updatedAt":"2026-01-21T06:45:00.463Z"}}',
+  timestamp: '2026-01-21T06:45:00.463Z'
+}
+📊 MongoDB Query: notificationtemplates.findOne {
+  query: '{"businessId":"69586ea89286e50b04bccfdb","templateType":"payment_failed","isActive":true}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.464Z'
+}
+[32m[Nest] 15686  - [39m01/20/2026, 10:45:00 PM [32m    LOG[39m [38;5;3m[BookingEventHandler] [39m[32mSending payment reminder for booking: BK-20260120-0002[39m
+📊 MongoDB Query: bookings.updateOne {
+  query: '{"_id":"697074fe0de8db3f222fa2dc"}',
+  doc: '{"$set":{"remindersSent":1,"lastReminderAt":"2026-01-21T06:45:00.464Z","updatedAt":"2026-01-21T06:45:00.465Z"}}',
+  timestamp: '2026-01-21T06:45:00.465Z'
+}
+📊 MongoDB Query: notificationtemplates.findOne {
+  query: '{"businessId":"69586ea89286e50b04bccfdb","templateType":"payment_failed","isActive":true}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.466Z'
+}
+📊 MongoDB Query: notificationtemplates.findOne {
+  query: '{"templateType":"payment_failed","isDefault":true,"isActive":true}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.648Z'
+}
+📊 MongoDB Query: notificationtemplates.findOne {
+  query: '{"templateType":"payment_failed","isDefault":true,"isActive":true}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.650Z'
+}
+[32m[Nest] 15686  - [39m01/20/2026, 10:45:00 PM [32m    LOG[39m [38;5;3m[BookingService] [39m[32mSent payment reminders for 1 bookings[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:45:00 PM [32m    LOG[39m [38;5;3m[BookingService] [39m[32mSent payment reminders for 1 bookings[39m
+📊 MongoDB Query: notificationtemplates.findOne {
+  query: '{"templateType":"payment_failed","isDefault":true,"isActive":true}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.666Z'
+}
+[32m[Nest] 15686  - [39m01/20/2026, 10:45:00 PM [32m    LOG[39m [38;5;3m[BookingService] [39m[32mSent payment reminders for 1 bookings[39m
+[32m[Nest] 15686  - [39m01/20/2026, 10:45:00 PM [32m    LOG[39m [38;5;3m[BookingService] [39m[32mSent payment reminders for 1 bookings[39m
+📊 MongoDB Query: notificationtemplates.findOne {
+  query: '{"templateType":"payment_failed","isDefault":true,"isActive":true}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.673Z'
+}
+📊 MongoDB Query: notificationpreferences.findOne {
+  query: '{"userId":"696f7398456a84a2d976e3f5","businessId":"69586ea89286e50b04bccfdb"}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.858Z'
+}
+📊 MongoDB Query: notificationpreferences.findOne {
+  query: '{"userId":"696f7398456a84a2d976e3f5","businessId":"69586ea89286e50b04bccfdb"}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.861Z'
+}
+📊 MongoDB Query: notificationpreferences.findOne {
+  query: '{"userId":"696f7398456a84a2d976e3f5","businessId":"69586ea89286e50b04bccfdb"}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.874Z'
+}
+📊 MongoDB Query: notificationpreferences.findOne {
+  query: '{"userId":"696f7398456a84a2d976e3f5","businessId":"69586ea89286e50b04bccfdb"}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:00.879Z'
+}
+❌ Resend email error: {
+  statusCode: 429,
+  name: 'rate_limit_exceeded',
+  message: 'Too many requests. You can only make 2 requests per second. See rate limit response headers for more information. Or contact support to increase rate limit.'
+}
+📊 MongoDB Query: notificationlogs.insertOne {
+  query: `{"businessId":"69586ea89286e50b04bccfdb","recipientId":"696f7398456a84a2d976e3f5","recipientType":"client","channel":"email","recipient":"ngozi@gmail.com","subject":"Payment Issue - Action Required","content":"\\n          <h2>Payment Failed</h2>\\n          <p>Hello Ngozi Usisa,</p>\\n          <p>We encountered an issue with your payment:</p>\\n          <ul>\\n            <li><strong>Amount:</strong> ₦5000</li>\\n            <li><strong>Reason:</strong> Payment reminder - please complete payment</li>\\n            <li><strong>Service:</strong> Men's Haircut</li>\\n            <li><strong>Appointment Date:</strong> Thu Jan 22 2026</li>\\n          </ul>\\n          <p><a href=\\"https://af9e16900bbd.ngrok-free.app/pay/697074fe0de8db3f222fa2dc\\">Retry Payment</a></p>\\n          <p>Please contact us at  if you need assistance.</p>\\n          <p>Best regards,<br/></p>\\n        ","status":"failed","providerMessageId":"","errorMessage":"Too many requests. You can only make 2 requests per second. See rate limit response headers for more information. Or contact support to increase rate limit.","sentAt":null,"relatedEntityId":"697074fe0de8db3f222fa2dc","relatedEntityType":"booking","templateId":"696f87a40607c901a8105a7a","_id":"697075edf992b16ff66bee07","createdAt":"2026-01-21T06:45:01.791Z","updatedAt":"2026-01-21T06:45:01.791Z","__v":0}`,
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:01.793Z'
+}
+❌ Resend email error: {
+  statusCode: 429,
+  name: 'rate_limit_exceeded',
+  message: 'Too many requests. You can only make 2 requests per second. See rate limit response headers for more information. Or contact support to increase rate limit.'
+}
+📊 MongoDB Query: notificationlogs.insertOne {
+  query: `{"businessId":"69586ea89286e50b04bccfdb","recipientId":"696f7398456a84a2d976e3f5","recipientType":"client","channel":"email","recipient":"ngozi@gmail.com","subject":"Payment Issue - Action Required","content":"\\n          <h2>Payment Failed</h2>\\n          <p>Hello Ngozi Usisa,</p>\\n          <p>We encountered an issue with your payment:</p>\\n          <ul>\\n            <li><strong>Amount:</strong> ₦5000</li>\\n            <li><strong>Reason:</strong> Payment reminder - please complete payment</li>\\n            <li><strong>Service:</strong> Men's Haircut</li>\\n            <li><strong>Appointment Date:</strong> Thu Jan 22 2026</li>\\n          </ul>\\n          <p><a href=\\"https://af9e16900bbd.ngrok-free.app/pay/697074fe0de8db3f222fa2dc\\">Retry Payment</a></p>\\n          <p>Please contact us at  if you need assistance.</p>\\n          <p>Best regards,<br/></p>\\n        ","status":"failed","providerMessageId":"","errorMessage":"Too many requests. You can only make 2 requests per second. See rate limit response headers for more information. Or contact support to increase rate limit.","sentAt":null,"relatedEntityId":"697074fe0de8db3f222fa2dc","relatedEntityType":"booking","templateId":"696f87a40607c901a8105a7a","_id":"697075edf992b16ff66bee09","createdAt":"2026-01-21T06:45:01.796Z","updatedAt":"2026-01-21T06:45:01.796Z","__v":0}`,
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:01.797Z'
+}
+❌ Resend email error: {
+  statusCode: 403,
+  name: 'validation_error',
+  message: 'You can only send testing emails to your own email address (abahmarquis@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.'
+}
+📊 MongoDB Query: notificationlogs.insertOne {
+  query: '{"businessId":"69586ea89286e50b04bccfdb","recipientId":"696f7398456a84a2d976e3f5","recipientType":"client","channel":"email","recipient":"ngozi@gmail.com","subject":"Payment Issue - Action Required","content":"\\n          <h2>Payment Failed</h2>\\n          <p>Hello Ngozi Usisa,</p>\\n          <p>We encountered an issue with your payment:</p>\\n          <ul>\\n            <li><strong>Amount:</strong> ₦5000</li>\\n            <li><strong>Reason:</strong> Payment reminder - please complete payment</li>\\n            <li><strong>Service:</strong> Men\'s Haircut</li>\\n            <li><strong>Appointment Date:</strong> Thu Jan 22 2026</li>\\n          </ul>\\n          <p><a href=\\"https://af9e16900bbd.ngrok-free.app/pay/697074fe0de8db3f222fa2dc\\">Retry Payment</a></p>\\n          <p>Please contact us at  if you need assistance.</p>\\n          <p>Best regards,<br/></p>\\n        ","status":"failed","providerMessageId":"","errorMessage":"You can only send testing emails to your own email address (abahmarquis@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.","sentAt":null,"relatedEntityId":"697074fe0de8db3f222fa2dc","relatedEntityType":"booking","templateId":"696f87a40607c901a8105a7a","_id":"697075edf992b16ff66bee0b","createdAt":"2026-01-21T06:45:01.803Z","updatedAt":"2026-01-21T06:45:01.803Z","__v":0}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:01.803Z'
+}
+❌ Resend email error: {
+  statusCode: 403,
+  name: 'validation_error',
+  message: 'You can only send testing emails to your own email address (abahmarquis@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.'
+}
+📊 MongoDB Query: notificationlogs.insertOne {
+  query: '{"businessId":"69586ea89286e50b04bccfdb","recipientId":"696f7398456a84a2d976e3f5","recipientType":"client","channel":"email","recipient":"ngozi@gmail.com","subject":"Payment Issue - Action Required","content":"\\n          <h2>Payment Failed</h2>\\n          <p>Hello Ngozi Usisa,</p>\\n          <p>We encountered an issue with your payment:</p>\\n          <ul>\\n            <li><strong>Amount:</strong> ₦5000</li>\\n            <li><strong>Reason:</strong> Payment reminder - please complete payment</li>\\n            <li><strong>Service:</strong> Men\'s Haircut</li>\\n            <li><strong>Appointment Date:</strong> Thu Jan 22 2026</li>\\n          </ul>\\n          <p><a href=\\"https://af9e16900bbd.ngrok-free.app/pay/697074fe0de8db3f222fa2dc\\">Retry Payment</a></p>\\n          <p>Please contact us at  if you need assistance.</p>\\n          <p>Best regards,<br/></p>\\n        ","status":"failed","providerMessageId":"","errorMessage":"You can only send testing emails to your own email address (abahmarquis@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.","sentAt":null,"relatedEntityId":"697074fe0de8db3f222fa2dc","relatedEntityType":"booking","templateId":"696f87a40607c901a8105a7a","_id":"697075edf992b16ff66bee0d","createdAt":"2026-01-21T06:45:01.817Z","updatedAt":"2026-01-21T06:45:01.817Z","__v":0}',
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:01.818Z'
+}
+📊 MongoDB Query: notificationlogs.insertOne {
+  query: `{"businessId":"69586ea89286e50b04bccfdb","recipientId":"696f7398456a84a2d976e3f5","recipientType":"client","channel":"sms","recipient":"ngozi@gmail.com","subject":"Payment Issue - Action Required","content":"Payment Failed\\n          Hello Ngozi Usisa,\\n          We encountered an issue with your payment:\\n          \\n            Amount: ₦5000\\n            Reason: Payment reminder - please complete payment\\n            Service: Men's Haircut\\n            Appointment Date: Thu Jan 22 2026\\n          \\n          Retry Payment\\n          Please contact us at  if you need assistance.\\n          Best regards,","status":"failed","providerMessageId":"","errorMessage":"Authentication Error - invalid username","sentAt":null,"relatedEntityId":"697074fe0de8db3f222fa2dc","relatedEntityType":"booking","templateId":"696f87a40607c901a8105a7a","_id":"697075f5f992b16ff66bee0f","createdAt":"2026-01-21T06:45:09.234Z","updatedAt":"2026-01-21T06:45:09.234Z","__v":0}`,
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:09.234Z'
+}
+📊 MongoDB Query: notificationlogs.insertOne {
+  query: `{"businessId":"69586ea89286e50b04bccfdb","recipientId":"696f7398456a84a2d976e3f5","recipientType":"client","channel":"sms","recipient":"ngozi@gmail.com","subject":"Payment Issue - Action Required","content":"Payment Failed\\n          Hello Ngozi Usisa,\\n          We encountered an issue with your payment:\\n          \\n            Amount: ₦5000\\n            Reason: Payment reminder - please complete payment\\n            Service: Men's Haircut\\n            Appointment Date: Thu Jan 22 2026\\n          \\n          Retry Payment\\n          Please contact us at  if you need assistance.\\n          Best regards,","status":"failed","providerMessageId":"","errorMessage":"Authentication Error - invalid username","sentAt":null,"relatedEntityId":"697074fe0de8db3f222fa2dc","relatedEntityType":"booking","templateId":"696f87a40607c901a8105a7a","_id":"697075f5f992b16ff66bee11","createdAt":"2026-01-21T06:45:09.236Z","updatedAt":"2026-01-21T06:45:09.236Z","__v":0}`,
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:09.236Z'
+}
+📊 MongoDB Query: notificationlogs.insertOne {
+  query: `{"businessId":"69586ea89286e50b04bccfdb","recipientId":"696f7398456a84a2d976e3f5","recipientType":"client","channel":"sms","recipient":"ngozi@gmail.com","subject":"Payment Issue - Action Required","content":"Payment Failed\\n          Hello Ngozi Usisa,\\n          We encountered an issue with your payment:\\n          \\n            Amount: ₦5000\\n            Reason: Payment reminder - please complete payment\\n            Service: Men's Haircut\\n            Appointment Date: Thu Jan 22 2026\\n          \\n          Retry Payment\\n          Please contact us at  if you need assistance.\\n          Best regards,","status":"failed","providerMessageId":"","errorMessage":"Authentication Error - invalid username","sentAt":null,"relatedEntityId":"697074fe0de8db3f222fa2dc","relatedEntityType":"booking","templateId":"696f87a40607c901a8105a7a","_id":"697075f5f992b16ff66bee13","createdAt":"2026-01-21T06:45:09.238Z","updatedAt":"2026-01-21T06:45:09.238Z","__v":0}`,
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:09.238Z'
+}
+📊 MongoDB Query: notificationlogs.insertOne {
+  query: `{"businessId":"69586ea89286e50b04bccfdb","recipientId":"696f7398456a84a2d976e3f5","recipientType":"client","channel":"sms","recipient":"ngozi@gmail.com","subject":"Payment Issue - Action Required","content":"Payment Failed\\n          Hello Ngozi Usisa,\\n          We encountered an issue with your payment:\\n          \\n            Amount: ₦5000\\n            Reason: Payment reminder - please complete payment\\n            Service: Men's Haircut\\n            Appointment Date: Thu Jan 22 2026\\n          \\n          Retry Payment\\n          Please contact us at  if you need assistance.\\n          Best regards,","status":"failed","providerMessageId":"","errorMessage":"Authentication Error - invalid username","sentAt":null,"relatedEntityId":"697074fe0de8db3f222fa2dc","relatedEntityType":"booking","templateId":"696f87a40607c901a8105a7a","_id":"697075f5f992b16ff66bee15","createdAt":"2026-01-21T06:45:09.669Z","updatedAt":"2026-01-21T06:45:09.669Z","__v":0}`,
+  doc: '{}',
+  timestamp: '2026-01-21T06:45:09.670Z'
+}

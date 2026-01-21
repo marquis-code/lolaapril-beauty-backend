@@ -16,7 +16,7 @@ const swagger_1 = require("@nestjs/swagger");
 class PaginationDto {
     constructor() {
         this.page = 1;
-        this.limit = 10;
+        this.limit = 10000;
         this.sortOrder = "desc";
     }
 }

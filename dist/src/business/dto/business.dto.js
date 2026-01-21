@@ -267,20 +267,98 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], BankAccountDto.prototype, "bankCode", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'URL to uploaded bank statement for verification' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BankAccountDto.prototype, "bankStatementUrl", void 0);
+class BusinessRegistrationDto {
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Business registration number' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BusinessRegistrationDto.prototype, "number", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'URL to uploaded business registration certificate' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BusinessRegistrationDto.prototype, "documentUrl", void 0);
+class TaxIdentificationDto {
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Tax identification number' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], TaxIdentificationDto.prototype, "number", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'URL to uploaded tax certificate' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], TaxIdentificationDto.prototype, "documentUrl", void 0);
+class ProofOfAddressDto {
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'URL to utility bill or bank statement as proof of address' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ProofOfAddressDto.prototype, "documentUrl", void 0);
+class GovernmentIdDto {
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ enum: ['national_id', 'passport', 'drivers_license'] }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(['national_id', 'passport', 'drivers_license']),
+    __metadata("design:type", String)
+], GovernmentIdDto.prototype, "type", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'ID number' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GovernmentIdDto.prototype, "number", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'URL to uploaded government ID document' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GovernmentIdDto.prototype, "documentUrl", void 0);
 class BusinessDocumentsDto {
 }
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
+    (0, swagger_1.ApiPropertyOptional)({ type: BusinessRegistrationDto }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => BusinessRegistrationDto),
+    __metadata("design:type", BusinessRegistrationDto)
 ], BusinessDocumentsDto.prototype, "businessRegistration", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
+    (0, swagger_1.ApiPropertyOptional)({ type: TaxIdentificationDto }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => TaxIdentificationDto),
+    __metadata("design:type", TaxIdentificationDto)
 ], BusinessDocumentsDto.prototype, "taxIdentification", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: ProofOfAddressDto }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => ProofOfAddressDto),
+    __metadata("design:type", ProofOfAddressDto)
+], BusinessDocumentsDto.prototype, "proofOfAddress", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: GovernmentIdDto }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => GovernmentIdDto),
+    __metadata("design:type", GovernmentIdDto)
+], BusinessDocumentsDto.prototype, "governmentId", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ type: BankAccountDto }),
     (0, class_validator_1.IsOptional)(),

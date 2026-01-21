@@ -30,6 +30,7 @@ import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto";
 import { UpdateProfileDto, ChangePasswordDto, UpdateEmailDto, UserPreferencesDto } from "./dto/update-profile.dto";
+import { ForgotPasswordDto, ResetPasswordDto, VerifyResetOTPDto } from "./dto/password-reset.dto";
 import { RequestWithUser } from "./types/request-with-user.interface";
 import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator";
 import { SwitchBusinessDto } from "./dto/switch-business.dto";
@@ -43,14 +44,7 @@ export declare class AuthController {
     registerBusiness(registerDto: BusinessRegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: import("mongoose").Types.ObjectId;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus;
-        };
+        user: any;
         business: {
             id: import("mongoose").Types.ObjectId;
             businessName: string;
@@ -63,14 +57,7 @@ export declare class AuthController {
     loginBusiness(loginDto: BusinessLoginDto): Promise<{
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: import("mongoose").Types.ObjectId;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus.ACTIVE;
-        };
+        user: any;
         business: {
             id: any;
             businessName: any;
@@ -90,27 +77,12 @@ export declare class AuthController {
     register(registerDto: RegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: import("mongoose").Types.ObjectId;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus;
-        };
+        user: any;
     }>;
     login(loginDto: LoginDto): Promise<{
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: import("mongoose").Types.ObjectId;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: import("./schemas/user.schema").UserRole;
-            status: import("./schemas/user.schema").UserStatus.ACTIVE;
-            authProvider: string;
-        };
+        user: any;
     }>;
     logout(user: RequestWithUser['user']): Promise<{
         message: string;
@@ -239,5 +211,17 @@ export declare class AuthController {
             status: string;
             trialEndsAt: Date;
         };
+    }>;
+    forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    verifyResetOTP(verifyOTPDto: VerifyResetOTPDto): Promise<{
+        valid: boolean;
+        message: string;
+    }>;
+    resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

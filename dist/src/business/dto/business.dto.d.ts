@@ -52,10 +52,29 @@ declare class BankAccountDto {
     accountNumber?: string;
     bankName?: string;
     bankCode?: string;
+    bankStatementUrl?: string;
+}
+declare class BusinessRegistrationDto {
+    number?: string;
+    documentUrl?: string;
+}
+declare class TaxIdentificationDto {
+    number?: string;
+    documentUrl?: string;
+}
+declare class ProofOfAddressDto {
+    documentUrl?: string;
+}
+declare class GovernmentIdDto {
+    type?: string;
+    number?: string;
+    documentUrl?: string;
 }
 declare class BusinessDocumentsDto {
-    businessRegistration?: string;
-    taxIdentification?: string;
+    businessRegistration?: BusinessRegistrationDto;
+    taxIdentification?: TaxIdentificationDto;
+    proofOfAddress?: ProofOfAddressDto;
+    governmentId?: GovernmentIdDto;
     bankAccount?: BankAccountDto;
 }
 export declare class CreateBusinessDto {

@@ -13,6 +13,7 @@ const business_controller_1 = require("./business.controller");
 const business_service_1 = require("./business.service");
 const business_schema_1 = require("./schemas/business.schema");
 const user_schema_1 = require("../auth/schemas/user.schema");
+const integration_module_1 = require("../integration/integration.module");
 let BusinessModule = class BusinessModule {
 };
 BusinessModule = __decorate([
@@ -22,7 +23,8 @@ BusinessModule = __decorate([
             mongoose_1.MongooseModule.forFeature([
                 { name: business_schema_1.Business.name, schema: business_schema_1.BusinessSchema },
                 { name: user_schema_1.User.name, schema: user_schema_1.UserSchema }
-            ])
+            ]),
+            integration_module_1.IntegrationModule,
         ],
         controllers: [business_controller_1.BusinessController],
         providers: [business_service_1.BusinessService],

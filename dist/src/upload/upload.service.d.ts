@@ -14,4 +14,9 @@ export declare class UploadService {
         url: string;
         publicId: string;
     }>;
+    uploadKYCDocument(file: Express.Multer.File, businessId: string, documentType: 'businessRegistration' | 'taxIdentification' | 'governmentId' | 'bankStatement' | 'proofOfAddress'): Promise<{
+        url: string;
+        publicId: string;
+        documentType: string;
+    }>;
 }

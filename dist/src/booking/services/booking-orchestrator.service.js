@@ -289,7 +289,18 @@ let BookingOrchestrator = class BookingOrchestrator {
         return `${year}-${month}-${day}`;
     }
     async checkAvailabilityForAllServices(businessId, serviceIds, date, startTime, totalDuration) {
-        return await this.checkBusinessWorkingHours(businessId, date, startTime, totalDuration);
+        const isWithinBusinessHours = await this.checkBusinessWorkingHours(businessId, date, startTime, totalDuration);
+        if (!isWithinBusinessHours) {
+            console.log('❌ Time slot outside business hours');
+            return false;
+        }
+        const hasConflict = await this.checkForConflictingBookings(businessId, date, startTime, totalDuration);
+        if (hasConflict) {
+            console.log('❌ Time slot already booked');
+            return false;
+        }
+        console.log('✅ Time slot is available');
+        return true;
     }
     async checkBusinessWorkingHours(businessId, date, startTime, totalDuration) {
         try {
@@ -334,6 +345,49 @@ let BookingOrchestrator = class BookingOrchestrator {
         catch (error) {
             console.error(`❌ Error checking business hours: ${error.message}`);
             return false;
+        }
+    }
+    async checkForConflictingBookings(businessId, date, startTime, totalDuration) {
+        try {
+            const [reqHour, reqMin] = startTime.split(':').map(Number);
+            const requestStartMins = reqHour * 60 + reqMin;
+            const requestEndMins = requestStartMins + totalDuration;
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
+            console.log(`🔍 Checking for conflicts on ${date.toISOString().split('T')[0]} from ${startTime} (${totalDuration} mins)`);
+            const result = await this.bookingService.getBookings({
+                businessId,
+                startDate: startOfDay,
+                endDate: endOfDay,
+                status: ['pending', 'confirmed', 'payment_pending', 'paid']
+            });
+            const existingBookings = result.bookings;
+            if (!existingBookings || existingBookings.length === 0) {
+                console.log(`✅ No existing bookings found for this date`);
+                return false;
+            }
+            console.log(`📋 Found ${existingBookings.length} existing booking(s) on this date`);
+            for (const booking of existingBookings) {
+                const existingStart = booking.preferredStartTime;
+                const existingDuration = booking.totalDuration || 60;
+                const [existingHour, existingMin] = existingStart.split(':').map(Number);
+                const existingStartMins = existingHour * 60 + existingMin;
+                const existingEndMins = existingStartMins + existingDuration;
+                console.log(`  📌 Existing booking ${booking.bookingNumber}: ${existingStart} - ${Math.floor(existingEndMins / 60)}:${(existingEndMins % 60).toString().padStart(2, '0')}`);
+                const hasOverlap = (requestStartMins < existingEndMins) && (requestEndMins > existingStartMins);
+                if (hasOverlap) {
+                    console.log(`  ❌ CONFLICT DETECTED with booking ${booking.bookingNumber}`);
+                    return true;
+                }
+            }
+            console.log(`✅ No time conflicts found`);
+            return false;
+        }
+        catch (error) {
+            console.error(`❌ Error checking for conflicting bookings: ${error.message}`);
+            return true;
         }
     }
     async handlePaymentFailure(bookingId, transactionReference, errorMessage) {

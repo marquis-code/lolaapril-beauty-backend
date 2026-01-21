@@ -20,13 +20,15 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const payment_schema_1 = require("../../payment/schemas/payment.schema");
 const booking_schema_1 = require("../../booking/schemas/booking.schema");
+const business_schema_1 = require("../../business/schemas/business.schema");
 const gateway_manager_service_1 = require("../../integration/gateway-manager.service");
 const notification_service_1 = require("../../notification/notification.service");
 const commission_calculator_service_1 = require("../../commission/services/commission-calculator.service");
 let PayoutProcessor = PayoutProcessor_1 = class PayoutProcessor {
-    constructor(paymentModel, bookingModel, gatewayManager, notificationService, commissionCalculatorService) {
+    constructor(paymentModel, bookingModel, businessModel, gatewayManager, notificationService, commissionCalculatorService) {
         this.paymentModel = paymentModel;
         this.bookingModel = bookingModel;
+        this.businessModel = businessModel;
         this.gatewayManager = gatewayManager;
         this.notificationService = notificationService;
         this.commissionCalculatorService = commissionCalculatorService;
@@ -153,19 +155,44 @@ let PayoutProcessor = PayoutProcessor_1 = class PayoutProcessor {
         };
     }
     async getTenantBankDetails(tenantId) {
-        return {
-            accountNumber: 'XXXXXXXXXX',
-            bankCode: 'XXX',
-            accountName: 'Business Account'
-        };
+        try {
+            const business = await this.businessModel.findById(tenantId).lean();
+            if (!business) {
+                throw new Error(`Business not found: ${tenantId}`);
+            }
+            const bankAccount = business.businessDocuments?.bankAccount;
+            if (!bankAccount?.accountNumber || !bankAccount?.bankCode) {
+                this.logger.warn(`⚠️ Incomplete bank details for business ${tenantId}`);
+                throw new Error(`Business ${tenantId} has incomplete bank account information. Please update bank details.`);
+            }
+            this.logger.log(`✅ Bank details found for ${business.businessName}`);
+            return {
+                accountNumber: bankAccount.accountNumber,
+                bankCode: bankAccount.bankCode,
+                accountName: bankAccount.accountName || business.businessName,
+                bankName: bankAccount.bankName,
+                recipientCode: business.paymentSettings?.paystackRecipientCode
+            };
+        }
+        catch (error) {
+            this.logger.error(`Failed to get bank details for tenant ${tenantId}:`, error.message);
+            throw error;
+        }
     }
     async initiateTransfer(tenantId, amount, bankDetails, period) {
         try {
             const gateway = 'paystack';
+            this.logger.log(`Initiating transfer of ${amount} to tenant ${tenantId}`);
+            this.logger.log('Bank details:', {
+                accountNumber: bankDetails.accountNumber,
+                bankCode: bankDetails.bankCode,
+                accountName: bankDetails.accountName
+            });
             const transferResult = await this.gatewayManager.processTransfer(gateway, amount, {
-                recipient: bankDetails.accountNumber,
+                accountNumber: bankDetails.accountNumber,
                 bankCode: bankDetails.bankCode,
                 accountName: bankDetails.accountName,
+                recipientCode: bankDetails.recipientCode,
                 reference: `PAYOUT-${tenantId}-${Date.now()}`,
                 reason: `${period} payout`
             });
@@ -304,7 +331,9 @@ PayoutProcessor = PayoutProcessor_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(payment_schema_1.Payment.name)),
     __param(1, (0, mongoose_1.InjectModel)(booking_schema_1.Booking.name)),
+    __param(2, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         gateway_manager_service_1.GatewayManagerService,
         notification_service_1.NotificationService,

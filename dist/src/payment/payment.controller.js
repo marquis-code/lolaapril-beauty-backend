@@ -20,6 +20,7 @@ const create_payment_dto_1 = require("./dto/create-payment.dto");
 const update_payment_dto_1 = require("./dto/update-payment.dto");
 const payment_query_dto_1 = require("./dto/payment-query.dto");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const public_decorator_1 = require("../auth/decorators/public.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
 const audit_decorator_1 = require("../audit/decorators/audit.decorator");
@@ -97,8 +98,9 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "verifyPayment", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)('webhook'),
-    (0, swagger_1.ApiOperation)({ summary: 'Payment gateway webhook endpoint' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Payment gateway webhook endpoint (Public)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Webhook processed successfully' }),
     __param(0, (0, common_1.Headers)('x-paystack-signature')),
     __param(1, (0, common_1.Req)()),

@@ -73,6 +73,7 @@ export declare class BookingOrchestrator {
     private formatDateForAvailability;
     private checkAvailabilityForAllServices;
     private checkBusinessWorkingHours;
+    private checkForConflictingBookings;
     private handlePaymentFailure;
     private handleUnavailableSlot;
     private getServicesDetails;

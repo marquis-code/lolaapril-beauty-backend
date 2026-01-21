@@ -20,16 +20,19 @@ const config_1 = require("@nestjs/config");
 const axios_1 = require("axios");
 const payment_schema_1 = require("./schemas/payment.schema");
 const booking_schema_1 = require("../booking/schemas/booking.schema");
+const business_schema_1 = require("../business/schemas/business.schema");
 const notification_service_1 = require("../notification/notification.service");
 const pricing_service_1 = require("../pricing/pricing.service");
 const commission_service_1 = require("../commission/services/commission.service");
 const gateway_manager_service_1 = require("../integration/gateway-manager.service");
 const jobs_service_1 = require("../jobs/jobs.service");
 const cache_service_1 = require("../cache/cache.service");
+const business_service_1 = require("../business/business.service");
 let PaymentService = class PaymentService {
-    constructor(paymentModel, bookingModel, notificationService, configService, pricingService, commissionService, gatewayManager, jobsService, cacheService) {
+    constructor(paymentModel, bookingModel, businessModel, notificationService, configService, pricingService, commissionService, gatewayManager, jobsService, cacheService, businessService) {
         this.paymentModel = paymentModel;
         this.bookingModel = bookingModel;
+        this.businessModel = businessModel;
         this.notificationService = notificationService;
         this.configService = configService;
         this.pricingService = pricingService;
@@ -37,19 +40,35 @@ let PaymentService = class PaymentService {
         this.gatewayManager = gatewayManager;
         this.jobsService = jobsService;
         this.cacheService = cacheService;
+        this.businessService = businessService;
         this.paystackBaseUrl = 'https://api.paystack.co';
         this.paystackSecretKey = this.configService.get('PAYSTACK_SECRET_KEY');
     }
+    async resolveBusinessId(businessId, subdomain) {
+        if (!businessId && !subdomain) {
+            throw new common_1.BadRequestException('Either businessId or subdomain must be provided');
+        }
+        if (businessId) {
+            return businessId;
+        }
+        const business = await this.businessService.getBySubdomain(subdomain);
+        if (!business) {
+            throw new common_1.NotFoundException(`Business not found with subdomain: ${subdomain}`);
+        }
+        return business._id.toString();
+    }
     async initializePayment(data) {
         try {
+            const businessId = await this.resolveBusinessId(data.businessId, data.subdomain);
             console.log('🚀 Initializing payment with data:', {
                 email: data.email,
                 amount: data.amount,
                 clientId: data.clientId,
-                tenantId: data.tenantId,
+                businessId,
                 gateway: data.gateway || 'paystack',
             });
-            const feeCalculation = await this.pricingService.calculateFees(data.tenantId, data.amount);
+            const business = await this.businessService.getById(businessId);
+            const feeCalculation = await this.pricingService.calculateFees(businessId, data.amount);
             console.log('💰 Fee calculation:', feeCalculation);
             const paymentReference = await this.generatePaymentReference();
             const gateway = data.gateway || 'paystack';
@@ -59,13 +78,25 @@ let PaymentService = class PaymentService {
             const enrichedMetadata = {
                 ...data.metadata,
                 clientId: data.clientId,
-                tenantId: data.tenantId,
+                businessId,
                 appointmentId: data.appointmentId,
                 bookingId: data.bookingId,
                 paymentReference,
                 feeCalculation,
                 callback_url: `${frontendUrl}/payment/callback`,
             };
+            if (business.paymentSettings?.paystackSubaccountCode) {
+                enrichedMetadata.subaccount = business.paymentSettings.paystackSubaccountCode;
+                enrichedMetadata.platformFee = feeCalculation.totalPlatformFee;
+                console.log('✅ Using subaccount for payment split:', {
+                    subaccount: business.paymentSettings.paystackSubaccountCode,
+                    platformFee: feeCalculation.totalPlatformFee,
+                    businessReceives: feeCalculation.businessReceives,
+                });
+            }
+            else {
+                console.warn('⚠️ Business does not have a subaccount. Payment will not be split automatically.');
+            }
             const gatewayResponse = await this.gatewayManager.processPayment(gateway, data.amount, {
                 email: data.email,
                 metadata: enrichedMetadata,
@@ -77,7 +108,7 @@ let PaymentService = class PaymentService {
                 clientId: new mongoose_2.Types.ObjectId(data.clientId),
                 appointmentId: data.appointmentId ? new mongoose_2.Types.ObjectId(data.appointmentId) : undefined,
                 bookingId: data.bookingId ? new mongoose_2.Types.ObjectId(data.bookingId) : undefined,
-                businessId: data.tenantId ? new mongoose_2.Types.ObjectId(data.tenantId) : undefined,
+                businessId: new mongoose_2.Types.ObjectId(businessId),
                 paymentReference,
                 items: paymentItems,
                 subtotal: feeCalculation.bookingAmount,
@@ -292,10 +323,74 @@ let PaymentService = class PaymentService {
         }
     }
     async handleSuccessfulCharge(data) {
-        const payment = await this.paymentModel.findOne({
+        let payment = await this.paymentModel.findOne({
             paymentReference: data.reference
         });
-        if (payment && payment.status !== 'completed') {
+        if (!payment && data.metadata?.reference) {
+            console.log('⚠️ Webhook: Payment not found with Paystack reference, trying backend reference from metadata');
+            payment = await this.paymentModel.findOne({
+                paymentReference: data.metadata.reference
+            });
+        }
+        if (!payment && data.metadata?.metadata?.paymentReference) {
+            console.log('⚠️ Webhook: Trying nested metadata.metadata.paymentReference');
+            payment = await this.paymentModel.findOne({
+                paymentReference: data.metadata.metadata.paymentReference
+            });
+        }
+        if (!payment) {
+            console.log('\n🔴 ========================================');
+            console.log('⚠️ WEBHOOK ERROR: Payment Record Not Found');
+            console.log('========================================');
+            console.log('📌 Top-level reference:', data.reference);
+            console.log('📌 Metadata reference:', data.metadata?.reference);
+            console.log('📌 Nested metadata reference:', data.metadata?.metadata?.paymentReference);
+            console.log('📌 Expected format: PAY-{timestamp}-{random}');
+            console.log('\n💡 ISSUE:');
+            console.log('   Paystack is NOT using the backend-generated reference.');
+            console.log('   This means the reference field was not passed correctly to Paystack API.');
+            console.log('\n✅ SOLUTION:');
+            console.log('   Restart the backend to apply the Paystack service fix.');
+            console.log('   The fix ensures the reference is passed at the root level of the payload.');
+            console.log('\n📋 Full webhook data:');
+            console.log(JSON.stringify(data, null, 2));
+            console.log('========================================\n');
+            return;
+        }
+        console.log('✅ Payment found:', {
+            paymentId: payment._id,
+            reference: payment.paymentReference,
+            webhookTopLevelRef: data.reference,
+            webhookMetadataRef: data.metadata?.reference
+        });
+        if (payment.status === 'completed') {
+            console.log('✅ Webhook: Payment already processed (idempotent check)', {
+                reference: data.reference,
+                paymentId: payment._id,
+                status: payment.status
+            });
+            return;
+        }
+        const cacheKey = `webhook:processing:${data.reference}`;
+        const isProcessing = await this.cacheService.get(cacheKey);
+        if (isProcessing) {
+            console.log('⏳ Webhook: Already processing this payment, skipping duplicate');
+            return;
+        }
+        await this.cacheService.set(cacheKey, 'processing', 60);
+        try {
+            console.log('🎉 Webhook: Processing successful payment', {
+                reference: data.reference,
+                amount: data.amount,
+                paymentId: payment._id,
+                currentStatus: payment.status
+            });
+            await this.verifyPayment(data.reference);
+            console.log('✅ Webhook: Full payment verification completed');
+            await this.cacheService.set(`webhook:completed:${data.reference}`, 'done', 86400);
+        }
+        catch (verifyError) {
+            console.error('❌ Webhook: Payment verification failed:', verifyError.message);
             await this.paymentModel.findByIdAndUpdate(payment._id, {
                 status: 'completed',
                 transactionId: data.id.toString(),
@@ -306,24 +401,33 @@ let PaymentService = class PaymentService {
             if (payment.bookingId) {
                 await this.bookingModel.findByIdAndUpdate(payment.bookingId, { status: 'confirmed', updatedAt: new Date() });
             }
-            console.log('✅ Webhook: Payment completed');
+            console.log('✅ Webhook: Payment status updated (fallback)');
+        }
+        finally {
+            await this.cacheService.del(cacheKey);
         }
     }
     async handleFailedCharge(data) {
         const payment = await this.paymentModel.findOne({
             paymentReference: data.reference
         });
-        if (payment) {
-            await this.paymentModel.findByIdAndUpdate(payment._id, {
-                status: 'failed',
-                gatewayResponse: JSON.stringify(data),
-                updatedAt: new Date(),
-            });
-            if (payment.bookingId) {
-                await this.bookingModel.findByIdAndUpdate(payment.bookingId, { status: 'payment_failed', updatedAt: new Date() });
-            }
-            console.log('✅ Webhook: Payment failed');
+        if (!payment) {
+            console.log('⚠️ Webhook: Payment record not found for reference:', data.reference);
+            return;
         }
+        if (payment.status === 'failed') {
+            console.log('✅ Webhook: Payment already marked as failed (idempotent check)');
+            return;
+        }
+        await this.paymentModel.findByIdAndUpdate(payment._id, {
+            status: 'failed',
+            gatewayResponse: JSON.stringify(data),
+            updatedAt: new Date(),
+        });
+        if (payment.bookingId) {
+            await this.bookingModel.findByIdAndUpdate(payment.bookingId, { status: 'payment_failed', updatedAt: new Date() });
+        }
+        console.log('✅ Webhook: Payment failed');
     }
     async createPaymentFromBooking(booking, transactionReference, paymentInfo) {
         try {
@@ -864,7 +968,9 @@ PaymentService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(payment_schema_1.Payment.name)),
     __param(1, (0, mongoose_1.InjectModel)(booking_schema_1.Booking.name)),
+    __param(2, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         notification_service_1.NotificationService,
         config_1.ConfigService,
@@ -872,7 +978,8 @@ PaymentService = __decorate([
         commission_service_1.CommissionService,
         gateway_manager_service_1.GatewayManagerService,
         jobs_service_1.JobsService,
-        cache_service_1.CacheService])
+        cache_service_1.CacheService,
+        business_service_1.BusinessService])
 ], PaymentService);
 exports.PaymentService = PaymentService;
 //# sourceMappingURL=payment.service.js.map

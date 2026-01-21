@@ -108,6 +108,7 @@ import { PricingTier, PricingTierDocument } from './schemas/pricing-tier.schema'
 import { FeeStructure, FeeStructureDocument } from './schemas/fee-structure.schema'
 import { PricingHistory, PricingHistoryDocument } from './schemas/pricing-history.schema'
 import { CreatePricingTierDto } from './dto/create-pricing-tier.dto'
+import { CreateFeeStructureDto } from './dto/create-fee-structure.dto'
 
 // AGGRESSIVE FIX: Define explicit return types
 type LeanPricingTier = {
@@ -167,6 +168,31 @@ export class PricingService {
     
     const result = await query.exec()
     return result
+  }
+
+  async createFeeStructure(businessId: string, createDto: CreateFeeStructureDto) {
+    // Check if there's an existing active fee structure for this business
+    const existingStructure = await this.getBusinessFeeStructure(businessId)
+    
+    if (existingStructure) {
+      // Close the existing structure
+      await this.feeStructureModel.findByIdAndUpdate(existingStructure._id, {
+        effectiveTo: new Date()
+      })
+    }
+
+    const feeStructure = await this.feeStructureModel.create({
+      businessId: new Types.ObjectId(businessId),
+      pricingTierId: createDto.pricingTierId ? new Types.ObjectId(createDto.pricingTierId) : null,
+      effectiveFrom: createDto.effectiveFrom ? new Date(createDto.effectiveFrom) : new Date(),
+      effectiveTo: createDto.effectiveTo ? new Date(createDto.effectiveTo) : null,
+      platformFeePercentage: createDto.platformFeePercentage,
+      platformFeeFixed: createDto.platformFeeFixed || 0,
+      isGrandfathered: createDto.isGrandfathered || false,
+      customRules: createDto.customRules || {}
+    })
+
+    return feeStructure
   }
 
   async getBusinessFeeStructure(businessId: string): Promise<LeanFeeStructure | null> {

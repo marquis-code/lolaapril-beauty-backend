@@ -24,7 +24,7 @@ IntegrationModule = __decorate([
             stripe_service_1.StripeService,
             square_service_1.SquareService,
         ],
-        exports: [gateway_manager_service_1.GatewayManagerService],
+        exports: [gateway_manager_service_1.GatewayManagerService, paystack_service_1.PaystackService],
     })
 ], IntegrationModule);
 exports.IntegrationModule = IntegrationModule;

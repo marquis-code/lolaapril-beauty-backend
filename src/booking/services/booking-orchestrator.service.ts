@@ -2255,16 +2255,34 @@ export class BookingOrchestrator {
     startTime: string,
     totalDuration: number
   ): Promise<boolean> {
-    // ✅ CHANGED: Check BUSINESS WORKING HOURS instead of staff availability
-    // Bookings are tied to business operating hours, not staff availability
-    // Staff assignment happens later in the confirmation/payment phase
-    
-    return await this.checkBusinessWorkingHours(
+    // ✅ Step 1: Check BUSINESS WORKING HOURS
+    const isWithinBusinessHours = await this.checkBusinessWorkingHours(
       businessId,
       date,
       startTime,
       totalDuration
     )
+
+    if (!isWithinBusinessHours) {
+      console.log('❌ Time slot outside business hours')
+      return false
+    }
+
+    // ✅ Step 2: Check for CONFLICTING BOOKINGS
+    const hasConflict = await this.checkForConflictingBookings(
+      businessId,
+      date,
+      startTime,
+      totalDuration
+    )
+
+    if (hasConflict) {
+      console.log('❌ Time slot already booked')
+      return false
+    }
+
+    console.log('✅ Time slot is available')
+    return true
   }
 
 //   private async checkBusinessWorkingHours(
@@ -2427,6 +2445,81 @@ private async checkBusinessWorkingHours(
   } catch (error) {
     console.error(`❌ Error checking business hours: ${error.message}`)
     return false
+  }
+}
+
+/**
+ * Check for conflicting bookings at the same time slot
+ * Prevents double-booking by checking existing confirmed/pending bookings
+ */
+private async checkForConflictingBookings(
+  businessId: string,
+  date: Date,
+  startTime: string,
+  totalDuration: number
+): Promise<boolean> {
+  try {
+    // Parse requested time slot
+    const [reqHour, reqMin] = startTime.split(':').map(Number)
+    const requestStartMins = reqHour * 60 + reqMin
+    const requestEndMins = requestStartMins + totalDuration
+
+    // Create date range for the booking day
+    const startOfDay = new Date(date)
+    startOfDay.setHours(0, 0, 0, 0)
+    
+    const endOfDay = new Date(date)
+    endOfDay.setHours(23, 59, 59, 999)
+
+    console.log(`🔍 Checking for conflicts on ${date.toISOString().split('T')[0]} from ${startTime} (${totalDuration} mins)`)
+
+    // Find all bookings for this business on this date
+    // Only consider bookings that are not cancelled/expired
+    const result = await this.bookingService.getBookings({
+      businessId,
+      startDate: startOfDay,
+      endDate: endOfDay,
+      status: ['pending', 'confirmed', 'payment_pending', 'paid']
+    })
+
+    const existingBookings = result.bookings
+
+    if (!existingBookings || existingBookings.length === 0) {
+      console.log(`✅ No existing bookings found for this date`)
+      return false // No conflicts
+    }
+
+    console.log(`📋 Found ${existingBookings.length} existing booking(s) on this date`)
+
+    // Check each existing booking for time overlap
+    for (const booking of existingBookings) {
+      const existingStart = booking.preferredStartTime
+      const existingDuration = booking.totalDuration || 60
+      
+      const [existingHour, existingMin] = existingStart.split(':').map(Number)
+      const existingStartMins = existingHour * 60 + existingMin
+      const existingEndMins = existingStartMins + existingDuration
+
+      console.log(`  📌 Existing booking ${booking.bookingNumber}: ${existingStart} - ${Math.floor(existingEndMins / 60)}:${(existingEndMins % 60).toString().padStart(2, '0')}`)
+
+      // Check for overlap
+      // Two time slots overlap if:
+      // (StartA < EndB) AND (EndA > StartB)
+      const hasOverlap = (requestStartMins < existingEndMins) && (requestEndMins > existingStartMins)
+
+      if (hasOverlap) {
+        console.log(`  ❌ CONFLICT DETECTED with booking ${booking.bookingNumber}`)
+        return true // Conflict found
+      }
+    }
+
+    console.log(`✅ No time conflicts found`)
+    return false // No conflicts
+
+  } catch (error) {
+    console.error(`❌ Error checking for conflicting bookings: ${error.message}`)
+    // Be conservative - if we can't check, assume there might be a conflict
+    return true
   }
 }
 

@@ -1,7 +1,33 @@
+/// <reference types="mongoose/types/aggregate" />
+/// <reference types="mongoose/types/callback" />
+/// <reference types="mongoose/types/collection" />
+/// <reference types="mongoose/types/connection" />
+/// <reference types="mongoose/types/cursor" />
+/// <reference types="mongoose/types/document" />
+/// <reference types="mongoose/types/error" />
+/// <reference types="mongoose/types/expressions" />
+/// <reference types="mongoose/types/helpers" />
+/// <reference types="mongoose/types/middlewares" />
+/// <reference types="mongoose/types/indexes" />
+/// <reference types="mongoose/types/models" />
+/// <reference types="mongoose/types/mongooseoptions" />
+/// <reference types="mongoose/types/pipelinestage" />
+/// <reference types="mongoose/types/populate" />
+/// <reference types="mongoose/types/query" />
+/// <reference types="mongoose/types/schemaoptions" />
+/// <reference types="mongoose/types/session" />
+/// <reference types="mongoose/types/types" />
+/// <reference types="mongoose/types/utility" />
+/// <reference types="mongoose/types/validation" />
+/// <reference types="mongoose/types/virtuals" />
+/// <reference types="mongoose/types/schematypes" />
+/// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Model, Types } from "mongoose";
 import { ConfigService } from '@nestjs/config';
 import { Payment, PaymentDocument } from "./schemas/payment.schema";
 import { BookingDocument } from "../booking/schemas/booking.schema";
+import { BusinessDocument } from "../business/schemas/business.schema";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 import { ApiResponse } from "../common/interfaces/common.interface";
 import { PaymentQueryDto } from "./dto/payment-query.dto";
@@ -12,9 +38,11 @@ import { CommissionService } from '../commission/services/commission.service';
 import { GatewayManagerService } from '../integration/gateway-manager.service';
 import { JobsService } from '../jobs/jobs.service';
 import { CacheService } from '../cache/cache.service';
+import { BusinessService } from '../business/business.service';
 export declare class PaymentService {
     private paymentModel;
     private bookingModel;
+    private businessModel;
     private notificationService;
     private configService;
     private pricingService;
@@ -22,14 +50,17 @@ export declare class PaymentService {
     private gatewayManager;
     private jobsService;
     private cacheService;
+    private businessService;
     private readonly paystackSecretKey;
     private readonly paystackBaseUrl;
-    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, notificationService: NotificationService, configService: ConfigService, pricingService: PricingService, commissionService: CommissionService, gatewayManager: GatewayManagerService, jobsService: JobsService, cacheService: CacheService);
+    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, businessModel: Model<BusinessDocument>, notificationService: NotificationService, configService: ConfigService, pricingService: PricingService, commissionService: CommissionService, gatewayManager: GatewayManagerService, jobsService: JobsService, cacheService: CacheService, businessService: BusinessService);
+    private resolveBusinessId;
     initializePayment(data: {
         email: string;
         amount: number;
         clientId: string;
-        tenantId: string;
+        businessId?: string;
+        subdomain?: string;
         appointmentId?: string;
         bookingId?: string;
         gateway?: string;

@@ -2,11 +2,14 @@ import { Model } from 'mongoose';
 import { BusinessDocument } from './schemas/business.schema';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { UserDocument } from '../auth/schemas/user.schema';
+import { PaystackService } from '../integration/payment-gateways/paystack/paystack.service';
 export declare class BusinessService {
     private businessModel;
     private userModel;
     private readonly subscriptionService;
-    constructor(businessModel: Model<BusinessDocument>, userModel: Model<UserDocument>, subscriptionService: SubscriptionService);
+    private readonly paystackService;
+    private readonly logger;
+    constructor(businessModel: Model<BusinessDocument>, userModel: Model<UserDocument>, subscriptionService: SubscriptionService, paystackService: PaystackService);
     isSubdomainAvailable(subdomain: string): Promise<boolean>;
     getBySubdomain(subdomain: string): Promise<any>;
     getById(businessId: string): Promise<any>;
@@ -31,4 +34,8 @@ export declare class BusinessService {
         warnings: string[];
         blocked: string[];
     }>;
+    createPaystackSubaccount(businessId: string): Promise<any>;
+    verifyBusinessKYC(businessId: string, adminId?: string): Promise<any>;
+    rejectBusinessKYC(businessId: string, reason: string, adminId?: string): Promise<any>;
+    getSubaccountDetails(businessId: string): Promise<any>;
 }

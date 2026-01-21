@@ -125,6 +125,44 @@ let BusinessController = class BusinessController {
             message: 'Settings updated successfully'
         };
     }
+    async verifyKYC(id, user) {
+        const result = await this.businessService.verifyBusinessKYC(id, user.sub);
+        return {
+            success: true,
+            data: result,
+            message: 'Business verified and subaccount created successfully'
+        };
+    }
+    async rejectKYC(id, body, user) {
+        if (!body.reason) {
+            return { success: false, error: 'Rejection reason is required' };
+        }
+        const result = await this.businessService.rejectBusinessKYC(id, body.reason, user.sub);
+        return {
+            success: true,
+            data: result,
+            message: 'KYC verification rejected'
+        };
+    }
+    async createSubaccount(id) {
+        const result = await this.businessService.createPaystackSubaccount(id);
+        return {
+            success: true,
+            data: result,
+            message: 'Subaccount created successfully'
+        };
+    }
+    async getSubaccount(id, businessId) {
+        if (businessId !== id) {
+            return { success: false, error: 'Access denied' };
+        }
+        const subaccount = await this.businessService.getSubaccountDetails(id);
+        return {
+            success: true,
+            data: subaccount,
+            message: 'Subaccount details retrieved successfully'
+        };
+    }
 };
 __decorate([
     (0, auth_1.Public)(),
@@ -252,6 +290,51 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], BusinessController.prototype, "updateSettings", null);
+__decorate([
+    (0, common_1.Post)(':id/verify-kyc'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Verify business KYC and create Paystack subaccount (Admin only)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'KYC verified and subaccount created' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "verifyKYC", null);
+__decorate([
+    (0, common_1.Post)(':id/reject-kyc'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Reject business KYC with reason (Admin only)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'KYC rejected' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, auth_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "rejectKYC", null);
+__decorate([
+    (0, common_1.Post)(':id/create-subaccount'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Create Paystack subaccount for verified business' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Subaccount created successfully' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "createSubaccount", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Get)(':id/subaccount'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get business subaccount details' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Subaccount details retrieved' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "getSubaccount", null);
 BusinessController = __decorate([
     (0, swagger_1.ApiTags)('Business Management'),
     (0, common_1.Controller)('businesses'),

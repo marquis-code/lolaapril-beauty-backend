@@ -19,6 +19,7 @@ import { GetBookingsDto } from '../dto/get-bookings.dto'
 import { ConfirmBookingDto } from '../dto/confirm-booking.dto'
 import { ProcessPaymentDto } from '../dto/process-payment.dto'
 import { UpdateBookingStatusDto } from '../dto/update-booking.dto'
+import { RescheduleBookingDto } from '../dto/reschedule-booking.dto'
 
 // 🔥 NEW: Import decorators (no more guards!)
 import { 
@@ -132,6 +133,8 @@ export class BookingController {
     @CurrentUser() user: RequestWithUser['user'],
     @Query('status') status?: string
   ) {
+    console.log('🔍 [GET MY BOOKINGS] User ID from token:', user.sub)
+    console.log('🔍 [GET MY BOOKINGS] Full user object:', JSON.stringify(user, null, 2))
     return this.bookingService.getClientBookings(user.sub, status)
   }
 
@@ -307,11 +310,10 @@ export class BookingController {
   }
 
   // ==========================================================================
-  // CANCEL BOOKING - Client or Business (WRITE OPERATION - VALIDATE)
+  // CANCEL BOOKING - Client or Business (Both can access)
   // ==========================================================================
 
-  @ValidateBusiness() // ✅ Validate business access
-  @Post(':id/cancel')
+  @Post(':id/cancel') // ✅ No @ValidateBusiness - clients need access too
   @ApiBearerAuth()
   @ApiOperation({ 
     summary: 'Cancel booking',
@@ -342,6 +344,56 @@ export class BookingController {
     )
 
     return { success: true, message: 'Booking cancelled successfully' }
+  }
+
+  // ==========================================================================
+  // RESCHEDULE BOOKING - Client or Business (Both can access)
+  // ==========================================================================
+
+  @Post(':id/reschedule') // ✅ No @ValidateBusiness - clients need access too
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: 'Reschedule booking',
+    description: 'Reschedules a booking to a new date/time. Clients can reschedule their own bookings, business users can reschedule any booking in their business.'
+  })
+  @ApiResponse({ status: 200, description: 'Booking rescheduled successfully' })
+  @ApiResponse({ status: 400, description: 'Cannot reschedule this booking' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  async rescheduleBooking(
+    @Param('id') bookingId: string,
+    @CurrentUser() user: RequestWithUser['user'],
+    @Body() rescheduleDto: RescheduleBookingDto
+  ) {
+    const booking = await this.bookingService.getBookingById(bookingId)
+    
+    // Access control - check if user can reschedule this booking
+    if (user.role === 'client') {
+      if (booking.clientId.toString() !== user.sub) {
+        return { success: false, message: 'Access denied' }
+      }
+    } else if (user.businessId) {
+      if (booking.businessId.toString() !== user.businessId) {
+        return { success: false, message: 'Access denied' }
+      }
+    }
+
+    // Parse the new date
+    const newPreferredDate = new Date(rescheduleDto.newPreferredDate)
+
+    // Reschedule the booking
+    const rescheduledBooking = await this.bookingService.rescheduleBooking(
+      bookingId,
+      newPreferredDate,
+      rescheduleDto.newPreferredStartTime,
+      rescheduleDto.reason,
+      user.sub
+    )
+
+    return { 
+      success: true, 
+      message: 'Booking rescheduled successfully',
+      data: rescheduledBooking
+    }
   }
 
   // ==========================================================================

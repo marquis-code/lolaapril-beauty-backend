@@ -23,10 +23,24 @@ export declare class ServiceService implements OnModuleInit {
     onModuleInit(): Promise<void>;
     private validateObjectId;
     createCategory(createCategoryDto: CreateServiceCategoryDto, businessId: string): Promise<ApiResponse<ServiceCategory>>;
+    bulkCreateCategories(categories: CreateServiceCategoryDto[], businessId: string): Promise<ApiResponse<{
+        created: ServiceCategory[];
+        failed: Array<{
+            category: string;
+            error: string;
+        }>;
+    }>>;
     findAllCategories(subdomain?: string, businessId?: string): Promise<ApiResponse<ServiceCategory[]>>;
     fixCategoryBusinessIds(): Promise<void>;
     updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>>;
     createService(createServiceDto: CreateServiceDto, businessId: string): Promise<ApiResponse<Service>>;
+    bulkCreateServices(services: CreateServiceDto[], businessId: string): Promise<ApiResponse<{
+        created: Service[];
+        failed: Array<{
+            service: string;
+            error: string;
+        }>;
+    }>>;
     findAllServices(query: ServiceQueryDto, businessId?: string): Promise<ApiResponse<Service[]>>;
     getServicesByIds(serviceIds: string[]): Promise<ServiceDocument[]>;
     findOneService(id: string): Promise<ApiResponse<Service>>;

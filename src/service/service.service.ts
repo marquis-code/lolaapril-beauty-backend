@@ -170,6 +170,77 @@ async createCategory(
   }
 }
 
+async bulkCreateCategories(
+  categories: CreateServiceCategoryDto[],
+  businessId: string
+): Promise<ApiResponse<{ created: ServiceCategory[]; failed: Array<{ category: string; error: string }> }>> {
+  try {
+    console.log('📦 Bulk creating categories:')
+    console.log('  - businessId:', businessId)
+    console.log('  - count:', categories.length)
+
+    if (!businessId) {
+      throw new Error("Business ID is required to create categories")
+    }
+
+    this.validateObjectId(businessId, "Business")
+
+    // Verify business exists
+    const businessExists = await this.businessModel.findById(businessId)
+    if (!businessExists) {
+      throw new NotFoundException(`Business with ID ${businessId} not found`)
+    }
+
+    const created: ServiceCategory[] = []
+    const failed: Array<{ category: string; error: string }> = []
+
+    for (const categoryDto of categories) {
+      try {
+        // Check if category already exists
+        const existingCategory = await this.serviceCategoryModel.findOne({
+          categoryName: categoryDto.categoryName,
+          businessId: new Types.ObjectId(businessId),
+        })
+
+        if (existingCategory) {
+          failed.push({
+            category: categoryDto.categoryName,
+            error: 'Category with this name already exists',
+          })
+          continue
+        }
+
+        const category = new this.serviceCategoryModel({
+          ...categoryDto,
+          businessId: new Types.ObjectId(businessId),
+        })
+
+        const savedCategory = await category.save()
+        created.push(savedCategory)
+      } catch (error) {
+        failed.push({
+          category: categoryDto.categoryName,
+          error: error.message,
+        })
+      }
+    }
+
+    console.log(`✅ Created ${created.length} categories, ${failed.length} failed`)
+
+    return {
+      success: true,
+      data: { created, failed },
+      message: `Successfully created ${created.length} categories${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+    }
+  } catch (error) {
+    console.error('❌ Error in bulk create categories:', error)
+    if (error instanceof NotFoundException) {
+      throw error
+    }
+    throw new Error(`Failed to bulk create service categories: ${error.message}`)
+  }
+}
+
 
   // async findAllCategories(): Promise<ApiResponse<ServiceCategory[]>> {
   //   try {
@@ -528,6 +599,95 @@ async fixCategoryBusinessIds(): Promise<void> {
       throw error
     }
     throw new Error(`Failed to create service: ${error.message}`)
+  }
+}
+
+async bulkCreateServices(
+  services: CreateServiceDto[],
+  businessId: string
+): Promise<ApiResponse<{ created: Service[]; failed: Array<{ service: string; error: string }> }>> {
+  try {
+    console.log('📦 Bulk creating services:')
+    console.log('  - businessId:', businessId)
+    console.log('  - count:', services.length)
+
+    if (!businessId) {
+      throw new Error("Business ID is required to create services")
+    }
+
+    this.validateObjectId(businessId, "Business")
+
+    // Verify business exists
+    const businessExists = await this.businessModel.findById(businessId)
+    if (!businessExists) {
+      throw new NotFoundException(`Business with ID ${businessId} not found`)
+    }
+
+    const created: Service[] = []
+    const failed: Array<{ service: string; error: string }> = []
+
+    for (const serviceDto of services) {
+      try {
+        // Validate category if provided
+        if (serviceDto.basicDetails?.category) {
+          this.validateObjectId(serviceDto.basicDetails.category.toString(), "Service category")
+          
+          const categoryExists = await this.serviceCategoryModel.findOne({
+            _id: serviceDto.basicDetails.category,
+            businessId: new Types.ObjectId(businessId),
+          })
+          
+          if (!categoryExists) {
+            failed.push({
+              service: serviceDto.basicDetails.serviceName,
+              error: 'Service category not found or does not belong to this business',
+            })
+            continue
+          }
+        }
+
+        // Check if service already exists
+        const existingService = await this.serviceModel.findOne({
+          "basicDetails.serviceName": serviceDto.basicDetails.serviceName,
+          businessId: new Types.ObjectId(businessId),
+        })
+
+        if (existingService) {
+          failed.push({
+            service: serviceDto.basicDetails.serviceName,
+            error: 'Service with this name already exists',
+          })
+          continue
+        }
+
+        const service = new this.serviceModel({
+          ...serviceDto,
+          businessId: new Types.ObjectId(businessId),
+        })
+
+        const savedService = await service.save()
+        created.push(savedService)
+      } catch (error) {
+        failed.push({
+          service: serviceDto.basicDetails?.serviceName || 'Unknown',
+          error: error.message,
+        })
+      }
+    }
+
+    console.log(`✅ Created ${created.length} services, ${failed.length} failed`)
+
+    return {
+      success: true,
+      data: { created, failed },
+      message: `Successfully created ${created.length} services${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+    }
+  } catch (error) {
+    console.error('❌ Error in bulk create services:', error)
+    if (error instanceof NotFoundException) {
+      throw error
+    }
+    throw new Error(`Failed to bulk create services: ${error.message}`)
   }
 }
 

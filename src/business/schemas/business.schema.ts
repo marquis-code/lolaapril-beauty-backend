@@ -194,26 +194,93 @@ export class Business {
   // ========== BUSINESS DOCUMENTS ==========
   @Prop({
     type: {
-      businessRegistration: String,
-      taxIdentification: String,
+      businessRegistration: {
+        number: String,
+        documentUrl: String, // URL/path to uploaded registration certificate
+        uploadedAt: Date,
+      },
+      taxIdentification: {
+        number: String,
+        documentUrl: String, // URL/path to uploaded tax certificate
+        uploadedAt: Date,
+      },
+      proofOfAddress: {
+        documentUrl: String, // URL/path to utility bill or bank statement
+        uploadedAt: Date,
+      },
+      governmentId: {
+        type: { type: String, enum: ['national_id', 'passport', 'drivers_license'] },
+        number: String,
+        documentUrl: String, // URL/path to ID document
+        uploadedAt: Date,
+      },
       bankAccount: {
         accountName: String,
         accountNumber: String,
         bankName: String,
         bankCode: String,
+        bankStatementUrl: String, // URL/path to bank statement for verification
       },
+      kycStatus: {
+        type: String,
+        enum: ['pending', 'verified', 'rejected'],
+        default: 'pending',
+      },
+      kycVerifiedAt: Date,
+      kycVerifiedBy: { type: Types.ObjectId, ref: 'User' }, // Admin who verified
+      rejectionReason: String,
     },
     default: {},
   })
   businessDocuments: {
-    businessRegistration?: string
-    taxIdentification?: string
+    businessRegistration?: {
+      number?: string
+      documentUrl?: string
+      uploadedAt?: Date
+    }
+    taxIdentification?: {
+      number?: string
+      documentUrl?: string
+      uploadedAt?: Date
+    }
+    proofOfAddress?: {
+      documentUrl?: string
+      uploadedAt?: Date
+    }
+    governmentId?: {
+      type?: string
+      number?: string
+      documentUrl?: string
+      uploadedAt?: Date
+    }
     bankAccount?: {
       accountName?: string
       accountNumber?: string
       bankName?: string
       bankCode?: string
+      bankStatementUrl?: string
     }
+    kycStatus?: string
+    kycVerifiedAt?: Date
+    kycVerifiedBy?: Types.ObjectId
+    rejectionReason?: string
+  }
+
+  // ========== PAYMENT SETTINGS (SUBACCOUNT) ==========
+  @Prop({
+    type: {
+      paystackSubaccountCode: String,
+      paystackRecipientCode: String,
+      percentageCharge: { type: Number, default: 0 }, // Business keeps this % (after platform fee)
+      subaccountCreatedAt: Date,
+    },
+    default: {},
+  })
+  paymentSettings: {
+    paystackSubaccountCode?: string
+    paystackRecipientCode?: string
+    percentageCharge?: number
+    subaccountCreatedAt?: Date
   }
 
   // ========== STATISTICS ==========

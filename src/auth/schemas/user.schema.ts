@@ -107,13 +107,13 @@ export class User {
   @Prop()
   emailVerificationToken?: string
 
-  @ApiProperty({ description: "Password reset token" })
+  @ApiProperty({ description: "Password reset OTP (6 digits)" })
   @Prop()
-  resetPasswordToken?: string
+  resetPasswordOTP?: string
 
-  @ApiProperty({ description: "Password reset token expiry" })
+  @ApiProperty({ description: "Password reset OTP expiry" })
   @Prop()
-  resetPasswordExpires?: Date
+  resetPasswordOTPExpires?: Date
 
   @ApiProperty({ description: "Refresh token for JWT" })
   @Prop()

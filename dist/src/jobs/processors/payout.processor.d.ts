@@ -2,6 +2,7 @@ import { Job } from 'bull';
 import { Model } from 'mongoose';
 import { PaymentDocument } from '../../payment/schemas/payment.schema';
 import { BookingDocument } from '../../booking/schemas/booking.schema';
+import { BusinessDocument } from '../../business/schemas/business.schema';
 import { GatewayManagerService } from '../../integration/gateway-manager.service';
 import { NotificationService } from '../../notification/notification.service';
 import { CommissionCalculatorService } from '../../commission/services/commission-calculator.service';
@@ -24,11 +25,12 @@ interface PayoutResult {
 export declare class PayoutProcessor {
     private paymentModel;
     private bookingModel;
+    private businessModel;
     private gatewayManager;
     private notificationService;
     private commissionCalculatorService;
     private readonly logger;
-    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, gatewayManager: GatewayManagerService, notificationService: NotificationService, commissionCalculatorService: CommissionCalculatorService);
+    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, businessModel: Model<BusinessDocument>, gatewayManager: GatewayManagerService, notificationService: NotificationService, commissionCalculatorService: CommissionCalculatorService);
     handlePayout(job: Job<PayoutJobData>): Promise<PayoutResult>;
     schedulePayouts(job: Job): Promise<void>;
     private verifyPayoutEligibility;

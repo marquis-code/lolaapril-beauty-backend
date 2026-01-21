@@ -12,18 +12,24 @@ import { IntegrationModule } from "../integration/integration.module"
 import { JobsModule } from "../jobs/jobs.module"
 import { CacheModule } from "../cache/cache.module"
 import { PricingModule } from "../pricing/pricing.module"
+import { BusinessModule } from '../business/business.module'
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }, { name: Booking.name, schema: BookingSchema }]), 
-  ConfigModule,
-  forwardRef(() => NotificationModule),
-  AuditModule,
+  imports: [
+    MongooseModule.forFeature([
+      { name: Payment.name, schema: PaymentSchema }, 
+      { name: Booking.name, schema: BookingSchema }
+    ]), 
+    ConfigModule,
+    forwardRef(() => NotificationModule),
+    AuditModule,
     PricingModule,  
     CommissionModule,
     IntegrationModule,
     JobsModule, 
     CacheModule,
-],
+    BusinessModule,
+  ],
   controllers: [PaymentController],
   providers: [PaymentService],
   exports: [PaymentService],

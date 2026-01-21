@@ -1,5 +1,5 @@
 // src/modules/booking/dto/get-bookings.dto.ts
-import { IsOptional, IsString, IsDateString, IsIn } from 'class-validator'
+import { IsOptional, IsString, IsDateString, IsIn, IsArray } from 'class-validator'
 
 export class GetBookingsDto {
   @IsOptional()
@@ -11,8 +11,7 @@ export class GetBookingsDto {
   clientId?: string
 
   @IsOptional()
-  @IsIn(['pending', 'confirmed', 'cancelled', 'expired', 'payment_failed'])
-  status?: string
+  status?: string | string[]
 
   @IsOptional()
   @IsDateString()

@@ -95,14 +95,16 @@ let AuthService = class AuthService {
         await this.userModel.findByIdAndUpdate(savedUser._id, {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
         });
+        const userResponse = JSON.parse(JSON.stringify(savedUser));
+        delete userResponse.password;
+        delete userResponse.refreshToken;
+        delete userResponse.resetPasswordOTP;
+        delete userResponse.resetPasswordOTPExpires;
+        delete userResponse.emailVerificationToken;
         return {
             user: {
+                ...userResponse,
                 id: savedUser._id,
-                firstName: savedUser.firstName,
-                lastName: savedUser.lastName,
-                email: savedUser.email,
-                role: savedUser.role,
-                status: savedUser.status,
             },
             business: {
                 id: savedBusiness._id,
@@ -133,14 +135,16 @@ let AuthService = class AuthService {
         await this.userModel.findByIdAndUpdate(user._id, {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
         });
+        const userResponse = JSON.parse(JSON.stringify(user));
+        delete userResponse.password;
+        delete userResponse.refreshToken;
+        delete userResponse.resetPasswordOTP;
+        delete userResponse.resetPasswordOTPExpires;
+        delete userResponse.emailVerificationToken;
         return {
             user: {
+                ...userResponse,
                 id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                status: user.status,
             },
             ...tokens,
         };
@@ -201,17 +205,16 @@ let AuthService = class AuthService {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
             currentBusinessId: business?._id,
         });
+        const userResponse = JSON.parse(JSON.stringify(user));
+        delete userResponse.password;
+        delete userResponse.refreshToken;
+        delete userResponse.resetPasswordOTP;
+        delete userResponse.resetPasswordOTPExpires;
+        delete userResponse.emailVerificationToken;
         const response = {
             user: {
+                ...userResponse,
                 id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                status: user.status,
-                profileImage: user.profileImage,
-                emailVerified: user.emailVerified,
-                authProvider: user.authProvider,
             },
             ...tokens,
         };
@@ -337,15 +340,16 @@ let AuthService = class AuthService {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
             lastLogin: new Date(),
         });
+        const userResponse = JSON.parse(JSON.stringify(user));
+        delete userResponse.password;
+        delete userResponse.refreshToken;
+        delete userResponse.resetPasswordOTP;
+        delete userResponse.resetPasswordOTPExpires;
+        delete userResponse.emailVerificationToken;
         return {
             user: {
+                ...userResponse,
                 id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                status: user.status,
-                authProvider: user.authProvider,
             },
             ...tokens,
         };
@@ -505,14 +509,16 @@ let AuthService = class AuthService {
             refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
             lastLogin: new Date(),
         });
+        const userResponse = JSON.parse(JSON.stringify(user));
+        delete userResponse.password;
+        delete userResponse.refreshToken;
+        delete userResponse.resetPasswordOTP;
+        delete userResponse.resetPasswordOTPExpires;
+        delete userResponse.emailVerificationToken;
         return {
             user: {
+                ...userResponse,
                 id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                status: user.status,
             },
             business: {
                 id: business._id,
@@ -886,6 +892,73 @@ let AuthService = class AuthService {
                 trialEndsAt: savedBusiness.trialEndsAt,
             },
             ...tokens,
+        };
+    }
+    generateOTP() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    async forgotPassword(email) {
+        const user = await this.userModel.findOne({ email }).exec();
+        if (!user) {
+            return {
+                success: true,
+                message: 'If an account with that email exists, a password reset OTP has been sent.',
+            };
+        }
+        const otp = this.generateOTP();
+        const hashedOTP = await bcrypt.hash(otp, 10);
+        user.resetPasswordOTP = hashedOTP;
+        user.resetPasswordOTPExpires = new Date(Date.now() + 15 * 60 * 1000);
+        await user.save();
+        console.log('🔐 Password reset OTP generated:', {
+            email: user.email,
+            otp: otp,
+            expiresAt: user.resetPasswordOTPExpires,
+        });
+        return {
+            success: true,
+            message: 'If an account with that email exists, a password reset OTP has been sent.',
+        };
+    }
+    async verifyResetOTP(email, otp) {
+        const user = await this.userModel.findOne({ email }).exec();
+        if (!user || !user.resetPasswordOTP || !user.resetPasswordOTPExpires) {
+            return { valid: false, message: 'Invalid or expired OTP' };
+        }
+        if (user.resetPasswordOTPExpires < new Date()) {
+            return { valid: false, message: 'OTP has expired. Please request a new one.' };
+        }
+        const otpMatches = await bcrypt.compare(otp, user.resetPasswordOTP);
+        if (!otpMatches) {
+            return { valid: false, message: 'Invalid OTP' };
+        }
+        return {
+            valid: true,
+            message: 'OTP is valid',
+        };
+    }
+    async resetPassword(email, otp, newPassword) {
+        const user = await this.userModel.findOne({ email }).exec();
+        if (!user || !user.resetPasswordOTP || !user.resetPasswordOTPExpires) {
+            throw new common_1.BadRequestException('Invalid or expired OTP');
+        }
+        if (user.resetPasswordOTPExpires < new Date()) {
+            throw new common_1.BadRequestException('OTP has expired. Please request a new one.');
+        }
+        const otpMatches = await bcrypt.compare(otp, user.resetPasswordOTP);
+        if (!otpMatches) {
+            throw new common_1.BadRequestException('Invalid OTP');
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        user.password = hashedPassword;
+        user.resetPasswordOTP = undefined;
+        user.resetPasswordOTPExpires = undefined;
+        user.refreshToken = undefined;
+        await user.save();
+        console.log('✅ Password reset successful for:', user.email);
+        return {
+            success: true,
+            message: 'Password has been reset successfully. Please login with your new password.',
         };
     }
 };

@@ -22,6 +22,7 @@ const get_bookings_dto_1 = require("../dto/get-bookings.dto");
 const confirm_booking_dto_1 = require("../dto/confirm-booking.dto");
 const process_payment_dto_1 = require("../dto/process-payment.dto");
 const update_booking_dto_1 = require("../dto/update-booking.dto");
+const reschedule_booking_dto_1 = require("../dto/reschedule-booking.dto");
 const auth_1 = require("../../auth");
 let BookingController = class BookingController {
     constructor(bookingService, bookingOrchestrator) {
@@ -52,6 +53,8 @@ let BookingController = class BookingController {
         return { success: true, data: booking };
     }
     async getMyBookings(user, status) {
+        console.log('🔍 [GET MY BOOKINGS] User ID from token:', user.sub);
+        console.log('🔍 [GET MY BOOKINGS] Full user object:', JSON.stringify(user, null, 2));
         return this.bookingService.getClientBookings(user.sub, status);
     }
     async getTodayBookings(businessId) {
@@ -109,6 +112,26 @@ let BookingController = class BookingController {
         }
         await this.bookingService.cancelBooking(bookingId, body.reason, user.sub);
         return { success: true, message: 'Booking cancelled successfully' };
+    }
+    async rescheduleBooking(bookingId, user, rescheduleDto) {
+        const booking = await this.bookingService.getBookingById(bookingId);
+        if (user.role === 'client') {
+            if (booking.clientId.toString() !== user.sub) {
+                return { success: false, message: 'Access denied' };
+            }
+        }
+        else if (user.businessId) {
+            if (booking.businessId.toString() !== user.businessId) {
+                return { success: false, message: 'Access denied' };
+            }
+        }
+        const newPreferredDate = new Date(rescheduleDto.newPreferredDate);
+        const rescheduledBooking = await this.bookingService.rescheduleBooking(bookingId, newPreferredDate, rescheduleDto.newPreferredStartTime, rescheduleDto.reason, user.sub);
+        return {
+            success: true,
+            message: 'Booking rescheduled successfully',
+            data: rescheduledBooking
+        };
     }
     async extendBooking(bookingId, context, body) {
         const booking = await this.bookingService.getBookingById(bookingId);
@@ -288,7 +311,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BookingController.prototype, "rejectBooking", null);
 __decorate([
-    (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)(':id/cancel'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({
@@ -303,6 +325,23 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], BookingController.prototype, "cancelBooking", null);
+__decorate([
+    (0, common_1.Post)(':id/reschedule'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Reschedule booking',
+        description: 'Reschedules a booking to a new date/time. Clients can reschedule their own bookings, business users can reschedule any booking in their business.'
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Booking rescheduled successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Cannot reschedule this booking' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Booking not found' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.CurrentUser)()),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, reschedule_booking_dto_1.RescheduleBookingDto]),
+    __metadata("design:returntype", Promise)
+], BookingController.prototype, "rescheduleBooking", null);
 __decorate([
     (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)(':id/extend'),

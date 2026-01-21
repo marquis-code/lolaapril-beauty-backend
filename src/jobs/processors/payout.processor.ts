@@ -405,6 +405,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Payment, PaymentDocument } from '../../payment/schemas/payment.schema';
 import { Booking, BookingDocument } from '../../booking/schemas/booking.schema';
+import { Business, BusinessDocument } from '../../business/schemas/business.schema';
 import { GatewayManagerService } from '../../integration/gateway-manager.service';
 import { NotificationService } from '../../notification/notification.service';
 import { CommissionCalculatorService } from '../../commission/services/commission-calculator.service';
@@ -437,6 +438,8 @@ export class PayoutProcessor {
     private paymentModel: Model<PaymentDocument>,
     @InjectModel(Booking.name)
     private bookingModel: Model<BookingDocument>,
+    @InjectModel(Business.name)
+    private businessModel: Model<BusinessDocument>,
     private gatewayManager: GatewayManagerService,
     private notificationService: NotificationService,
     private commissionCalculatorService: CommissionCalculatorService,
@@ -624,13 +627,33 @@ export class PayoutProcessor {
   }
 
   private async getTenantBankDetails(tenantId: string): Promise<any> {
-    // In production, fetch from tenant configuration
-    // This would include bank account number, routing number, etc.
-    return {
-      accountNumber: 'XXXXXXXXXX',
-      bankCode: 'XXX',
-      accountName: 'Business Account'
-    };
+    try {
+      // Fetch business/tenant bank details from database
+      const business = await this.businessModel.findById(tenantId).lean();
+      
+      if (!business) {
+        throw new Error(`Business not found: ${tenantId}`);
+      }
+
+      const bankAccount = business.businessDocuments?.bankAccount;
+      
+      if (!bankAccount?.accountNumber || !bankAccount?.bankCode) {
+        this.logger.warn(`⚠️ Incomplete bank details for business ${tenantId}`);
+        throw new Error(`Business ${tenantId} has incomplete bank account information. Please update bank details.`);
+      }
+
+      this.logger.log(`✅ Bank details found for ${business.businessName}`);
+      return {
+        accountNumber: bankAccount.accountNumber,
+        bankCode: bankAccount.bankCode,
+        accountName: bankAccount.accountName || business.businessName,
+        bankName: bankAccount.bankName,
+        recipientCode: business.paymentSettings?.paystackRecipientCode // Cache recipient code if available
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get bank details for tenant ${tenantId}:`, error.message);
+      throw error;
+    }
   }
 
   private async initiateTransfer(
@@ -644,13 +667,21 @@ export class PayoutProcessor {
     try {
       const gateway = 'paystack'; // Or get from tenant config
       
+      this.logger.log(`Initiating transfer of ${amount} to tenant ${tenantId}`);
+      this.logger.log('Bank details:', {
+        accountNumber: bankDetails.accountNumber,
+        bankCode: bankDetails.bankCode,
+        accountName: bankDetails.accountName
+      });
+      
       const transferResult = await this.gatewayManager.processTransfer(
         gateway,
         amount,
         {
-          recipient: bankDetails.accountNumber,
+          accountNumber: bankDetails.accountNumber,
           bankCode: bankDetails.bankCode,
           accountName: bankDetails.accountName,
+          recipientCode: bankDetails.recipientCode, // Optional: Use cached recipient code
           reference: `PAYOUT-${tenantId}-${Date.now()}`,
           reason: `${period} payout`
         }

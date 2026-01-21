@@ -18,4 +18,14 @@ export declare class UploadController {
     deleteImage(publicId: string): Promise<{
         message: string;
     }>;
+    uploadKYCDocument(file: Express.Multer.File, businessId: string, documentType: 'businessRegistration' | 'taxIdentification' | 'governmentId' | 'bankStatement' | 'proofOfAddress', user: any): Promise<{
+        success: boolean;
+        data: {
+            uploadedAt: Date;
+            url: string;
+            publicId: string;
+            documentType: string;
+        };
+        message: string;
+    }>;
 }

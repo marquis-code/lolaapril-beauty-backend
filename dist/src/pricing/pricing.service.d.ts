@@ -28,6 +28,7 @@ import { PricingTier, PricingTierDocument } from './schemas/pricing-tier.schema'
 import { FeeStructure, FeeStructureDocument } from './schemas/fee-structure.schema';
 import { PricingHistory, PricingHistoryDocument } from './schemas/pricing-history.schema';
 import { CreatePricingTierDto } from './dto/create-pricing-tier.dto';
+import { CreateFeeStructureDto } from './dto/create-fee-structure.dto';
 type LeanPricingTier = {
     _id: any;
     tierName: string;
@@ -71,6 +72,11 @@ export declare class PricingService {
         __v: number;
     }>;
     getActiveTiers(): Promise<LeanPricingTier[]>;
+    createFeeStructure(businessId: string, createDto: CreateFeeStructureDto): Promise<import("mongoose").Document<unknown, {}, FeeStructureDocument, {}, {}> & FeeStructure & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
+    }> & {
+        __v: number;
+    }>;
     getBusinessFeeStructure(businessId: string): Promise<LeanFeeStructure | null>;
     calculateFees(businessId: string, bookingAmount: number): Promise<{
         bookingAmount: number;

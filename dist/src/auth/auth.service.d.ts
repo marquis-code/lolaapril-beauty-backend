@@ -46,14 +46,7 @@ export declare class AuthService {
     registerBusiness(registerDto: BusinessRegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: Types.ObjectId;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: UserRole;
-            status: UserStatus;
-        };
+        user: any;
         business: {
             id: Types.ObjectId;
             businessName: string;
@@ -66,14 +59,7 @@ export declare class AuthService {
     register(registerDto: RegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: Types.ObjectId;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: UserRole;
-            status: UserStatus;
-        };
+        user: any;
     }>;
     handleGoogleCallback(googleUser: any, subdomain?: string): Promise<any>;
     refreshTokens(userId: string, refreshToken: string): Promise<{
@@ -93,28 +79,13 @@ export declare class AuthService {
     login(loginDto: LoginDto): Promise<{
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: Types.ObjectId;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: UserRole;
-            status: UserStatus.ACTIVE;
-            authProvider: string;
-        };
+        user: any;
     }>;
     googleAuth(googleAuthDto: GoogleAuthDto): Promise<any>;
     loginBusiness(loginDto: BusinessLoginDto): Promise<{
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: Types.ObjectId;
-            firstName: string;
-            lastName: string;
-            email: string;
-            role: UserRole;
-            status: UserStatus.ACTIVE;
-        };
+        user: any;
         business: {
             id: any;
             businessName: any;
@@ -233,5 +204,18 @@ export declare class AuthService {
             status: string;
             trialEndsAt: Date;
         };
+    }>;
+    private generateOTP;
+    forgotPassword(email: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    verifyResetOTP(email: string, otp: string): Promise<{
+        valid: boolean;
+        message: string;
+    }>;
+    resetPassword(email: string, otp: string, newPassword: string): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

@@ -33,11 +33,17 @@ __decorate([
     __metadata("design:type", String)
 ], InitializePaymentDto.prototype, "clientId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "507f1f77bcf86cd799439014", description: "Tenant/Business ID" }),
+    (0, swagger_1.ApiPropertyOptional)({ example: "507f1f77bcf86cd799439014", description: "Business ID (provide either businessId or subdomain)" }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], InitializePaymentDto.prototype, "tenantId", void 0);
+], InitializePaymentDto.prototype, "businessId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: "luxebeauty", description: "Business subdomain (provide either businessId or subdomain)" }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], InitializePaymentDto.prototype, "subdomain", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: "507f1f77bcf86cd799439012", description: "Appointment ID" }),
     (0, class_validator_1.IsOptional)(),

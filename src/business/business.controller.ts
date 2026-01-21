@@ -222,4 +222,77 @@ export class BusinessController {
       message: 'Settings updated successfully'
     }
   }
+
+  // ==================== PAYSTACK SUBACCOUNT ENDPOINTS ====================
+  
+  @Post(':id/verify-kyc')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify business KYC and create Paystack subaccount (Admin only)' })
+  @ApiResponse({ status: 200, description: 'KYC verified and subaccount created' })
+  async verifyKYC(
+    @Param('id') id: string,
+    @CurrentUser() user: any
+  ) {
+    const result = await this.businessService.verifyBusinessKYC(id, user.sub);
+    return {
+      success: true,
+      data: result,
+      message: 'Business verified and subaccount created successfully'
+    };
+  }
+
+  @Post(':id/reject-kyc')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reject business KYC with reason (Admin only)' })
+  @ApiResponse({ status: 200, description: 'KYC rejected' })
+  async rejectKYC(
+    @Param('id') id: string,
+    @Body() body: { reason: string },
+    @CurrentUser() user: any
+  ) {
+    if (!body.reason) {
+      return { success: false, error: 'Rejection reason is required' };
+    }
+
+    const result = await this.businessService.rejectBusinessKYC(id, body.reason, user.sub);
+    return {
+      success: true,
+      data: result,
+      message: 'KYC verification rejected'
+    };
+  }
+
+  @Post(':id/create-subaccount')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create Paystack subaccount for verified business' })
+  @ApiResponse({ status: 200, description: 'Subaccount created successfully' })
+  async createSubaccount(@Param('id') id: string) {
+    const result = await this.businessService.createPaystackSubaccount(id);
+    return {
+      success: true,
+      data: result,
+      message: 'Subaccount created successfully'
+    };
+  }
+
+  @ValidateBusiness()
+  @Get(':id/subaccount')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get business subaccount details' })
+  @ApiResponse({ status: 200, description: 'Subaccount details retrieved' })
+  async getSubaccount(
+    @Param('id') id: string,
+    @BusinessId() businessId: string
+  ) {
+    if (businessId !== id) {
+      return { success: false, error: 'Access denied' };
+    }
+
+    const subaccount = await this.businessService.getSubaccountDetails(id);
+    return {
+      success: true,
+      data: subaccount,
+      message: 'Subaccount details retrieved successfully'
+    };
+  }
 }

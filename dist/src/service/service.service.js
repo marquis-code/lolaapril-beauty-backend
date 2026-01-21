@@ -91,6 +91,63 @@ let ServiceService = ServiceService_1 = class ServiceService {
             throw new Error(`Failed to create service category: ${error.message}`);
         }
     }
+    async bulkCreateCategories(categories, businessId) {
+        try {
+            console.log('📦 Bulk creating categories:');
+            console.log('  - businessId:', businessId);
+            console.log('  - count:', categories.length);
+            if (!businessId) {
+                throw new Error("Business ID is required to create categories");
+            }
+            this.validateObjectId(businessId, "Business");
+            const businessExists = await this.businessModel.findById(businessId);
+            if (!businessExists) {
+                throw new common_1.NotFoundException(`Business with ID ${businessId} not found`);
+            }
+            const created = [];
+            const failed = [];
+            for (const categoryDto of categories) {
+                try {
+                    const existingCategory = await this.serviceCategoryModel.findOne({
+                        categoryName: categoryDto.categoryName,
+                        businessId: new mongoose_1.Types.ObjectId(businessId),
+                    });
+                    if (existingCategory) {
+                        failed.push({
+                            category: categoryDto.categoryName,
+                            error: 'Category with this name already exists',
+                        });
+                        continue;
+                    }
+                    const category = new this.serviceCategoryModel({
+                        ...categoryDto,
+                        businessId: new mongoose_1.Types.ObjectId(businessId),
+                    });
+                    const savedCategory = await category.save();
+                    created.push(savedCategory);
+                }
+                catch (error) {
+                    failed.push({
+                        category: categoryDto.categoryName,
+                        error: error.message,
+                    });
+                }
+            }
+            console.log(`✅ Created ${created.length} categories, ${failed.length} failed`);
+            return {
+                success: true,
+                data: { created, failed },
+                message: `Successfully created ${created.length} categories${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+            };
+        }
+        catch (error) {
+            console.error('❌ Error in bulk create categories:', error);
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to bulk create service categories: ${error.message}`);
+        }
+    }
     async findAllCategories(subdomain, businessId) {
         try {
             console.log('🔍 Finding categories:');
@@ -252,6 +309,77 @@ let ServiceService = ServiceService_1 = class ServiceService {
                 throw error;
             }
             throw new Error(`Failed to create service: ${error.message}`);
+        }
+    }
+    async bulkCreateServices(services, businessId) {
+        try {
+            console.log('📦 Bulk creating services:');
+            console.log('  - businessId:', businessId);
+            console.log('  - count:', services.length);
+            if (!businessId) {
+                throw new Error("Business ID is required to create services");
+            }
+            this.validateObjectId(businessId, "Business");
+            const businessExists = await this.businessModel.findById(businessId);
+            if (!businessExists) {
+                throw new common_1.NotFoundException(`Business with ID ${businessId} not found`);
+            }
+            const created = [];
+            const failed = [];
+            for (const serviceDto of services) {
+                try {
+                    if (serviceDto.basicDetails?.category) {
+                        this.validateObjectId(serviceDto.basicDetails.category.toString(), "Service category");
+                        const categoryExists = await this.serviceCategoryModel.findOne({
+                            _id: serviceDto.basicDetails.category,
+                            businessId: new mongoose_1.Types.ObjectId(businessId),
+                        });
+                        if (!categoryExists) {
+                            failed.push({
+                                service: serviceDto.basicDetails.serviceName,
+                                error: 'Service category not found or does not belong to this business',
+                            });
+                            continue;
+                        }
+                    }
+                    const existingService = await this.serviceModel.findOne({
+                        "basicDetails.serviceName": serviceDto.basicDetails.serviceName,
+                        businessId: new mongoose_1.Types.ObjectId(businessId),
+                    });
+                    if (existingService) {
+                        failed.push({
+                            service: serviceDto.basicDetails.serviceName,
+                            error: 'Service with this name already exists',
+                        });
+                        continue;
+                    }
+                    const service = new this.serviceModel({
+                        ...serviceDto,
+                        businessId: new mongoose_1.Types.ObjectId(businessId),
+                    });
+                    const savedService = await service.save();
+                    created.push(savedService);
+                }
+                catch (error) {
+                    failed.push({
+                        service: serviceDto.basicDetails?.serviceName || 'Unknown',
+                        error: error.message,
+                    });
+                }
+            }
+            console.log(`✅ Created ${created.length} services, ${failed.length} failed`);
+            return {
+                success: true,
+                data: { created, failed },
+                message: `Successfully created ${created.length} services${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+            };
+        }
+        catch (error) {
+            console.error('❌ Error in bulk create services:', error);
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to bulk create services: ${error.message}`);
         }
     }
     async findAllServices(query, businessId) {

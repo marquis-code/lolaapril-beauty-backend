@@ -218,15 +218,19 @@ export class AuthService {
       await this.userModel.findByIdAndUpdate(savedUser._id, {
         refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
       })
+
+      // Get user without sensitive fields
+      const userResponse = JSON.parse(JSON.stringify(savedUser));
+      delete userResponse.password;
+      delete userResponse.refreshToken;
+      delete userResponse.resetPasswordOTP;
+      delete userResponse.resetPasswordOTPExpires;
+      delete userResponse.emailVerificationToken;
   
       return {
         user: {
+          ...userResponse,
           id: savedUser._id,
-          firstName: savedUser.firstName,
-          lastName: savedUser.lastName,
-          email: savedUser.email,
-          role: savedUser.role,
-          status: savedUser.status,
         },
         business: {
           id: savedBusiness._id,
@@ -266,14 +270,18 @@ export class AuthService {
       refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
     })
 
+    // Get user without sensitive fields
+    const userResponse = JSON.parse(JSON.stringify(user));
+    delete userResponse.password;
+    delete userResponse.refreshToken;
+    delete userResponse.resetPasswordOTP;
+    delete userResponse.resetPasswordOTPExpires;
+    delete userResponse.emailVerificationToken;
+
     return {
       user: {
+        ...userResponse,
         id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        status: user.status,
       },
       ...tokens,
     }
@@ -361,17 +369,18 @@ async handleGoogleCallback(googleUser: any, subdomain?: string) {
     currentBusinessId: business?._id,
   })
 
+  // Get user without sensitive fields
+  const userResponse = JSON.parse(JSON.stringify(user));
+  delete userResponse.password;
+  delete userResponse.refreshToken;
+  delete userResponse.resetPasswordOTP;
+  delete userResponse.resetPasswordOTPExpires;
+  delete userResponse.emailVerificationToken;
+
   const response: any = {
     user: {
+      ...userResponse,
       id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      profileImage: user.profileImage,
-      emailVerified: user.emailVerified,
-      authProvider: user.authProvider,
     },
     ...tokens,
   }
@@ -717,15 +726,18 @@ async login(loginDto: LoginDto) {
     lastLogin: new Date(),
   })
 
+  // Get updated user without sensitive fields
+  const userResponse = JSON.parse(JSON.stringify(user));
+  delete userResponse.password;
+  delete userResponse.refreshToken;
+  delete userResponse.resetPasswordOTP;
+  delete userResponse.resetPasswordOTPExpires;
+  delete userResponse.emailVerificationToken;
+
   return {
     user: {
+      ...userResponse,
       id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      authProvider: user.authProvider,
     },
     ...tokens,
   }
@@ -1050,14 +1062,18 @@ async loginBusiness(loginDto: BusinessLoginDto) {
     lastLogin: new Date(),
   })
 
+  // Get user without sensitive fields
+  const userResponse = JSON.parse(JSON.stringify(user));
+  delete userResponse.password;
+  delete userResponse.refreshToken;
+  delete userResponse.resetPasswordOTP;
+  delete userResponse.resetPasswordOTPExpires;
+  delete userResponse.emailVerificationToken;
+
   return {
     user: {
+      ...userResponse,
       id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      status: user.status,
     },
     business: {
       id: business._id,
@@ -1644,4 +1660,124 @@ async addBusinessToUser(userId: string, addBusinessDto: AddBusinessDto) {
     ...tokens,
   }
 }
+
+  // ==================== PASSWORD RESET ====================
+  
+  /**
+   * Generate random 6-digit OTP
+   */
+  private generateOTP(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * Generate and send password reset OTP
+   */
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+    const user = await this.userModel.findOne({ email }).exec();
+    
+    if (!user) {
+      // Don't reveal if user exists for security
+      return {
+        success: true,
+        message: 'If an account with that email exists, a password reset OTP has been sent.',
+      };
+    }
+
+    // Generate 6-digit OTP
+    const otp = this.generateOTP();
+
+    // Hash the OTP before storing
+    const hashedOTP = await bcrypt.hash(otp, 10);
+
+    // Save OTP and expiry to user (valid for 15 minutes)
+    user.resetPasswordOTP = hashedOTP;
+    user.resetPasswordOTPExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    await user.save();
+
+    // TODO: Send OTP via email/SMS
+    // await this.notificationService.sendPasswordResetOTP(user.email, otp);
+
+    console.log('🔐 Password reset OTP generated:', {
+      email: user.email,
+      otp: otp, // Remove this in production - only for development
+      expiresAt: user.resetPasswordOTPExpires,
+    });
+
+    return {
+      success: true,
+      message: 'If an account with that email exists, a password reset OTP has been sent.',
+    };
+  }
+
+  /**
+   * Verify if OTP is valid
+   */
+  async verifyResetOTP(email: string, otp: string): Promise<{ valid: boolean; message: string }> {
+    const user = await this.userModel.findOne({ email }).exec();
+
+    if (!user || !user.resetPasswordOTP || !user.resetPasswordOTPExpires) {
+      return { valid: false, message: 'Invalid or expired OTP' };
+    }
+
+    // Check if OTP has expired
+    if (user.resetPasswordOTPExpires < new Date()) {
+      return { valid: false, message: 'OTP has expired. Please request a new one.' };
+    }
+
+    // Verify the OTP matches
+    const otpMatches = await bcrypt.compare(otp, user.resetPasswordOTP);
+    
+    if (!otpMatches) {
+      return { valid: false, message: 'Invalid OTP' };
+    }
+
+    return {
+      valid: true,
+      message: 'OTP is valid',
+    };
+  }
+
+  /**
+   * Reset password using valid OTP
+   */
+  async resetPassword(email: string, otp: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    const user = await this.userModel.findOne({ email }).exec();
+
+    if (!user || !user.resetPasswordOTP || !user.resetPasswordOTPExpires) {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    // Check if OTP has expired
+    if (user.resetPasswordOTPExpires < new Date()) {
+      throw new BadRequestException('OTP has expired. Please request a new one.');
+    }
+
+    // Verify the OTP matches
+    const otpMatches = await bcrypt.compare(otp, user.resetPasswordOTP);
+    
+    if (!otpMatches) {
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update password and clear OTP
+    user.password = hashedPassword;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpires = undefined;
+    user.refreshToken = undefined; // Invalidate all sessions
+    await user.save();
+
+    console.log('✅ Password reset successful for:', user.email);
+
+    // TODO: Send confirmation email
+    // await this.notificationService.sendPasswordResetConfirmation(user.email);
+
+    return {
+      success: true,
+      message: 'Password has been reset successfully. Please login with your new password.',
+    };
+  }
 }

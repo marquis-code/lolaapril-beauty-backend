@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { PricingService } from './pricing.service'
 import { CreatePricingTierDto } from './dto/create-pricing-tier.dto'
+import { CreateFeeStructureDto } from './dto/create-fee-structure.dto'
 import { Public, ValidateBusiness, BusinessId } from '../auth'
 
 @ApiTags('Pricing & Fees')
@@ -27,6 +28,15 @@ export class PricingController {
   @ApiOperation({ summary: 'Get business fee structure' })
   async getBusinessFeeStructure(@BusinessId() businessId: string) {
     return this.pricingService.getBusinessFeeStructure(businessId)
+  }
+
+  @Post('fee-structure')
+  @ApiOperation({ summary: 'Create or update business fee structure' })
+  async createFeeStructure(
+    @BusinessId() businessId: string,
+    @Body() createDto: CreateFeeStructureDto
+  ) {
+    return this.pricingService.createFeeStructure(businessId, createDto)
   }
 
   @Post('calculate-fees')

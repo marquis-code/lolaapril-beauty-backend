@@ -130,15 +130,15 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "emailVerificationToken", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: "Password reset token" }),
+    (0, swagger_1.ApiProperty)({ description: "Password reset OTP (6 digits)" }),
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
-], User.prototype, "resetPasswordToken", void 0);
+], User.prototype, "resetPasswordOTP", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: "Password reset token expiry" }),
+    (0, swagger_1.ApiProperty)({ description: "Password reset OTP expiry" }),
     (0, mongoose_1.Prop)(),
     __metadata("design:type", Date)
-], User.prototype, "resetPasswordExpires", void 0);
+], User.prototype, "resetPasswordOTPExpires", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: "Refresh token for JWT" }),
     (0, mongoose_1.Prop)(),

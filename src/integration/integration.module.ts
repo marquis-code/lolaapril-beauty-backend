@@ -15,6 +15,6 @@ import { SquareService } from './payment-gateways/square/square.service';
     StripeService,
     SquareService,
   ],
-  exports: [GatewayManagerService],
+  exports: [GatewayManagerService, PaystackService],
 })
 export class IntegrationModule {}

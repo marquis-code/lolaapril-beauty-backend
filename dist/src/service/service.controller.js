@@ -24,6 +24,8 @@ const update_service_category_dto_1 = require("./dto/update-service-category.dto
 const update_service_dto_1 = require("./dto/update-service.dto");
 const update_service_bundle_dto_1 = require("./dto/update-service-bundle.dto");
 const service_query_dto_1 = require("./dto/service-query.dto");
+const bulk_create_categories_dto_1 = require("./dto/bulk-create-categories.dto");
+const bulk_create_services_dto_1 = require("./dto/bulk-create-services.dto");
 const service_category_schema_1 = require("./schemas/service-category.schema");
 const service_schema_1 = require("./schemas/service.schema");
 const service_bundle_schema_1 = require("./schemas/service-bundle.schema");
@@ -38,6 +40,12 @@ let ServiceController = class ServiceController {
         console.log('  - businessId:', businessId);
         console.log('  - categoryData:', createCategoryDto);
         return this.serviceService.createCategory(createCategoryDto, businessId);
+    }
+    bulkCreateCategories(bulkCreateDto, businessId) {
+        console.log('📦 Bulk Create Categories Request:');
+        console.log('  - businessId:', businessId);
+        console.log('  - count:', bulkCreateDto.categories.length);
+        return this.serviceService.bulkCreateCategories(bulkCreateDto.categories, businessId);
     }
     findAllCategories(subdomain, businessId, req) {
         console.log('📂 Categories Request DEBUG:');
@@ -55,6 +63,12 @@ let ServiceController = class ServiceController {
         console.log('  - businessId:', businessId);
         console.log('  - serviceData:', createServiceDto);
         return this.serviceService.createService(createServiceDto, businessId);
+    }
+    bulkCreateServices(bulkCreateDto, businessId) {
+        console.log('📦 Bulk Create Services Request:');
+        console.log('  - businessId:', businessId);
+        console.log('  - count:', bulkCreateDto.services.length);
+        return this.serviceService.bulkCreateServices(bulkCreateDto.services, businessId);
     }
     findAll(query, businessId, req) {
         console.log('🔍 Services Request DEBUG:');
@@ -111,6 +125,30 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "createCategory", null);
 __decorate([
+    (0, common_1.Post)("categories/bulk"),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: "Bulk create service categories" }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: "Service categories created successfully",
+        schema: {
+            example: {
+                success: true,
+                data: {
+                    created: [{ categoryName: "Hair Services", appointmentColor: "Blue" }],
+                    failed: [{ category: "Duplicate Category", error: "Category already exists" }]
+                },
+                message: "Successfully created 1 categories, 1 failed"
+            }
+        }
+    }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [bulk_create_categories_dto_1.BulkCreateServiceCategoriesDto, String]),
+    __metadata("design:returntype", void 0)
+], ServiceController.prototype, "bulkCreateCategories", null);
+__decorate([
     (0, common_1.Get)("categories"),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Get all service categories (Public with subdomain or authenticated)" }),
@@ -144,6 +182,30 @@ __decorate([
     __metadata("design:paramtypes", [create_service_dto_1.CreateServiceDto, String]),
     __metadata("design:returntype", void 0)
 ], ServiceController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)("bulk"),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: "Bulk create services" }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: "Services created successfully",
+        schema: {
+            example: {
+                success: true,
+                data: {
+                    created: [{ basicDetails: { serviceName: "Men's Haircut" } }],
+                    failed: [{ service: "Duplicate Service", error: "Service already exists" }]
+                },
+                message: "Successfully created 1 services, 1 failed"
+            }
+        }
+    }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [bulk_create_services_dto_1.BulkCreateServicesDto, String]),
+    __metadata("design:returntype", void 0)
+], ServiceController.prototype, "bulkCreateServices", null);
 __decorate([
     (0, common_1.Get)(),
     (0, auth_1.Public)(),

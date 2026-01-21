@@ -10,6 +10,7 @@ import { PaymentQueryDto } from "./dto/payment-query.dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 import { RolesGuard } from "../auth/guards/roles.guard"
 import { Roles } from "../auth/decorators/roles.decorator"
+import { Public } from "../auth/decorators/public.decorator"
 import { UserRole } from "../auth/schemas/user.schema"
 import { AuditInterceptor } from "../audit/interceptors/audit.interceptor"
 import { Audit } from "../audit/decorators/audit.decorator"
@@ -46,8 +47,9 @@ export class PaymentController {
     return this.paymentService.verifyPayment(reference)
   }
 
+  @Public() // ✅ Make webhook endpoint public (no authentication required)
   @Post('webhook')
-  @ApiOperation({ summary: 'Payment gateway webhook endpoint' })
+  @ApiOperation({ summary: 'Payment gateway webhook endpoint (Public)' })
   @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
   async handleWebhook(
     @Headers('x-paystack-signature') signature: string,

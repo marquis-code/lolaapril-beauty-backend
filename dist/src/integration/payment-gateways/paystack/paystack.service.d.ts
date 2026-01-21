@@ -10,4 +10,18 @@ export declare class PaystackService implements IPaymentGateway {
     verifyPayment(reference: string): Promise<any>;
     refund(transactionId: string, amount: number): Promise<any>;
     getBalance(): Promise<number>;
+    createSubaccount(data: {
+        businessName: string;
+        settlementBank: string;
+        accountNumber: string;
+        percentageCharge: number;
+        description?: string;
+        primaryContactEmail?: string;
+        primaryContactName?: string;
+        primaryContactPhone?: string;
+        metadata?: any;
+    }): Promise<any>;
+    updateSubaccount(subaccountCode: string, data: any): Promise<any>;
+    getSubaccount(subaccountCode: string): Promise<any>;
+    listSubaccounts(page?: number, perPage?: number): Promise<any>;
 }

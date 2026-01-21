@@ -20,6 +20,7 @@ const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
 const business_register_dto_1 = require("./dto/business-register.dto");
 const update_profile_dto_1 = require("./dto/update-profile.dto");
+const password_reset_dto_1 = require("./dto/password-reset.dto");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const google_auth_guard_1 = require("./guards/google-auth.guard");
 const business_context_decorator_1 = require("./decorators/business-context.decorator");
@@ -118,6 +119,15 @@ let AuthController = class AuthController {
     }
     async addBusiness(user, addBusinessDto) {
         return this.authService.addBusinessToUser(user.sub, addBusinessDto);
+    }
+    async forgotPassword(forgotPasswordDto) {
+        return this.authService.forgotPassword(forgotPasswordDto.email);
+    }
+    async verifyResetOTP(verifyOTPDto) {
+        return this.authService.verifyResetOTP(verifyOTPDto.email, verifyOTPDto.otp);
+    }
+    async resetPassword(resetPasswordDto) {
+        return this.authService.resetPassword(resetPasswordDto.email, resetPasswordDto.otp, resetPasswordDto.newPassword);
     }
 };
 __decorate([
@@ -369,6 +379,73 @@ __decorate([
     __metadata("design:paramtypes", [Object, add_business_dto_1.AddBusinessDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "addBusiness", null);
+__decorate([
+    (0, auth_1.Public)(),
+    (0, common_1.Post)('forgot-password'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Request password reset OTP',
+        description: 'Sends a 6-digit OTP to the user\'s email if the account exists (valid for 15 minutes)'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Password reset OTP sent (or account not found)',
+        schema: {
+            example: {
+                success: true,
+                message: 'If an account with that email exists, a password reset OTP has been sent.'
+            }
+        }
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [password_reset_dto_1.ForgotPasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "forgotPassword", null);
+__decorate([
+    (0, auth_1.Public)(),
+    (0, common_1.Post)('verify-reset-otp'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Verify password reset OTP',
+        description: 'Check if a 6-digit OTP is valid and not expired'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'OTP validation result',
+        schema: {
+            example: {
+                valid: true,
+                message: 'OTP is valid'
+            }
+        }
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [password_reset_dto_1.VerifyResetOTPDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verifyResetOTP", null);
+__decorate([
+    (0, auth_1.Public)(),
+    (0, common_1.Post)('reset-password'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Reset password with valid OTP',
+        description: 'Updates the user\'s password using a valid 6-digit OTP'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Password reset successful',
+        schema: {
+            example: {
+                success: true,
+                message: 'Password has been reset successfully. Please login with your new password.'
+            }
+        }
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid or expired OTP' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [password_reset_dto_1.ResetPasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resetPassword", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),

@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const upload_service_1 = require("./upload.service");
+const auth_1 = require("../auth");
 let UploadController = class UploadController {
     constructor(uploadService) {
         this.uploadService = uploadService;
@@ -33,6 +34,27 @@ let UploadController = class UploadController {
     async deleteImage(publicId) {
         await this.uploadService.deleteImage(publicId);
         return { message: 'Image deleted successfully' };
+    }
+    async uploadKYCDocument(file, businessId, documentType, user) {
+        if (!businessId) {
+            throw new common_1.BadRequestException('businessId is required');
+        }
+        if (!documentType) {
+            throw new common_1.BadRequestException('documentType is required');
+        }
+        const allowedTypes = ['businessRegistration', 'taxIdentification', 'governmentId', 'bankStatement', 'proofOfAddress'];
+        if (!allowedTypes.includes(documentType)) {
+            throw new common_1.BadRequestException(`Invalid documentType. Must be one of: ${allowedTypes.join(', ')}`);
+        }
+        const result = await this.uploadService.uploadKYCDocument(file, businessId, documentType);
+        return {
+            success: true,
+            data: {
+                ...result,
+                uploadedAt: new Date(),
+            },
+            message: 'KYC document uploaded successfully'
+        };
     }
 };
 __decorate([
@@ -77,6 +99,57 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "deleteImage", null);
+__decorate([
+    (0, common_1.Post)('kyc-document'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    (0, swagger_1.ApiOperation)({ summary: 'Upload KYC document (business registration, tax cert, ID, bank statement, etc.)' }),
+    (0, swagger_1.ApiConsumes)('multipart/form-data'),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'KYC document file (PDF, JPEG, PNG, WEBP - max 5MB)'
+                },
+                businessId: {
+                    type: 'string',
+                    description: 'Business ID'
+                },
+                documentType: {
+                    type: 'string',
+                    enum: ['businessRegistration', 'taxIdentification', 'governmentId', 'bankStatement', 'proofOfAddress'],
+                    description: 'Type of KYC document'
+                }
+            },
+            required: ['file', 'businessId', 'documentType']
+        }
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: 'KYC document uploaded successfully',
+        schema: {
+            example: {
+                success: true,
+                data: {
+                    url: 'https://res.cloudinary.com/your-cloud/image/upload/v123456/lolaapril/kyc/businessId/businessRegistration_123456.pdf',
+                    publicId: 'lolaapril/kyc/businessId/businessRegistration_123456',
+                    documentType: 'businessRegistration',
+                    uploadedAt: '2026-01-21T10:30:00.000Z'
+                },
+                message: 'KYC document uploaded successfully'
+            }
+        }
+    }),
+    __param(0, (0, common_1.UploadedFile)()),
+    __param(1, (0, common_1.Body)('businessId')),
+    __param(2, (0, common_1.Body)('documentType')),
+    __param(3, (0, auth_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String, Object]),
+    __metadata("design:returntype", Promise)
+], UploadController.prototype, "uploadKYCDocument", null);
 UploadController = __decorate([
     (0, swagger_1.ApiTags)("File Upload"),
     (0, common_1.Controller)("upload"),

@@ -6,6 +6,7 @@ import axios from 'axios';
 
 import { Payment, PaymentDocument } from "./schemas/payment.schema";
 import { Booking, BookingDocument } from "../booking/schemas/booking.schema";
+import { Business, BusinessDocument } from "../business/schemas/business.schema";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 import { ApiResponse } from "../common/interfaces/common.interface";
 import { PaymentQueryDto } from "./dto/payment-query.dto";
@@ -16,6 +17,7 @@ import { CommissionService } from '../commission/services/commission.service';
 import { GatewayManagerService } from '../integration/gateway-manager.service';
 import { JobsService } from '../jobs/jobs.service';
 import { CacheService } from '../cache/cache.service';
+import { BusinessService } from '../business/business.service';
 
 @Injectable()
 export class PaymentService {
@@ -27,6 +29,8 @@ export class PaymentService {
     private paymentModel: Model<PaymentDocument>,
     @InjectModel(Booking.name)
     private bookingModel: Model<BookingDocument>,
+    @InjectModel(Business.name)
+    private businessModel: Model<BusinessDocument>,
     private notificationService: NotificationService,
     private configService: ConfigService,
     private pricingService: PricingService,
@@ -34,8 +38,30 @@ export class PaymentService {
     private gatewayManager: GatewayManagerService,
     private jobsService: JobsService,
     private cacheService: CacheService,
+    private businessService: BusinessService,
   ) {
     this.paystackSecretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+  }
+
+  // ========================================
+  // HELPER: Resolve business ID from subdomain or businessId
+  // ========================================
+  private async resolveBusinessId(businessId?: string, subdomain?: string): Promise<string> {
+    if (!businessId && !subdomain) {
+      throw new BadRequestException('Either businessId or subdomain must be provided');
+    }
+
+    if (businessId) {
+      return businessId;
+    }
+
+    // Look up business by subdomain
+    const business = await this.businessService.getBySubdomain(subdomain);
+    if (!business) {
+      throw new NotFoundException(`Business not found with subdomain: ${subdomain}`);
+    }
+
+    return business._id.toString();
   }
 
   // ========================================
@@ -45,24 +71,31 @@ export class PaymentService {
     email: string;
     amount: number;
     clientId: string;
-    tenantId: string;
+    businessId?: string;
+    subdomain?: string;
     appointmentId?: string;
     bookingId?: string;
     gateway?: string;
     metadata?: any;
   }): Promise<ApiResponse<any>> {
     try {
+      // Resolve businessId from either businessId or subdomain
+      const businessId = await this.resolveBusinessId(data.businessId, data.subdomain);
+
       console.log('🚀 Initializing payment with data:', {
         email: data.email,
         amount: data.amount,
         clientId: data.clientId,
-        tenantId: data.tenantId,
+        businessId,
         gateway: data.gateway || 'paystack',
       });
 
+      // Get business details including subaccount
+      const business: any = await this.businessService.getById(businessId);
+
       // Calculate fees using pricing service
       const feeCalculation = await this.pricingService.calculateFees(
-        data.tenantId,
+        businessId,
         data.amount,
       );
 
@@ -79,17 +112,30 @@ export class PaymentService {
                        || this.configService.get('APP_URL') 
                        || 'http://localhost:3001';
 
-      // Prepare metadata with fee information
+      // Prepare metadata with fee information AND subaccount for split
       const enrichedMetadata = {
         ...data.metadata,
         clientId: data.clientId,
-        tenantId: data.tenantId,
+        businessId,
         appointmentId: data.appointmentId,
         bookingId: data.bookingId,
         paymentReference,
         feeCalculation,
         callback_url: `${frontendUrl}/payment/callback`,
       };
+
+      // ✅ ADD SUBACCOUNT for automatic payment splitting
+      if (business.paymentSettings?.paystackSubaccountCode) {
+        enrichedMetadata.subaccount = business.paymentSettings.paystackSubaccountCode;
+        enrichedMetadata.platformFee = feeCalculation.totalPlatformFee;
+        console.log('✅ Using subaccount for payment split:', {
+          subaccount: business.paymentSettings.paystackSubaccountCode,
+          platformFee: feeCalculation.totalPlatformFee,
+          businessReceives: feeCalculation.businessReceives,
+        });
+      } else {
+        console.warn('⚠️ Business does not have a subaccount. Payment will not be split automatically.');
+      }
 
       // Use gateway manager to process payment
       const gatewayResponse = await this.gatewayManager.processPayment(
@@ -112,7 +158,7 @@ export class PaymentService {
         clientId: new Types.ObjectId(data.clientId),
         appointmentId: data.appointmentId ? new Types.ObjectId(data.appointmentId) : undefined,
         bookingId: data.bookingId ? new Types.ObjectId(data.bookingId) : undefined,
-        businessId: data.tenantId ? new Types.ObjectId(data.tenantId) : undefined,
+        businessId: new Types.ObjectId(businessId),
         paymentReference,
         items: paymentItems,
         subtotal: feeCalculation.bookingAmount,
@@ -161,6 +207,28 @@ export class PaymentService {
   // ========================================
   // VERIFY PAYMENT (Multi-Gateway Support)
   // ========================================
+  /**
+   * Verifies payment and handles the complete booking-to-appointment flow
+   * 
+   * FLOW:
+   * 1. Check payment record exists
+   * 2. Verify with payment gateway (Paystack, etc.)
+   * 3. If successful:
+   *    - Update payment status to 'completed'
+   *    - Update booking status to 'confirmed'
+   *    - Calculate and record commission
+   *    - Schedule business payout
+   *    - Send confirmation notifications
+   * 
+   * NOTE: The actual appointment creation happens in booking-orchestrator.service.ts
+   * via handlePaymentAndComplete() method. That method should be called after 
+   * successful payment to convert the booking into an appointment with staff assignments.
+   * 
+   * WEBHOOK AUTOMATION:
+   * - This method is called automatically by webhooks after payment gateway confirms payment
+   * - No need for client to manually verify payment
+   * - Ensures bookings are confirmed immediately after successful payment
+   */
   async verifyPayment(reference: string): Promise<ApiResponse<Payment>> {
     try {
       // Check cache first
@@ -215,7 +283,7 @@ export class PaymentService {
         updateData.paidAt = new Date();
         updateData.transactionId = gatewayResponse.id?.toString() || gatewayResponse.reference;
 
-        // Update booking status to confirmed
+        // ✅ IMPORTANT: Update booking and trigger appointment creation
         if (payment.bookingId) {
           try {
             const booking = await this.bookingModel.findByIdAndUpdate(
@@ -403,11 +471,97 @@ export class PaymentService {
   }
 
   private async handleSuccessfulCharge(data: any): Promise<void> {
-    const payment = await this.paymentModel.findOne({ 
+    // Try to find payment by top-level reference first
+    let payment = await this.paymentModel.findOne({ 
       paymentReference: data.reference 
     });
 
-    if (payment && payment.status !== 'completed') {
+    // If not found, try to find by backend reference in metadata (fallback)
+    if (!payment && data.metadata?.reference) {
+      console.log('⚠️ Webhook: Payment not found with Paystack reference, trying backend reference from metadata');
+      payment = await this.paymentModel.findOne({ 
+        paymentReference: data.metadata.reference 
+      });
+    }
+
+    // If still not found, try nested metadata.metadata.paymentReference
+    if (!payment && data.metadata?.metadata?.paymentReference) {
+      console.log('⚠️ Webhook: Trying nested metadata.metadata.paymentReference');
+      payment = await this.paymentModel.findOne({ 
+        paymentReference: data.metadata.metadata.paymentReference 
+      });
+    }
+
+    if (!payment) {
+      console.log('\n🔴 ========================================');
+      console.log('⚠️ WEBHOOK ERROR: Payment Record Not Found');
+      console.log('========================================');
+      console.log('📌 Top-level reference:', data.reference);
+      console.log('📌 Metadata reference:', data.metadata?.reference);
+      console.log('📌 Nested metadata reference:', data.metadata?.metadata?.paymentReference);
+      console.log('📌 Expected format: PAY-{timestamp}-{random}');
+      console.log('\n💡 ISSUE:');
+      console.log('   Paystack is NOT using the backend-generated reference.');
+      console.log('   This means the reference field was not passed correctly to Paystack API.');
+      console.log('\n✅ SOLUTION:');
+      console.log('   Restart the backend to apply the Paystack service fix.');
+      console.log('   The fix ensures the reference is passed at the root level of the payload.');
+      console.log('\n📋 Full webhook data:');
+      console.log(JSON.stringify(data, null, 2));
+      console.log('========================================\n');
+      
+      return;
+    }
+
+    console.log('✅ Payment found:', {
+      paymentId: payment._id,
+      reference: payment.paymentReference,
+      webhookTopLevelRef: data.reference,
+      webhookMetadataRef: data.metadata?.reference
+    });
+
+    // ✅ IDEMPOTENCY: Check if already processed
+    if (payment.status === 'completed') {
+      console.log('✅ Webhook: Payment already processed (idempotent check)', {
+        reference: data.reference,
+        paymentId: payment._id,
+        status: payment.status
+      });
+      return; // Already processed, skip
+    }
+
+    // Check cache to prevent concurrent processing
+    const cacheKey = `webhook:processing:${data.reference}`;
+    const isProcessing = await this.cacheService.get(cacheKey);
+    
+    if (isProcessing) {
+      console.log('⏳ Webhook: Already processing this payment, skipping duplicate');
+      return;
+    }
+
+    // Set processing flag (expires in 60 seconds)
+    await this.cacheService.set(cacheKey, 'processing', 60);
+
+    try {
+      console.log('🎉 Webhook: Processing successful payment', {
+        reference: data.reference,
+        amount: data.amount,
+        paymentId: payment._id,
+        currentStatus: payment.status
+      });
+
+      // ✅ IMPORTANT: Trigger full payment verification flow
+      // This will handle booking confirmation, appointment creation, commissions, etc.
+      await this.verifyPayment(data.reference);
+      console.log('✅ Webhook: Full payment verification completed');
+
+      // Mark as processed in cache (24 hours)
+      await this.cacheService.set(`webhook:completed:${data.reference}`, 'done', 86400);
+      
+    } catch (verifyError) {
+      console.error('❌ Webhook: Payment verification failed:', verifyError.message);
+      
+      // Fallback: Update payment status manually
       await this.paymentModel.findByIdAndUpdate(payment._id, {
         status: 'completed',
         transactionId: data.id.toString(),
@@ -424,7 +578,10 @@ export class PaymentService {
         );
       }
 
-      console.log('✅ Webhook: Payment completed');
+      console.log('✅ Webhook: Payment status updated (fallback)');
+    } finally {
+      // Clear processing flag
+      await this.cacheService.del(cacheKey);
     }
   }
 
@@ -433,23 +590,32 @@ export class PaymentService {
       paymentReference: data.reference 
     });
 
-    if (payment) {
-      await this.paymentModel.findByIdAndUpdate(payment._id, {
-        status: 'failed',
-        gatewayResponse: JSON.stringify(data),
-        updatedAt: new Date(),
-      });
-
-      // Update booking if exists
-      if (payment.bookingId) {
-        await this.bookingModel.findByIdAndUpdate(
-          payment.bookingId,
-          { status: 'payment_failed', updatedAt: new Date() }
-        );
-      }
-
-      console.log('✅ Webhook: Payment failed');
+    if (!payment) {
+      console.log('⚠️ Webhook: Payment record not found for reference:', data.reference);
+      return;
     }
+
+    // ✅ IDEMPOTENCY: Check if already marked as failed
+    if (payment.status === 'failed') {
+      console.log('✅ Webhook: Payment already marked as failed (idempotent check)');
+      return;
+    }
+
+    await this.paymentModel.findByIdAndUpdate(payment._id, {
+      status: 'failed',
+      gatewayResponse: JSON.stringify(data),
+      updatedAt: new Date(),
+    });
+
+    // Update booking if exists
+    if (payment.bookingId) {
+      await this.bookingModel.findByIdAndUpdate(
+        payment.bookingId,
+        { status: 'payment_failed', updatedAt: new Date() }
+      );
+    }
+
+    console.log('✅ Webhook: Payment failed');
   }
 
   // ========================================

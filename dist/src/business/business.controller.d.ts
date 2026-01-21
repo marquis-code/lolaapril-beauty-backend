@@ -97,4 +97,38 @@ export declare class BusinessController {
         message: string;
         error?: undefined;
     }>;
+    verifyKYC(id: string, user: any): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    rejectKYC(id: string, body: {
+        reason: string;
+    }, user: any): Promise<{
+        success: boolean;
+        error: string;
+        data?: undefined;
+        message?: undefined;
+    } | {
+        success: boolean;
+        data: any;
+        message: string;
+        error?: undefined;
+    }>;
+    createSubaccount(id: string): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    getSubaccount(id: string, businessId: string): Promise<{
+        success: boolean;
+        error: string;
+        data?: undefined;
+        message?: undefined;
+    } | {
+        success: boolean;
+        data: any;
+        message: string;
+        error?: undefined;
+    }>;
 }

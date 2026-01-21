@@ -25,8 +25,7 @@ __decorate([
 ], GetBookingsDto.prototype, "clientId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsIn)(['pending', 'confirmed', 'cancelled', 'expired', 'payment_failed']),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], GetBookingsDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),

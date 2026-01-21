@@ -44,7 +44,7 @@ export class FeeStructure {
 // ✅ CHANGED: tenant → business
 @Prop({ type: Types.ObjectId, ref: 'Business', required: true })
 businessId: Types.ObjectId
-@Prop({ type: Types.ObjectId, ref: 'PricingTier', required: true })
+@Prop({ type: Types.ObjectId, ref: 'PricingTier', required: false })
 pricingTierId: Types.ObjectId
 @Prop({ required: true })
 effectiveFrom: Date

@@ -58,8 +58,8 @@ export declare class User {
     emailVerified: boolean;
     phoneVerified: boolean;
     emailVerificationToken?: string;
-    resetPasswordToken?: string;
-    resetPasswordExpires?: Date;
+    resetPasswordOTP?: string;
+    resetPasswordOTPExpires?: Date;
     refreshToken?: string;
     googleId?: string;
     facebookId?: string;

@@ -8,3 +8,8 @@
 {"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-20 05:00:31"}
 {"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-20 05:11:30"}
 {"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-20 05:14:03"}
+{"environment":"development","level":"error","message":"Booking creation failed: Invalid source tracking data: Tracking identifier required for QR codes and direct links","service":"lola-beauty-backend","timestamp":"2026-01-20 06:41:34"}
+{"environment":"development","level":"error","message":"Booking creation failed: Booking validation failed: clientPhone: Path `clientPhone` is required.","service":"lola-beauty-backend","timestamp":"2026-01-21 05:58:11"}
+{"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-21 06:16:53"}
+{"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-21 06:17:21"}
+{"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-21 08:10:19"}

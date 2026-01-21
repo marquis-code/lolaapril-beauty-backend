@@ -5,6 +5,7 @@ import { GetBookingsDto } from '../dto/get-bookings.dto';
 import { ConfirmBookingDto } from '../dto/confirm-booking.dto';
 import { ProcessPaymentDto } from '../dto/process-payment.dto';
 import { UpdateBookingStatusDto } from '../dto/update-booking.dto';
+import { RescheduleBookingDto } from '../dto/reschedule-booking.dto';
 import type { BusinessContext as BusinessCtx, RequestWithUser } from '../../auth';
 import type { BookingResult, PaymentResult, AppointmentResult } from '../types/booking.types';
 export declare class BookingController {
@@ -48,6 +49,15 @@ export declare class BookingController {
     }): Promise<{
         success: boolean;
         message: string;
+    }>;
+    rescheduleBooking(bookingId: string, user: RequestWithUser['user'], rescheduleDto: RescheduleBookingDto): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        data: import("../schemas/booking.schema").BookingDocument;
     }>;
     extendBooking(bookingId: string, context: BusinessCtx, body: {
         additionalMinutes?: number;

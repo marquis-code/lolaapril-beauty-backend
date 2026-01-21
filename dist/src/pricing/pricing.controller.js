@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const pricing_service_1 = require("./pricing.service");
 const create_pricing_tier_dto_1 = require("./dto/create-pricing-tier.dto");
+const create_fee_structure_dto_1 = require("./dto/create-fee-structure.dto");
 const auth_1 = require("../auth");
 let PricingController = class PricingController {
     constructor(pricingService) {
@@ -30,6 +31,9 @@ let PricingController = class PricingController {
     }
     async getBusinessFeeStructure(businessId) {
         return this.pricingService.getBusinessFeeStructure(businessId);
+    }
+    async createFeeStructure(businessId, createDto) {
+        return this.pricingService.createFeeStructure(businessId, createDto);
     }
     async calculateFees(businessId, amount) {
         return this.pricingService.calculateFees(businessId, amount);
@@ -65,6 +69,15 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], PricingController.prototype, "getBusinessFeeStructure", null);
+__decorate([
+    (0, common_1.Post)('fee-structure'),
+    (0, swagger_1.ApiOperation)({ summary: 'Create or update business fee structure' }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, create_fee_structure_dto_1.CreateFeeStructureDto]),
+    __metadata("design:returntype", Promise)
+], PricingController.prototype, "createFeeStructure", null);
 __decorate([
     (0, common_1.Post)('calculate-fees'),
     (0, swagger_1.ApiOperation)({ summary: 'Calculate fees for a transaction' }),

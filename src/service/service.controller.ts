@@ -9,6 +9,8 @@ import { UpdateServiceCategoryDto } from "./dto/update-service-category.dto"
 import { UpdateServiceDto } from "./dto/update-service.dto"
 import { UpdateServiceBundleDto } from "./dto/update-service-bundle.dto"
 import { ServiceQueryDto } from "./dto/service-query.dto"
+import { BulkCreateServiceCategoriesDto } from "./dto/bulk-create-categories.dto"
+import { BulkCreateServicesDto } from "./dto/bulk-create-services.dto"
 import { ServiceCategory } from "./schemas/service-category.schema"
 import { Service } from "./schemas/service.schema"
 import { ServiceBundle } from "./schemas/service-bundle.schema"
@@ -34,6 +36,33 @@ export class ServiceController {
     console.log('  - businessId:', businessId)
     console.log('  - categoryData:', createCategoryDto)
     return this.serviceService.createCategory(createCategoryDto, businessId)
+  }
+
+  @Post("categories/bulk")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Bulk create service categories" })
+  @ApiResponse({ 
+    status: 201, 
+    description: "Service categories created successfully",
+    schema: {
+      example: {
+        success: true,
+        data: {
+          created: [{ categoryName: "Hair Services", appointmentColor: "Blue" }],
+          failed: [{ category: "Duplicate Category", error: "Category already exists" }]
+        },
+        message: "Successfully created 1 categories, 1 failed"
+      }
+    }
+  })
+  bulkCreateCategories(
+    @Body() bulkCreateDto: BulkCreateServiceCategoriesDto,
+    @BusinessId() businessId: string
+  ) {
+    console.log('📦 Bulk Create Categories Request:')
+    console.log('  - businessId:', businessId)
+    console.log('  - count:', bulkCreateDto.categories.length)
+    return this.serviceService.bulkCreateCategories(bulkCreateDto.categories, businessId)
   }
 
   @Get("categories")
@@ -79,6 +108,33 @@ export class ServiceController {
     console.log('  - businessId:', businessId)
     console.log('  - serviceData:', createServiceDto)
     return this.serviceService.createService(createServiceDto, businessId)
+  }
+
+  @Post("bulk")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Bulk create services" })
+  @ApiResponse({ 
+    status: 201, 
+    description: "Services created successfully",
+    schema: {
+      example: {
+        success: true,
+        data: {
+          created: [{ basicDetails: { serviceName: "Men's Haircut" } }],
+          failed: [{ service: "Duplicate Service", error: "Service already exists" }]
+        },
+        message: "Successfully created 1 services, 1 failed"
+      }
+    }
+  })
+  bulkCreateServices(
+    @Body() bulkCreateDto: BulkCreateServicesDto,
+    @BusinessId() businessId: string
+  ) {
+    console.log('📦 Bulk Create Services Request:')
+    console.log('  - businessId:', businessId)
+    console.log('  - count:', bulkCreateDto.services.length)
+    return this.serviceService.bulkCreateServices(bulkCreateDto.services, businessId)
   }
 
   @Get()

@@ -130,12 +130,30 @@ let GatewayManagerService = GatewayManagerService_1 = class GatewayManagerServic
     }
     async processPaystackTransfer(amount, transferData) {
         const axios = require('axios');
-        const configService = require('@nestjs/config').ConfigService;
         try {
+            let recipientCode = transferData.recipientCode;
+            if (!recipientCode) {
+                this.logger.log('Creating Paystack transfer recipient...');
+                const recipientResponse = await axios.post('https://api.paystack.co/transferrecipient', {
+                    type: 'nuban',
+                    name: transferData.accountName,
+                    account_number: transferData.accountNumber || transferData.recipient,
+                    bank_code: transferData.bankCode,
+                    currency: 'NGN'
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                recipientCode = recipientResponse.data.data.recipient_code;
+                this.logger.log(`✅ Recipient created: ${recipientCode}`);
+            }
+            this.logger.log(`Initiating transfer to ${recipientCode}...`);
             const response = await axios.post('https://api.paystack.co/transfer', {
                 source: 'balance',
                 amount: Math.round(amount * 100),
-                recipient: transferData.recipient,
+                recipient: recipientCode,
                 reason: transferData.reason || 'Payout',
                 reference: transferData.reference
             }, {
@@ -144,14 +162,16 @@ let GatewayManagerService = GatewayManagerService_1 = class GatewayManagerServic
                     'Content-Type': 'application/json'
                 }
             });
+            this.logger.log('✅ Transfer initiated successfully');
             return {
                 transactionId: response.data.data.transfer_code,
                 status: response.data.data.status,
-                reference: response.data.data.reference
+                reference: response.data.data.reference,
+                recipientCode
             };
         }
         catch (error) {
-            this.logger.error('Paystack transfer failed', error);
+            this.logger.error('Paystack transfer failed:', error.response?.data || error.message);
             throw error;
         }
     }

@@ -122,4 +122,75 @@ export class UploadService {
       throw new BadRequestException("Failed to upload document")
     }
   }
+
+  /**
+   * Upload KYC documents (supports both images and PDFs)
+   */
+  async uploadKYCDocument(
+    file: Express.Multer.File,
+    businessId: string,
+    documentType: 'businessRegistration' | 'taxIdentification' | 'governmentId' | 'bankStatement' | 'proofOfAddress',
+  ): Promise<{ url: string; publicId: string; documentType: string }> {
+    if (!file) {
+      throw new BadRequestException("No file provided")
+    }
+
+    // Validate file type (images + PDF)
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ]
+    
+    if (!allowedTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        "Invalid file type. Only PDF, JPEG, JPG, PNG, and WEBP are allowed for KYC documents."
+      )
+    }
+
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      throw new BadRequestException("File size too large. Maximum 5MB allowed.")
+    }
+
+    try {
+      const folder = `lolaapril/kyc/${businessId}`;
+      const resourceType = file.mimetype === 'application/pdf' ? 'raw' : 'image';
+
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: resourceType,
+            public_id: `${documentType}_${Date.now()}`,
+            ...(resourceType === 'image' && {
+              transformation: [
+                { width: 2000, height: 2000, crop: "limit" },
+                { quality: "auto:good" },
+                { format: "auto" }
+              ],
+            }),
+          },
+          (error, result) => {
+            if (error) reject(error)
+            else resolve(result)
+          },
+        )
+
+        const stream = Readable.from(file.buffer)
+        stream.pipe(uploadStream)
+      })
+
+      return {
+        url: (result as any).secure_url,
+        publicId: (result as any).public_id,
+        documentType,
+      }
+    } catch (error) {
+      throw new BadRequestException(`Failed to upload KYC document: ${error.message}`)
+    }
+  }
 }

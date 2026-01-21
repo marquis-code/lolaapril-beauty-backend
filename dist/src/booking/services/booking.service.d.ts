@@ -25,6 +25,7 @@ export declare class BookingService {
     confirmBooking(bookingId: string, staffId: string, confirmedBy: string): Promise<BookingDocument>;
     rejectBooking(bookingId: string, reason: string, rejectedBy: string): Promise<void>;
     cancelBooking(bookingId: string, reason: string, cancelledBy: string): Promise<void>;
+    rescheduleBooking(bookingId: string, newPreferredDate: Date, newPreferredStartTime: string, reason?: string, rescheduledBy?: string): Promise<BookingDocument>;
     getClientBookings(clientId: string, status?: string): Promise<BookingDocument[]>;
     getPendingBookings(businessId: string): Promise<BookingDocument[]>;
     linkAppointment(bookingId: string, appointmentId: string): Promise<void>;

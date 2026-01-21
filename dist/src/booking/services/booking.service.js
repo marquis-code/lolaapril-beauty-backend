@@ -130,7 +130,12 @@ let BookingService = BookingService_1 = class BookingService {
             filter.clientId = new mongoose_2.Types.ObjectId(query.clientId);
         }
         if (query.status) {
-            filter.status = query.status;
+            if (Array.isArray(query.status)) {
+                filter.status = { $in: query.status };
+            }
+            else {
+                filter.status = query.status;
+            }
         }
         if (query.startDate && query.endDate) {
             filter.preferredDate = {
@@ -318,13 +323,63 @@ let BookingService = BookingService_1 = class BookingService {
         });
         this.logger.log(`Booking ${booking?.bookingNumber} cancelled: ${reason}`);
     }
+    async rescheduleBooking(bookingId, newPreferredDate, newPreferredStartTime, reason, rescheduledBy) {
+        const bookingDoc = await this.bookingModel.findById(bookingId).exec();
+        if (!bookingDoc) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        if (['cancelled', 'expired', 'completed'].includes(bookingDoc.status)) {
+            throw new common_1.BadRequestException(`Cannot reschedule booking with status: ${bookingDoc.status}`);
+        }
+        const totalDuration = bookingDoc.totalDuration || 60;
+        const [hours, minutes] = newPreferredStartTime.split(':').map(Number);
+        const startDate = new Date(newPreferredDate);
+        startDate.setHours(hours, minutes, 0, 0);
+        const endDate = new Date(startDate.getTime() + totalDuration * 60000);
+        const newEstimatedEndTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+        const oldDate = bookingDoc.preferredDate;
+        const oldTime = bookingDoc.preferredStartTime;
+        bookingDoc.preferredDate = newPreferredDate;
+        bookingDoc.preferredStartTime = newPreferredStartTime;
+        bookingDoc.estimatedEndTime = newEstimatedEndTime;
+        bookingDoc.updatedAt = new Date();
+        if (rescheduledBy) {
+            bookingDoc.processedBy = new mongoose_2.Types.ObjectId(rescheduledBy);
+        }
+        await bookingDoc.save();
+        const booking = await this.bookingModel
+            .findById(bookingId)
+            .lean()
+            .exec();
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found after update');
+        }
+        this.eventEmitter.emit('booking.rescheduled', {
+            booking,
+            oldDate,
+            oldTime,
+            newDate: newPreferredDate,
+            newTime: newPreferredStartTime,
+            reason
+        });
+        this.logger.log(`Booking ${booking.bookingNumber} rescheduled from ${oldDate.toISOString().split('T')[0]} ${oldTime} to ${newPreferredDate.toISOString().split('T')[0]} ${newPreferredStartTime}`);
+        return booking;
+    }
     async getClientBookings(clientId, status) {
+        console.log('🔍 [GET CLIENT BOOKINGS] Searching for clientId:', clientId);
+        console.log('🔍 [GET CLIENT BOOKINGS] Status filter:', status);
         const filter = {
             clientId: new mongoose_2.Types.ObjectId(clientId)
         };
         if (status) {
-            filter.status = status;
+            if (Array.isArray(status)) {
+                filter.status = { $in: status };
+            }
+            else {
+                filter.status = status;
+            }
         }
+        console.log('🔍 [GET CLIENT BOOKINGS] Filter:', JSON.stringify(filter, null, 2));
         const bookings = await this.bookingModel
             .find(filter)
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
@@ -332,6 +387,31 @@ let BookingService = BookingService_1 = class BookingService {
             .sort({ createdAt: -1 })
             .lean()
             .exec();
+        console.log('✅ [GET CLIENT BOOKINGS] Found bookings:', bookings.length);
+        if (bookings.length > 0) {
+            bookings.forEach((booking, index) => {
+                console.log(`📋 Booking ${index + 1}:`, {
+                    bookingNumber: booking.bookingNumber,
+                    status: booking.status,
+                    clientId: booking.clientId.toString(),
+                    amount: booking.estimatedTotal,
+                    date: booking.preferredDate
+                });
+            });
+        }
+        else {
+            console.log('⚠️ [GET CLIENT BOOKINGS] No bookings found for clientId:', clientId);
+            const allBookings = await this.bookingModel
+                .find()
+                .select('clientId bookingNumber status')
+                .limit(10)
+                .lean()
+                .exec();
+            console.log('🔍 [DEBUG] Sample bookings in database:');
+            allBookings.forEach(b => {
+                console.log(`  - ${b.bookingNumber}: clientId=${b.clientId.toString()}, status=${b.status}`);
+            });
+        }
         return bookings;
     }
     async getPendingBookings(businessId) {

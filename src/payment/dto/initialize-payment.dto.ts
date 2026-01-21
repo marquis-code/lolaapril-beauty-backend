@@ -54,10 +54,15 @@ export class InitializePaymentDto {
   @IsNotEmpty()
   clientId: string
 
-  @ApiProperty({ example: "507f1f77bcf86cd799439014", description: "Tenant/Business ID" })
+  @ApiPropertyOptional({ example: "507f1f77bcf86cd799439014", description: "Business ID (provide either businessId or subdomain)" })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  tenantId: string
+  businessId?: string
+
+  @ApiPropertyOptional({ example: "luxebeauty", description: "Business subdomain (provide either businessId or subdomain)" })
+  @IsOptional()
+  @IsString()
+  subdomain?: string
 
   @ApiPropertyOptional({ example: "507f1f77bcf86cd799439012", description: "Appointment ID" })
   @IsOptional()

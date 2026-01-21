@@ -109,6 +109,58 @@ let UploadService = class UploadService {
             throw new common_1.BadRequestException("Failed to upload document");
         }
     }
+    async uploadKYCDocument(file, businessId, documentType) {
+        if (!file) {
+            throw new common_1.BadRequestException("No file provided");
+        }
+        const allowedTypes = [
+            "application/pdf",
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp",
+        ];
+        if (!allowedTypes.includes(file.mimetype)) {
+            throw new common_1.BadRequestException("Invalid file type. Only PDF, JPEG, JPG, PNG, and WEBP are allowed for KYC documents.");
+        }
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            throw new common_1.BadRequestException("File size too large. Maximum 5MB allowed.");
+        }
+        try {
+            const folder = `lolaapril/kyc/${businessId}`;
+            const resourceType = file.mimetype === 'application/pdf' ? 'raw' : 'image';
+            const result = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary_1.v2.uploader.upload_stream({
+                    folder,
+                    resource_type: resourceType,
+                    public_id: `${documentType}_${Date.now()}`,
+                    ...(resourceType === 'image' && {
+                        transformation: [
+                            { width: 2000, height: 2000, crop: "limit" },
+                            { quality: "auto:good" },
+                            { format: "auto" }
+                        ],
+                    }),
+                }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else
+                        resolve(result);
+                });
+                const stream = stream_1.Readable.from(file.buffer);
+                stream.pipe(uploadStream);
+            });
+            return {
+                url: result.secure_url,
+                publicId: result.public_id,
+                documentType,
+            };
+        }
+        catch (error) {
+            throw new common_1.BadRequestException(`Failed to upload KYC document: ${error.message}`);
+        }
+    }
 };
 UploadService = __decorate([
     (0, common_1.Injectable)(),

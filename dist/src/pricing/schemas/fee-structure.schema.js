@@ -19,7 +19,7 @@ __decorate([
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], FeeStructure.prototype, "businessId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'PricingTier', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'PricingTier', required: false }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], FeeStructure.prototype, "pricingTierId", void 0);
 __decorate([
