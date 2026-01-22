@@ -53,9 +53,30 @@ let BookingController = class BookingController {
         return { success: true, data: booking };
     }
     async getMyBookings(user, status) {
-        console.log('🔍 [GET MY BOOKINGS] User ID from token:', user.sub);
-        console.log('🔍 [GET MY BOOKINGS] Full user object:', JSON.stringify(user, null, 2));
-        return this.bookingService.getClientBookings(user.sub, status);
+        console.log('========== GET MY BOOKINGS CONTROLLER ==========');
+        console.log('🔍 [CONTROLLER] Full user object from JWT:', JSON.stringify(user, null, 2));
+        console.log('🔍 [CONTROLLER] User ID (user.sub):', user.sub);
+        console.log('🔍 [CONTROLLER] User ID (user.userId):', user.userId);
+        console.log('🔍 [CONTROLLER] User email:', user.email);
+        console.log('🔍 [CONTROLLER] User role:', user.role);
+        console.log('🔍 [CONTROLLER] Status filter:', status);
+        const userId = user.sub || user.userId;
+        if (!userId) {
+            console.error('❌ [CONTROLLER] NO USER ID FOUND IN TOKEN!');
+            return {
+                success: false,
+                data: [],
+                message: 'User ID not found in authentication token'
+            };
+        }
+        console.log('🔍 [CONTROLLER] Using userId for query:', userId);
+        console.log('==================================================');
+        const bookings = await this.bookingService.getClientBookings(userId, status);
+        return {
+            success: true,
+            data: bookings,
+            message: `Found ${bookings.length} booking(s) for user`
+        };
     }
     async getTodayBookings(businessId) {
         return this.bookingService.getTodayBookings(businessId);

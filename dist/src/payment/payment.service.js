@@ -211,8 +211,9 @@ let PaymentService = class PaymentService {
                         const booking = await this.bookingModel.findByIdAndUpdate(payment.bookingId, {
                             status: 'confirmed',
                             updatedAt: new Date(),
+                            $unset: { expiresAt: 1 },
                         }, { new: true });
-                        console.log('✅ Booking status updated to confirmed');
+                        console.log('✅ Booking status updated to confirmed and expiresAt cleared');
                         if (booking && payment.businessId) {
                             try {
                                 const commissionCalc = await this.commissionService.calculateBookingCommission(booking);

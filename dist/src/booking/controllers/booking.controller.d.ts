@@ -28,7 +28,11 @@ export declare class BookingController {
         data: import("../schemas/booking.schema").BookingDocument;
         message?: undefined;
     }>;
-    getMyBookings(user: RequestWithUser['user'], status?: string): Promise<import("../schemas/booking.schema").BookingDocument[]>;
+    getMyBookings(user: RequestWithUser['user'], status?: string): Promise<{
+        success: boolean;
+        data: import("../schemas/booking.schema").BookingDocument[];
+        message: string;
+    }>;
     getTodayBookings(businessId: string): Promise<import("../schemas/booking.schema").BookingDocument[]>;
     getPendingBookings(businessId: string): Promise<import("../schemas/booking.schema").BookingDocument[]>;
     getUpcomingBookings(businessId: string, days?: number): Promise<import("../schemas/booking.schema").BookingDocument[]>;

@@ -366,10 +366,14 @@ let BookingService = BookingService_1 = class BookingService {
         return booking;
     }
     async getClientBookings(clientId, status) {
-        console.log('🔍 [GET CLIENT BOOKINGS] Searching for clientId:', clientId);
+        console.log('🔍 [GET CLIENT BOOKINGS] ==========================================');
+        console.log('🔍 [GET CLIENT BOOKINGS] Input clientId:', clientId);
+        console.log('🔍 [GET CLIENT BOOKINGS] Input clientId type:', typeof clientId);
         console.log('🔍 [GET CLIENT BOOKINGS] Status filter:', status);
+        const clientObjectId = new mongoose_2.Types.ObjectId(clientId);
+        console.log('🔍 [GET CLIENT BOOKINGS] Converted to ObjectId:', clientObjectId.toString());
         const filter = {
-            clientId: new mongoose_2.Types.ObjectId(clientId)
+            clientId: clientObjectId
         };
         if (status) {
             if (Array.isArray(status)) {
@@ -379,7 +383,7 @@ let BookingService = BookingService_1 = class BookingService {
                 filter.status = status;
             }
         }
-        console.log('🔍 [GET CLIENT BOOKINGS] Filter:', JSON.stringify(filter, null, 2));
+        console.log('🔍 [GET CLIENT BOOKINGS] Final Filter:', JSON.stringify(filter, null, 2));
         const bookings = await this.bookingModel
             .find(filter)
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
@@ -391,9 +395,11 @@ let BookingService = BookingService_1 = class BookingService {
         if (bookings.length > 0) {
             bookings.forEach((booking, index) => {
                 console.log(`📋 Booking ${index + 1}:`, {
+                    _id: booking._id,
                     bookingNumber: booking.bookingNumber,
                     status: booking.status,
                     clientId: booking.clientId.toString(),
+                    clientIdMatches: booking.clientId.toString() === clientId,
                     amount: booking.estimatedTotal,
                     date: booking.preferredDate
                 });
@@ -401,6 +407,7 @@ let BookingService = BookingService_1 = class BookingService {
         }
         else {
             console.log('⚠️ [GET CLIENT BOOKINGS] No bookings found for clientId:', clientId);
+            console.log('⚠️ [GET CLIENT BOOKINGS] Searching with ObjectId:', clientObjectId.toString());
             const allBookings = await this.bookingModel
                 .find()
                 .select('clientId bookingNumber status')

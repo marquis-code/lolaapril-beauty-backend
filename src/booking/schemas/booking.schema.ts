@@ -233,6 +233,8 @@ BookingSchema.index({ preferredDate: 1, preferredStartTime: 1 })
 BookingSchema.index({ status: 1 })
 BookingSchema.index({ bookingSource: 1 })
 BookingSchema.index({ createdAt: -1 })
-BookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+// REMOVED TTL INDEX - Bookings should not be auto-deleted after confirmation
+// BookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+BookingSchema.index({ expiresAt: 1 }) // Keep index for queries but without auto-deletion
 BookingSchema.index({ clientEmail: 1 })
 BookingSchema.index({ clientPhone: 1 })

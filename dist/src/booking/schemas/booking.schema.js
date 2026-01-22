@@ -315,7 +315,7 @@ exports.BookingSchema.index({ preferredDate: 1, preferredStartTime: 1 });
 exports.BookingSchema.index({ status: 1 });
 exports.BookingSchema.index({ bookingSource: 1 });
 exports.BookingSchema.index({ createdAt: -1 });
-exports.BookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+exports.BookingSchema.index({ expiresAt: 1 });
 exports.BookingSchema.index({ clientEmail: 1 });
 exports.BookingSchema.index({ clientPhone: 1 });
 //# sourceMappingURL=booking.schema.js.map

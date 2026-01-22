@@ -319,10 +319,11 @@ export class PaymentService {
               {
                 status: 'confirmed',
                 updatedAt: new Date(),
+                $unset: { expiresAt: 1 }, // Remove expiry - confirmed bookings should not expire
               },
               { new: true }
             );
-            console.log('✅ Booking status updated to confirmed');
+            console.log('✅ Booking status updated to confirmed and expiresAt cleared');
 
             // Calculate and update booking commission
             if (booking && payment.businessId) {

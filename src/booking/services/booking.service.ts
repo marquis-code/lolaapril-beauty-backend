@@ -572,11 +572,17 @@ async getUpcomingBookings(
   }
 
   async getClientBookings(clientId: string, status?: string): Promise<BookingDocument[]> {
-    console.log('🔍 [GET CLIENT BOOKINGS] Searching for clientId:', clientId)
+    console.log('🔍 [GET CLIENT BOOKINGS] ==========================================')
+    console.log('🔍 [GET CLIENT BOOKINGS] Input clientId:', clientId)
+    console.log('🔍 [GET CLIENT BOOKINGS] Input clientId type:', typeof clientId)
     console.log('🔍 [GET CLIENT BOOKINGS] Status filter:', status)
     
+    // Convert string to ObjectId for comparison
+    const clientObjectId = new Types.ObjectId(clientId)
+    console.log('🔍 [GET CLIENT BOOKINGS] Converted to ObjectId:', clientObjectId.toString())
+    
     const filter: any = {
-      clientId: new Types.ObjectId(clientId)
+      clientId: clientObjectId
     }
 
     // If status is provided, filter by it, otherwise return all bookings for the client
@@ -589,7 +595,7 @@ async getUpcomingBookings(
     }
     // No else clause - return all bookings regardless of status when no filter provided
 
-    console.log('🔍 [GET CLIENT BOOKINGS] Filter:', JSON.stringify(filter, null, 2))
+    console.log('🔍 [GET CLIENT BOOKINGS] Final Filter:', JSON.stringify(filter, null, 2))
 
     const bookings = await this.bookingModel
       .find(filter)
@@ -603,15 +609,18 @@ async getUpcomingBookings(
     if (bookings.length > 0) {
       bookings.forEach((booking, index) => {
         console.log(`📋 Booking ${index + 1}:`, {
+          _id: booking._id,
           bookingNumber: booking.bookingNumber,
           status: booking.status,
           clientId: booking.clientId.toString(),
+          clientIdMatches: booking.clientId.toString() === clientId,
           amount: booking.estimatedTotal,
           date: booking.preferredDate
         })
       })
     } else {
       console.log('⚠️ [GET CLIENT BOOKINGS] No bookings found for clientId:', clientId)
+      console.log('⚠️ [GET CLIENT BOOKINGS] Searching with ObjectId:', clientObjectId.toString())
       
       // Debug: Check all bookings in DB to help troubleshoot
       const allBookings = await this.bookingModel
