@@ -63,7 +63,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async deletePattern(pattern) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (!store.client) {
                 this.logger.warn('Redis client not available for pattern deletion');
                 return 0;
@@ -106,7 +106,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async ttl(key) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.ttl) {
                 return await store.client.ttl(key);
             }
@@ -120,7 +120,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async increment(key, amount = 1) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.incrby) {
                 return await store.client.incrby(key, amount);
             }
@@ -133,7 +133,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async decrement(key, amount = 1) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.decrby) {
                 return await store.client.decrby(key, amount);
             }
@@ -161,7 +161,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async hset(key, field, value) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.hset) {
                 const serializedValue = JSON.stringify(value);
                 await store.client.hset(key, field, serializedValue);
@@ -178,7 +178,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async hget(key, field) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.hget) {
                 const value = await store.client.hget(key, field);
                 if (!value) {
@@ -195,7 +195,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async hgetall(key) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.hgetall) {
                 const hash = await store.client.hgetall(key);
                 const result = {};
@@ -218,7 +218,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async hdel(key, field) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.hdel) {
                 await store.client.hdel(key, field);
                 this.logger.debug(`Hash field deleted: ${key}.${field}`);
@@ -231,7 +231,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async lpush(key, value) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.lpush) {
                 const serializedValue = JSON.stringify(value);
                 await store.client.lpush(key, serializedValue);
@@ -245,7 +245,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async lpop(key) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.lpop) {
                 const value = await store.client.lpop(key);
                 if (!value) {
@@ -262,7 +262,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async lrange(key, start, stop) {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.lrange) {
                 const values = await store.client.lrange(key, start, stop);
                 return values.map((v) => JSON.parse(v));
@@ -276,8 +276,14 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async reset() {
         try {
-            await this.cacheManager.reset();
-            this.logger.warn('All cache cleared');
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
+            if (store?.client?.flushdb) {
+                await store.client.flushdb();
+                this.logger.warn('All cache cleared');
+            }
+            else {
+                this.logger.warn('Cache reset not supported in current configuration');
+            }
         }
         catch (error) {
             this.logger.error('Failed to flush all cache', error.stack);
@@ -289,7 +295,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async getStats() {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.info && store.client.dbsize) {
                 const info = await store.client.info();
                 const dbSize = await store.client.dbsize();
@@ -307,7 +313,7 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async ping() {
         try {
-            const store = this.cacheManager.store;
+            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
             if (store.client && store.client.ping) {
                 const result = await store.client.ping();
                 this.logger.log(`Redis PING: ${result}`);
