@@ -12,6 +12,8 @@ import { RolesGuard } from "../auth/guards/roles.guard"
 import { Roles } from "../auth/decorators/roles.decorator"
 import { Public } from "../auth/decorators/public.decorator"
 import { UserRole } from "../auth/schemas/user.schema"
+import { CurrentUser } from "../auth/decorators/business-context.decorator"
+import { RequestWithUser } from "../auth/types/request-with-user.interface"
 import { AuditInterceptor } from "../audit/interceptors/audit.interceptor"
 import { Audit } from "../audit/decorators/audit.decorator"
 import { AuditAction, AuditEntity } from "../audit/schemas/audit-log.schema"
@@ -84,6 +86,20 @@ export class PaymentController {
   @ApiResponse({ status: 201, description: "Payment created successfully" })
   create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentService.create(createPaymentDto)
+  }
+
+  @Get('my/transactions')
+  @Roles(UserRole.CLIENT)
+  @UseInterceptors(AuditInterceptor)
+  @Audit({ action: AuditAction.VIEW, entity: AuditEntity.PAYMENT })
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: 'Get my transactions as a client',
+    description: 'Returns all payment transactions for the authenticated user\'s bookings'
+  })
+  @ApiResponse({ status: 200, description: 'User transactions retrieved successfully' })
+  getMyTransactions(@CurrentUser() user: RequestWithUser['user']) {
+    return this.paymentService.getUserTransactions(user.sub)
   }
 
   @Get()

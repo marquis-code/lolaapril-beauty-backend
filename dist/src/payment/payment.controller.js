@@ -22,6 +22,7 @@ const payment_query_dto_1 = require("./dto/payment-query.dto");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const public_decorator_1 = require("../auth/decorators/public.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
+const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
 const audit_decorator_1 = require("../audit/decorators/audit.decorator");
 const audit_log_schema_1 = require("../audit/schemas/audit-log.schema");
@@ -46,6 +47,9 @@ let PaymentController = class PaymentController {
     }
     create(createPaymentDto) {
         return this.paymentService.create(createPaymentDto);
+    }
+    getMyTransactions(user) {
+        return this.paymentService.getUserTransactions(user.sub);
     }
     findAll(query) {
         return this.paymentService.findAllWithQuery(query);
@@ -136,6 +140,22 @@ __decorate([
     __metadata("design:paramtypes", [create_payment_dto_1.CreatePaymentDto]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)('my/transactions'),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.CLIENT),
+    (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
+    (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get my transactions as a client',
+        description: 'Returns all payment transactions for the authenticated user\'s bookings'
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'User transactions retrieved successfully' }),
+    __param(0, (0, business_context_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], PaymentController.prototype, "getMyTransactions", null);
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: "Get all payments" }),

@@ -44,6 +44,34 @@ export class PaymentService {
   }
 
   // ========================================
+  // GET USER TRANSACTIONS
+  // ========================================
+  /**
+   * Retrieves all payment transactions for a specific user
+   * Useful for users to view their booking payment history
+   */
+  async getUserTransactions(userId: string): Promise<ApiResponse<any>> {
+    try {
+      const payments = await this.paymentModel
+        .find({ clientId: new Types.ObjectId(userId) })
+        .populate({ path: 'bookingId', select: 'bookingReference scheduledDate status' })
+        .populate({ path: 'appointmentId', select: 'appointmentReference scheduledDate status' })
+        .populate({ path: 'businessId', select: 'businessName subdomain' })
+        .sort({ createdAt: -1 })
+        .exec();
+
+      return {
+        success: true,
+        data: payments,
+        message: 'User transactions retrieved successfully',
+      };
+    } catch (error) {
+      console.error('❌ Error fetching user transactions:', error.message);
+      throw new BadRequestException(`Failed to fetch user transactions: ${error.message}`);
+    }
+  }
+
+  // ========================================
   // HELPER: Resolve business ID from subdomain or businessId
   // ========================================
   private async resolveBusinessId(businessId?: string, subdomain?: string): Promise<string> {

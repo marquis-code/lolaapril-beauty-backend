@@ -44,6 +44,26 @@ let PaymentService = class PaymentService {
         this.paystackBaseUrl = 'https://api.paystack.co';
         this.paystackSecretKey = this.configService.get('PAYSTACK_SECRET_KEY');
     }
+    async getUserTransactions(userId) {
+        try {
+            const payments = await this.paymentModel
+                .find({ clientId: new mongoose_2.Types.ObjectId(userId) })
+                .populate({ path: 'bookingId', select: 'bookingReference scheduledDate status' })
+                .populate({ path: 'appointmentId', select: 'appointmentReference scheduledDate status' })
+                .populate({ path: 'businessId', select: 'businessName subdomain' })
+                .sort({ createdAt: -1 })
+                .exec();
+            return {
+                success: true,
+                data: payments,
+                message: 'User transactions retrieved successfully',
+            };
+        }
+        catch (error) {
+            console.error('❌ Error fetching user transactions:', error.message);
+            throw new common_1.BadRequestException(`Failed to fetch user transactions: ${error.message}`);
+        }
+    }
     async resolveBusinessId(businessId, subdomain) {
         if (!businessId && !subdomain) {
             throw new common_1.BadRequestException('Either businessId or subdomain must be provided');
