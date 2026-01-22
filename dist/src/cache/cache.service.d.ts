@@ -1,9 +1,8 @@
-import { ConfigService } from '@nestjs/config';
+import { Cache } from 'cache-manager';
 export declare class CacheService {
-    private configService;
+    private cacheManager;
     private readonly logger;
-    private redisClient;
-    constructor(configService: ConfigService);
+    constructor(cacheManager: Cache);
     set(key: string, value: any, ttl?: number): Promise<void>;
     get<T = any>(key: string): Promise<T | null>;
     delete(key: string): Promise<void>;

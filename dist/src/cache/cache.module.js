@@ -42,8 +42,12 @@ CacheModule = __decorate([
                         port: redisPort,
                         connectTimeout: 10000,
                         reconnectStrategy: (retries) => {
+                            if (retries > 3) {
+                                console.log(`⚠️  Redis cache retry limit reached after ${retries} attempts`);
+                                return new Error('Max retries reached');
+                            }
                             const delay = Math.min(retries * 50, 2000);
-                            console.log(`🔄 Redis retry attempt ${retries}, waiting ${delay}ms`);
+                            console.log(`🔄 Redis cache retry attempt ${retries}, waiting ${delay}ms`);
                             return delay;
                         },
                     };

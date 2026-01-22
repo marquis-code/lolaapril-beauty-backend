@@ -86,6 +86,11 @@ import { MigrationsModule } from './migrations/migrations.module';
             password: redisPassword,
             username: redisUsername,
             retryStrategy: (times: number) => {
+              // Limit retries to prevent connection buildup
+              if (times > 3) {
+                console.log(`⚠️  Redis retry limit reached after ${times} attempts`);
+                return null; // Stop retrying
+              }
               const delay = Math.min(times * 50, 2000);
               console.log(`🔄 Redis retry attempt ${times}, waiting ${delay}ms`);
               return delay;
@@ -93,6 +98,9 @@ import { MigrationsModule } from './migrations/migrations.module';
             maxRetriesPerRequest: 3,
             enableReadyCheck: true,
             lazyConnect: false,
+            enableOfflineQueue: false, // Prevent queueing commands when disconnected
+            connectTimeout: 10000, // 10 second timeout
+            maxLoadingRetryTime: 5000, // 5 second max retry time
           },
         };
 

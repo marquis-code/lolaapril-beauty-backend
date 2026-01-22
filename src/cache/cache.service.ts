@@ -497,97 +497,16 @@
 // }
 
 
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class CacheService {
   private readonly logger = new Logger(CacheService.name);
-  private redisClient: Redis;
 
-  constructor(private configService: ConfigService) {
-    const redisHost = this.configService.get('REDIS_HOST', 'localhost');
-    const redisPort = this.configService.get('REDIS_PORT', 6379);
-    const redisPassword = this.configService.get('REDIS_PASSWORD');
-    const redisUsername = this.configService.get('REDIS_USERNAME', 'default');
-    const nodeEnv = this.configService.get('NODE_ENV', 'development');
-    const redisTLS = this.configService.get('REDIS_TLS', 'false');
-
-    // Check if we're using Redis Cloud (by checking host)
-    const isRedisCloud = redisHost.includes('redislabs.com') || redisHost.includes('cloud.redislabs');
-    
-    // Determine if TLS should be used
-    const useTLS = redisTLS === 'true' || redisTLS === true;
-
-    this.logger.log('🔴 Initializing Redis Cache Service');
-    this.logger.log(`   Host: ${redisHost}`);
-    this.logger.log(`   Port: ${redisPort}`);
-    this.logger.log(`   Username: ${redisUsername}`);
-    this.logger.log(`   Password: ${redisPassword ? '✓ Set' : '✗ Not set'}`);
-    this.logger.log(`   TLS Explicitly Set: ${redisTLS}`);
-    this.logger.log(`   Using TLS: ${useTLS}`);
-    this.logger.log(`   Is Redis Cloud: ${isRedisCloud}`);
-    this.logger.log(`   Environment: ${nodeEnv}`);
-
-    const redisConfig: any = {
-      host: redisHost,
-      port: redisPort,
-      password: redisPassword,
-      username: redisUsername,
-      // Connection settings
-      connectTimeout: 10000, // 10 seconds
-      maxRetriesPerRequest: 3,
-      enableReadyCheck: true,
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
-        this.logger.warn(`🔄 Redis retry attempt ${times}, waiting ${delay}ms`);
-        return delay;
-      },
-      // Reconnect settings
-      lazyConnect: false,
-      keepAlive: 30000,
-      family: 4, // Use IPv4
-    };
-
-    // Only add TLS if explicitly enabled
-    if (useTLS) {
-      redisConfig.tls = {
-        rejectUnauthorized: false, // Important for Redis Cloud
-      };
-      this.logger.log('   TLS Config: { rejectUnauthorized: false }');
-    }
-
-    this.redisClient = new Redis(redisConfig);
-
-    this.redisClient.on('connect', () => {
-      this.logger.log('✅ Redis client connected successfully');
-    });
-
-    this.redisClient.on('ready', () => {
-      this.logger.log('✅ Redis client ready to receive commands');
-    });
-
-    this.redisClient.on('error', (error) => {
-      this.logger.error('❌ Redis connection error:', error.message);
-      
-      // Provide helpful hints based on error
-      if (error.message.includes('ECONNREFUSED')) {
-        this.logger.error('💡 Hint: Redis server may not be running or host/port is incorrect');
-      } else if (error.message.includes('SSL') || error.message.includes('TLS')) {
-        this.logger.error('💡 Hint: TLS configuration issue. Try toggling REDIS_TLS in .env');
-      } else if (error.message.includes('NOAUTH') || error.message.includes('Authentication')) {
-        this.logger.error('💡 Hint: Check REDIS_PASSWORD and REDIS_USERNAME');
-      }
-    });
-
-    this.redisClient.on('close', () => {
-      this.logger.warn('⚠️  Redis connection closed');
-    });
-
-    this.redisClient.on('reconnecting', () => {
-      this.logger.log('🔄 Redis client reconnecting...');
-    });
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+    this.logger.log('✅ CacheService initialized using NestJS CacheManager (shared Redis connection)');
   }
 
   /**
@@ -595,14 +514,8 @@ export class CacheService {
    */
   async set(key: string, value: any, ttl?: number): Promise<void> {
     try {
-      const serializedValue = JSON.stringify(value);
-      
-      if (ttl) {
-        await this.redisClient.setex(key, ttl, serializedValue);
-      } else {
-        await this.redisClient.set(key, serializedValue);
-      }
-      
+      const ttlMs = ttl ? ttl * 1000 : undefined; // Convert seconds to milliseconds
+      await this.cacheManager.set(key, value, ttlMs);
       this.logger.debug(`Cache set: ${key} (TTL: ${ttl || 'none'})`);
     } catch (error) {
       this.logger.error(`Failed to set cache for key ${key}`, error.stack);
@@ -615,7 +528,7 @@ export class CacheService {
    */
   async get<T = any>(key: string): Promise<T | null> {
     try {
-      const value = await this.redisClient.get(key);
+      const value = await this.cacheManager.get<T>(key);
       
       if (!value) {
         this.logger.debug(`Cache miss: ${key}`);
@@ -623,7 +536,7 @@ export class CacheService {
       }
       
       this.logger.debug(`Cache hit: ${key}`);
-      return JSON.parse(value) as T;
+      return value;
     } catch (error) {
       this.logger.error(`Failed to get cache for key ${key}`, error.stack);
       return null;
@@ -635,7 +548,7 @@ export class CacheService {
    */
   async delete(key: string): Promise<void> {
     try {
-      await this.redisClient.del(key);
+      await this.cacheManager.del(key);
       this.logger.debug(`Cache deleted: ${key}`);
     } catch (error) {
       this.logger.error(`Failed to delete cache for key ${key}`, error.stack);
@@ -652,16 +565,24 @@ export class CacheService {
 
   /**
    * Delete multiple keys matching a pattern
+   * Note: This requires accessing the underlying Redis store
    */
   async deletePattern(pattern: string): Promise<number> {
     try {
-      const keys = await this.redisClient.keys(pattern);
+      // Access the underlying Redis store
+      const store: any = this.cacheManager.store;
+      if (!store.client) {
+        this.logger.warn('Redis client not available for pattern deletion');
+        return 0;
+      }
+      
+      const keys = await store.client.keys(pattern);
       
       if (keys.length === 0) {
         return 0;
       }
       
-      await this.redisClient.del(...keys);
+      await store.client.del(...keys);
       this.logger.debug(`Cache deleted ${keys.length} keys matching pattern: ${pattern}`);
       
       return keys.length;
@@ -673,11 +594,12 @@ export class CacheService {
 
   /**
    * Check if a key exists in cache
+   * Note: cache-manager doesn't have exists(), so we try to get it
    */
   async exists(key: string): Promise<boolean> {
     try {
-      const result = await this.redisClient.exists(key);
-      return result === 1;
+      const value = await this.cacheManager.get(key);
+      return value !== undefined && value !== null;
     } catch (error) {
       this.logger.error(`Failed to check cache existence for key ${key}`, error.stack);
       return false;
@@ -686,11 +608,15 @@ export class CacheService {
 
   /**
    * Set expiration time for a key
+   * Note: cache-manager doesn't support separate expire, must reset with TTL
    */
   async expire(key: string, ttl: number): Promise<void> {
     try {
-      await this.redisClient.expire(key, ttl);
-      this.logger.debug(`Cache expiration set for ${key}: ${ttl}s`);
+      const value = await this.cacheManager.get(key);
+      if (value !== undefined && value !== null) {
+        await this.set(key, value, ttl);
+        this.logger.debug(`Cache expiration set for ${key}: ${ttl}s`);
+      }
     } catch (error) {
       this.logger.error(`Failed to set expiration for key ${key}`, error.stack);
       throw error;
@@ -699,10 +625,16 @@ export class CacheService {
 
   /**
    * Get remaining TTL for a key
+   * Note: Requires direct Redis access
    */
   async ttl(key: string): Promise<number> {
     try {
-      return await this.redisClient.ttl(key);
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.ttl) {
+        return await store.client.ttl(key);
+      }
+      this.logger.warn('TTL not supported by cache store');
+      return -1;
     } catch (error) {
       this.logger.error(`Failed to get TTL for key ${key}`, error.stack);
       return -1;
@@ -711,10 +643,15 @@ export class CacheService {
 
   /**
    * Increment a numeric value
+   * Note: Requires direct Redis access
    */
   async increment(key: string, amount: number = 1): Promise<number> {
     try {
-      return await this.redisClient.incrby(key, amount);
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.incrby) {
+        return await store.client.incrby(key, amount);
+      }
+      throw new Error('Increment not supported by cache store');
     } catch (error) {
       this.logger.error(`Failed to increment key ${key}`, error.stack);
       throw error;
@@ -723,10 +660,15 @@ export class CacheService {
 
   /**
    * Decrement a numeric value
+   * Note: Requires direct Redis access
    */
   async decrement(key: string, amount: number = 1): Promise<number> {
     try {
-      return await this.redisClient.decrby(key, amount);
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.decrby) {
+        return await store.client.decrby(key, amount);
+      }
+      throw new Error('Decrement not supported by cache store');
     } catch (error) {
       this.logger.error(`Failed to decrement key ${key}`, error.stack);
       throw error;
@@ -764,12 +706,18 @@ export class CacheService {
 
   /**
    * Hash operations - set field in hash
+   * Note: Requires direct Redis access
    */
   async hset(key: string, field: string, value: any): Promise<void> {
     try {
-      const serializedValue = JSON.stringify(value);
-      await this.redisClient.hset(key, field, serializedValue);
-      this.logger.debug(`Hash set: ${key}.${field}`);
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.hset) {
+        const serializedValue = JSON.stringify(value);
+        await store.client.hset(key, field, serializedValue);
+        this.logger.debug(`Hash set: ${key}.${field}`);
+      } else {
+        throw new Error('Hash operations not supported by cache store');
+      }
     } catch (error) {
       this.logger.error(`Failed to set hash field ${key}.${field}`, error.stack);
       throw error;
@@ -778,16 +726,21 @@ export class CacheService {
 
   /**
    * Hash operations - get field from hash
+   * Note: Requires direct Redis access
    */
   async hget<T = any>(key: string, field: string): Promise<T | null> {
     try {
-      const value = await this.redisClient.hget(key, field);
-      
-      if (!value) {
-        return null;
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.hget) {
+        const value = await store.client.hget(key, field);
+        
+        if (!value) {
+          return null;
+        }
+        
+        return JSON.parse(value) as T;
       }
-      
-      return JSON.parse(value) as T;
+      return null;
     } catch (error) {
       this.logger.error(`Failed to get hash field ${key}.${field}`, error.stack);
       return null;
@@ -796,22 +749,27 @@ export class CacheService {
 
   /**
    * Hash operations - get all fields from hash
+   * Note: Requires direct Redis access
    */
   async hgetall<T = any>(key: string): Promise<Record<string, T>> {
     try {
-      const hash = await this.redisClient.hgetall(key);
-      
-      const result: Record<string, T> = {};
-      
-      for (const [field, value] of Object.entries(hash)) {
-        try {
-          result[field] = JSON.parse(value) as T;
-        } catch {
-          result[field] = value as any;
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.hgetall) {
+        const hash = await store.client.hgetall(key);
+        
+        const result: Record<string, T> = {};
+        
+        for (const [field, value] of Object.entries(hash)) {
+          try {
+            result[field] = JSON.parse(value) as T;
+          } catch {
+            result[field] = value as any;
+          }
         }
+        
+        return result;
       }
-      
-      return result;
+      return {};
     } catch (error) {
       this.logger.error(`Failed to get all hash fields for ${key}`, error.stack);
       return {};
@@ -820,11 +778,15 @@ export class CacheService {
 
   /**
    * Hash operations - delete field from hash
+   * Note: Requires direct Redis access
    */
   async hdel(key: string, field: string): Promise<void> {
     try {
-      await this.redisClient.hdel(key, field);
-      this.logger.debug(`Hash field deleted: ${key}.${field}`);
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.hdel) {
+        await store.client.hdel(key, field);
+        this.logger.debug(`Hash field deleted: ${key}.${field}`);
+      }
     } catch (error) {
       this.logger.error(`Failed to delete hash field ${key}.${field}`, error.stack);
       throw error;
@@ -833,12 +795,16 @@ export class CacheService {
 
   /**
    * List operations - push to list
+   * Note: Requires direct Redis access
    */
   async lpush(key: string, value: any): Promise<void> {
     try {
-      const serializedValue = JSON.stringify(value);
-      await this.redisClient.lpush(key, serializedValue);
-      this.logger.debug(`List push: ${key}`);
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.lpush) {
+        const serializedValue = JSON.stringify(value);
+        await store.client.lpush(key, serializedValue);
+        this.logger.debug(`List push: ${key}`);
+      }
     } catch (error) {
       this.logger.error(`Failed to push to list ${key}`, error.stack);
       throw error;
@@ -847,16 +813,21 @@ export class CacheService {
 
   /**
    * List operations - pop from list
+   * Note: Requires direct Redis access
    */
   async lpop<T = any>(key: string): Promise<T | null> {
     try {
-      const value = await this.redisClient.lpop(key);
-      
-      if (!value) {
-        return null;
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.lpop) {
+        const value = await store.client.lpop(key);
+        
+        if (!value) {
+          return null;
+        }
+        
+        return JSON.parse(value) as T;
       }
-      
-      return JSON.parse(value) as T;
+      return null;
     } catch (error) {
       this.logger.error(`Failed to pop from list ${key}`, error.stack);
       return null;
@@ -865,11 +836,16 @@ export class CacheService {
 
   /**
    * List operations - get range from list
+   * Note: Requires direct Redis access
    */
   async lrange<T = any>(key: string, start: number, stop: number): Promise<T[]> {
     try {
-      const values = await this.redisClient.lrange(key, start, stop);
-      return values.map(v => JSON.parse(v) as T);
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.lrange) {
+        const values = await store.client.lrange(key, start, stop);
+        return values.map((v: string) => JSON.parse(v) as T);
+      }
+      return [];
     } catch (error) {
       this.logger.error(`Failed to get range from list ${key}`, error.stack);
       return [];
@@ -881,7 +857,7 @@ export class CacheService {
    */
   async reset(): Promise<void> {
     try {
-      await this.redisClient.flushdb();
+      await this.cacheManager.reset();
       this.logger.warn('All cache cleared');
     } catch (error) {
       this.logger.error('Failed to flush all cache', error.stack);
@@ -898,16 +874,21 @@ export class CacheService {
 
   /**
    * Get cache statistics
+   * Note: Requires direct Redis access
    */
   async getStats(): Promise<any> {
     try {
-      const info = await this.redisClient.info();
-      const dbSize = await this.redisClient.dbsize();
-      
-      return {
-        dbSize,
-        info: this.parseRedisInfo(info)
-      };
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.info && store.client.dbsize) {
+        const info = await store.client.info();
+        const dbSize = await store.client.dbsize();
+        
+        return {
+          dbSize,
+          info: this.parseRedisInfo(info)
+        };
+      }
+      return { message: 'Stats not available for this cache store' };
     } catch (error) {
       this.logger.error('Failed to get cache stats', error.stack);
       return null;
@@ -919,11 +900,18 @@ export class CacheService {
    */
   async ping(): Promise<boolean> {
     try {
-      const result = await this.redisClient.ping();
-      this.logger.log(`Redis PING: ${result}`);
-      return result === 'PONG';
+      const store: any = this.cacheManager.store;
+      if (store.client && store.client.ping) {
+        const result = await store.client.ping();
+        this.logger.log(`Redis PING: ${result}`);
+        return result === 'PONG';
+      }
+      // Fallback: try to set/get a test key
+      await this.set('ping:test', 'pong', 5);
+      const value = await this.get('ping:test');
+      return value === 'pong';
     } catch (error) {
-      this.logger.error('Redis PING failed:', error.message);
+      this.logger.error('Cache PING failed:', error.message);
       return false;
     }
   }
@@ -992,11 +980,11 @@ export class CacheService {
   }
 
   /**
-   * Close Redis connection
+   * Close cache connection (if needed)
    */
   async onModuleDestroy(): Promise<void> {
-    await this.redisClient.quit();
-    this.logger.log('✅ Redis client disconnected gracefully');
+    // Cache manager handles connection cleanup automatically
+    this.logger.log('✅ CacheService cleanup complete');
   }
 
   // Helper methods
