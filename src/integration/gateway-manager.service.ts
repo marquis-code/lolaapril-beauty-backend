@@ -239,18 +239,32 @@ export class GatewayManagerService {
     const axios = require('axios');
     
     try {
+      // Validate bank code before attempting transfer
+      const bankCode = String(transferData.bankCode || '').trim();
+      if (!bankCode || !/^\d{3}$/.test(bankCode)) {
+        throw new Error(
+          `Invalid bank code "${bankCode}". Bank code must be a 3-digit number. ` +
+          `Examples: "058" (GTB), "044" (Access), "011" (First Bank). ` +
+          `Get valid codes from: https://paystack.com/docs/identity-verification/supported-banks/`
+        );
+      }
+
       // Step 1: Create or get transfer recipient code
       let recipientCode = transferData.recipientCode;
       
       if (!recipientCode) {
         this.logger.log('Creating Paystack transfer recipient...');
+        this.logger.log(`  Account: ${transferData.accountNumber}`);
+        this.logger.log(`  Bank Code: ${bankCode}`);
+        this.logger.log(`  Account Name: ${transferData.accountName}`);
+        
         const recipientResponse = await axios.post(
           'https://api.paystack.co/transferrecipient',
           {
             type: 'nuban', // Nigerian bank account
             name: transferData.accountName,
             account_number: transferData.accountNumber || transferData.recipient,
-            bank_code: transferData.bankCode,
+            bank_code: bankCode,
             currency: 'NGN'
           },
           {

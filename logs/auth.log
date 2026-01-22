@@ -13,3 +13,4 @@
 {"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-21 06:16:53"}
 {"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-21 06:17:21"}
 {"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-21 08:10:19"}
+{"environment":"development","level":"error","message":"Booking creation failed: Selected time slot is not available","service":"lola-beauty-backend","timestamp":"2026-01-22 07:22:16"}

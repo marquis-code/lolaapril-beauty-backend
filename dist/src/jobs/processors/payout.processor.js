@@ -163,12 +163,22 @@ let PayoutProcessor = PayoutProcessor_1 = class PayoutProcessor {
             const bankAccount = business.businessDocuments?.bankAccount;
             if (!bankAccount?.accountNumber || !bankAccount?.bankCode) {
                 this.logger.warn(`⚠️ Incomplete bank details for business ${tenantId}`);
-                throw new Error(`Business ${tenantId} has incomplete bank account information. Please update bank details.`);
+                throw new Error(`Business "${business.businessName}" has incomplete bank account information. ` +
+                    `Missing: ${!bankAccount?.accountNumber ? 'Account Number' : ''} ${!bankAccount?.bankCode ? 'Bank Code' : ''}. ` +
+                    `Please update bank details in business settings.`);
+            }
+            const bankCode = String(bankAccount.bankCode).trim();
+            if (!/^\d{3}$/.test(bankCode)) {
+                this.logger.error(`❌ Invalid bank code format: "${bankCode}"`);
+                throw new Error(`Invalid bank code "${bankCode}" for business "${business.businessName}". ` +
+                    `Bank code must be a 3-digit number (e.g., "058" for GTB, "044" for Access Bank). ` +
+                    `Please update with a valid Paystack bank code.`);
             }
             this.logger.log(`✅ Bank details found for ${business.businessName}`);
+            this.logger.log(`   Account: ${bankAccount.accountNumber} (Bank Code: ${bankCode})`);
             return {
                 accountNumber: bankAccount.accountNumber,
-                bankCode: bankAccount.bankCode,
+                bankCode: bankCode,
                 accountName: bankAccount.accountName || business.businessName,
                 bankName: bankAccount.bankName,
                 recipientCode: business.paymentSettings?.paystackRecipientCode
@@ -205,6 +215,7 @@ let PayoutProcessor = PayoutProcessor_1 = class PayoutProcessor {
     }
     async recordPayoutTransaction(data) {
         const payoutRecord = await this.paymentModel.create({
+            clientId: new mongoose_2.Types.ObjectId(data.tenantId),
             businessId: new mongoose_2.Types.ObjectId(data.tenantId),
             paymentReference: `PAYOUT-${Date.now()}`,
             transactionId: data.transactionId,
