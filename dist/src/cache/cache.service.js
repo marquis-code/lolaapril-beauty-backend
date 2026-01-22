@@ -120,11 +120,33 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async increment(key, amount = 1) {
         try {
-            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
-            if (store.client && store.client.incrby) {
-                return await store.client.incrby(key, amount);
+            const store = this.cacheManager.store;
+            let client = null;
+            if (store && store.client) {
+                client = store.client;
             }
-            throw new Error('Increment not supported by cache store');
+            else if (this.cacheManager.stores?.[0]?.client) {
+                client = this.cacheManager.stores[0].client;
+            }
+            else if (store && typeof store.incrBy === 'function') {
+                client = store;
+            }
+            if (client) {
+                if (typeof client.incrBy === 'function') {
+                    return await client.incrBy(key, amount);
+                }
+                if (typeof client.incrby === 'function') {
+                    return await client.incrby(key, amount);
+                }
+                if (amount === 1 && typeof client.incr === 'function') {
+                    return await client.incr(key);
+                }
+            }
+            this.logger.warn(`Direct increment not available for key ${key}, using get/set fallback`);
+            const current = await this.get(key);
+            const newValue = (current || 0) + amount;
+            await this.set(key, newValue);
+            return newValue;
         }
         catch (error) {
             this.logger.error(`Failed to increment key ${key}`, error.stack);
@@ -133,11 +155,33 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async decrement(key, amount = 1) {
         try {
-            const store = this.cacheManager.store || this.cacheManager.stores?.[0];
-            if (store.client && store.client.decrby) {
-                return await store.client.decrby(key, amount);
+            const store = this.cacheManager.store;
+            let client = null;
+            if (store && store.client) {
+                client = store.client;
             }
-            throw new Error('Decrement not supported by cache store');
+            else if (this.cacheManager.stores?.[0]?.client) {
+                client = this.cacheManager.stores[0].client;
+            }
+            else if (store && typeof store.decrBy === 'function') {
+                client = store;
+            }
+            if (client) {
+                if (typeof client.decrBy === 'function') {
+                    return await client.decrBy(key, amount);
+                }
+                if (typeof client.decrby === 'function') {
+                    return await client.decrby(key, amount);
+                }
+                if (amount === 1 && typeof client.decr === 'function') {
+                    return await client.decr(key);
+                }
+            }
+            this.logger.warn(`Direct decrement not available for key ${key}, using get/set fallback`);
+            const current = await this.get(key);
+            const newValue = (current || 0) - amount;
+            await this.set(key, newValue);
+            return newValue;
         }
         catch (error) {
             this.logger.error(`Failed to decrement key ${key}`, error.stack);
@@ -366,8 +410,9 @@ let CacheService = CacheService_1 = class CacheService {
     }
     async incrementCounter(key, ttl = 60) {
         try {
+            const exists = await this.exists(key);
             const current = await this.increment(key, 1);
-            if (current === 1) {
+            if (!exists || current === 1) {
                 await this.expire(key, ttl);
             }
             return current;

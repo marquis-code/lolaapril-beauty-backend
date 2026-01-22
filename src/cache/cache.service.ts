@@ -647,11 +647,46 @@ export class CacheService {
    */
   async increment(key: string, amount: number = 1): Promise<number> {
     try {
-      const store: any = (this.cacheManager as any).store || this.cacheManager.stores?.[0];
-      if (store.client && store.client.incrby) {
-        return await store.client.incrby(key, amount);
+      const store: any = (this.cacheManager as any).store;
+      
+      // Try multiple paths to access the Redis client
+      let client = null;
+      
+      // Path 1: Direct client access (cache-manager-redis-yet)
+      if (store && store.client) {
+        client = store.client;
       }
-      throw new Error('Increment not supported by cache store');
+      // Path 2: Try accessing from stores array
+      else if ((this.cacheManager as any).stores?.[0]?.client) {
+        client = (this.cacheManager as any).stores[0].client;
+      }
+      // Path 3: Direct store access
+      else if (store && typeof store.incrBy === 'function') {
+        client = store;
+      }
+      
+      if (client) {
+        // Try incrBy method (most common)
+        if (typeof client.incrBy === 'function') {
+          return await client.incrBy(key, amount);
+        }
+        // Try incrby method (alternative casing)
+        if (typeof client.incrby === 'function') {
+          return await client.incrby(key, amount);
+        }
+        // Try incr for amount = 1
+        if (amount === 1 && typeof client.incr === 'function') {
+          return await client.incr(key);
+        }
+      }
+      
+      // Fallback: Use get/set pattern if direct increment not available
+      this.logger.warn(`Direct increment not available for key ${key}, using get/set fallback`);
+      const current = await this.get<number>(key);
+      const newValue = (current || 0) + amount;
+      await this.set(key, newValue);
+      return newValue;
+      
     } catch (error) {
       this.logger.error(`Failed to increment key ${key}`, error.stack);
       throw error;
@@ -664,11 +699,46 @@ export class CacheService {
    */
   async decrement(key: string, amount: number = 1): Promise<number> {
     try {
-      const store: any = (this.cacheManager as any).store || this.cacheManager.stores?.[0];
-      if (store.client && store.client.decrby) {
-        return await store.client.decrby(key, amount);
+      const store: any = (this.cacheManager as any).store;
+      
+      // Try multiple paths to access the Redis client
+      let client = null;
+      
+      // Path 1: Direct client access (cache-manager-redis-yet)
+      if (store && store.client) {
+        client = store.client;
       }
-      throw new Error('Decrement not supported by cache store');
+      // Path 2: Try accessing from stores array
+      else if ((this.cacheManager as any).stores?.[0]?.client) {
+        client = (this.cacheManager as any).stores[0].client;
+      }
+      // Path 3: Direct store access
+      else if (store && typeof store.decrBy === 'function') {
+        client = store;
+      }
+      
+      if (client) {
+        // Try decrBy method (most common)
+        if (typeof client.decrBy === 'function') {
+          return await client.decrBy(key, amount);
+        }
+        // Try decrby method (alternative casing)
+        if (typeof client.decrby === 'function') {
+          return await client.decrby(key, amount);
+        }
+        // Try decr for amount = 1
+        if (amount === 1 && typeof client.decr === 'function') {
+          return await client.decr(key);
+        }
+      }
+      
+      // Fallback: Use get/set pattern if direct decrement not available
+      this.logger.warn(`Direct decrement not available for key ${key}, using get/set fallback`);
+      const current = await this.get<number>(key);
+      const newValue = (current || 0) - amount;
+      await this.set(key, newValue);
+      return newValue;
+      
     } catch (error) {
       this.logger.error(`Failed to decrement key ${key}`, error.stack);
       throw error;
@@ -972,9 +1042,14 @@ export class CacheService {
   // Rate limiting support
   async incrementCounter(key: string, ttl = 60): Promise<number> {
     try {
+      // Check if key exists first
+      const exists = await this.exists(key);
+      
+      // Increment the counter
       const current = await this.increment(key, 1);
       
-      if (current === 1) {
+      // Set TTL only if this is a new key (first increment)
+      if (!exists || current === 1) {
         await this.expire(key, ttl);
       }
       
