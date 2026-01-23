@@ -111,15 +111,20 @@ export class CreateBookingDto {
   @IsNotEmpty()
   clientEmail: string
 
-  @ApiProperty({ example: '+2348012345678' })
+  @ApiPropertyOptional({ example: '+2348012345678' })
   @IsString()
-  @IsNotEmpty()
-  clientPhone: string
+  @IsOptional()
+  clientPhone?: string
 
   @ApiPropertyOptional({ example: 'Please use the side entrance' })
   @IsString()
   @IsOptional()
   specialRequests?: string
+
+  @ApiPropertyOptional({ example: 'Client prefers a quiet appointment' })
+  @IsString()
+  @IsOptional()
+  bookingNotes?: string
 }
 
 // Extended DTO with source tracking

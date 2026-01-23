@@ -80,10 +80,11 @@ export declare class Booking {
     estimatedTotal: number;
     clientName: string;
     clientEmail: string;
-    clientPhone: string;
+    clientPhone?: string;
     businessName: string;
     businessPhone: string;
     specialRequests: string;
+    bookingNotes?: string;
     status: string;
     cancellationReason: string;
     rejectionReason: string;

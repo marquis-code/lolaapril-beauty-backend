@@ -58,6 +58,7 @@ export class BookingService {
       clientEmail: createBookingData.clientEmail,
       clientPhone: createBookingData.clientPhone,
       specialRequests: createBookingData.specialRequests,
+      bookingNotes: createBookingData.bookingNotes,
       status: createBookingData.status || 'pending',
       bookingSource: createBookingData.bookingSource || 'online',
       expiresAt,

@@ -22,8 +22,9 @@ export declare class CreateBookingDto {
     preferredStartTime: string;
     clientName: string;
     clientEmail: string;
-    clientPhone: string;
+    clientPhone?: string;
     specialRequests?: string;
+    bookingNotes?: string;
 }
 export declare class CreateBookingWithSourceDto extends CreateBookingDto {
     bookingSource: BookingSourceDto;

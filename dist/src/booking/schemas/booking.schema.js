@@ -227,7 +227,7 @@ __decorate([
     __metadata("design:type", String)
 ], Booking.prototype, "clientEmail", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
 ], Booking.prototype, "clientPhone", void 0);
 __decorate([
@@ -242,6 +242,10 @@ __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
 ], Booking.prototype, "specialRequests", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Booking.prototype, "bookingNotes", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
         required: true,

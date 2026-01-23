@@ -143,9 +143,9 @@ __decorate([
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "clientEmail", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '+2348012345678' }),
+    (0, swagger_1.ApiPropertyOptional)({ example: '+2348012345678' }),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "clientPhone", void 0);
 __decorate([
@@ -154,6 +154,12 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateBookingDto.prototype, "specialRequests", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'Client prefers a quiet appointment' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateBookingDto.prototype, "bookingNotes", void 0);
 exports.CreateBookingDto = CreateBookingDto;
 class CreateBookingWithSourceDto extends CreateBookingDto {
 }

@@ -162,8 +162,8 @@ export class Booking {
   @Prop({ required: true })
   clientEmail: string
 
-  @Prop({ required: true })
-  clientPhone: string
+  @Prop()
+  clientPhone?: string
 
   @Prop()
   businessName: string
@@ -173,6 +173,9 @@ export class Booking {
 
   @Prop()
   specialRequests: string
+
+  @Prop()
+  bookingNotes?: string
 
   @Prop({
     required: true,

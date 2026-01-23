@@ -69,6 +69,7 @@ export interface BookingDetails {
     createdAt: Date;
     expiresAt: Date;
     specialRequests?: string;
+    bookingNotes?: string;
 }
 export interface ServiceDetail {
     serviceId: string;

@@ -35,7 +35,7 @@ export declare class BookingAutomationService {
         preferredStartTime: string;
         clientName: string;
         clientEmail: string;
-        clientPhone: string;
+        clientPhone?: string;
         specialRequests?: string;
         autoConfirm?: boolean;
     }): Promise<AutomatedBookingResult>;
