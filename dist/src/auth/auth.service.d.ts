@@ -35,14 +35,17 @@ import { LoginDto } from "./dto/login.dto";
 import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto";
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto";
 import { AddBusinessDto } from "./dto/add-business.dto";
+import { FirebaseService } from "./services/firebase.service";
+import { FirebaseAuthDto } from "./dto/firebase-auth.dto";
 export declare class AuthService {
     private userModel;
     private businessModel;
     private subscriptionModel;
     private jwtService;
     private configService;
+    private firebaseService;
     private googleClient;
-    constructor(userModel: Model<UserDocument>, businessModel: Model<BusinessDocument>, subscriptionModel: Model<SubscriptionDocument>, jwtService: JwtService, configService: ConfigService);
+    constructor(userModel: Model<UserDocument>, businessModel: Model<BusinessDocument>, subscriptionModel: Model<SubscriptionDocument>, jwtService: JwtService, configService: ConfigService, firebaseService: FirebaseService);
     registerBusiness(registerDto: BusinessRegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -62,6 +65,7 @@ export declare class AuthService {
         user: any;
     }>;
     handleGoogleCallback(googleUser: any, subdomain?: string): Promise<any>;
+    authenticateWithFirebase(firebaseAuthDto: FirebaseAuthDto): Promise<any>;
     refreshTokens(userId: string, refreshToken: string): Promise<{
         accessToken: string;
         refreshToken: string;

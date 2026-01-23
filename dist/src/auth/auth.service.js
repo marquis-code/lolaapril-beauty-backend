@@ -23,13 +23,15 @@ const user_schema_1 = require("./schemas/user.schema");
 const business_schema_1 = require("../business/schemas/business.schema");
 const subscription_schema_1 = require("../business/schemas/subscription.schema");
 const google_auth_library_1 = require("google-auth-library");
+const firebase_service_1 = require("./services/firebase.service");
 let AuthService = class AuthService {
-    constructor(userModel, businessModel, subscriptionModel, jwtService, configService) {
+    constructor(userModel, businessModel, subscriptionModel, jwtService, configService, firebaseService) {
         this.userModel = userModel;
         this.businessModel = businessModel;
         this.subscriptionModel = subscriptionModel;
         this.jwtService = jwtService;
         this.configService = configService;
+        this.firebaseService = firebaseService;
         this.googleClient = new google_auth_library_1.OAuth2Client(this.configService.get("GOOGLE_CLIENT_ID"));
     }
     async registerBusiness(registerDto) {
@@ -237,6 +239,132 @@ let AuthService = class AuthService {
             }));
         }
         return response;
+    }
+    async authenticateWithFirebase(firebaseAuthDto) {
+        try {
+            console.log('🔥 Firebase authentication started');
+            const decodedToken = await this.firebaseService.verifyIdToken(firebaseAuthDto.idToken);
+            const userInfo = this.firebaseService.extractUserInfo(decodedToken);
+            const authProvider = this.firebaseService.getAuthProvider(decodedToken);
+            const providerId = this.firebaseService.getProviderId(decodedToken, authProvider);
+            console.log('📋 Firebase user info:', {
+                uid: userInfo.uid,
+                email: userInfo.email,
+                provider: authProvider,
+            });
+            if (!userInfo.email) {
+                throw new common_1.UnauthorizedException('Email not provided by authentication provider');
+            }
+            const query = { email: userInfo.email };
+            if (authProvider === 'google' && providerId) {
+                query.$or = [{ email: userInfo.email }, { googleId: providerId }];
+            }
+            else if (authProvider === 'facebook' && providerId) {
+                query.$or = [{ email: userInfo.email }, { facebookId: providerId }];
+            }
+            let user = await this.userModel.findOne(query);
+            if (!user) {
+                console.log('👤 Creating new user from Firebase');
+                const nameParts = (userInfo.name || '').split(' ');
+                const firstName = nameParts[0] || 'User';
+                const lastName = nameParts.slice(1).join(' ') || '';
+                const newUser = new this.userModel({
+                    firstName,
+                    lastName,
+                    email: userInfo.email,
+                    role: user_schema_1.UserRole.CLIENT,
+                    status: user_schema_1.UserStatus.ACTIVE,
+                    profileImage: userInfo.picture,
+                    emailVerified: userInfo.emailVerified || true,
+                    authProvider,
+                });
+                if (authProvider === 'google' && providerId) {
+                    newUser.googleId = providerId;
+                }
+                else if (authProvider === 'facebook' && providerId) {
+                    newUser.facebookId = providerId;
+                }
+                user = await newUser.save();
+                console.log('✅ New user created:', user._id);
+            }
+            else {
+                console.log('🔄 Updating existing user:', user._id);
+                const updateData = {
+                    lastLogin: new Date(),
+                    emailVerified: true,
+                };
+                if (authProvider === 'google' && providerId && !user.googleId) {
+                    updateData.googleId = providerId;
+                }
+                else if (authProvider === 'facebook' && providerId && !user.facebookId) {
+                    updateData.facebookId = providerId;
+                }
+                if (userInfo.picture && !user.profileImage) {
+                    updateData.profileImage = userInfo.picture;
+                }
+                if (Object.keys(updateData).length > 0) {
+                    await this.userModel.findByIdAndUpdate(user._id, updateData);
+                    user = await this.userModel.findById(user._id);
+                }
+            }
+            const businesses = await this.businessModel.find({
+                $or: [{ ownerId: user._id }, { adminIds: user._id }],
+            }).lean().exec();
+            let business = null;
+            if (firebaseAuthDto.subdomain && businesses.length > 0) {
+                const found = businesses.find((b) => b.subdomain === firebaseAuthDto.subdomain);
+                if (found) {
+                    business = found;
+                }
+            }
+            else if (businesses.length > 0) {
+                business = businesses[0];
+            }
+            const tokens = await this.generateTokens(user._id.toString(), user.email, user.role, business?._id?.toString(), business?.subdomain);
+            await this.userModel.findByIdAndUpdate(user._id, {
+                refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+                currentBusinessId: business?._id,
+            });
+            const userResponse = user.toObject();
+            delete userResponse.password;
+            delete userResponse.refreshToken;
+            delete userResponse.resetPasswordOTP;
+            delete userResponse.resetPasswordOTPExpires;
+            delete userResponse.emailVerificationToken;
+            const response = {
+                success: true,
+                message: 'Firebase authentication successful',
+                user: {
+                    ...userResponse,
+                    id: user._id,
+                },
+                ...tokens,
+            };
+            if (business) {
+                response.business = {
+                    id: business._id,
+                    businessName: business.businessName,
+                    subdomain: business.subdomain,
+                    businessType: business.businessType,
+                    status: business.status,
+                    trialEndsAt: business.trialEndsAt,
+                };
+            }
+            if (businesses.length > 0) {
+                response.businesses = businesses.map((b) => ({
+                    id: b._id,
+                    businessName: b.businessName,
+                    subdomain: b.subdomain,
+                    status: b.status,
+                }));
+            }
+            console.log('✅ Firebase authentication completed successfully');
+            return response;
+        }
+        catch (error) {
+            console.error('❌ Firebase authentication failed:', error.message);
+            throw error;
+        }
     }
     async refreshTokens(userId, refreshToken) {
         const user = await this.userModel.findById(userId);
@@ -971,7 +1099,8 @@ AuthService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         jwt_1.JwtService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        firebase_service_1.FirebaseService])
 ], AuthService);
 exports.AuthService = AuthService;
 //# sourceMappingURL=auth.service.js.map

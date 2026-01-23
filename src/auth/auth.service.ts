@@ -15,6 +15,8 @@ import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto"
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto"
 import { OAuth2Client } from "google-auth-library"
 import { AddBusinessDto } from "./dto/add-business.dto"
+import { FirebaseService } from "./services/firebase.service"
+import { FirebaseAuthDto } from "./dto/firebase-auth.dto"
 
 @Injectable()
 export class AuthService {
@@ -25,7 +27,8 @@ export class AuthService {
     @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
     @InjectModel(Subscription.name) private subscriptionModel: Model<SubscriptionDocument>,
     private jwtService: JwtService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private firebaseService: FirebaseService,
   ) {
     this.googleClient = new OAuth2Client(this.configService.get<string>("GOOGLE_CLIENT_ID"))
   }
@@ -406,6 +409,176 @@ async handleGoogleCallback(googleUser: any, subdomain?: string) {
   }
 
   return response
+}
+
+// ==================== FIREBASE AUTHENTICATION ====================
+/**
+ * Authenticate user with Firebase ID token
+ * Supports Google, Facebook, and other Firebase providers
+ */
+async authenticateWithFirebase(firebaseAuthDto: FirebaseAuthDto) {
+  try {
+    console.log('🔥 Firebase authentication started')
+    
+    // Verify the Firebase ID token
+    const decodedToken = await this.firebaseService.verifyIdToken(firebaseAuthDto.idToken)
+    
+    // Extract user information
+    const userInfo = this.firebaseService.extractUserInfo(decodedToken)
+    const authProvider = this.firebaseService.getAuthProvider(decodedToken)
+    const providerId = this.firebaseService.getProviderId(decodedToken, authProvider)
+    
+    console.log('📋 Firebase user info:', {
+      uid: userInfo.uid,
+      email: userInfo.email,
+      provider: authProvider,
+    })
+
+    if (!userInfo.email) {
+      throw new UnauthorizedException('Email not provided by authentication provider')
+    }
+
+    // Find user by email or provider ID
+    const query: any = { email: userInfo.email }
+    
+    if (authProvider === 'google' && providerId) {
+      query.$or = [{ email: userInfo.email }, { googleId: providerId }]
+    } else if (authProvider === 'facebook' && providerId) {
+      query.$or = [{ email: userInfo.email }, { facebookId: providerId }]
+    }
+
+    let user = await this.userModel.findOne(query)
+
+    if (!user) {
+      // Create new user
+      console.log('👤 Creating new user from Firebase')
+      
+      const nameParts = (userInfo.name || '').split(' ')
+      const firstName = nameParts[0] || 'User'
+      const lastName = nameParts.slice(1).join(' ') || ''
+
+      const newUser = new this.userModel({
+        firstName,
+        lastName,
+        email: userInfo.email,
+        role: UserRole.CLIENT,
+        status: UserStatus.ACTIVE,
+        profileImage: userInfo.picture,
+        emailVerified: userInfo.emailVerified || true,
+        authProvider,
+      })
+
+      // Set provider-specific ID
+      if (authProvider === 'google' && providerId) {
+        newUser.googleId = providerId
+      } else if (authProvider === 'facebook' && providerId) {
+        newUser.facebookId = providerId
+      }
+
+      user = await newUser.save()
+      console.log('✅ New user created:', user._id)
+    } else {
+      // Update existing user
+      console.log('🔄 Updating existing user:', user._id)
+      
+      const updateData: any = {
+        lastLogin: new Date(),
+        emailVerified: true,
+      }
+
+      // Update provider ID if not set
+      if (authProvider === 'google' && providerId && !user.googleId) {
+        updateData.googleId = providerId
+      } else if (authProvider === 'facebook' && providerId && !user.facebookId) {
+        updateData.facebookId = providerId
+      }
+
+      // Update profile image if not set
+      if (userInfo.picture && !user.profileImage) {
+        updateData.profileImage = userInfo.picture
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await this.userModel.findByIdAndUpdate(user._id, updateData)
+        user = await this.userModel.findById(user._id)
+      }
+    }
+
+    // Find businesses for this user
+    const businesses: any[] = await (this.businessModel as any).find({
+      $or: [{ ownerId: user._id }, { adminIds: user._id }],
+    }).lean().exec() as any[]
+
+    let business: any = null
+
+    if (firebaseAuthDto.subdomain && businesses.length > 0) {
+      const found = businesses.find((b: any) => b.subdomain === firebaseAuthDto.subdomain)
+      if (found) {
+        business = found
+      }
+    } else if (businesses.length > 0) {
+      business = businesses[0]
+    }
+
+    // Generate JWT tokens
+    const tokens = await this.generateTokens(
+      user._id.toString(),
+      user.email,
+      user.role,
+      business?._id?.toString(),
+      business?.subdomain
+    )
+
+    // Update user with refresh token
+    await this.userModel.findByIdAndUpdate(user._id, {
+      refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+      currentBusinessId: business?._id,
+    })
+
+    // Prepare user response (remove sensitive fields)
+    const userResponse = (user as any).toObject()
+    delete userResponse.password
+    delete userResponse.refreshToken
+    delete userResponse.resetPasswordOTP
+    delete userResponse.resetPasswordOTPExpires
+    delete userResponse.emailVerificationToken
+
+    const response: any = {
+      success: true,
+      message: 'Firebase authentication successful',
+      user: {
+        ...userResponse,
+        id: user._id,
+      },
+      ...tokens,
+    }
+
+    if (business) {
+      response.business = {
+        id: business._id,
+        businessName: business.businessName,
+        subdomain: business.subdomain,
+        businessType: business.businessType,
+        status: business.status,
+        trialEndsAt: business.trialEndsAt,
+      }
+    }
+
+    if (businesses.length > 0) {
+      response.businesses = businesses.map((b) => ({
+        id: b._id,
+        businessName: b.businessName,
+        subdomain: b.subdomain,
+        status: b.status,
+      }))
+    }
+
+    console.log('✅ Firebase authentication completed successfully')
+    return response
+  } catch (error) {
+    console.error('❌ Firebase authentication failed:', error.message)
+    throw error
+  }
 }
 
 

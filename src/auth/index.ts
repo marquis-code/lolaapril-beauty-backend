@@ -45,6 +45,8 @@ export {
   UserPreferencesDto 
 } from './dto/update-profile.dto'
 export { SwitchBusinessDto } from './dto/switch-business.dto'
+export { FirebaseAuthDto } from './dto/firebase-auth.dto'
 
 export { AuthModule } from './auth.module'
 export { AuthService } from './auth.service'
+export { FirebaseService } from './services/firebase.service'

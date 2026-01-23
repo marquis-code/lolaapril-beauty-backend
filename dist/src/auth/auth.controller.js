@@ -27,9 +27,13 @@ const business_context_decorator_1 = require("./decorators/business-context.deco
 const switch_business_dto_1 = require("./dto/switch-business.dto");
 const add_business_dto_1 = require("./dto/add-business.dto");
 const auth_1 = require("../auth");
+const firebase_auth_dto_1 = require("./dto/firebase-auth.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
+    }
+    async firebaseAuth(firebaseAuthDto) {
+        return this.authService.authenticateWithFirebase(firebaseAuthDto);
     }
     async googleLogin() {
     }
@@ -132,9 +136,20 @@ let AuthController = class AuthController {
 };
 __decorate([
     (0, auth_1.Public)(),
+    (0, common_1.Post)("firebase"),
+    (0, swagger_1.ApiOperation)({ summary: "Authenticate with Firebase ID token (Google, Facebook, etc.)" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Firebase authentication successful" }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: "Invalid or expired Firebase token" }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [firebase_auth_dto_1.FirebaseAuthDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "firebaseAuth", null);
+__decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)("google"),
     (0, common_1.UseGuards)(google_auth_guard_1.GoogleAuthGuard),
-    (0, swagger_1.ApiOperation)({ summary: "Initiate Google OAuth login" }),
+    (0, swagger_1.ApiOperation)({ summary: "Initiate Google OAuth login (Legacy)" }),
     (0, swagger_1.ApiResponse)({ status: 302, description: "Redirects to Google login page" }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

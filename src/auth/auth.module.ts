@@ -20,6 +20,7 @@ import { ValidateBusinessAccessGuard } from './guards/validate-business-access.g
 import { BusinessAuthGuard, BusinessRolesGuard } from './guards/business-auth.guard'
 import { RolesGuard } from './guards/roles.guard'
 import { OptionalAuthGuard } from './guards/optional-auth.guard'
+import { FirebaseService } from './services/firebase.service'
 
 /**
  * AuthModule - Made Global
@@ -53,6 +54,7 @@ import { OptionalAuthGuard } from './guards/optional-auth.guard'
   providers: [
     // Services
     AuthService,
+    FirebaseService,
     
     // Strategies
     JwtStrategy,
@@ -72,6 +74,7 @@ import { OptionalAuthGuard } from './guards/optional-auth.guard'
   exports: [
     // Export service for other modules
     AuthService,
+    FirebaseService,
     
     // Export guards for manual use if needed
     JwtAuthGuard,

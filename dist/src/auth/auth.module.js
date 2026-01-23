@@ -25,6 +25,7 @@ const validate_business_access_guard_1 = require("./guards/validate-business-acc
 const business_auth_guard_1 = require("./guards/business-auth.guard");
 const roles_guard_1 = require("./guards/roles.guard");
 const optional_auth_guard_1 = require("./guards/optional-auth.guard");
+const firebase_service_1 = require("./services/firebase.service");
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
@@ -50,6 +51,7 @@ AuthModule = __decorate([
         controllers: [auth_controller_1.AuthController],
         providers: [
             auth_service_1.AuthService,
+            firebase_service_1.FirebaseService,
             jwt_strategy_1.JwtStrategy,
             google_strategy_1.GoogleStrategy,
             jwt_auth_guard_1.JwtAuthGuard,
@@ -62,6 +64,7 @@ AuthModule = __decorate([
         ],
         exports: [
             auth_service_1.AuthService,
+            firebase_service_1.FirebaseService,
             jwt_auth_guard_1.JwtAuthGuard,
             validate_business_access_guard_1.ValidateBusinessAccessGuard,
             business_auth_guard_1.BusinessAuthGuard,

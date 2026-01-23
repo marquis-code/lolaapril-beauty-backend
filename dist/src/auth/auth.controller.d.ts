@@ -35,9 +35,11 @@ import { RequestWithUser } from "./types/request-with-user.interface";
 import type { BusinessContext as BusinessCtx } from "./decorators/business-context.decorator";
 import { SwitchBusinessDto } from "./dto/switch-business.dto";
 import { AddBusinessDto } from "./dto/add-business.dto";
+import { FirebaseAuthDto } from "./dto/firebase-auth.dto";
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
+    firebaseAuth(firebaseAuthDto: FirebaseAuthDto): Promise<any>;
     googleLogin(): Promise<void>;
     googleCallback(req: RequestWithUser, res: Response, subdomain?: string): Promise<void>;
     googleTokenAuth(googleAuthDto: GoogleAuthDto): Promise<any>;

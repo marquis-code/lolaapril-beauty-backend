@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthService = exports.AuthModule = exports.SwitchBusinessDto = exports.UserPreferencesDto = exports.UpdateEmailDto = exports.ChangePasswordDto = exports.UpdateProfileDto = exports.GoogleAuthDto = exports.BusinessLoginDto = exports.BusinessRegisterDto = exports.LoginDto = exports.RegisterDto = exports.UserStatus = exports.UserRole = exports.hasBusinessContext = exports.OptionalAuthGuard = exports.ValidateBusinessAccessGuard = exports.RequireBusinessRoles = exports.BusinessRolesGuard = exports.BusinessAuthGuard = exports.RolesGuard = exports.GoogleAuthGuard = exports.JwtAuthGuard = exports.OptionalBusinessContext = exports.OptionalBusinessId = exports.CurrentUser = exports.BusinessId = exports.BusinessContext = exports.ValidateBusiness = exports.Public = void 0;
+exports.FirebaseService = exports.AuthService = exports.AuthModule = exports.FirebaseAuthDto = exports.SwitchBusinessDto = exports.UserPreferencesDto = exports.UpdateEmailDto = exports.ChangePasswordDto = exports.UpdateProfileDto = exports.GoogleAuthDto = exports.BusinessLoginDto = exports.BusinessRegisterDto = exports.LoginDto = exports.RegisterDto = exports.UserStatus = exports.UserRole = exports.hasBusinessContext = exports.OptionalAuthGuard = exports.ValidateBusinessAccessGuard = exports.RequireBusinessRoles = exports.BusinessRolesGuard = exports.BusinessAuthGuard = exports.RolesGuard = exports.GoogleAuthGuard = exports.JwtAuthGuard = exports.OptionalBusinessContext = exports.OptionalBusinessId = exports.CurrentUser = exports.BusinessId = exports.BusinessContext = exports.ValidateBusiness = exports.Public = void 0;
 var public_decorator_1 = require("./decorators/public.decorator");
 Object.defineProperty(exports, "Public", { enumerable: true, get: function () { return public_decorator_1.Public; } });
 var validate_business_decorator_1 = require("./decorators/validate-business.decorator");
@@ -45,8 +45,12 @@ Object.defineProperty(exports, "UpdateEmailDto", { enumerable: true, get: functi
 Object.defineProperty(exports, "UserPreferencesDto", { enumerable: true, get: function () { return update_profile_dto_1.UserPreferencesDto; } });
 var switch_business_dto_1 = require("./dto/switch-business.dto");
 Object.defineProperty(exports, "SwitchBusinessDto", { enumerable: true, get: function () { return switch_business_dto_1.SwitchBusinessDto; } });
+var firebase_auth_dto_1 = require("./dto/firebase-auth.dto");
+Object.defineProperty(exports, "FirebaseAuthDto", { enumerable: true, get: function () { return firebase_auth_dto_1.FirebaseAuthDto; } });
 var auth_module_1 = require("./auth.module");
 Object.defineProperty(exports, "AuthModule", { enumerable: true, get: function () { return auth_module_1.AuthModule; } });
 var auth_service_1 = require("./auth.service");
 Object.defineProperty(exports, "AuthService", { enumerable: true, get: function () { return auth_service_1.AuthService; } });
+var firebase_service_1 = require("./services/firebase.service");
+Object.defineProperty(exports, "FirebaseService", { enumerable: true, get: function () { return firebase_service_1.FirebaseService; } });
 //# sourceMappingURL=index.js.map

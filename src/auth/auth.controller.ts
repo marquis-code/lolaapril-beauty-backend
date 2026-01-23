@@ -16,18 +16,30 @@ import type { BusinessContext as BusinessCtx } from "./decorators/business-conte
 import { SwitchBusinessDto } from "./dto/switch-business.dto"
 import { AddBusinessDto } from "./dto/add-business.dto"
 import { Public } from '../auth'
+import { FirebaseAuthDto } from "./dto/firebase-auth.dto"
 
 @ApiTags("Authentication")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // ========== GOOGLE OAUTH ROUTES ==========
+  // ========== FIREBASE AUTHENTICATION ==========
+
+  @Public()
+  @Post("firebase")
+  @ApiOperation({ summary: "Authenticate with Firebase ID token (Google, Facebook, etc.)" })
+  @ApiResponse({ status: 200, description: "Firebase authentication successful" })
+  @ApiResponse({ status: 401, description: "Invalid or expired Firebase token" })
+  async firebaseAuth(@Body() firebaseAuthDto: FirebaseAuthDto) {
+    return this.authService.authenticateWithFirebase(firebaseAuthDto)
+  }
+
+  // ========== GOOGLE OAUTH ROUTES (Legacy - kept for backward compatibility) ==========
 
   @Public()
   @Get("google")
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: "Initiate Google OAuth login" })
+  @ApiOperation({ summary: "Initiate Google OAuth login (Legacy)" })
   @ApiResponse({ status: 302, description: "Redirects to Google login page" })
   async googleLogin() {
     // This route initiates the Google OAuth flow
