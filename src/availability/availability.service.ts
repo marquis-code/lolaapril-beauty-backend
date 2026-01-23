@@ -3092,7 +3092,7 @@
 // }
 
 // src/modules/availability/services/availability.service.ts
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common'
+import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import { BusinessHours, BusinessHoursDocument, TimeSlot } from './schemas/business-hours.schema'
@@ -3104,6 +3104,7 @@ import { Business, BusinessDocument } from '../business/schemas/business.schema'
 import { BlockStaffTimeDto } from './dto/block-staff-time.dto'
 import { GetAllSlotsDto } from "./dto/get-all-slots.dto"
 import { Cron, CronExpression } from '@nestjs/schedule'
+import { BookingService } from '../booking/services/booking.service'
 
 export interface AvailabilitySlot {
   startTime: string
@@ -3147,6 +3148,8 @@ export class AvailabilityService {
     @InjectModel(StaffAvailability.name)
     private staffAvailabilityModel: Model<StaffAvailabilityDocument>,
     @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
+    @Inject(forwardRef(() => BookingService))
+    private bookingService: BookingService,
   ) {}
 
 //   async getAvailableSlots(dto: GetAvailableSlotsDto & { bufferTime?: number }): Promise<AvailabilitySlot[]> {
@@ -3587,12 +3590,21 @@ async getAvailableSlots(
   }
 
   // Generate slots - business-first (ignore staff if not specified)
-  return this.generateSlotsFromBusinessHours(
+  const slots = this.generateSlotsFromBusinessHours(
     businessHours,
     eligibleStaff,
     totalDuration,
     dto.staffId ? true : false // Only filter by staff if staffId provided
   )
+
+  // Check each slot against existing bookings and mark as not bookable if taken
+  const slotsWithBookingCheck = await this.checkSlotsAgainstBookings(
+    businessId,
+    date,
+    slots
+  )
+
+  return slotsWithBookingCheck
 }
 
 private generateSlotsFromBusinessHours(
@@ -3652,6 +3664,77 @@ private generateSlotsFromBusinessHours(
   }
   
   return slots
+}
+
+/**
+ * Check slots against existing bookings and mark as not bookable if taken
+ * This ensures the frontend gets accurate isBookable status
+ */
+private async checkSlotsAgainstBookings(
+  businessId: string,
+  date: Date,
+  slots: AvailabilitySlot[]
+): Promise<AvailabilitySlot[]> {
+  try {
+    // Get all confirmed/pending bookings for this business on this date
+    const startOfDay = new Date(date)
+    startOfDay.setHours(0, 0, 0, 0)
+    
+    const endOfDay = new Date(date)
+    endOfDay.setHours(23, 59, 59, 999)
+
+    const result = await this.bookingService.getBookings({
+      businessId,
+      startDate: startOfDay,
+      endDate: endOfDay,
+      status: ['pending', 'confirmed', 'payment_pending', 'paid']
+    })
+
+    const existingBookings = result.bookings || []
+
+    if (existingBookings.length === 0) {
+      // No bookings, all slots are bookable
+      return slots
+    }
+
+    console.log(`📋 Found ${existingBookings.length} existing bookings on ${date.toISOString().split('T')[0]}`)
+
+    // Check each slot against existing bookings
+    return slots.map(slot => {
+      const slotStartMins = this.timeToMinutes(slot.startTime)
+      const slotEndMins = slotStartMins + slot.duration
+
+      // Check if this slot overlaps with any existing booking
+      const hasConflict = existingBookings.some(booking => {
+        const bookingStartTime = booking.preferredStartTime
+        const bookingDuration = booking.totalDuration || 60
+        
+        const [bookingHour, bookingMin] = bookingStartTime.split(':').map(Number)
+        const bookingStartMins = bookingHour * 60 + bookingMin
+        const bookingEndMins = bookingStartMins + bookingDuration
+
+        // Two time slots overlap if: (StartA < EndB) AND (EndA > StartB)
+        const overlaps = (slotStartMins < bookingEndMins) && (slotEndMins > bookingStartMins)
+
+        if (overlaps) {
+          console.log(`  ❌ Slot ${slot.startTime}-${slot.endTime} conflicts with booking ${booking.bookingNumber}`)
+        }
+
+        return overlaps
+      })
+
+      // Return slot with updated isBookable status
+      return {
+        ...slot,
+        isBookable: !hasConflict
+      }
+    })
+
+  } catch (error) {
+    console.error(`❌ Error checking slots against bookings: ${error.message}`)
+    // On error, be conservative and mark all slots as not bookable
+    return slots.map(slot => ({ ...slot, isBookable: false }))
+  }
 }
 
 

@@ -35,6 +35,9 @@ import { StaffAvailability, StaffAvailabilitySchema } from './schemas/staff-avai
 import { AuthModule } from '../auth/auth.module'
 // Import from Tenant module for business management
 import { BusinessModule } from '../business/business.module'
+// Import BookingModule for checking existing bookings
+import { forwardRef } from '@nestjs/common'
+import { BookingModule } from '../booking/booking.module'
 
 @Module({
   imports: [
@@ -45,6 +48,7 @@ import { BusinessModule } from '../business/business.module'
     ScheduleModule.forRoot(), // For cron jobs
     AuthModule,  // Provides JWT guards and decorators
     BusinessModule, // Provides business validation
+    forwardRef(() => BookingModule), // For checking existing bookings
   ],
   controllers: [AvailabilityController],
   providers: [

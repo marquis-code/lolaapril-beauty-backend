@@ -7,6 +7,7 @@ import { GetAvailableSlotsDto } from './dto/get-available-slots.dto';
 import { BusinessDocument } from '../business/schemas/business.schema';
 import { BlockStaffTimeDto } from './dto/block-staff-time.dto';
 import { GetAllSlotsDto } from "./dto/get-all-slots.dto";
+import { BookingService } from '../booking/services/booking.service';
 export interface AvailabilitySlot {
     startTime: string;
     endTime: string;
@@ -19,9 +20,11 @@ export declare class AvailabilityService {
     private businessHoursModel;
     private staffAvailabilityModel;
     private businessModel;
-    constructor(businessHoursModel: Model<BusinessHoursDocument>, staffAvailabilityModel: Model<StaffAvailabilityDocument>, businessModel: Model<BusinessDocument>);
+    private bookingService;
+    constructor(businessHoursModel: Model<BusinessHoursDocument>, staffAvailabilityModel: Model<StaffAvailabilityDocument>, businessModel: Model<BusinessDocument>, bookingService: BookingService);
     getAvailableSlots(dto: GetAvailableSlotsDto, authenticatedBusinessId?: string): Promise<AvailabilitySlot[]>;
     private generateSlotsFromBusinessHours;
+    private checkSlotsAgainstBookings;
     createCustomBusinessHours(businessId: string, weeklySchedule: Array<{
         dayOfWeek: number;
         isOpen: boolean;

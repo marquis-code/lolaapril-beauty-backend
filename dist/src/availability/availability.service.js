@@ -19,11 +19,13 @@ const mongoose_2 = require("mongoose");
 const business_hours_schema_1 = require("./schemas/business-hours.schema");
 const staff_availability_schema_1 = require("./schemas/staff-availability.schema");
 const business_schema_1 = require("../business/schemas/business.schema");
+const booking_service_1 = require("../booking/services/booking.service");
 let AvailabilityService = class AvailabilityService {
-    constructor(businessHoursModel, staffAvailabilityModel, businessModel) {
+    constructor(businessHoursModel, staffAvailabilityModel, businessModel, bookingService) {
         this.businessHoursModel = businessHoursModel;
         this.staffAvailabilityModel = staffAvailabilityModel;
         this.businessModel = businessModel;
+        this.bookingService = bookingService;
     }
     async getAvailableSlots(dto, authenticatedBusinessId) {
         let businessId;
@@ -75,7 +77,9 @@ let AvailabilityService = class AvailabilityService {
                 eligibleStaff = [staffAvailability];
             }
         }
-        return this.generateSlotsFromBusinessHours(businessHours, eligibleStaff, totalDuration, dto.staffId ? true : false);
+        const slots = this.generateSlotsFromBusinessHours(businessHours, eligibleStaff, totalDuration, dto.staffId ? true : false);
+        const slotsWithBookingCheck = await this.checkSlotsAgainstBookings(businessId, date, slots);
+        return slotsWithBookingCheck;
     }
     generateSlotsFromBusinessHours(businessHours, staff, duration, requireStaff) {
         const slots = [];
@@ -113,6 +117,49 @@ let AvailabilityService = class AvailabilityService {
             }
         }
         return slots;
+    }
+    async checkSlotsAgainstBookings(businessId, date, slots) {
+        try {
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
+            const result = await this.bookingService.getBookings({
+                businessId,
+                startDate: startOfDay,
+                endDate: endOfDay,
+                status: ['pending', 'confirmed', 'payment_pending', 'paid']
+            });
+            const existingBookings = result.bookings || [];
+            if (existingBookings.length === 0) {
+                return slots;
+            }
+            console.log(`📋 Found ${existingBookings.length} existing bookings on ${date.toISOString().split('T')[0]}`);
+            return slots.map(slot => {
+                const slotStartMins = this.timeToMinutes(slot.startTime);
+                const slotEndMins = slotStartMins + slot.duration;
+                const hasConflict = existingBookings.some(booking => {
+                    const bookingStartTime = booking.preferredStartTime;
+                    const bookingDuration = booking.totalDuration || 60;
+                    const [bookingHour, bookingMin] = bookingStartTime.split(':').map(Number);
+                    const bookingStartMins = bookingHour * 60 + bookingMin;
+                    const bookingEndMins = bookingStartMins + bookingDuration;
+                    const overlaps = (slotStartMins < bookingEndMins) && (slotEndMins > bookingStartMins);
+                    if (overlaps) {
+                        console.log(`  ❌ Slot ${slot.startTime}-${slot.endTime} conflicts with booking ${booking.bookingNumber}`);
+                    }
+                    return overlaps;
+                });
+                return {
+                    ...slot,
+                    isBookable: !hasConflict
+                };
+            });
+        }
+        catch (error) {
+            console.error(`❌ Error checking slots against bookings: ${error.message}`);
+            return slots.map(slot => ({ ...slot, isBookable: false }));
+        }
     }
     async createCustomBusinessHours(businessId, weeklySchedule) {
         const existing = await this.businessHoursModel.findOne({ businessId: new mongoose_2.Types.ObjectId(businessId) });
@@ -978,9 +1025,11 @@ AvailabilityService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(business_hours_schema_1.BusinessHours.name)),
     __param(1, (0, mongoose_1.InjectModel)(staff_availability_schema_1.StaffAvailability.name)),
     __param(2, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
+    __param(3, (0, common_1.Inject)((0, common_1.forwardRef)(() => booking_service_1.BookingService))),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        booking_service_1.BookingService])
 ], AvailabilityService);
 exports.AvailabilityService = AvailabilityService;
 //# sourceMappingURL=availability.service.js.map

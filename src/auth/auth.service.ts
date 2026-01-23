@@ -1112,7 +1112,7 @@ async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
     }
 
     // Fields that can be updated
-    const allowedUpdates = ['firstName', 'lastName', 'phone', 'profileImage', 'bio', 'dateOfBirth', 'gender']
+    const allowedUpdates = ['firstName', 'lastName', 'phone', 'profileImage', 'bio', 'dateOfBirth', 'gender', 'preferences']
     const updates: any = {}
 
     // Only include fields that are provided and allowed

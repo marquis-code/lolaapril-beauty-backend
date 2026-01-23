@@ -544,7 +544,7 @@ let AuthService = class AuthService {
             if (!user) {
                 throw new common_1.NotFoundException('User not found');
             }
-            const allowedUpdates = ['firstName', 'lastName', 'phone', 'profileImage', 'bio', 'dateOfBirth', 'gender'];
+            const allowedUpdates = ['firstName', 'lastName', 'phone', 'profileImage', 'bio', 'dateOfBirth', 'gender', 'preferences'];
             const updates = {};
             Object.keys(updateProfileDto).forEach(key => {
                 if (allowedUpdates.includes(key) && updateProfileDto[key] !== undefined) {

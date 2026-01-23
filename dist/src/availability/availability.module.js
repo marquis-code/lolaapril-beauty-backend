@@ -17,6 +17,8 @@ const business_hours_schema_1 = require("./schemas/business-hours.schema");
 const staff_availability_schema_1 = require("./schemas/staff-availability.schema");
 const auth_module_1 = require("../auth/auth.module");
 const business_module_1 = require("../business/business.module");
+const common_2 = require("@nestjs/common");
+const booking_module_1 = require("../booking/booking.module");
 let AvailabilityModule = class AvailabilityModule {
 };
 AvailabilityModule = __decorate([
@@ -29,6 +31,7 @@ AvailabilityModule = __decorate([
             schedule_1.ScheduleModule.forRoot(),
             auth_module_1.AuthModule,
             business_module_1.BusinessModule,
+            (0, common_2.forwardRef)(() => booking_module_1.BookingModule),
         ],
         controllers: [availability_controller_1.AvailabilityController],
         providers: [

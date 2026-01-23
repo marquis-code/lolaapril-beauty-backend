@@ -9,60 +9,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateEmailDto = exports.ChangePasswordDto = exports.UserPreferencesDto = exports.NotificationPreferencesDto = exports.UpdateProfileDto = void 0;
+exports.UpdateEmailDto = exports.ChangePasswordDto = exports.UpdateProfileDto = exports.UserPreferencesDto = exports.NotificationPreferencesDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
-class UpdateProfileDto {
-}
-__decorate([
-    (0, swagger_1.ApiProperty)({ required: false, example: 'John' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(2),
-    (0, class_validator_1.MaxLength)(50),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "firstName", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ required: false, example: 'Doe' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(2),
-    (0, class_validator_1.MaxLength)(50),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "lastName", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ required: false, example: '+2348012345678' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "phone", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ required: false, example: 'https://example.com/profile.jpg' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "profileImage", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ required: false, example: 'Passionate about creating beautiful experiences' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MaxLength)(500),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "bio", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ required: false, example: '1990-01-01' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDateString)(),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "dateOfBirth", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ required: false, enum: ['male', 'female', 'other', 'prefer_not_to_say'] }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(['male', 'female', 'other', 'prefer_not_to_say']),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "gender", void 0);
-exports.UpdateProfileDto = UpdateProfileDto;
 class NotificationPreferencesDto {
 }
 __decorate([
@@ -112,6 +62,63 @@ __decorate([
     __metadata("design:type", NotificationPreferencesDto)
 ], UserPreferencesDto.prototype, "notifications", void 0);
 exports.UserPreferencesDto = UserPreferencesDto;
+class UpdateProfileDto {
+}
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, example: 'John' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(2),
+    (0, class_validator_1.MaxLength)(50),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "firstName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, example: 'Doe' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(2),
+    (0, class_validator_1.MaxLength)(50),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "lastName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, example: '+2348012345678' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, example: 'https://example.com/profile.jpg' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "profileImage", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, example: 'Passionate about creating beautiful experiences' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(500),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "bio", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, example: '1990-01-01' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "dateOfBirth", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, enum: ['male', 'female', 'other', 'prefer_not_to_say'] }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(['male', 'female', 'other', 'prefer_not_to_say']),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "gender", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, type: UserPreferencesDto }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => UserPreferencesDto),
+    __metadata("design:type", UserPreferencesDto)
+], UpdateProfileDto.prototype, "preferences", void 0);
+exports.UpdateProfileDto = UpdateProfileDto;
 class ChangePasswordDto {
 }
 __decorate([

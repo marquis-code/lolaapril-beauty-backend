@@ -3,6 +3,48 @@ import { IsString, IsEmail, IsOptional, IsDateString, IsEnum, MinLength, MaxLeng
 import { ApiProperty } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 
+// Define nested classes first (dependencies)
+export class NotificationPreferencesDto {
+  @ApiProperty({ required: false, example: true })
+  @IsOptional()
+  @IsBoolean()
+  email?: boolean
+
+  @ApiProperty({ required: false, example: true })
+  @IsOptional()
+  @IsBoolean()
+  sms?: boolean
+
+  @ApiProperty({ required: false, example: true })
+  @IsOptional()
+  @IsBoolean()
+  push?: boolean
+}
+
+export class UserPreferencesDto {
+  @ApiProperty({ required: false, example: 'en' })
+  @IsOptional()
+  @IsString()
+  language?: string
+
+  @ApiProperty({ required: false, example: 'Africa/Lagos' })
+  @IsOptional()
+  @IsString()
+  timezone?: string
+
+  @ApiProperty({ required: false, example: 'NGN' })
+  @IsOptional()
+  @IsString()
+  currency?: string
+
+  @ApiProperty({ required: false, type: NotificationPreferencesDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => NotificationPreferencesDto)
+  notifications?: NotificationPreferencesDto
+}
+
+// Main UpdateProfileDto
 export class UpdateProfileDto {
   @ApiProperty({ required: false, example: 'John' })
   @IsOptional()
@@ -43,46 +85,12 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsEnum(['male', 'female', 'other', 'prefer_not_to_say'])
   gender?: string
-}
 
-export class NotificationPreferencesDto {
-  @ApiProperty({ required: false, example: true })
-  @IsOptional()
-  @IsBoolean()
-  email?: boolean
-
-  @ApiProperty({ required: false, example: true })
-  @IsOptional()
-  @IsBoolean()
-  sms?: boolean
-
-  @ApiProperty({ required: false, example: true })
-  @IsOptional()
-  @IsBoolean()
-  push?: boolean
-}
-
-export class UserPreferencesDto {
-  @ApiProperty({ required: false, example: 'en' })
-  @IsOptional()
-  @IsString()
-  language?: string
-
-  @ApiProperty({ required: false, example: 'Africa/Lagos' })
-  @IsOptional()
-  @IsString()
-  timezone?: string
-
-  @ApiProperty({ required: false, example: 'NGN' })
-  @IsOptional()
-  @IsString()
-  currency?: string
-
-  @ApiProperty({ required: false, type: NotificationPreferencesDto })
+  @ApiProperty({ required: false, type: UserPreferencesDto })
   @IsOptional()
   @ValidateNested()
-  @Type(() => NotificationPreferencesDto)
-  notifications?: NotificationPreferencesDto
+  @Type(() => UserPreferencesDto)
+  preferences?: UserPreferencesDto
 }
 
 export class ChangePasswordDto {
