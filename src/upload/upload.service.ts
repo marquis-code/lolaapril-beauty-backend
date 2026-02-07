@@ -12,15 +12,20 @@ export class UploadService {
     })
   }
 
-  async uploadImage(file: Express.Multer.File, folder = "salon-booking"): Promise<{ url: string; publicId: string }> {
+  async uploadImage(businessId: string, file: Express.Multer.File, folder = "salon-booking"): Promise<{ url: string; publicId: string }> {
     if (!file) {
       throw new BadRequestException("No file provided")
+    }
+
+    // Check if buffer exists (Multer memory storage required)
+    if (!file.buffer) {
+      throw new BadRequestException("File buffer is empty. Ensure Multer is configured with memory storage.")
     }
 
     // Validate file type
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"]
     if (!allowedTypes.includes(file.mimetype)) {
-      throw new BadRequestException("Invalid file type. Only images are allowed.")
+      throw new BadRequestException(`Invalid file type: ${file.mimetype}. Only JPEG, PNG, WEBP, GIF are allowed.`)
     }
 
     // Validate file size (5MB max)
@@ -33,7 +38,7 @@ export class UploadService {
       const result = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
-            folder,
+            folder: `${folder}/${businessId}`,
             resource_type: "image",
             transformation: [{ width: 1000, height: 1000, crop: "limit" }, { quality: "auto" }, { format: "auto" }],
           },
@@ -52,19 +57,22 @@ export class UploadService {
         publicId: (result as any).public_id,
       }
     } catch (error) {
-      throw new BadRequestException("Failed to upload image")
+      console.error("Cloudinary upload error:", error)
+      throw new BadRequestException(`Failed to upload image: ${error.message || 'Unknown error'}`)
     }
   }
 
   async uploadMultipleImages(
+    businessId: string,
     files: Express.Multer.File[],
     folder = "salon-booking",
   ): Promise<{ url: string; publicId: string }[]> {
-    const uploadPromises = files.map((file) => this.uploadImage(file, folder))
+    const uploadPromises = files.map((file) => this.uploadImage(businessId, file, folder))
     return Promise.all(uploadPromises)
   }
 
-  async deleteImage(publicId: string): Promise<void> {
+  async deleteImage(businessId: string, publicId: string): Promise<void> {
+    // Optionally, you could validate that the publicId belongs to the businessId's folder
     try {
       await cloudinary.uploader.destroy(publicId)
     } catch (error) {
@@ -73,6 +81,7 @@ export class UploadService {
   }
 
   async uploadDocument(
+    businessId: string,
     file: Express.Multer.File,
     folder = "salon-booking/documents",
   ): Promise<{ url: string; publicId: string }> {
@@ -101,7 +110,7 @@ export class UploadService {
       const result = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
-            folder,
+            folder: `${folder}/${businessId}`,
             resource_type: "raw",
           },
           (error, result) => {

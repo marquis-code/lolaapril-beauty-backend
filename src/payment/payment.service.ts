@@ -1026,24 +1026,19 @@ async createPaymentFromBooking(
   // ========================================
   // REFUND PAYMENT
   // ========================================
-  async processRefund(id: string, refundAmount: number, refundReason: string): Promise<ApiResponse<Payment>> {
+  async processRefund(businessId: string, id: string, refundAmount: number, refundReason: string): Promise<ApiResponse<Payment>> {
     try {
-      const payment = await this.paymentModel.findById(id);
-
+      const payment = await this.paymentModel.findOne({ _id: id, businessId });
       if (!payment) {
         throw new NotFoundException('Payment not found');
       }
-
       if (payment.status !== 'completed') {
         throw new BadRequestException('Can only refund completed payments');
       }
-
       const totalRefunded = (payment.refundedAmount || 0) + refundAmount;
-
       if (totalRefunded > payment.totalAmount) {
         throw new BadRequestException('Refund amount exceeds payment total');
       }
-
       // Process refund with gateway
       try {
         await this.gatewayManager.refundPayment(
@@ -1055,11 +1050,9 @@ async createPaymentFromBooking(
         console.error('⚠️ Gateway refund failed:', gatewayError.message);
         throw new BadRequestException(`Refund failed: ${gatewayError.message}`);
       }
-
       const newStatus = totalRefunded === payment.totalAmount ? 'refunded' : 'partially_refunded';
-
-      const updatedPayment = await this.paymentModel.findByIdAndUpdate(
-        id,
+      const updatedPayment = await this.paymentModel.findOneAndUpdate(
+        { _id: id, businessId },
         {
           refundedAmount: totalRefunded,
           refundedAt: new Date(),
@@ -1069,14 +1062,11 @@ async createPaymentFromBooking(
         },
         { new: true, runValidators: true }
       );
-
       // Clear cache
       if (payment.paymentReference) {
         await this.cacheService.del(`payment:verified:${payment.paymentReference}`);
       }
-
       console.log('✅ Refund processed successfully');
-
       return {
         success: true,
         data: updatedPayment,
@@ -1090,18 +1080,14 @@ async createPaymentFromBooking(
     }
   }
 
-  async initiateRefund(transactionReference: string, amount: number): Promise<void> {
+  async initiateRefund(businessId: string, transactionReference: string, amount: number): Promise<void> {
     try {
       console.log(`💰 Initiating refund for transaction: ${transactionReference}`);
-      
-      const payment = await this.paymentModel.findOne({ transactionId: transactionReference });
-
+      const payment = await this.paymentModel.findOne({ transactionId: transactionReference, businessId });
       if (!payment) {
         throw new NotFoundException('Payment not found');
       }
-
-      await this.processRefund(payment._id.toString(), amount, 'Refund requested');
-      
+      await this.processRefund(businessId, payment._id.toString(), amount, 'Refund requested');
       console.log('✅ Refund initiated successfully');
     } catch (error: any) {
       console.error('❌ Failed to initiate refund:', error.message);

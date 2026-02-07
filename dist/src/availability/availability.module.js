@@ -15,6 +15,7 @@ const availability_service_1 = require("./availability.service");
 const availability_scheduler_service_1 = require("./availability-scheduler.service");
 const business_hours_schema_1 = require("./schemas/business-hours.schema");
 const staff_availability_schema_1 = require("./schemas/staff-availability.schema");
+const appointment_schema_1 = require("../appointment/schemas/appointment.schema");
 const auth_module_1 = require("../auth/auth.module");
 const business_module_1 = require("../business/business.module");
 const common_2 = require("@nestjs/common");
@@ -27,6 +28,7 @@ AvailabilityModule = __decorate([
             mongoose_1.MongooseModule.forFeature([
                 { name: business_hours_schema_1.BusinessHours.name, schema: business_hours_schema_1.BusinessHoursSchema },
                 { name: staff_availability_schema_1.StaffAvailability.name, schema: staff_availability_schema_1.StaffAvailabilitySchema },
+                { name: appointment_schema_1.Appointment.name, schema: appointment_schema_1.AppointmentSchema },
             ]),
             schedule_1.ScheduleModule.forRoot(),
             auth_module_1.AuthModule,

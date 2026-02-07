@@ -21,6 +21,7 @@ const update_team_member_dto_1 = require("./dto/update-team-member.dto");
 const team_member_query_dto_1 = require("./dto/team-member-query.dto");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
+const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
 const audit_decorator_1 = require("../audit/decorators/audit.decorator");
 const audit_log_schema_1 = require("../audit/schemas/audit-log.schema");
@@ -28,32 +29,32 @@ let TeamController = class TeamController {
     constructor(teamService) {
         this.teamService = teamService;
     }
-    create(createTeamMemberDto) {
-        return this.teamService.create(createTeamMemberDto);
+    create(businessId, createTeamMemberDto) {
+        return this.teamService.create(businessId, createTeamMemberDto);
     }
-    findAll(query) {
-        return this.teamService.findAll(query);
+    findAll(businessId, query) {
+        return this.teamService.findAll(businessId, query);
     }
-    getStats() {
-        return this.teamService.getTeamStats();
+    getStats(businessId) {
+        return this.teamService.getTeamStats(businessId);
     }
-    findByRole(role) {
-        return this.teamService.findByRole(role);
+    findByRole(businessId, role) {
+        return this.teamService.findByRole(businessId, role);
     }
-    findByDepartment(department) {
-        return this.teamService.findByDepartment(department);
+    findByDepartment(businessId, department) {
+        return this.teamService.findByDepartment(businessId, department);
     }
-    findOne(id) {
-        return this.teamService.findOne(id);
+    findOne(businessId, id) {
+        return this.teamService.findOne(businessId, id);
     }
-    update(id, updateTeamMemberDto) {
-        return this.teamService.update(id, updateTeamMemberDto);
+    update(businessId, id, updateTeamMemberDto) {
+        return this.teamService.update(businessId, id, updateTeamMemberDto);
     }
-    updateStatus(id, status) {
-        return this.teamService.updateStatus(id, status);
+    updateStatus(businessId, id, status) {
+        return this.teamService.updateStatus(businessId, id, status);
     }
-    remove(id) {
-        return this.teamService.remove(id);
+    remove(businessId, id) {
+        return this.teamService.remove(businessId, id);
     }
 };
 __decorate([
@@ -63,9 +64,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new team member" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Team member created successfully" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "Team member with email already exists" }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_team_member_dto_1.CreateTeamMemberDto]),
+    __metadata("design:paramtypes", [String, create_team_member_dto_1.CreateTeamMemberDto]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "create", null);
 __decorate([
@@ -73,9 +75,10 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get all team members" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team members retrieved successfully" }),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [team_member_query_dto_1.TeamMemberQueryDto]),
+    __metadata("design:paramtypes", [String, team_member_query_dto_1.TeamMemberQueryDto]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "findAll", null);
 __decorate([
@@ -83,8 +86,9 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, swagger_1.ApiOperation)({ summary: "Get team statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team statistics retrieved successfully" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "getStats", null);
 __decorate([
@@ -92,8 +96,9 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get team members by role" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team members retrieved successfully" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "findByRole", null);
 __decorate([
@@ -101,8 +106,9 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get team members by department" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team members retrieved successfully" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "findByDepartment", null);
 __decorate([
@@ -112,8 +118,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Get team member by ID" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member retrieved successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Team member not found" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "findOne", null);
 __decorate([
@@ -123,9 +130,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update team member" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Team member not found" }),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_team_member_dto_1.UpdateTeamMemberDto]),
+    __metadata("design:paramtypes", [String, String, update_team_member_dto_1.UpdateTeamMemberDto]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "update", null);
 __decorate([
@@ -135,8 +143,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update team member status" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member status updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Team member not found" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "updateStatus", null);
 __decorate([
@@ -146,8 +155,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Delete team member" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Team member deleted successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Team member not found" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], TeamController.prototype, "remove", null);
 TeamController = __decorate([

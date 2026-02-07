@@ -19,7 +19,7 @@ __decorate([
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], ChatRoom.prototype, "businessId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, required: true, enum: ['customer-support', 'team-chat', 'staff-chat'] }),
+    (0, mongoose_1.Prop)({ type: String, required: true, enum: ['customer-support', 'team-chat', 'staff-chat', 'admin-support'] }),
     __metadata("design:type", String)
 ], ChatRoom.prototype, "roomType", void 0);
 __decorate([

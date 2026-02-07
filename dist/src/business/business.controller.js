@@ -16,11 +16,35 @@ exports.BusinessController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const business_service_1 = require("./business.service");
-const business_dto_1 = require("./dto/business.dto");
+const storefront_dto_1 = require("./dto/storefront.dto");
 const auth_1 = require("../auth");
 let BusinessController = class BusinessController {
     constructor(businessService) {
         this.businessService = businessService;
+    }
+    async getBusinessWorkingHours(businessId) {
+        const hours = await this.businessService.getBusinessWorkingHours(businessId);
+        return {
+            success: true,
+            data: hours,
+            message: "Business working hours retrieved successfully"
+        };
+    }
+    async createBusinessWorkingHours(businessId, workingHours) {
+        const result = await this.businessService.createBusinessWorkingHours(businessId, workingHours);
+        return {
+            success: true,
+            data: result,
+            message: "Business working hours created successfully"
+        };
+    }
+    async updateBusinessWorkingHours(businessId, workingHours) {
+        const result = await this.businessService.updateBusinessWorkingHours(businessId, workingHours);
+        return {
+            success: true,
+            data: result,
+            message: "Business working hours updated successfully"
+        };
     }
     async checkSubdomainAvailability(subdomain) {
         const isAvailable = await this.businessService.isSubdomainAvailable(subdomain);
@@ -38,6 +62,9 @@ let BusinessController = class BusinessController {
             message: 'Business retrieved successfully'
         };
     }
+    async getStorefront(subdomain) {
+        return this.businessService.getPublicStorefront(subdomain);
+    }
     async getById(id) {
         const business = await this.businessService.getById(id);
         return {
@@ -52,38 +79,6 @@ let BusinessController = class BusinessController {
             success: true,
             data: businesses,
             message: 'Businesses retrieved successfully'
-        };
-    }
-    async update(id, businessId, updateDto) {
-        if (businessId !== id) {
-            return { success: false, error: 'You can only update your active business' };
-        }
-        const business = await this.businessService.update(id, updateDto);
-        return {
-            success: true,
-            data: business,
-            message: 'Business updated successfully'
-        };
-    }
-    async addStaff(id, businessId, staffDto) {
-        if (businessId !== id) {
-            return { success: false, error: 'Access denied' };
-        }
-        const staff = await this.businessService.addStaff(id, staffDto);
-        return {
-            success: true,
-            data: staff,
-            message: 'Staff member added successfully'
-        };
-    }
-    async removeStaff(id, staffId, businessId) {
-        if (businessId !== id) {
-            return { success: false, error: 'Access denied' };
-        }
-        await this.businessService.removeStaff(id, staffId);
-        return {
-            success: true,
-            message: 'Staff member removed successfully'
         };
     }
     async addAdmin(id, adminId, businessId) {
@@ -165,6 +160,40 @@ let BusinessController = class BusinessController {
     }
 };
 __decorate([
+    (0, common_1.Get)("working-hours"),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: "Get business working hours" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Business working hours retrieved" }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "getBusinessWorkingHours", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Post)("working-hours"),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: "Create business working hours" }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "Business working hours created" }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Array]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "createBusinessWorkingHours", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Put)("working-hours"),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: "Update business working hours" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Business working hours updated" }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Array]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "updateBusinessWorkingHours", null);
+__decorate([
     (0, auth_1.Public)(),
     (0, common_1.Get)('check-subdomain'),
     (0, swagger_1.ApiOperation)({ summary: 'Check if subdomain is available (Public)' }),
@@ -186,6 +215,24 @@ __decorate([
 ], BusinessController.prototype, "getBySubdomain", null);
 __decorate([
     (0, auth_1.Public)(),
+    (0, common_1.Get)('storefront/:subdomain'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get complete storefront data for booking widget (Public)',
+        description: 'Returns business info, theme, services, categories, and staff for the public booking page'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Storefront data retrieved successfully',
+        type: storefront_dto_1.StorefrontResponseDto
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Business not found' }),
+    __param(0, (0, common_1.Param)('subdomain')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BusinessController.prototype, "getStorefront", null);
+__decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get business by ID (Public)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Business retrieved successfully' }),
@@ -204,45 +251,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], BusinessController.prototype, "getMyBusinesses", null);
-__decorate([
-    (0, auth_1.ValidateBusiness)(),
-    (0, common_1.Put)(':id'),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Update business' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Business updated successfully' }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, auth_1.BusinessId)()),
-    __param(2, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, business_dto_1.UpdateBusinessDto]),
-    __metadata("design:returntype", Promise)
-], BusinessController.prototype, "update", null);
-__decorate([
-    (0, auth_1.ValidateBusiness)(),
-    (0, common_1.Post)(':id/staff'),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Add staff member to business' }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Staff member added successfully' }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, auth_1.BusinessId)()),
-    __param(2, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object]),
-    __metadata("design:returntype", Promise)
-], BusinessController.prototype, "addStaff", null);
-__decorate([
-    (0, auth_1.ValidateBusiness)(),
-    (0, common_1.Delete)(':id/staff/:staffId'),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Remove staff member from business' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Staff member removed successfully' }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Param)('staffId')),
-    __param(2, (0, auth_1.BusinessId)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
-    __metadata("design:returntype", Promise)
-], BusinessController.prototype, "removeStaff", null);
 __decorate([
     (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)(':id/admin/:adminId'),

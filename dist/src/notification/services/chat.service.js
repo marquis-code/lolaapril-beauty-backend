@@ -19,13 +19,15 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const chat_schema_1 = require("../schemas/chat.schema");
 const realtime_gateway_1 = require("../gateways/realtime.gateway");
+const user_schema_1 = require("../../auth/schemas/user.schema");
 let ChatService = ChatService_1 = class ChatService {
-    constructor(chatRoomModel, chatMessageModel, chatParticipantModel, faqModel, autoResponseModel, realtimeGateway) {
+    constructor(chatRoomModel, chatMessageModel, chatParticipantModel, faqModel, autoResponseModel, userModel, realtimeGateway) {
         this.chatRoomModel = chatRoomModel;
         this.chatMessageModel = chatMessageModel;
         this.chatParticipantModel = chatParticipantModel;
         this.faqModel = faqModel;
         this.autoResponseModel = autoResponseModel;
+        this.userModel = userModel;
         this.realtimeGateway = realtimeGateway;
         this.logger = new common_1.Logger(ChatService_1.name);
     }
@@ -62,42 +64,77 @@ let ChatService = ChatService_1 = class ChatService {
         if (userInfo.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
             throw new Error('Please provide a valid email address');
         }
-        let query = {
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            roomType: 'customer-support',
-            isActive: true,
-        };
-        if (isGuest && userInfo.guestInfo?.sessionId) {
-            query['metadata.guestInfo.sessionId'] = userInfo.guestInfo.sessionId;
+        let room = null;
+        const businessObjectId = new mongoose_2.Types.ObjectId(businessId);
+        if (userId && !userId.startsWith('guest_')) {
+            room = await this.chatRoomModel.findOne({
+                businessId: businessObjectId,
+                roomType: 'customer-support',
+                isActive: true,
+                'metadata.userId': userId,
+            }).exec();
         }
-        else if (!isGuest) {
-            query['metadata.userId'] = userId;
+        if (!room && userInfo.email) {
+            room = await this.chatRoomModel.findOne({
+                businessId: businessObjectId,
+                roomType: 'customer-support',
+                isActive: true,
+                $or: [
+                    { 'metadata.email': userInfo.email },
+                    { 'metadata.userEmail': userInfo.email },
+                    { 'metadata.guestInfo.email': userInfo.email },
+                ]
+            }).exec();
+            if (room && userId && !userId.startsWith('guest_') && !room.metadata?.userId) {
+                await this.chatRoomModel.findByIdAndUpdate(room._id, {
+                    'metadata.userId': userId,
+                    'metadata.userType': 'customer',
+                    'metadata.isGuest': false,
+                }).exec();
+                this.logger.log(`🔗 Linked existing room ${room._id} to user ${userId}`);
+            }
         }
-        let room = await this.chatRoomModel.findOne(query).exec();
+        if (!room && isGuest && userInfo.guestInfo?.sessionId) {
+            room = await this.chatRoomModel.findOne({
+                businessId: businessObjectId,
+                roomType: 'customer-support',
+                isActive: true,
+                'metadata.guestInfo.sessionId': userInfo.guestInfo.sessionId,
+            }).exec();
+        }
         if (!room) {
             const metadata = {
                 userType: isGuest ? 'guest' : 'customer',
                 userName: userInfo.name,
                 userEmail: userInfo.email,
+                email: userInfo.email,
                 userPhone: userInfo.phone,
                 priority: 'medium',
                 tags: isGuest ? ['new-guest', 'anonymous'] : ['new-customer'],
                 isGuest,
             };
-            if (!isGuest) {
+            if (!isGuest && userId) {
                 metadata.userId = userId;
             }
             if (isGuest && userInfo.guestInfo) {
-                metadata.guestInfo = userInfo.guestInfo;
+                metadata.guestInfo = {
+                    ...userInfo.guestInfo,
+                    email: userInfo.email,
+                };
             }
             room = await this.chatRoomModel.create({
-                businessId: new mongoose_2.Types.ObjectId(businessId),
+                businessId: businessObjectId,
                 roomType: 'customer-support',
                 roomName: `Chat with ${userInfo.name}${isGuest ? ' (Guest)' : ''}`,
                 isActive: true,
                 metadata,
             });
             await this.sendWelcomeMessage(room._id.toString(), businessId);
+            await this.sendMessage(room._id.toString(), '', 'system', `New customer chat started by ${userInfo.name}${userInfo.email ? ` (${userInfo.email})` : ''}.`, {
+                senderName: 'System',
+                messageType: 'system',
+                isAutomated: true,
+            });
             this.realtimeGateway.notifyBusinessNewChat(businessId, {
                 roomId: room._id.toString(),
                 userName: userInfo.name,
@@ -109,6 +146,77 @@ let ChatService = ChatService_1 = class ChatService {
         }
         else {
             this.logger.log(`♻️ Found existing room ${room._id} for ${userId}`);
+        }
+        return room;
+    }
+    async getRoomById(roomId) {
+        return this.chatRoomModel.findById(roomId).lean().exec();
+    }
+    async createOrGetTeamChatRoom(businessId, ownerId, memberId, memberInfo) {
+        if (!ownerId || !memberId) {
+            throw new common_1.BadRequestException('ownerId and memberId are required');
+        }
+        const query = {
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            roomType: 'team-chat',
+            isActive: true,
+            'metadata.ownerId': ownerId,
+            'metadata.memberId': memberId,
+        };
+        let room = await this.chatRoomModel.findOne(query).exec();
+        if (!room) {
+            room = await this.chatRoomModel.create({
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                roomType: 'team-chat',
+                roomName: `Team chat`,
+                isActive: true,
+                metadata: {
+                    userType: 'team',
+                    ownerId,
+                    memberId,
+                    userName: memberInfo?.name,
+                    userEmail: memberInfo?.email,
+                    priority: 'medium',
+                },
+            });
+        }
+        return room;
+    }
+    async createOrGetBusinessSupportRoom(businessId, ownerId, ownerInfo, superAdminId) {
+        if (!ownerId) {
+            throw new common_1.BadRequestException('ownerId is required');
+        }
+        let resolvedSuperAdminId = superAdminId;
+        if (!resolvedSuperAdminId) {
+            const superAdmin = await this.userModel.findOne({ role: user_schema_1.UserRole.SUPER_ADMIN }).lean().exec();
+            if (!superAdmin) {
+                throw new common_1.NotFoundException('No super admin found');
+            }
+            resolvedSuperAdminId = superAdmin._id.toString();
+        }
+        const query = {
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            roomType: 'admin-support',
+            isActive: true,
+            'metadata.ownerId': ownerId,
+            'metadata.superAdminId': resolvedSuperAdminId,
+        };
+        let room = await this.chatRoomModel.findOne(query).exec();
+        if (!room) {
+            room = await this.chatRoomModel.create({
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                roomType: 'admin-support',
+                roomName: `Business support chat`,
+                isActive: true,
+                metadata: {
+                    userType: 'admin',
+                    ownerId,
+                    superAdminId: resolvedSuperAdminId,
+                    userName: ownerInfo?.name,
+                    userEmail: ownerInfo?.email,
+                    priority: 'medium',
+                },
+            });
         }
         return room;
     }
@@ -135,6 +243,29 @@ let ChatService = ChatService_1 = class ChatService {
             total,
             page,
             totalPages: Math.ceil(total / limit),
+        };
+    }
+    async getBusinessUnreadCounts(businessId) {
+        const rooms = await this.chatRoomModel.find({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            isActive: true,
+            unreadCount: { $gt: 0 },
+        })
+            .select('_id unreadCount lastMessageAt metadata')
+            .sort({ lastMessageAt: -1 })
+            .limit(50)
+            .lean()
+            .exec();
+        const totalUnread = rooms.reduce((sum, room) => sum + (room.unreadCount || 0), 0);
+        return {
+            totalUnread,
+            roomsWithUnread: rooms.length,
+            rooms: rooms.map((room) => ({
+                roomId: room._id.toString(),
+                unreadCount: room.unreadCount || 0,
+                lastMessageAt: room.lastMessageAt,
+                customerName: room.metadata?.userName || room.metadata?.name || 'Unknown',
+            })),
         };
     }
     async archiveChatRoom(roomId) {
@@ -220,13 +351,9 @@ let ChatService = ChatService_1 = class ChatService {
     }
     async handleIncomingCustomerMessage(roomId, message, businessId) {
         try {
-            const isBusinessAvailable = await this.isBusinessAvailable(businessId);
-            if (!isBusinessAvailable) {
-                await this.sendOfflineAutoResponse(roomId, businessId);
-                return;
-            }
+            this.logger.log(`🤖 Processing automation for message: "${message.substring(0, 50)}..."`);
             const faqMatch = await this.findMatchingFAQ(message, businessId);
-            if (faqMatch && faqMatch.confidence > 70) {
+            if (faqMatch && faqMatch.confidence >= 50) {
                 await this.sendMessage(roomId, null, 'bot', faqMatch.faq.answer, {
                     senderName: 'Auto Assistant',
                     isAutomated: true,
@@ -236,19 +363,30 @@ let ChatService = ChatService_1 = class ChatService {
                 await this.faqModel.findByIdAndUpdate(faqMatch.faq._id, {
                     $inc: { usageCount: 1 },
                 }).exec();
-                setTimeout(() => {
-                    this.sendMessage(roomId, null, 'bot', 'Was this answer helpful? If you need more assistance, please let me know!', {
-                        senderName: 'Auto Assistant',
-                        isAutomated: true,
-                    });
+                this.logger.log(`🤖 FAQ auto-response sent (confidence: ${faqMatch.confidence.toFixed(1)}%)`);
+                setTimeout(async () => {
+                    try {
+                        await this.sendMessage(roomId, null, 'bot', 'Was this answer helpful? If you need more assistance, a team member will be happy to help!', {
+                            senderName: 'Auto Assistant',
+                            isAutomated: true,
+                        });
+                    }
+                    catch (err) {
+                        this.logger.error('Error sending follow-up message:', err);
+                    }
                 }, 2000);
-                this.logger.log(`🤖 Sent FAQ auto-response for room ${roomId}`);
+                return;
             }
-            else {
-                await this.sendMessage(roomId, null, 'bot', 'Thank you for your message! A team member will respond shortly. ⏰', {
-                    senderName: 'Auto Assistant',
-                    isAutomated: true,
-                });
+            const isBusinessAvailable = await this.isBusinessAvailable(businessId);
+            if (!isBusinessAvailable) {
+                await this.sendOfflineAutoResponse(roomId, businessId);
+                return;
+            }
+            await this.sendMessage(roomId, null, 'bot', 'Thank you for your message! A team member will respond shortly. ⏰', {
+                senderName: 'Auto Assistant',
+                isAutomated: true,
+            });
+            try {
                 this.realtimeGateway.notifyBusinessNewChat(businessId, {
                     roomId,
                     message,
@@ -256,40 +394,69 @@ let ChatService = ChatService_1 = class ChatService {
                     timestamp: new Date(),
                 });
             }
+            catch (notifyError) {
+                this.logger.warn('Could not notify business staff:', notifyError.message);
+            }
         }
         catch (error) {
             this.logger.error(`Error handling automated response: ${error.message}`);
         }
     }
     async findMatchingFAQ(message, businessId) {
-        const messageLower = message.toLowerCase();
-        const messageWords = messageLower.split(/\s+/);
+        const messageLower = message.toLowerCase().trim();
+        const messageWords = messageLower.split(/\s+/).filter(w => w.length > 2);
         const faqs = await this.faqModel.find({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             isActive: true,
         }).sort({ priority: -1 }).exec();
+        if (faqs.length === 0) {
+            this.logger.log('📋 No FAQs configured for this business');
+            return null;
+        }
         let bestMatch = null;
         let highestConfidence = 0;
         for (const faq of faqs) {
             let matchScore = 0;
-            let totalKeywords = faq.keywords.length;
-            for (const keyword of faq.keywords) {
-                if (messageLower.includes(keyword.toLowerCase())) {
-                    matchScore += 1;
+            let maxPossibleScore = 0;
+            if (faq.keywords && faq.keywords.length > 0) {
+                maxPossibleScore += faq.keywords.length;
+                for (const keyword of faq.keywords) {
+                    const keywordLower = keyword.toLowerCase();
+                    if (messageLower.includes(keywordLower)) {
+                        matchScore += 1;
+                    }
                 }
             }
-            for (const altQuestion of faq.alternativeQuestions) {
-                const similarity = this.calculateSimilarity(messageLower, altQuestion.toLowerCase());
-                if (similarity > 0.7) {
-                    matchScore += 2;
-                    totalKeywords += 2;
-                }
+            const questionSimilarity = this.calculateSimilarity(messageLower, faq.question.toLowerCase());
+            if (questionSimilarity > 0.5) {
+                matchScore += questionSimilarity * 3;
+                maxPossibleScore += 3;
             }
-            const confidence = totalKeywords > 0 ? (matchScore / totalKeywords) * 100 : 0;
-            if (confidence > highestConfidence && confidence >= faq.confidenceThreshold) {
+            else {
+                maxPossibleScore += 3;
+            }
+            if (faq.alternativeQuestions && faq.alternativeQuestions.length > 0) {
+                for (const altQuestion of faq.alternativeQuestions) {
+                    const similarity = this.calculateSimilarity(messageLower, altQuestion.toLowerCase());
+                    if (similarity > 0.6) {
+                        matchScore += similarity * 2;
+                    }
+                }
+                maxPossibleScore += 2;
+            }
+            const confidence = maxPossibleScore > 0 ? (matchScore / maxPossibleScore) * 100 : 0;
+            this.logger.debug(`FAQ "${faq.question.substring(0, 30)}..." - Score: ${matchScore.toFixed(2)}/${maxPossibleScore}, Confidence: ${confidence.toFixed(1)}%`);
+            const threshold = faq.confidenceThreshold || 50;
+            if (confidence > highestConfidence && confidence >= threshold) {
                 highestConfidence = confidence;
                 bestMatch = { faq, confidence };
             }
+        }
+        if (bestMatch) {
+            this.logger.log(`✅ FAQ Match found: "${bestMatch.faq.question.substring(0, 40)}..." with ${bestMatch.confidence.toFixed(1)}% confidence`);
+        }
+        else {
+            this.logger.log(`❌ No FAQ match found for: "${messageLower.substring(0, 40)}..."`);
         }
         return bestMatch;
     }
@@ -348,7 +515,7 @@ let ChatService = ChatService_1 = class ChatService {
         return faq;
     }
     async getBusinessFAQs(businessId, options) {
-        const query = { businessId: businessId };
+        const query = { businessId: new mongoose_2.Types.ObjectId(businessId) };
         if (options?.category)
             query.category = options.category;
         if (options?.isActive !== undefined)
@@ -372,12 +539,45 @@ let ChatService = ChatService_1 = class ChatService {
     }
     async getBusinessAutoResponses(businessId) {
         return this.autoResponseModel.find({
-            businessId: businessId,
+            businessId: new mongoose_2.Types.ObjectId(businessId),
             isActive: true,
         }).exec();
     }
     async updateAutoResponse(responseId, updates) {
         return this.autoResponseModel.findByIdAndUpdate(responseId, updates, { new: true }).exec();
+    }
+    async triggerAutoResponse(roomId, businessId, responseType) {
+        const autoResponse = await this.autoResponseModel.findOne({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            responseType: responseType,
+            isActive: true,
+        }).exec();
+        if (!autoResponse) {
+            return {
+                success: false,
+                message: `No active auto-response found for type: ${responseType}`,
+                availableTypes: ['welcome', 'offline', 'busy', 'away', 'closing-soon', 'holiday', 'custom'],
+            };
+        }
+        const message = await this.sendMessage(roomId, null, 'bot', autoResponse.message, {
+            senderName: 'Auto Assistant',
+            isAutomated: true,
+        });
+        await this.autoResponseModel.findByIdAndUpdate(autoResponse._id, {
+            $inc: { usageCount: 1 },
+        }).exec();
+        this.logger.log(`✅ Triggered auto-response: ${autoResponse.name} (${responseType})`);
+        return {
+            success: true,
+            message: 'Auto-response triggered successfully',
+            autoResponse: {
+                id: autoResponse._id,
+                name: autoResponse.name,
+                responseType: autoResponse.responseType,
+                quickReplies: autoResponse.quickReplies,
+            },
+            sentMessage: message,
+        };
     }
 };
 ChatService = ChatService_1 = __decorate([
@@ -387,7 +587,9 @@ ChatService = ChatService_1 = __decorate([
     __param(2, (0, mongoose_1.InjectModel)(chat_schema_1.ChatParticipant.name)),
     __param(3, (0, mongoose_1.InjectModel)(chat_schema_1.FAQ.name)),
     __param(4, (0, mongoose_1.InjectModel)(chat_schema_1.AutoResponse.name)),
+    __param(5, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

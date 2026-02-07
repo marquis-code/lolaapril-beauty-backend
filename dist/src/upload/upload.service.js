@@ -21,13 +21,16 @@ let UploadService = class UploadService {
             api_secret: process.env.CLOUDINARY_API_SECRET,
         });
     }
-    async uploadImage(file, folder = "salon-booking") {
+    async uploadImage(businessId, file, folder = "salon-booking") {
         if (!file) {
             throw new common_1.BadRequestException("No file provided");
         }
+        if (!file.buffer) {
+            throw new common_1.BadRequestException("File buffer is empty. Ensure Multer is configured with memory storage.");
+        }
         const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
         if (!allowedTypes.includes(file.mimetype)) {
-            throw new common_1.BadRequestException("Invalid file type. Only images are allowed.");
+            throw new common_1.BadRequestException(`Invalid file type: ${file.mimetype}. Only JPEG, PNG, WEBP, GIF are allowed.`);
         }
         const maxSize = 5 * 1024 * 1024;
         if (file.size > maxSize) {
@@ -36,7 +39,7 @@ let UploadService = class UploadService {
         try {
             const result = await new Promise((resolve, reject) => {
                 const uploadStream = cloudinary_1.v2.uploader.upload_stream({
-                    folder,
+                    folder: `${folder}/${businessId}`,
                     resource_type: "image",
                     transformation: [{ width: 1000, height: 1000, crop: "limit" }, { quality: "auto" }, { format: "auto" }],
                 }, (error, result) => {
@@ -54,14 +57,15 @@ let UploadService = class UploadService {
             };
         }
         catch (error) {
-            throw new common_1.BadRequestException("Failed to upload image");
+            console.error("Cloudinary upload error:", error);
+            throw new common_1.BadRequestException(`Failed to upload image: ${error.message || 'Unknown error'}`);
         }
     }
-    async uploadMultipleImages(files, folder = "salon-booking") {
-        const uploadPromises = files.map((file) => this.uploadImage(file, folder));
+    async uploadMultipleImages(businessId, files, folder = "salon-booking") {
+        const uploadPromises = files.map((file) => this.uploadImage(businessId, file, folder));
         return Promise.all(uploadPromises);
     }
-    async deleteImage(publicId) {
+    async deleteImage(businessId, publicId) {
         try {
             await cloudinary_1.v2.uploader.destroy(publicId);
         }
@@ -69,7 +73,7 @@ let UploadService = class UploadService {
             throw new common_1.BadRequestException("Failed to delete image");
         }
     }
-    async uploadDocument(file, folder = "salon-booking/documents") {
+    async uploadDocument(businessId, file, folder = "salon-booking/documents") {
         if (!file) {
             throw new common_1.BadRequestException("No file provided");
         }
@@ -89,7 +93,7 @@ let UploadService = class UploadService {
         try {
             const result = await new Promise((resolve, reject) => {
                 const uploadStream = cloudinary_1.v2.uploader.upload_stream({
-                    folder,
+                    folder: `${folder}/${businessId}`,
                     resource_type: "raw",
                 }, (error, result) => {
                     if (error)

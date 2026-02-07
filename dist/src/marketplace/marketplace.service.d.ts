@@ -33,7 +33,7 @@ export declare class MarketplaceService {
     private reviewModel;
     private qualityMetricModel;
     constructor(verificationModel: Model<BusinessVerificationDocument>, reviewModel: Model<ReviewDocument>, qualityMetricModel: Model<QualityMetricDocument>);
-    submitForVerification(tenantId: string, documents: any): Promise<import("mongoose").Document<unknown, {}, BusinessVerificationDocument, {}, {}> & BusinessVerification & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    submitForVerification(businessId: string, documents: any): Promise<import("mongoose").Document<unknown, {}, BusinessVerificationDocument, {}, {}> & BusinessVerification & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: Types.ObjectId;
     }> & {
         __v: number;
@@ -43,7 +43,7 @@ export declare class MarketplaceService {
     }> & {
         __v: number;
     }>;
-    getVerificationStatus(tenantId: string): Promise<import("mongoose").Document<unknown, {}, BusinessVerificationDocument, {}, {}> & BusinessVerification & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    getVerificationStatus(businessId: string): Promise<import("mongoose").Document<unknown, {}, BusinessVerificationDocument, {}, {}> & BusinessVerification & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: Types.ObjectId;
     }> & {
         __v: number;
@@ -95,14 +95,14 @@ export declare class MarketplaceService {
         __v: number;
     }>;
     private updateBusinessRating;
-    updateQualityMetrics(tenantId: string): Promise<{
+    updateQualityMetrics(businessId: string): Promise<{
         responseRate: number;
         avgResponseTime: number;
         completionRate: number;
         cancellationRate: number;
         onTimeRate: number;
     }>;
-    getBusinessQualityScore(tenantId: string): Promise<{
+    getBusinessQualityScore(businessId: string): Promise<{
         score: number;
         metrics: {
             responseRate: number;

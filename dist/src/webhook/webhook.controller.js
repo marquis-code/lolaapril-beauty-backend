@@ -14,43 +14,47 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebhookController = void 0;
 const common_1 = require("@nestjs/common");
+const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const webhook_processor_service_1 = require("./webhook-processor.service");
 let WebhookController = class WebhookController {
     constructor(webhookProcessor) {
         this.webhookProcessor = webhookProcessor;
     }
-    async handlePaystackWebhook(payload, signature) {
-        return this.webhookProcessor.processWebhook('paystack', payload, signature);
+    async handlePaystackWebhook(businessId, payload, signature) {
+        return this.webhookProcessor.processWebhook('paystack', businessId, payload, signature);
     }
-    async handleStripeWebhook(payload, signature) {
-        return this.webhookProcessor.processWebhook('stripe', payload, signature);
+    async handleStripeWebhook(businessId, payload, signature) {
+        return this.webhookProcessor.processWebhook('stripe', businessId, payload, signature);
     }
-    async handleSquareWebhook(payload, signature) {
-        return this.webhookProcessor.processWebhook('square', payload, signature);
+    async handleSquareWebhook(businessId, payload, signature) {
+        return this.webhookProcessor.processWebhook('square', businessId, payload, signature);
     }
 };
 __decorate([
     (0, common_1.Post)('paystack'),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Headers)('x-paystack-signature')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Headers)('x-paystack-signature')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", Promise)
 ], WebhookController.prototype, "handlePaystackWebhook", null);
 __decorate([
     (0, common_1.Post)('stripe'),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Headers)('stripe-signature')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Headers)('stripe-signature')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", Promise)
 ], WebhookController.prototype, "handleStripeWebhook", null);
 __decorate([
     (0, common_1.Post)('square'),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Headers)('square-signature')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Headers)('square-signature')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", Promise)
 ], WebhookController.prototype, "handleSquareWebhook", null);
 WebhookController = __decorate([

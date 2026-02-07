@@ -35,17 +35,17 @@ import { Request } from 'express';
 export declare class PaymentController {
     private readonly paymentService;
     constructor(paymentService: PaymentService);
-    initializePayment(initializePaymentDto: InitializePaymentDto): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    verifyPayment(reference: string): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
+    initializePayment(jwtBusinessId: string | undefined, initializePaymentDto: InitializePaymentDto): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    verifyPayment(businessId: string, reference: string): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
     handleWebhook(signature: string, req: RawBodyRequest<Request>): Promise<{
         message: string;
     }>;
-    initiateRefund(reference: string, body: {
+    initiateRefund(businessId: string, reference: string, body: {
         amount?: number;
     }): Promise<void>;
-    create(createPaymentDto: CreatePaymentDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
+    create(businessId: string, createPaymentDto: CreatePaymentDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
     getMyTransactions(user: RequestWithUser['user']): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    findAll(query: PaymentQueryDto): Promise<{
+    findAll(businessId: string, query: PaymentQueryDto): Promise<{
         success: boolean;
         data: {
             payments: (import("mongoose").Document<unknown, {}, import("./schemas/payment.schema").PaymentDocument, {}, {}> & import("./schemas/payment.schema").Payment & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
@@ -61,16 +61,16 @@ export declare class PaymentController {
             };
         };
     }>;
-    getStats(): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    findOne(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
-    update(id: string, updatePaymentDto: UpdatePaymentDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
-    updateStatus(id: string, body: {
+    getStats(businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    findOne(businessId: string, id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
+    update(businessId: string, id: string, updatePaymentDto: UpdatePaymentDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
+    updateStatus(businessId: string, id: string, body: {
         status: string;
         transactionId?: string;
     }): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
-    processRefund(id: string, body: {
+    processRefund(businessId: string, id: string, body: {
         refundAmount: number;
         refundReason: string;
     }): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
-    remove(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<void>>;
+    remove(businessId: string, id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<void>>;
 }

@@ -8,6 +8,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 import { RolesGuard } from "../auth/guards/roles.guard"
 import { Roles } from "../auth/decorators/roles.decorator"
 import { UserRole } from "../auth/schemas/user.schema"
+import { BusinessId } from "../auth/decorators/business-context.decorator"
 import { AuditInterceptor } from "../audit/interceptors/audit.interceptor"
 import { Audit } from "../audit/decorators/audit.decorator"
 import { AuditAction, AuditEntity } from "../audit/schemas/audit-log.schema"
@@ -26,40 +27,40 @@ export class TeamController {
   @ApiOperation({ summary: "Create a new team member" })
   @ApiResponse({ status: 201, description: "Team member created successfully" })
   @ApiResponse({ status: 409, description: "Team member with email already exists" })
-  create(@Body() createTeamMemberDto: CreateTeamMemberDto) {
-    return this.teamService.create(createTeamMemberDto)
+  create(@BusinessId() businessId: string, @Body() createTeamMemberDto: CreateTeamMemberDto) {
+    return this.teamService.create(businessId, createTeamMemberDto)
   }
 
   @Get()
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all team members" })
   @ApiResponse({ status: 200, description: "Team members retrieved successfully" })
-  findAll(@Query() query: TeamMemberQueryDto) {
-    return this.teamService.findAll(query)
+  findAll(@BusinessId() businessId: string, @Query() query: TeamMemberQueryDto) {
+    return this.teamService.findAll(businessId, query)
   }
 
   @Get("stats")
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: "Get team statistics" })
   @ApiResponse({ status: 200, description: "Team statistics retrieved successfully" })
-  getStats() {
-    return this.teamService.getTeamStats()
+  getStats(@BusinessId() businessId: string) {
+    return this.teamService.getTeamStats(businessId)
   }
 
   @Get("role/:role")
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get team members by role" })
   @ApiResponse({ status: 200, description: "Team members retrieved successfully" })
-  findByRole(role: string) {
-    return this.teamService.findByRole(role)
+  findByRole(@BusinessId() businessId: string, role: string) {
+    return this.teamService.findByRole(businessId, role)
   }
 
   @Get("department/:department")
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get team members by department" })
   @ApiResponse({ status: 200, description: "Team members retrieved successfully" })
-  findByDepartment(department: string) {
-    return this.teamService.findByDepartment(department)
+  findByDepartment(@BusinessId() businessId: string, department: string) {
+    return this.teamService.findByDepartment(businessId, department)
   }
 
   @Get(":id")
@@ -68,8 +69,8 @@ export class TeamController {
   @ApiOperation({ summary: "Get team member by ID" })
   @ApiResponse({ status: 200, description: "Team member retrieved successfully" })
   @ApiResponse({ status: 404, description: "Team member not found" })
-  findOne(id: string) {
-    return this.teamService.findOne(id)
+  findOne(@BusinessId() businessId: string, id: string) {
+    return this.teamService.findOne(businessId, id)
   }
 
   @Patch(":id")
@@ -78,8 +79,8 @@ export class TeamController {
   @ApiOperation({ summary: "Update team member" })
   @ApiResponse({ status: 200, description: "Team member updated successfully" })
   @ApiResponse({ status: 404, description: "Team member not found" })
-  update(id: string, @Body() updateTeamMemberDto: UpdateTeamMemberDto) {
-    return this.teamService.update(id, updateTeamMemberDto)
+  update(@BusinessId() businessId: string, id: string, @Body() updateTeamMemberDto: UpdateTeamMemberDto) {
+    return this.teamService.update(businessId, id, updateTeamMemberDto)
   }
 
   @Patch(":id/status")
@@ -88,8 +89,8 @@ export class TeamController {
   @ApiOperation({ summary: "Update team member status" })
   @ApiResponse({ status: 200, description: "Team member status updated successfully" })
   @ApiResponse({ status: 404, description: "Team member not found" })
-  updateStatus(id: string, status: string) {
-    return this.teamService.updateStatus(id, status)
+  updateStatus(@BusinessId() businessId: string, id: string, status: string) {
+    return this.teamService.updateStatus(businessId, id, status)
   }
 
   @Delete(":id")
@@ -98,7 +99,7 @@ export class TeamController {
   @ApiOperation({ summary: "Delete team member" })
   @ApiResponse({ status: 200, description: "Team member deleted successfully" })
   @ApiResponse({ status: 404, description: "Team member not found" })
-  remove(id: string) {
-    return this.teamService.remove(id)
+  remove(@BusinessId() businessId: string, id: string) {
+    return this.teamService.remove(businessId, id)
   }
 }

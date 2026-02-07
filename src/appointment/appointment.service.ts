@@ -21,20 +21,27 @@ export class AppointmentService {
     private staffService: StaffService,
   ) {}
 
-  async create(createAppointmentDto: CreateAppointmentDto): Promise<Appointment> {
+  async create(createAppointmentDto: CreateAppointmentDto & { businessId: string }): Promise<Appointment> {
     // Check for time slot conflicts
     const conflictingAppointment = await this.appointmentModel.findOne({
       selectedDate: createAppointmentDto.selectedDate,
       selectedTime: createAppointmentDto.selectedTime,
       status: { $nin: ["cancelled", "no_show"] },
       ...(createAppointmentDto.assignedStaff && { assignedStaff: createAppointmentDto.assignedStaff }),
+      "businessInfo.businessId": createAppointmentDto.businessId,
     })
 
     if (conflictingAppointment) {
       throw new ConflictException("Time slot is already booked")
     }
 
-    const appointment = new this.appointmentModel(createAppointmentDto)
+    const appointment = new this.appointmentModel({
+      ...createAppointmentDto,
+      businessInfo: {
+        ...(createAppointmentDto as any).businessInfo,
+        businessId: createAppointmentDto.businessId,
+      },
+    })
     return appointment.save()
   }
 
@@ -104,7 +111,7 @@ export class AppointmentService {
   //   }
   // }
 
-  async findAll(query: AppointmentQueryDto) {
+  async findAll(query: AppointmentQueryDto & { businessId: string }) {
   const {
     page = 1,
     limit = 10,
@@ -119,7 +126,7 @@ export class AppointmentService {
     sortOrder = "desc",
   } = query
 
-  const filter: any = {}
+  const filter: any = { "businessInfo.businessId": query.businessId }
 
   if (clientId) filter.clientId = clientId
   if (status) filter.status = status
@@ -260,17 +267,25 @@ export class AppointmentService {
     return appointment
   }
 
-  async getAppointmentsByDate(date: string): Promise<Appointment[]> {
+  async getAppointmentsByDate(businessId: string, date: string): Promise<Appointment[]> {
     return this.appointmentModel
-      .find({ selectedDate: date, status: { $nin: ["cancelled", "no_show"] } })
+      .find({
+        selectedDate: date,
+        status: { $nin: ["cancelled", "no_show"] },
+        "businessInfo.businessId": businessId,
+      })
       .populate("clientId", "firstName lastName email phone")
       .populate("assignedStaff", "firstName lastName email")
       .sort({ selectedTime: 1 })
       .exec()
   }
 
-  async getAppointmentsByStaff(staffId: string, date?: string): Promise<Appointment[]> {
-    const filter: any = { assignedStaff: staffId, status: { $nin: ["cancelled", "no_show"] } }
+  async getAppointmentsByStaff(businessId: string, staffId: string, date?: string): Promise<Appointment[]> {
+    const filter: any = {
+      assignedStaff: staffId,
+      status: { $nin: ["cancelled", "no_show"] },
+      "businessInfo.businessId": businessId,
+    }
     if (date) filter.selectedDate = date
 
     return this.appointmentModel

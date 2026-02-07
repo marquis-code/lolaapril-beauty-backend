@@ -44,6 +44,7 @@ export declare class PaymentMethodSummary {
     amount: number;
 }
 export declare class DailySalesSummary {
+    businessId: string;
     date: string;
     totalRevenue: number;
     totalAppointments: number;

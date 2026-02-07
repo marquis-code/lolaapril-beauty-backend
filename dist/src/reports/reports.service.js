@@ -19,7 +19,7 @@ const daily_sales_summary_schema_1 = require("./schemas/daily-sales-summary.sche
 const sale_schema_1 = require("../sales/schemas/sale.schema");
 const appointment_schema_1 = require("../appointment/schemas/appointment.schema");
 const client_schema_1 = require("../client/schemas/client.schema");
-const moment_1 = require("moment");
+const moment = require("moment");
 const mongoose_2 = require("@nestjs/mongoose");
 let ReportsService = class ReportsService {
     constructor(dailySalesSummaryModel, saleModel, appointmentModel, clientModel) {
@@ -28,35 +28,29 @@ let ReportsService = class ReportsService {
         this.appointmentModel = appointmentModel;
         this.clientModel = clientModel;
     }
-    async generateDailySalesSummary(date) {
+    async generateDailySalesSummary(businessId, date) {
         try {
-            const startDate = (0, moment_1.default)(date).startOf("day").toDate();
-            const endDate = (0, moment_1.default)(date).endOf("day").toDate();
-            const sales = await this.saleModel.find({
-                createdAt: { $gte: startDate, $lte: endDate },
-                status: "completed",
-            }).lean();
-            const appointments = await this.appointmentModel.find({
-                selectedDate: date,
-            }).lean();
-            const newClients = await this.clientModel.find({
-                createdAt: { $gte: startDate, $lte: endDate },
-            }).lean();
-            const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+            const startDate = moment(date).startOf("day").toDate();
+            const endDate = moment(date).endOf("day").toDate();
+            const sales = await this.saleModel.find({ businessId, createdAt: { $gte: startDate, $lte: endDate }, status: "completed" }).lean();
+            const appointments = await this.appointmentModel.find({ businessId, selectedDate: date }).lean();
+            const newClients = await this.clientModel.find({ businessId, createdAt: { $gte: startDate, $lte: endDate } }).lean();
+            const totalRevenue = sales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
             const totalAppointments = appointments.length;
             const completedAppointments = appointments.filter((apt) => apt.status === "completed").length;
             const cancelledAppointments = appointments.filter((apt) => apt.status === "cancelled").length;
             const noShowAppointments = appointments.filter((apt) => apt.status === "no_show").length;
-            const clientIds = new Set(sales.map((sale) => sale.clientId.toString()));
+            const clientIds = new Set(sales.map((sale) => sale.clientId?.toString()));
             const returningClients = clientIds.size - newClients.length;
             const servicesSummary = this.calculateServicesSummary(sales);
             const staffSummary = this.calculateStaffSummary(sales);
             const paymentMethodsSummary = this.calculatePaymentMethodsSummary(sales);
             const averageTicketSize = totalRevenue / (completedAppointments || 1);
-            const totalTax = sales.reduce((sum, sale) => sum + sale.totalTax, 0);
-            const totalDiscount = sales.reduce((sum, sale) => sum + sale.totalDiscount, 0);
-            const totalServiceCharge = sales.reduce((sum, sale) => sum + sale.serviceCharge, 0);
+            const totalTax = sales.reduce((sum, sale) => sum + (sale.totalTax || 0), 0);
+            const totalDiscount = sales.reduce((sum, sale) => sum + (sale.totalDiscount || 0), 0);
+            const totalServiceCharge = sales.reduce((sum, sale) => sum + (sale.serviceCharge || 0), 0);
             const summaryData = {
+                businessId,
                 date,
                 totalRevenue,
                 totalAppointments,
@@ -73,10 +67,10 @@ let ReportsService = class ReportsService {
                 totalDiscount,
                 totalServiceCharge,
             };
-            const existingSummary = await this.dailySalesSummaryModel.findOne({ date });
+            const existingSummary = await this.dailySalesSummaryModel.findOne({ businessId, date });
             let summary;
             if (existingSummary) {
-                summary = await this.dailySalesSummaryModel.findOneAndUpdate({ date }, { ...summaryData, updatedAt: new Date() }, { new: true });
+                summary = await this.dailySalesSummaryModel.findOneAndUpdate({ businessId, date }, { ...summaryData, updatedAt: new Date() }, { new: true });
             }
             else {
                 summary = new this.dailySalesSummaryModel(summaryData);
@@ -92,11 +86,11 @@ let ReportsService = class ReportsService {
             throw new Error(`Failed to generate daily sales summary: ${error.message}`);
         }
     }
-    async getDailySalesSummary(date) {
+    async getDailySalesSummary(businessId, date) {
         try {
-            let summary = await this.dailySalesSummaryModel.findOne({ date });
+            const summary = await this.dailySalesSummaryModel.findOne({ businessId, date });
             if (!summary) {
-                const result = await this.generateDailySalesSummary(date);
+                const result = await this.generateDailySalesSummary(businessId, date);
                 return result;
             }
             return {
@@ -108,10 +102,11 @@ let ReportsService = class ReportsService {
             throw new Error(`Failed to get daily sales summary: ${error.message}`);
         }
     }
-    async getWeeklySalesReport(startDate, endDate) {
+    async getWeeklySalesReport(businessId, startDate, endDate) {
         try {
             const summaries = await this.dailySalesSummaryModel
                 .find({
+                businessId,
                 date: { $gte: startDate, $lte: endDate },
             })
                 .sort({ date: 1 });
@@ -120,7 +115,7 @@ let ReportsService = class ReportsService {
                 totalAppointments: summaries.reduce((sum, s) => sum + s.totalAppointments, 0),
                 completedAppointments: summaries.reduce((sum, s) => sum + s.completedAppointments, 0),
                 newClients: summaries.reduce((sum, s) => sum + s.newClients, 0),
-                averageTicketSize: summaries.reduce((sum, s) => sum + s.averageTicketSize, 0) / summaries.length,
+                averageTicketSize: summaries.reduce((sum, s) => sum + s.averageTicketSize, 0) / (summaries.length || 1),
                 dailyBreakdown: summaries,
             };
             return {
@@ -132,16 +127,17 @@ let ReportsService = class ReportsService {
             throw new Error(`Failed to get weekly sales report: ${error.message}`);
         }
     }
-    async getMonthlySalesReport(year, month) {
+    async getMonthlySalesReport(businessId, year, month) {
         try {
-            const startDate = (0, moment_1.default)({ year, month: month - 1 })
+            const startDate = moment({ year, month: month - 1 })
                 .startOf("month")
                 .format("YYYY-MM-DD");
-            const endDate = (0, moment_1.default)({ year, month: month - 1 })
+            const endDate = moment({ year, month: month - 1 })
                 .endOf("month")
                 .format("YYYY-MM-DD");
             const summaries = await this.dailySalesSummaryModel
                 .find({
+                businessId,
                 date: { $gte: startDate, $lte: endDate },
             })
                 .sort({ date: 1 });
@@ -150,7 +146,7 @@ let ReportsService = class ReportsService {
                 totalAppointments: summaries.reduce((sum, s) => sum + s.totalAppointments, 0),
                 completedAppointments: summaries.reduce((sum, s) => sum + s.completedAppointments, 0),
                 newClients: summaries.reduce((sum, s) => sum + s.newClients, 0),
-                averageTicketSize: summaries.reduce((sum, s) => sum + s.averageTicketSize, 0) / summaries.length,
+                averageTicketSize: summaries.reduce((sum, s) => sum + s.averageTicketSize, 0) / (summaries.length || 1),
                 dailyBreakdown: summaries,
                 topServices: this.aggregateTopServices(summaries),
                 topStaff: this.aggregateTopStaff(summaries),
@@ -167,77 +163,82 @@ let ReportsService = class ReportsService {
     calculateServicesSummary(sales) {
         const servicesMap = new Map();
         sales.forEach((sale) => {
-            sale.items.forEach((item) => {
-                if (servicesMap.has(item.itemId)) {
-                    const existing = servicesMap.get(item.itemId);
-                    existing.quantity += item.quantity;
-                    existing.revenue += item.totalPrice;
-                }
-                else {
-                    servicesMap.set(item.itemId, {
-                        serviceId: item.itemId,
-                        serviceName: item.itemName,
-                        quantity: item.quantity,
-                        revenue: item.totalPrice,
-                    });
-                }
-            });
+            if (sale.items) {
+                sale.items.forEach((item) => {
+                    if (servicesMap.has(item.itemId)) {
+                        const existing = servicesMap.get(item.itemId);
+                        existing.quantity += item.quantity;
+                        existing.revenue += item.totalPrice;
+                    }
+                    else {
+                        servicesMap.set(item.itemId, {
+                            serviceId: item.itemId,
+                            serviceName: item.itemName,
+                            quantity: item.quantity,
+                            revenue: item.totalPrice,
+                        });
+                    }
+                });
+            }
         });
         return Array.from(servicesMap.values()).sort((a, b) => b.revenue - a.revenue);
     }
     calculateStaffSummary(sales) {
         const staffMap = new Map();
         sales.forEach((sale) => {
-            sale.items.forEach((item) => {
-                if (item.staffId) {
-                    if (staffMap.has(item.staffId)) {
-                        const existing = staffMap.get(item.staffId);
-                        existing.appointmentsCompleted += 1;
-                        existing.revenue += item.totalPrice;
-                        existing.commission += item.commission || 0;
+            if (sale.items) {
+                sale.items.forEach((item) => {
+                    if (item.staffId) {
+                        if (staffMap.has(item.staffId)) {
+                            const existing = staffMap.get(item.staffId);
+                            existing.appointmentsCompleted += 1;
+                            existing.revenue += item.totalPrice;
+                            existing.commission += item.commission || 0;
+                        }
+                        else {
+                            staffMap.set(item.staffId, {
+                                staffId: item.staffId,
+                                staffName: item.staffName,
+                                appointmentsCompleted: 1,
+                                revenue: item.totalPrice,
+                                commission: item.commission || 0,
+                            });
+                        }
                     }
-                    else {
-                        staffMap.set(item.staffId, {
-                            staffId: item.staffId,
-                            staffName: item.staffName,
-                            appointmentsCompleted: 1,
-                            revenue: item.totalPrice,
-                            commission: item.commission || 0,
-                        });
-                    }
-                }
-            });
+                });
+            }
         });
         return Array.from(staffMap.values()).sort((a, b) => b.revenue - a.revenue);
     }
     calculatePaymentMethodsSummary(sales) {
-        const paymentMap = new Map();
         return [
             {
                 method: "Cash",
                 count: Math.floor(sales.length * 0.4),
-                amount: sales.reduce((sum, s) => sum + s.totalAmount, 0) * 0.4,
+                amount: sales.reduce((sum, s) => sum + (s.totalAmount || 0), 0) * 0.4,
             },
             {
                 method: "Card",
                 count: Math.floor(sales.length * 0.6),
-                amount: sales.reduce((sum, s) => sum + s.totalAmount, 0) * 0.6,
+                amount: sales.reduce((sum, s) => sum + (s.totalAmount || 0), 0) * 0.6,
             },
         ];
     }
     aggregateTopServices(summaries) {
         const servicesMap = new Map();
         summaries.forEach((summary) => {
-            summary.servicesSummary.forEach((service) => {
-                if (servicesMap.has(service.serviceId)) {
-                    const existing = servicesMap.get(service.serviceId);
-                    existing.quantity += service.quantity;
-                    existing.revenue += service.revenue;
-                }
-                else {
-                    servicesMap.set(service.serviceId, { ...service });
-                }
-            });
+            if (summary.servicesSummary) {
+                summary.servicesSummary.forEach((service) => {
+                    if (servicesMap.has(service.serviceId)) {
+                        const existing = servicesMap.get(service.serviceId);
+                        existing.quantity += service.quantity;
+                        existing.revenue += service.revenue;
+                    }
+                    else {
+                        servicesMap.set(service.serviceId, { ...service });
+                    }
+                });
+            }
         });
         return Array.from(servicesMap.values())
             .sort((a, b) => b.revenue - a.revenue)
@@ -246,17 +247,19 @@ let ReportsService = class ReportsService {
     aggregateTopStaff(summaries) {
         const staffMap = new Map();
         summaries.forEach((summary) => {
-            summary.staffSummary.forEach((staff) => {
-                if (staffMap.has(staff.staffId)) {
-                    const existing = staffMap.get(staff.staffId);
-                    existing.appointmentsCompleted += staff.appointmentsCompleted;
-                    existing.revenue += staff.revenue;
-                    existing.commission += staff.commission;
-                }
-                else {
-                    staffMap.set(staff.staffId, { ...staff });
-                }
-            });
+            if (summary.staffSummary) {
+                summary.staffSummary.forEach((staff) => {
+                    if (staffMap.has(staff.staffId)) {
+                        const existing = staffMap.get(staff.staffId);
+                        existing.appointmentsCompleted += staff.appointmentsCompleted;
+                        existing.revenue += staff.revenue;
+                        existing.commission += staff.commission;
+                    }
+                    else {
+                        staffMap.set(staff.staffId, { ...staff });
+                    }
+                });
+            }
         });
         return Array.from(staffMap.values())
             .sort((a, b) => b.revenue - a.revenue)

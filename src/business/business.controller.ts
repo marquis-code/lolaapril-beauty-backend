@@ -11,6 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
 import { BusinessService } from './business.service'
 import { CreateBusinessDto, UpdateBusinessDto } from './dto/business.dto'
+import { StorefrontResponseDto } from './dto/storefront.dto'
 import { Public, ValidateBusiness, CurrentUser, BusinessId } from '../auth'
 import type { RequestWithUser } from '../auth'
 
@@ -18,6 +19,54 @@ import type { RequestWithUser } from '../auth'
 @Controller('businesses')
 export class BusinessController {
   constructor(private readonly businessService: BusinessService) {}
+
+  // ==================== BUSINESS WORKING HOURS ====================
+  @Get("working-hours")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get business working hours" })
+  @ApiResponse({ status: 200, description: "Business working hours retrieved" })
+  async getBusinessWorkingHours(@BusinessId() businessId: string) {
+    const hours = await this.businessService.getBusinessWorkingHours(businessId);
+    return {
+      success: true,
+      data: hours,
+      message: "Business working hours retrieved successfully"
+    };
+  }
+
+  @ValidateBusiness()
+  @Post("working-hours")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Create business working hours" })
+  @ApiResponse({ status: 201, description: "Business working hours created" })
+  async createBusinessWorkingHours(
+    @BusinessId() businessId: string,
+    @Body() workingHours: any[]
+  ) {
+    const result = await this.businessService.createBusinessWorkingHours(businessId, workingHours);
+    return {
+      success: true,
+      data: result,
+      message: "Business working hours created successfully"
+    };
+  }
+
+  @ValidateBusiness()
+  @Put("working-hours")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update business working hours" })
+  @ApiResponse({ status: 200, description: "Business working hours updated" })
+  async updateBusinessWorkingHours(
+    @BusinessId() businessId: string,
+    @Body() workingHours: any[]
+  ) {
+    const result = await this.businessService.updateBusinessWorkingHours(businessId, workingHours);
+    return {
+      success: true,
+      data: result,
+      message: "Business working hours updated successfully"
+    };
+  }
 
   // ==================== PUBLIC ENDPOINTS ====================
   
@@ -45,6 +94,27 @@ export class BusinessController {
       data: business,
       message: 'Business retrieved successfully'
     }
+  }
+
+  /**
+   * PUBLIC STOREFRONT ENDPOINT
+   * Returns all data needed for the booking widget at /book/{subdomain}
+   * Includes: business info, theme/branding, categories, services, staff
+   */
+  @Public()
+  @Get('storefront/:subdomain')
+  @ApiOperation({ 
+    summary: 'Get complete storefront data for booking widget (Public)',
+    description: 'Returns business info, theme, services, categories, and staff for the public booking page'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Storefront data retrieved successfully',
+    type: StorefrontResponseDto
+  })
+  @ApiResponse({ status: 404, description: 'Business not found' })
+  async getStorefront(@Param('subdomain') subdomain: string) {
+    return this.businessService.getPublicStorefront(subdomain)
   }
 
   @Public()
@@ -77,72 +147,7 @@ export class BusinessController {
 
   // ==================== BUSINESS MANAGEMENT (VALIDATED) ====================
   
-  @ValidateBusiness()
-  @Put(':id')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update business' })
-  @ApiResponse({ status: 200, description: 'Business updated successfully' })
-  async update(
-    @Param('id') id: string,
-    @BusinessId() businessId: string,
-    @Body() updateDto: UpdateBusinessDto
-  ) {
-    if (businessId !== id) {
-      return { success: false, error: 'You can only update your active business' }
-    }
-
-    const business = await this.businessService.update(id, updateDto)
-    return {
-      success: true,
-      data: business,
-      message: 'Business updated successfully'
-    }
-  }
-
-  // ==================== STAFF MANAGEMENT ====================
-  
-  @ValidateBusiness()
-  @Post(':id/staff')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Add staff member to business' })
-  @ApiResponse({ status: 201, description: 'Staff member added successfully' })
-  async addStaff(
-    @Param('id') id: string,
-    @BusinessId() businessId: string,
-    @Body() staffDto: { email: string; firstName: string; lastName: string; phone?: string }
-  ) {
-    if (businessId !== id) {
-      return { success: false, error: 'Access denied' }
-    }
-
-    const staff = await this.businessService.addStaff(id, staffDto)
-    return {
-      success: true,
-      data: staff,
-      message: 'Staff member added successfully'
-    }
-  }
-
-  @ValidateBusiness()
-  @Delete(':id/staff/:staffId')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Remove staff member from business' })
-  @ApiResponse({ status: 200, description: 'Staff member removed successfully' })
-  async removeStaff(
-    @Param('id') id: string,
-    @Param('staffId') staffId: string,
-    @BusinessId() businessId: string
-  ) {
-    if (businessId !== id) {
-      return { success: false, error: 'Access denied' }
-    }
-
-    await this.businessService.removeStaff(id, staffId)
-    return {
-      success: true,
-      message: 'Staff member removed successfully'
-    }
-  }
+    // ...existing code...
 
   // ==================== ADMIN MANAGEMENT ====================
   

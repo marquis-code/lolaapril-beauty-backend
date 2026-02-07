@@ -331,10 +331,20 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
         return this.connectedClients.size;
     }
     getBusinessConnections(businessId) {
-        return this.server.sockets.adapter.rooms.get(`business:${businessId}`)?.size || 0;
+        try {
+            return this.server?.sockets?.adapter?.rooms?.get(`business:${businessId}`)?.size || 0;
+        }
+        catch (error) {
+            return 0;
+        }
     }
     isUserOnline(userId) {
-        return this.server.sockets.adapter.rooms.has(`user:${userId}`);
+        try {
+            return this.server?.sockets?.adapter?.rooms?.has(`user:${userId}`) || false;
+        }
+        catch (error) {
+            return false;
+        }
     }
     emitNotificationToBusiness(businessId, notification) {
         this.server.to(`business:${businessId}`).emit('notification:new', notification);

@@ -13,7 +13,7 @@ export class ChatRoom {
   @Prop({ type: Types.ObjectId, ref: 'Business', required: true, index: true })
   businessId: Types.ObjectId
 
-  @Prop({ type: String, required: true, enum: ['customer-support', 'team-chat', 'staff-chat'] })
+  @Prop({ type: String, required: true, enum: ['customer-support', 'team-chat', 'staff-chat', 'admin-support'] })
   roomType: string
 
   @Prop({ type: String, required: true })
@@ -47,6 +47,9 @@ export class ChatRoom {
     tags?: string[]
     customerLocation?: string
     lastSeen?: Date
+    ownerId?: string
+    memberId?: string
+    superAdminId?: string
   }
 }
 

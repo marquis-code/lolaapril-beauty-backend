@@ -21,12 +21,12 @@ let SalesService = class SalesService {
     constructor(saleModel) {
         this.saleModel = saleModel;
     }
-    async create(createSaleDto) {
+    async create(businessId, createSaleDto) {
         try {
-            const sale = new this.saleModel(createSaleDto);
+            const sale = new this.saleModel({ ...createSaleDto, businessId });
             await sale.save();
             const savedSale = await this.saleModel
-                .findById(sale._id)
+                .findOne({ _id: sale._id, businessId })
                 .lean()
                 .exec();
             if (!savedSale) {
@@ -42,10 +42,10 @@ let SalesService = class SalesService {
             throw new Error(`Failed to create sale: ${error.message}`);
         }
     }
-    async findAll() {
+    async findAll(businessId) {
         try {
             const sales = await this.saleModel
-                .find()
+                .find({ businessId })
                 .populate("clientId", "profile.firstName profile.lastName profile.email")
                 .populate("createdBy", "firstName lastName")
                 .sort({ createdAt: -1 })
@@ -60,10 +60,10 @@ let SalesService = class SalesService {
             throw new Error(`Failed to fetch sales: ${error.message}`);
         }
     }
-    async findOne(id) {
+    async findOne(businessId, id) {
         try {
             const sale = await this.saleModel
-                .findById(id)
+                .findOne({ _id: id, businessId })
                 .populate("clientId", "profile.firstName profile.lastName profile.email")
                 .populate("createdBy", "firstName lastName")
                 .populate("completedBy", "firstName lastName")
@@ -84,10 +84,10 @@ let SalesService = class SalesService {
             throw new Error(`Failed to fetch sale: ${error.message}`);
         }
     }
-    async completeSale(id, completedBy) {
+    async completeSale(businessId, id, completedBy) {
         try {
             const sale = await this.saleModel
-                .findByIdAndUpdate(id, {
+                .findOneAndUpdate({ _id: id, businessId }, {
                 status: "completed",
                 completedBy,
                 completedAt: new Date(),
@@ -111,19 +111,19 @@ let SalesService = class SalesService {
             throw new Error(`Failed to complete sale: ${error.message}`);
         }
     }
-    async getSalesStats() {
+    async getSalesStats(businessId) {
         try {
             const [totalSales, completedSales, totalRevenue, pendingSales] = await Promise.all([
-                this.saleModel.countDocuments(),
-                this.saleModel.countDocuments({ status: "completed" }),
+                this.saleModel.countDocuments({ businessId }),
+                this.saleModel.countDocuments({ businessId, status: "completed" }),
                 this.saleModel.aggregate([
-                    { $match: { status: "completed" } },
+                    { $match: { businessId, status: "completed" } },
                     { $group: { _id: null, total: { $sum: "$totalAmount" } } },
                 ]),
-                this.saleModel.countDocuments({ status: { $in: ["draft", "confirmed"] } }),
+                this.saleModel.countDocuments({ businessId, status: { $in: ["draft", "confirmed"] } }),
             ]);
             const topServices = await this.saleModel.aggregate([
-                { $match: { status: "completed" } },
+                { $match: { businessId, status: "completed" } },
                 { $unwind: "$items" },
                 {
                     $group: {
@@ -150,9 +150,9 @@ let SalesService = class SalesService {
             throw new Error(`Failed to get sales stats: ${error.message}`);
         }
     }
-    async findAllWithQuery(query) {
+    async findAllWithQuery(businessId, query) {
         const { page = 1, limit = 10, clientId, appointmentId, bookingId, status, paymentStatus, staffId, startDate, endDate, search, sortBy = "createdAt", sortOrder = "desc", } = query;
-        const filter = {};
+        const filter = { businessId };
         if (clientId)
             filter.clientId = clientId;
         if (appointmentId)
@@ -209,10 +209,10 @@ let SalesService = class SalesService {
             },
         };
     }
-    async update(id, updateSaleDto) {
+    async update(businessId, id, updateSaleDto) {
         try {
             const sale = await this.saleModel
-                .findByIdAndUpdate(id, { ...updateSaleDto, updatedAt: new Date() }, { new: true })
+                .findOneAndUpdate({ _id: id, businessId }, { ...updateSaleDto, updatedAt: new Date() }, { new: true })
                 .populate("clientId", "firstName lastName email phone")
                 .populate("createdBy", "firstName lastName email")
                 .populate("completedBy", "firstName lastName email")
@@ -234,10 +234,10 @@ let SalesService = class SalesService {
             throw new Error(`Failed to update sale: ${error.message}`);
         }
     }
-    async updateStatus(id, status) {
+    async updateStatus(businessId, id, status) {
         try {
             const sale = await this.saleModel
-                .findByIdAndUpdate(id, { status, updatedAt: new Date() }, { new: true })
+                .findOneAndUpdate({ _id: id, businessId }, { status, updatedAt: new Date() }, { new: true })
                 .populate("clientId", "firstName lastName email phone")
                 .populate("createdBy", "firstName lastName email")
                 .lean()
@@ -258,13 +258,13 @@ let SalesService = class SalesService {
             throw new Error(`Failed to update sale status: ${error.message}`);
         }
     }
-    async updatePaymentStatus(id, paymentStatus, amountPaid) {
+    async updatePaymentStatus(businessId, id, paymentStatus, amountPaid) {
         try {
             const updateData = { paymentStatus, updatedAt: new Date() };
             if (amountPaid !== undefined) {
                 updateData.amountPaid = amountPaid;
                 const sale = await this.saleModel
-                    .findById(id)
+                    .findOne({ _id: id, businessId })
                     .lean()
                     .exec();
                 if (sale) {
@@ -272,7 +272,7 @@ let SalesService = class SalesService {
                 }
             }
             const sale = await this.saleModel
-                .findByIdAndUpdate(id, updateData, { new: true })
+                .findOneAndUpdate({ _id: id, businessId }, updateData, { new: true })
                 .populate("clientId", "firstName lastName email phone")
                 .populate("createdBy", "firstName lastName email")
                 .lean()
@@ -293,10 +293,10 @@ let SalesService = class SalesService {
             throw new Error(`Failed to update payment status: ${error.message}`);
         }
     }
-    async getTopServices() {
+    async getTopServices(businessId) {
         try {
             const topServices = await this.saleModel.aggregate([
-                { $match: { status: "completed" } },
+                { $match: { businessId, status: "completed" } },
                 { $unwind: "$items" },
                 {
                     $group: {
@@ -323,7 +323,7 @@ let SalesService = class SalesService {
             throw new Error(`Failed to get top services: ${error.message}`);
         }
     }
-    async getRevenueByPeriod(period) {
+    async getRevenueByPeriod(businessId, period) {
         try {
             let groupBy;
             let dateFormat;
@@ -342,7 +342,7 @@ let SalesService = class SalesService {
                     break;
             }
             const revenueData = await this.saleModel.aggregate([
-                { $match: { status: "completed" } },
+                { $match: { businessId, status: "completed" } },
                 {
                     $group: {
                         _id: groupBy,
@@ -367,9 +367,9 @@ let SalesService = class SalesService {
             throw new Error(`Failed to get revenue by period: ${error.message}`);
         }
     }
-    async remove(id) {
+    async remove(businessId, id) {
         try {
-            const result = await this.saleModel.findByIdAndDelete(id).exec();
+            const result = await this.saleModel.findOneAndDelete({ _id: id, businessId }).exec();
             if (!result) {
                 throw new common_1.NotFoundException("Sale not found");
             }

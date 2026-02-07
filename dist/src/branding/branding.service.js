@@ -20,13 +20,17 @@ const theme_schema_1 = require("./schemas/theme.schema");
 const custom_domain_schema_1 = require("./schemas/custom-domain.schema");
 const email_template_schema_1 = require("./schemas/email-template.schema");
 const booking_widget_schema_1 = require("./schemas/booking-widget.schema");
+const cache_service_1 = require("../cache/cache.service");
 const crypto = require("crypto");
 let BrandingService = class BrandingService {
-    constructor(themeModel, customDomainModel, emailTemplateModel, bookingWidgetModel) {
+    constructor(themeModel, customDomainModel, emailTemplateModel, bookingWidgetModel, cacheService) {
         this.themeModel = themeModel;
         this.customDomainModel = customDomainModel;
         this.emailTemplateModel = emailTemplateModel;
         this.bookingWidgetModel = bookingWidgetModel;
+        this.cacheService = cacheService;
+        this.PREVIEW_TTL = 3600;
+        this.PREVIEW_KEY_PREFIX = 'theme_preview:';
     }
     async createOrUpdateTheme(businessId, themeDto) {
         try {
@@ -43,11 +47,10 @@ let BrandingService = class BrandingService {
                     theme: updated
                 };
             }
-            const theme = new this.themeModel({
+            const saved = await this.themeModel.create({
                 tenantId: new mongoose_2.Types.ObjectId(businessId),
                 ...themeDto,
             });
-            const saved = await theme.save();
             return {
                 success: true,
                 message: 'Theme created successfully',
@@ -60,11 +63,20 @@ let BrandingService = class BrandingService {
         }
     }
     async updateTheme(businessId, themeDto) {
-        const theme = await this.themeModel.findOne({
+        let theme = await this.themeModel.findOne({
             tenantId: new mongoose_2.Types.ObjectId(businessId)
         });
         if (!theme) {
-            throw new common_1.NotFoundException('Theme not found for this business');
+            const defaultTheme = this.getDefaultTheme();
+            const themeData = {
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                logo: defaultTheme.logo,
+                favicon: defaultTheme.favicon,
+                customCss: defaultTheme.customCss,
+            };
+            theme = new this.themeModel(themeData);
         }
         try {
             if (themeDto.colors) {
@@ -144,6 +156,669 @@ let BrandingService = class BrandingService {
                 enabled: false,
                 cssCode: '',
             },
+        };
+    }
+    async updateStorefrontLayout(businessId, layoutDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                storefront: {},
+            });
+        }
+        try {
+            if (!theme.storefront) {
+                theme.storefront = {};
+            }
+            const storefront = theme.storefront;
+            if (layoutDto.hero) {
+                storefront.hero = { ...(storefront.hero || {}), ...layoutDto.hero };
+            }
+            if (layoutDto.sections) {
+                storefront.sections = layoutDto.sections;
+            }
+            if (layoutDto.serviceDisplay) {
+                storefront.serviceDisplay = { ...(storefront.serviceDisplay || {}), ...layoutDto.serviceDisplay };
+            }
+            if (layoutDto.staffDisplay) {
+                storefront.staffDisplay = { ...(storefront.staffDisplay || {}), ...layoutDto.staffDisplay };
+            }
+            if (layoutDto.gallery) {
+                storefront.gallery = { ...(storefront.gallery || {}), ...layoutDto.gallery };
+            }
+            if (layoutDto.testimonials) {
+                storefront.testimonials = { ...(storefront.testimonials || {}), ...layoutDto.testimonials };
+            }
+            if (layoutDto.contact) {
+                storefront.contact = { ...(storefront.contact || {}), ...layoutDto.contact };
+            }
+            if (layoutDto.bookingFlow) {
+                storefront.bookingFlow = { ...(storefront.bookingFlow || {}), ...layoutDto.bookingFlow };
+            }
+            if (layoutDto.socialProof) {
+                storefront.socialProof = { ...(storefront.socialProof || {}), ...layoutDto.socialProof };
+            }
+            theme.updatedAt = new Date();
+            const updated = await theme.save();
+            return {
+                success: true,
+                message: 'Storefront layout updated successfully',
+                storefront: updated.storefront,
+            };
+        }
+        catch (error) {
+            console.error('Update storefront layout error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update storefront layout');
+        }
+    }
+    async updateHeroSection(businessId, heroDto) {
+        return this.updateStorefrontLayout(businessId, { hero: heroDto });
+    }
+    async updateSectionsOrder(businessId, sections) {
+        return this.updateStorefrontLayout(businessId, { sections });
+    }
+    async updateComponentStyles(businessId, stylesDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                componentStyles: {},
+            });
+        }
+        try {
+            if (!theme.componentStyles) {
+                theme.componentStyles = {};
+            }
+            const styles = theme.componentStyles;
+            if (stylesDto.buttons) {
+                styles.buttons = { ...(styles.buttons || {}), ...stylesDto.buttons };
+            }
+            if (stylesDto.cards) {
+                styles.cards = { ...(styles.cards || {}), ...stylesDto.cards };
+            }
+            if (stylesDto.inputBorderRadius !== undefined) {
+                styles.inputBorderRadius = stylesDto.inputBorderRadius;
+            }
+            if (stylesDto.sectionSpacing !== undefined) {
+                styles.sectionSpacing = stylesDto.sectionSpacing;
+            }
+            if (stylesDto.maxContentWidth !== undefined) {
+                styles.maxContentWidth = stylesDto.maxContentWidth;
+            }
+            theme.updatedAt = new Date();
+            const updated = await theme.save();
+            return {
+                success: true,
+                message: 'Component styles updated successfully',
+                componentStyles: updated.componentStyles,
+            };
+        }
+        catch (error) {
+            console.error('Update component styles error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update component styles');
+        }
+    }
+    async updateNavbar(businessId, navbarDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                navbar: {},
+            });
+        }
+        try {
+            theme.navbar = { ...(theme.navbar || {}), ...navbarDto };
+            theme.updatedAt = new Date();
+            const updated = await theme.save();
+            return {
+                success: true,
+                message: 'Navbar updated successfully',
+                navbar: updated.navbar,
+            };
+        }
+        catch (error) {
+            console.error('Update navbar error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update navbar');
+        }
+    }
+    async updateFooter(businessId, footerDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                footer: {},
+            });
+        }
+        try {
+            theme.footer = { ...(theme.footer || {}), ...footerDto };
+            theme.updatedAt = new Date();
+            const updated = await theme.save();
+            return {
+                success: true,
+                message: 'Footer updated successfully',
+                footer: updated.footer,
+            };
+        }
+        catch (error) {
+            console.error('Update footer error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update footer');
+        }
+    }
+    async updateSeo(businessId, seoDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                seo: {},
+            });
+        }
+        try {
+            theme.seo = { ...(theme.seo || {}), ...seoDto };
+            theme.updatedAt = new Date();
+            const updated = await theme.save();
+            return {
+                success: true,
+                message: 'SEO configuration updated successfully',
+                seo: updated.seo,
+            };
+        }
+        catch (error) {
+            console.error('Update SEO error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update SEO configuration');
+        }
+    }
+    async updateFullStorefront(businessId, fullDto) {
+        const results = {};
+        if (fullDto.storefront) {
+            const layoutResult = await this.updateStorefrontLayout(businessId, fullDto.storefront);
+            results.storefront = layoutResult.storefront;
+        }
+        if (fullDto.componentStyles) {
+            const stylesResult = await this.updateComponentStyles(businessId, fullDto.componentStyles);
+            results.componentStyles = stylesResult.componentStyles;
+        }
+        if (fullDto.navbar) {
+            const navbarResult = await this.updateNavbar(businessId, fullDto.navbar);
+            results.navbar = navbarResult.navbar;
+        }
+        if (fullDto.footer) {
+            const footerResult = await this.updateFooter(businessId, fullDto.footer);
+            results.footer = footerResult.footer;
+        }
+        if (fullDto.seo) {
+            const seoResult = await this.updateSeo(businessId, fullDto.seo);
+            results.seo = seoResult.seo;
+        }
+        return {
+            success: true,
+            message: 'Storefront configuration updated successfully',
+            ...results,
+        };
+    }
+    async getStorefrontConfig(businessId) {
+        const theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            return {
+                success: true,
+                isDefault: true,
+                storefront: this.getDefaultStorefrontLayout(),
+                componentStyles: this.getDefaultComponentStyles(),
+                navbar: this.getDefaultNavbar(),
+                footer: this.getDefaultFooter(),
+                seo: null,
+            };
+        }
+        return {
+            success: true,
+            isDefault: false,
+            storefront: theme.storefront || this.getDefaultStorefrontLayout(),
+            componentStyles: theme.componentStyles || this.getDefaultComponentStyles(),
+            navbar: theme.navbar || this.getDefaultNavbar(),
+            footer: theme.footer || this.getDefaultFooter(),
+            seo: theme.seo || null,
+        };
+    }
+    getDefaultStorefrontLayout() {
+        return {
+            hero: {
+                enabled: true,
+                type: 'gradient',
+                gradient: { from: '#3B82F6', to: '#8B5CF6', direction: 'to-right' },
+                headline: 'Welcome to Our Salon',
+                subheadline: 'Book your appointment today',
+                textAlignment: 'center',
+                overlayStyle: 'dark',
+                overlayOpacity: 0.4,
+                height: '500px',
+                showBookButton: true,
+                bookButtonText: 'Book Now',
+            },
+            sections: [
+                { id: 'services', type: 'services', title: 'Our Services', enabled: true, order: 1 },
+                { id: 'staff', type: 'staff', title: 'Meet Our Team', enabled: true, order: 2 },
+                { id: 'gallery', type: 'gallery', title: 'Our Work', enabled: false, order: 3 },
+                { id: 'testimonials', type: 'testimonials', title: 'What Our Clients Say', enabled: true, order: 4 },
+                { id: 'about', type: 'about', title: 'About Us', enabled: true, order: 5 },
+                { id: 'contact', type: 'contact', title: 'Contact Us', enabled: true, order: 6 },
+            ],
+            serviceDisplay: { layout: 'grid', columns: 3, showPrices: true, showDuration: true, showDescription: true, showImages: true, groupByCategory: true, showFilters: false },
+            staffDisplay: { layout: 'grid', columns: 4, showBio: true, showSpecialties: true, showRatings: true, showBookButton: false },
+            gallery: { enabled: false, images: [], layout: 'grid', columns: 3 },
+            testimonials: { enabled: true, showRating: true, layout: 'carousel', maxToShow: 6 },
+            contact: { showMap: true, showAddress: true, showPhone: true, showEmail: true, showSocialLinks: true, showBusinessHours: true },
+            bookingFlow: {
+                flow: 'service-first',
+                allowGuestBooking: true,
+                showStaffSelection: true,
+                requireStaffSelection: false,
+                showServiceImages: true,
+                allowMultipleServices: true,
+                datePickerStyle: 'calendar',
+                showAvailableSlots: true,
+                slotDuration: 30,
+                advanceBookingDays: 30,
+                minAdvanceHours: 2,
+            },
+            socialProof: { showReviewCount: true, showAverageRating: true, showTotalBookings: false, showTrustBadges: false, badges: [] },
+            content: { testimonials: [], faqs: [], about: {}, galleryImages: [] },
+        };
+    }
+    async addTestimonial(businessId, testimonialDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                storefront: { content: { testimonials: [], faqs: [], about: {}, galleryImages: [] } },
+            });
+        }
+        try {
+            if (!theme.storefront)
+                theme.storefront = {};
+            if (!theme.storefront.content)
+                theme.storefront.content = { testimonials: [], faqs: [], about: {}, galleryImages: [] };
+            if (!theme.storefront.content.testimonials)
+                theme.storefront.content.testimonials = [];
+            const newTestimonial = {
+                id: `testimonial-${Date.now()}`,
+                clientName: testimonialDto.clientName,
+                clientPhoto: testimonialDto.clientPhoto || null,
+                clientTitle: testimonialDto.clientTitle || null,
+                content: testimonialDto.content,
+                rating: testimonialDto.rating || 5,
+                date: testimonialDto.date || new Date().toISOString().split('T')[0],
+                serviceName: testimonialDto.serviceName || null,
+                isVisible: true,
+                order: theme.storefront.content.testimonials.length,
+            };
+            theme.storefront.content.testimonials.push(newTestimonial);
+            theme.markModified('storefront');
+            theme.updatedAt = new Date();
+            await theme.save();
+            return {
+                success: true,
+                message: 'Testimonial added successfully',
+                testimonial: newTestimonial,
+                totalTestimonials: theme.storefront.content.testimonials.length,
+            };
+        }
+        catch (error) {
+            console.error('Add testimonial error:', error);
+            throw new common_1.InternalServerErrorException('Failed to add testimonial');
+        }
+    }
+    async updateTestimonials(businessId, testimonialsDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            throw new common_1.NotFoundException('Theme not found');
+        }
+        try {
+            if (!theme.storefront)
+                theme.storefront = {};
+            if (!theme.storefront.content)
+                theme.storefront.content = { testimonials: [], faqs: [], about: {}, galleryImages: [] };
+            theme.storefront.content.testimonials = testimonialsDto.testimonials;
+            theme.markModified('storefront');
+            theme.updatedAt = new Date();
+            await theme.save();
+            return {
+                success: true,
+                message: 'Testimonials updated successfully',
+                testimonials: theme.storefront.content.testimonials,
+            };
+        }
+        catch (error) {
+            console.error('Update testimonials error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update testimonials');
+        }
+    }
+    async deleteTestimonial(businessId, testimonialId) {
+        const theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme || !theme.storefront?.content?.testimonials) {
+            throw new common_1.NotFoundException('Testimonial not found');
+        }
+        const index = theme.storefront.content.testimonials.findIndex((t) => t.id === testimonialId);
+        if (index === -1) {
+            throw new common_1.NotFoundException('Testimonial not found');
+        }
+        theme.storefront.content.testimonials.splice(index, 1);
+        theme.markModified('storefront');
+        theme.updatedAt = new Date();
+        await theme.save();
+        return {
+            success: true,
+            message: 'Testimonial deleted successfully',
+        };
+    }
+    async addFAQ(businessId, faqDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                storefront: { content: { testimonials: [], faqs: [], about: {}, galleryImages: [] } },
+            });
+        }
+        try {
+            if (!theme.storefront)
+                theme.storefront = {};
+            if (!theme.storefront.content)
+                theme.storefront.content = { testimonials: [], faqs: [], about: {}, galleryImages: [] };
+            if (!theme.storefront.content.faqs)
+                theme.storefront.content.faqs = [];
+            const newFAQ = {
+                id: `faq-${Date.now()}`,
+                question: faqDto.question,
+                answer: faqDto.answer,
+                category: faqDto.category || 'general',
+                isVisible: true,
+                order: theme.storefront.content.faqs.length,
+            };
+            theme.storefront.content.faqs.push(newFAQ);
+            theme.markModified('storefront');
+            theme.updatedAt = new Date();
+            await theme.save();
+            return {
+                success: true,
+                message: 'FAQ added successfully',
+                faq: newFAQ,
+                totalFAQs: theme.storefront.content.faqs.length,
+            };
+        }
+        catch (error) {
+            console.error('Add FAQ error:', error);
+            throw new common_1.InternalServerErrorException('Failed to add FAQ');
+        }
+    }
+    async updateFAQs(businessId, faqsDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            throw new common_1.NotFoundException('Theme not found');
+        }
+        try {
+            if (!theme.storefront)
+                theme.storefront = {};
+            if (!theme.storefront.content)
+                theme.storefront.content = { testimonials: [], faqs: [], about: {}, galleryImages: [] };
+            theme.storefront.content.faqs = faqsDto.faqs;
+            theme.markModified('storefront');
+            theme.updatedAt = new Date();
+            await theme.save();
+            return {
+                success: true,
+                message: 'FAQs updated successfully',
+                faqs: theme.storefront.content.faqs,
+            };
+        }
+        catch (error) {
+            console.error('Update FAQs error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update FAQs');
+        }
+    }
+    async deleteFAQ(businessId, faqId) {
+        const theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme || !theme.storefront?.content?.faqs) {
+            throw new common_1.NotFoundException('FAQ not found');
+        }
+        const index = theme.storefront.content.faqs.findIndex((f) => f.id === faqId);
+        if (index === -1) {
+            throw new common_1.NotFoundException('FAQ not found');
+        }
+        theme.storefront.content.faqs.splice(index, 1);
+        theme.markModified('storefront');
+        theme.updatedAt = new Date();
+        await theme.save();
+        return {
+            success: true,
+            message: 'FAQ deleted successfully',
+        };
+    }
+    async importFAQsFromChat(businessId, replaceExisting = false) {
+        return {
+            success: false,
+            message: 'Import FAQs from chat is not yet implemented. Please add FAQs manually or implement the integration.',
+        };
+    }
+    async updateAboutContent(businessId, aboutDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                storefront: { content: { testimonials: [], faqs: [], about: {}, galleryImages: [] } },
+            });
+        }
+        try {
+            if (!theme.storefront)
+                theme.storefront = {};
+            if (!theme.storefront.content)
+                theme.storefront.content = { testimonials: [], faqs: [], about: {}, galleryImages: [] };
+            theme.storefront.content.about = {
+                ...(theme.storefront.content.about || {}),
+                ...aboutDto,
+            };
+            theme.markModified('storefront');
+            theme.updatedAt = new Date();
+            await theme.save();
+            return {
+                success: true,
+                message: 'About section updated successfully',
+                about: theme.storefront.content.about,
+            };
+        }
+        catch (error) {
+            console.error('Update about content error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update about section');
+        }
+    }
+    async addGalleryImage(businessId, imageDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            const defaultTheme = this.getDefaultTheme();
+            theme = await this.themeModel.create({
+                tenantId: new mongoose_2.Types.ObjectId(businessId),
+                colors: defaultTheme.colors,
+                typography: defaultTheme.typography,
+                storefront: { content: { testimonials: [], faqs: [], about: {}, galleryImages: [] } },
+            });
+        }
+        try {
+            if (!theme.storefront)
+                theme.storefront = {};
+            if (!theme.storefront.content)
+                theme.storefront.content = { testimonials: [], faqs: [], about: {}, galleryImages: [] };
+            if (!theme.storefront.content.galleryImages)
+                theme.storefront.content.galleryImages = [];
+            const newImage = {
+                id: `gallery-${Date.now()}`,
+                url: imageDto.url,
+                thumbnail: imageDto.thumbnail || imageDto.url,
+                caption: imageDto.caption || null,
+                category: imageDto.category || null,
+                serviceName: imageDto.serviceName || null,
+                isVisible: true,
+                order: theme.storefront.content.galleryImages.length,
+            };
+            theme.storefront.content.galleryImages.push(newImage);
+            theme.markModified('storefront');
+            theme.updatedAt = new Date();
+            await theme.save();
+            return {
+                success: true,
+                message: 'Gallery image added successfully',
+                image: newImage,
+                totalImages: theme.storefront.content.galleryImages.length,
+            };
+        }
+        catch (error) {
+            console.error('Add gallery image error:', error);
+            throw new common_1.InternalServerErrorException('Failed to add gallery image');
+        }
+    }
+    async updateGalleryImages(businessId, imagesDto) {
+        let theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme) {
+            throw new common_1.NotFoundException('Theme not found');
+        }
+        try {
+            if (!theme.storefront)
+                theme.storefront = {};
+            if (!theme.storefront.content)
+                theme.storefront.content = { testimonials: [], faqs: [], about: {}, galleryImages: [] };
+            theme.storefront.content.galleryImages = imagesDto.images;
+            theme.markModified('storefront');
+            theme.updatedAt = new Date();
+            await theme.save();
+            return {
+                success: true,
+                message: 'Gallery images updated successfully',
+                images: theme.storefront.content.galleryImages,
+            };
+        }
+        catch (error) {
+            console.error('Update gallery images error:', error);
+            throw new common_1.InternalServerErrorException('Failed to update gallery images');
+        }
+    }
+    async deleteGalleryImage(businessId, imageId) {
+        const theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        if (!theme || !theme.storefront?.content?.galleryImages) {
+            throw new common_1.NotFoundException('Gallery image not found');
+        }
+        const index = theme.storefront.content.galleryImages.findIndex((i) => i.id === imageId);
+        if (index === -1) {
+            throw new common_1.NotFoundException('Gallery image not found');
+        }
+        theme.storefront.content.galleryImages.splice(index, 1);
+        theme.markModified('storefront');
+        theme.updatedAt = new Date();
+        await theme.save();
+        return {
+            success: true,
+            message: 'Gallery image deleted successfully',
+        };
+    }
+    async getStorefrontContent(businessId) {
+        const theme = await this.themeModel.findOne({
+            tenantId: new mongoose_2.Types.ObjectId(businessId)
+        });
+        const defaultContent = { testimonials: [], faqs: [], about: {}, galleryImages: [] };
+        if (!theme || !theme.storefront?.content) {
+            return {
+                success: true,
+                content: defaultContent,
+            };
+        }
+        return {
+            success: true,
+            content: theme.storefront.content,
+        };
+    }
+    getDefaultComponentStyles() {
+        return {
+            buttons: { borderRadius: '8px', style: 'filled', size: 'medium', uppercase: false, fontWeight: '600' },
+            cards: { borderRadius: '12px', shadow: true, shadowIntensity: 'medium', border: true, borderColor: '#E5E7EB' },
+            inputBorderRadius: '8px',
+            sectionSpacing: '24px',
+            maxContentWidth: '1200px',
+        };
+    }
+    getDefaultNavbar() {
+        return {
+            style: 'default',
+            showLogo: true,
+            showBusinessName: true,
+            showBookButton: true,
+            bookButtonText: 'Book Now',
+            menuItems: [
+                { label: 'Services', sectionId: 'services' },
+                { label: 'Team', sectionId: 'staff' },
+                { label: 'Contact', sectionId: 'contact' },
+            ],
+        };
+    }
+    getDefaultFooter() {
+        return {
+            enabled: true,
+            showSocialLinks: true,
+            showQuickLinks: true,
+            showContactInfo: true,
+            showNewsletter: false,
+            copyrightText: '© 2026 All rights reserved.',
+            customLinks: [],
         };
     }
     async requestCustomDomain(businessId, domain, userId) {
@@ -785,13 +1460,36 @@ let BrandingService = class BrandingService {
         if (!themeData.colors || !themeData.typography) {
             throw new common_1.BadRequestException('Theme must include colors and typography');
         }
+        const themeBase64 = Buffer.from(JSON.stringify(themeData)).toString('base64');
+        const previewBaseUrl = process.env.PREVIEW_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3001';
         return {
+            success: true,
             preview: true,
             theme: themeData,
-            previewUrl: `https://preview.yourbookingapp.com/${businessId}?theme=${Buffer.from(JSON.stringify(themeData)).toString('base64')}`,
+            cssVariables: this.generateCssVariables(themeData),
+            previewUrl: `${previewBaseUrl}/preview/${businessId}?theme=${themeBase64}`,
+            localPreviewUrl: `http://localhost:3001/preview/${businessId}?theme=${themeBase64}`,
             message: 'This is a preview. Use POST /branding/theme to save changes.',
             expires: new Date(Date.now() + 30 * 60 * 1000)
         };
+    }
+    generateCssVariables(themeData) {
+        const { colors, typography } = themeData;
+        return `:root {
+  /* Colors */
+  --color-primary: ${colors.primary};
+  --color-secondary: ${colors.secondary};
+  --color-accent: ${colors.accent};
+  --color-background: ${colors.background};
+  --color-text: ${colors.text};
+  --color-error: ${colors.error};
+  --color-success: ${colors.success};
+  
+  /* Typography */
+  --font-family: ${typography.fontFamily};
+  --font-heading: ${typography.headingFont};
+  --font-body: ${typography.bodyFont};
+}`;
     }
     async exportBrandingConfig(businessId) {
         const overview = await this.getBrandingOverview(businessId);
@@ -857,6 +1555,63 @@ let BrandingService = class BrandingService {
             throw new common_1.InternalServerErrorException('Failed to import branding configuration');
         }
     }
+    async createPreviewSession(businessId, themeData) {
+        try {
+            const previewId = crypto.randomBytes(8).toString('hex');
+            const cacheKey = `${this.PREVIEW_KEY_PREFIX}${previewId}`;
+            await this.cacheService.set(cacheKey, {
+                businessId,
+                theme: themeData,
+                createdAt: new Date().toISOString(),
+            }, this.PREVIEW_TTL);
+            return {
+                previewId,
+                previewUrl: `/preview/book/{subdomain}?previewId=${previewId}`,
+            };
+        }
+        catch (error) {
+            console.error('Create preview session error:', error);
+            throw new common_1.InternalServerErrorException('Failed to create preview session');
+        }
+    }
+    async getPreviewSession(previewId) {
+        try {
+            const cacheKey = `${this.PREVIEW_KEY_PREFIX}${previewId}`;
+            const previewData = await this.cacheService.get(cacheKey);
+            if (!previewData) {
+                throw new common_1.NotFoundException('Preview session expired or not found');
+            }
+            return previewData;
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            console.error('Get preview session error:', error);
+            throw new common_1.InternalServerErrorException('Failed to get preview session');
+        }
+    }
+    async deletePreviewSession(previewId) {
+        try {
+            const cacheKey = `${this.PREVIEW_KEY_PREFIX}${previewId}`;
+            await this.cacheService.delete(cacheKey);
+        }
+        catch (error) {
+            console.error('Delete preview session error:', error);
+        }
+    }
+    async extendPreviewSession(previewId) {
+        try {
+            const cacheKey = `${this.PREVIEW_KEY_PREFIX}${previewId}`;
+            const previewData = await this.cacheService.get(cacheKey);
+            if (previewData) {
+                await this.cacheService.set(cacheKey, previewData, this.PREVIEW_TTL);
+            }
+        }
+        catch (error) {
+            console.error('Extend preview session error:', error);
+        }
+    }
 };
 BrandingService = __decorate([
     (0, common_1.Injectable)(),
@@ -867,7 +1622,8 @@ BrandingService = __decorate([
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        cache_service_1.CacheService])
 ], BrandingService);
 exports.BrandingService = BrandingService;
 //# sourceMappingURL=branding.service.js.map

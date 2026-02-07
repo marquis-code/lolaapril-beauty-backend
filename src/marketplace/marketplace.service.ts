@@ -19,22 +19,19 @@ export class MarketplaceService {
   ) {}
 
   // ========== BUSINESS VERIFICATION ==========
-  async submitForVerification(tenantId: string, documents: any) {
+  async submitForVerification(businessId: string, documents: any) {
     const existing = await this.verificationModel.findOne({ 
-      tenantId: new Types.ObjectId(tenantId) 
+      businessId: new Types.ObjectId(businessId) 
     });
-
     if (existing) {
       throw new BadRequestException('Verification already submitted');
     }
-
     const verification = new this.verificationModel({
-      tenantId: new Types.ObjectId(tenantId),
+      businessId: new Types.ObjectId(businessId),
       status: 'pending',
       verificationLevel: 'basic',
       businessDocuments: documents,
     });
-
     return verification.save();
   }
 
@@ -68,9 +65,9 @@ export class MarketplaceService {
     return verification.save();
   }
 
-  async getVerificationStatus(tenantId: string) {
+  async getVerificationStatus(businessId: string) {
     return this.verificationModel
-      .findOne({ tenantId: new Types.ObjectId(tenantId) })
+      .findOne({ businessId: new Types.ObjectId(businessId) })
       .populate('verifiedBy', 'firstName lastName')
       .exec();
   }
@@ -247,7 +244,7 @@ export class MarketplaceService {
   }
 
   // ========== QUALITY METRICS ==========
-  async updateQualityMetrics(tenantId: string) {
+  async updateQualityMetrics(businessId: string) {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -264,13 +261,13 @@ export class MarketplaceService {
 
     // Update verification record with quality metrics
     await this.verificationModel.updateOne(
-      { tenantId: new Types.ObjectId(tenantId) },
+      { businessId: new Types.ObjectId(businessId) },
       { qualityMetrics: metrics },
     );
 
     // Store historical metric
     const metric = new this.qualityMetricModel({
-      tenantId: new Types.ObjectId(tenantId),
+      businessId: new Types.ObjectId(businessId),
       metricType: 'overall_quality',
       value: Object.values(metrics).reduce((a, b) => a + b, 0) / Object.keys(metrics).length,
       period: 'monthly',
@@ -283,15 +280,13 @@ export class MarketplaceService {
     return metrics;
   }
 
-  async getBusinessQualityScore(tenantId: string) {
+  async getBusinessQualityScore(businessId: string) {
     const verification = await this.verificationModel.findOne({
-      tenantId: new Types.ObjectId(tenantId),
+      businessId: new Types.ObjectId(businessId),
     });
-
     if (!verification || !verification.qualityMetrics) {
       return null;
     }
-
     return {
       score: this.calculateQualityScore(verification.qualityMetrics),
       metrics: verification.qualityMetrics,

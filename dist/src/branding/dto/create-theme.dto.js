@@ -50,6 +50,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ColorScheme.prototype, "success", void 0);
+__decorate([
+    (0, class_validator_1.Allow)(),
+    __metadata("design:type", Object)
+], ColorScheme.prototype, "_id", void 0);
 class Typography {
 }
 __decorate([
@@ -67,6 +71,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], Typography.prototype, "bodyFont", void 0);
+__decorate([
+    (0, class_validator_1.Allow)(),
+    __metadata("design:type", Object)
+], Typography.prototype, "_id", void 0);
 class Logo {
 }
 __decorate([
@@ -89,6 +97,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], Logo.prototype, "alt", void 0);
+__decorate([
+    (0, class_validator_1.Allow)(),
+    __metadata("design:type", Object)
+], Logo.prototype, "_id", void 0);
 class Favicon {
 }
 __decorate([
@@ -96,6 +108,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], Favicon.prototype, "url", void 0);
+__decorate([
+    (0, class_validator_1.Allow)(),
+    __metadata("design:type", Object)
+], Favicon.prototype, "_id", void 0);
 class CustomCss {
 }
 __decorate([
@@ -108,6 +124,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CustomCss.prototype, "cssCode", void 0);
+__decorate([
+    (0, class_validator_1.Allow)(),
+    __metadata("design:type", Object)
+], CustomCss.prototype, "_id", void 0);
 class CreateThemeDto {
 }
 __decorate([

@@ -31,8 +31,8 @@ import { AppointmentQueryDto } from "./dto/appointment-query.dto";
 export declare class AppointmentController {
     private readonly appointmentService;
     constructor(appointmentService: AppointmentService);
-    create(createAppointmentDto: CreateAppointmentDto): Promise<import("./schemas/appointment.schema").Appointment>;
-    findAll(query: AppointmentQueryDto): Promise<{
+    create(businessId: string, createAppointmentDto: CreateAppointmentDto): Promise<import("./schemas/appointment.schema").Appointment>;
+    findAll(businessId: string, query: AppointmentQueryDto): Promise<{
         appointments: (import("mongoose").Document<unknown, {}, import("./schemas/appointment.schema").AppointmentDocument, {}, {}> & import("./schemas/appointment.schema").Appointment & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
             _id: import("mongoose").Types.ObjectId;
         }> & {
@@ -50,8 +50,8 @@ export declare class AppointmentController {
         revenue: any;
     }>;
     getAvailableSlots(date: string, staffId?: string): Promise<string[]>;
-    getByDate(date: string): Promise<import("./schemas/appointment.schema").Appointment[]>;
-    getByStaff(staffId: string, date?: string): Promise<import("./schemas/appointment.schema").Appointment[]>;
+    getByDate(businessId: string, date: string): Promise<import("./schemas/appointment.schema").Appointment[]>;
+    getByStaff(businessId: string, staffId: string, date?: string): Promise<import("./schemas/appointment.schema").Appointment[]>;
     findOne(id: string): Promise<import("./schemas/appointment.schema").Appointment>;
     update(id: string, updateAppointmentDto: UpdateAppointmentDto): Promise<import("./schemas/appointment.schema").Appointment>;
     updateStatus(id: string, body: {

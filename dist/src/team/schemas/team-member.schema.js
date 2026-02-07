@@ -108,6 +108,10 @@ exports.CommissionSchema = mongoose_1.SchemaFactory.createForClass(Commission);
 let TeamMember = class TeamMember {
 };
 __decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Business', required: true, index: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], TeamMember.prototype, "businessId", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], TeamMember.prototype, "firstName", void 0);

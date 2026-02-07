@@ -536,14 +536,22 @@ async handleSendMessage(
    * Get connected clients for a business
    */
   getBusinessConnections(businessId: string): number {
-    return this.server.sockets.adapter.rooms.get(`business:${businessId}`)?.size || 0
+    try {
+      return this.server?.sockets?.adapter?.rooms?.get(`business:${businessId}`)?.size || 0
+    } catch (error) {
+      return 0
+    }
   }
 
   /**
    * Check if user is online
    */
   isUserOnline(userId: string): boolean {
-    return this.server.sockets.adapter.rooms.has(`user:${userId}`)
+    try {
+      return this.server?.sockets?.adapter?.rooms?.has(`user:${userId}`) || false
+    } catch (error) {
+      return false
+    }
   }
 
   // ================== NOTIFICATION EVENTS ==================

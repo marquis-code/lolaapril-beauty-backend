@@ -1,9 +1,23 @@
 import { BusinessService } from './business.service';
-import { UpdateBusinessDto } from './dto/business.dto';
 import type { RequestWithUser } from '../auth';
 export declare class BusinessController {
     private readonly businessService;
     constructor(businessService: BusinessService);
+    getBusinessWorkingHours(businessId: string): Promise<{
+        success: boolean;
+        data: any[];
+        message: string;
+    }>;
+    createBusinessWorkingHours(businessId: string, workingHours: any[]): Promise<{
+        success: boolean;
+        data: any[];
+        message: string;
+    }>;
+    updateBusinessWorkingHours(businessId: string, workingHours: any[]): Promise<{
+        success: boolean;
+        data: any[];
+        message: string;
+    }>;
     checkSubdomainAvailability(subdomain: string): Promise<{
         success: boolean;
         data: {
@@ -17,6 +31,7 @@ export declare class BusinessController {
         data: any;
         message: string;
     }>;
+    getStorefront(subdomain: string): Promise<any>;
     getById(id: string): Promise<{
         success: boolean;
         data: any;
@@ -26,42 +41,6 @@ export declare class BusinessController {
         success: boolean;
         data: any[];
         message: string;
-    }>;
-    update(id: string, businessId: string, updateDto: UpdateBusinessDto): Promise<{
-        success: boolean;
-        error: string;
-        data?: undefined;
-        message?: undefined;
-    } | {
-        success: boolean;
-        data: any;
-        message: string;
-        error?: undefined;
-    }>;
-    addStaff(id: string, businessId: string, staffDto: {
-        email: string;
-        firstName: string;
-        lastName: string;
-        phone?: string;
-    }): Promise<{
-        success: boolean;
-        error: string;
-        data?: undefined;
-        message?: undefined;
-    } | {
-        success: boolean;
-        data: any;
-        message: string;
-        error?: undefined;
-    }>;
-    removeStaff(id: string, staffId: string, businessId: string): Promise<{
-        success: boolean;
-        error: string;
-        message?: undefined;
-    } | {
-        success: boolean;
-        message: string;
-        error?: undefined;
     }>;
     addAdmin(id: string, adminId: string, businessId: string): Promise<{
         success: boolean;

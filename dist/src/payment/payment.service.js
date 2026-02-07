@@ -642,9 +642,9 @@ let PaymentService = class PaymentService {
             throw new common_1.BadRequestException(`Failed to update payment status: ${error.message}`);
         }
     }
-    async processRefund(id, refundAmount, refundReason) {
+    async processRefund(businessId, id, refundAmount, refundReason) {
         try {
-            const payment = await this.paymentModel.findById(id);
+            const payment = await this.paymentModel.findOne({ _id: id, businessId });
             if (!payment) {
                 throw new common_1.NotFoundException('Payment not found');
             }
@@ -663,7 +663,7 @@ let PaymentService = class PaymentService {
                 throw new common_1.BadRequestException(`Refund failed: ${gatewayError.message}`);
             }
             const newStatus = totalRefunded === payment.totalAmount ? 'refunded' : 'partially_refunded';
-            const updatedPayment = await this.paymentModel.findByIdAndUpdate(id, {
+            const updatedPayment = await this.paymentModel.findOneAndUpdate({ _id: id, businessId }, {
                 refundedAmount: totalRefunded,
                 refundedAt: new Date(),
                 refundReason,
@@ -687,14 +687,14 @@ let PaymentService = class PaymentService {
             throw new common_1.BadRequestException(`Failed to process refund: ${error.message}`);
         }
     }
-    async initiateRefund(transactionReference, amount) {
+    async initiateRefund(businessId, transactionReference, amount) {
         try {
             console.log(`💰 Initiating refund for transaction: ${transactionReference}`);
-            const payment = await this.paymentModel.findOne({ transactionId: transactionReference });
+            const payment = await this.paymentModel.findOne({ transactionId: transactionReference, businessId });
             if (!payment) {
                 throw new common_1.NotFoundException('Payment not found');
             }
-            await this.processRefund(payment._id.toString(), amount, 'Refund requested');
+            await this.processRefund(businessId, payment._id.toString(), amount, 'Refund requested');
             console.log('✅ Refund initiated successfully');
         }
         catch (error) {

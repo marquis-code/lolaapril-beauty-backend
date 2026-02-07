@@ -387,8 +387,6 @@ export class CancellationController {
   // ==================== ANALYTICS & REPORTING ====================
 
   @Get('analytics/no-shows')
-  
-  
   @ApiOperation({ 
     summary: 'Get no-show analytics for business',
     description: 'Provides statistical analysis of no-shows and cancellations'
@@ -465,8 +463,6 @@ export class CancellationController {
   }
 
   @Get('analytics/trends')
-  
-  
   @ApiOperation({ 
     summary: 'Get cancellation trends over time',
     description: 'Shows trends in cancellations and no-shows over specified period'

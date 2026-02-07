@@ -31,6 +31,7 @@ export declare class AvailabilityController {
                 date: string;
                 hasSlots: boolean;
                 availableSlotCount: number;
+                takenSlotCount: number;
                 totalSlots: number;
                 staffAvailable: number;
             }[];

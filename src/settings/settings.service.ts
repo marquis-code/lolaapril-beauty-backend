@@ -185,12 +185,74 @@ import { BusinessSettings, BusinessSettingsDocument, BusinessHours } from "./sch
 import { CreateBusinessSettingsDto } from "./dto/create-business-settings.dto"
 import { UpdateBusinessSettingsDto } from "./dto/update-business-settings.dto"
 import { InjectModel } from "@nestjs/mongoose"
+import { Business, BusinessDocument } from "../business/schemas/business.schema"
 
 @Injectable()
 export class SettingsService {
   constructor(
-    @InjectModel(BusinessSettings.name) private settingsModel: Model<BusinessSettingsDocument>
+    @InjectModel(BusinessSettings.name) private settingsModel: Model<BusinessSettingsDocument>,
+    @InjectModel(Business.name) private businessModel: Model<BusinessDocument>
   ) {}
+
+  // ==================== DEFAULT SETTINGS ====================
+  private getDefaultBusinessHours(): BusinessHours[] {
+    return [
+      { day: 'Monday', startTime: '09:00', endTime: '17:00', isOpen: true },
+      { day: 'Tuesday', startTime: '09:00', endTime: '17:00', isOpen: true },
+      { day: 'Wednesday', startTime: '09:00', endTime: '17:00', isOpen: true },
+      { day: 'Thursday', startTime: '09:00', endTime: '17:00', isOpen: true },
+      { day: 'Friday', startTime: '09:00', endTime: '17:00', isOpen: true },
+      { day: 'Saturday', startTime: '10:00', endTime: '16:00', isOpen: true },
+      { day: 'Sunday', startTime: '00:00', endTime: '00:00', isOpen: false },
+    ]
+  }
+
+  private getDefaultAppointmentSettings() {
+    return {
+      appointmentStatuses: [
+        { statusName: 'Scheduled', statusIcon: '📅', statusColor: '#3b82f6', isActive: true },
+        { statusName: 'Confirmed', statusIcon: '✅', statusColor: '#22c55e', isActive: true },
+        { statusName: 'In Progress', statusIcon: '🔄', statusColor: '#f59e0b', isActive: true },
+        { statusName: 'Completed', statusIcon: '✔️', statusColor: '#10b981', isActive: true },
+        { statusName: 'Cancelled', statusIcon: '❌', statusColor: '#ef4444', isActive: true },
+        { statusName: 'No Show', statusIcon: '👻', statusColor: '#6b7280', isActive: true },
+      ],
+      cancellationReasons: [
+        { name: 'Schedule conflict', reasonType: 'client_initiated' as const, isActive: true },
+        { name: 'Personal emergency', reasonType: 'client_initiated' as const, isActive: true },
+        { name: 'Changed mind', reasonType: 'client_initiated' as const, isActive: true },
+        { name: 'Staff unavailable', reasonType: 'business_initiated' as const, isActive: true },
+        { name: 'Weather conditions', reasonType: 'external_factors' as const, isActive: true },
+      ],
+      defaultAppointmentDuration: 30,
+      bookingWindowHours: 2,
+      allowOnlineBooking: true,
+      requireClientConfirmation: true
+    }
+  }
+
+  private getDefaultPaymentSettings() {
+    return {
+      paymentMethods: [
+        { name: 'Cash', paymentType: 'cash' as const, enabled: true },
+        { name: 'Bank Transfer', paymentType: 'bank_transfer' as const, enabled: true },
+      ],
+      serviceCharges: [],
+      taxes: [],
+      defaultCurrency: 'NGN'
+    }
+  }
+
+  private getDefaultNotificationSettings() {
+    return {
+      emailNotifications: true,
+      smsNotifications: false,
+      pushNotifications: true,
+      appointmentReminders: true,
+      reminderHoursBefore: 24,
+      marketingEmails: false
+    }
+  }
 
   // ==================== CREATE ====================
   async create(businessId: string, createSettingsDto: CreateBusinessSettingsDto): Promise<BusinessSettings> {
@@ -220,40 +282,107 @@ export class SettingsService {
     return settings
   }
 
+  /**
+   * Find settings by business ID or return null if not found (no exception)
+   */
+  async findByBusinessIdOrNull(businessId: string): Promise<BusinessSettings | null> {
+    return this.settingsModel.findOne({ businessId: new Types.ObjectId(businessId) })
+  }
+
+  /**
+   * Get settings or create default settings if they don't exist
+   */
+  async findOrCreateDefault(businessId: string): Promise<BusinessSettings> {
+    let settings = await this.settingsModel.findOne({ businessId: new Types.ObjectId(businessId) })
+    
+    if (!settings) {
+      // Fetch business info to populate required fields
+      const business = await this.businessModel.findById(businessId)
+      
+      if (!business) {
+        throw new NotFoundException("Business not found")
+      }
+
+      const appointmentDefaults = this.getDefaultAppointmentSettings()
+      const paymentDefaults = this.getDefaultPaymentSettings()
+
+      // Create default settings for this business
+      const defaultSettings: Partial<BusinessSettings> = {
+        businessId: new Types.ObjectId(businessId),
+        businessName: business.businessName || 'My Business',
+        businessEmail: business.contact?.email || 'business@example.com',
+        businessPhone: { 
+          countryCode: '+234', 
+          number: business.contact?.primaryPhone || '0000000000' 
+        },
+        businessAddress: {
+          street: business.address?.street || '',
+          city: business.address?.city || '',
+          region: business.address?.state || '',
+          postcode: business.address?.postalCode || '',
+          country: business.address?.country || 'Nigeria'
+        },
+        businessHours: this.getDefaultBusinessHours(),
+        appointmentStatuses: appointmentDefaults.appointmentStatuses,
+        cancellationReasons: appointmentDefaults.cancellationReasons,
+        defaultAppointmentDuration: appointmentDefaults.defaultAppointmentDuration,
+        bookingWindowHours: appointmentDefaults.bookingWindowHours,
+        allowOnlineBooking: appointmentDefaults.allowOnlineBooking,
+        requireClientConfirmation: appointmentDefaults.requireClientConfirmation,
+        paymentMethods: paymentDefaults.paymentMethods,
+        serviceCharges: paymentDefaults.serviceCharges,
+        taxes: paymentDefaults.taxes,
+        defaultCurrency: paymentDefaults.defaultCurrency,
+        timezone: business.settings?.timezone || 'Africa/Lagos'
+      }
+
+      settings = new this.settingsModel(defaultSettings)
+      await settings.save()
+    }
+    
+    return settings
+  }
+
   async getBusinessHours(businessId: string): Promise<BusinessHours[]> {
-    const settings = await this.findByBusinessId(businessId)
-    return settings.businessHours || []
+    const settings = await this.findByBusinessIdOrNull(businessId)
+    return settings?.businessHours || this.getDefaultBusinessHours()
   }
 
   async getAppointmentSettings(businessId: string): Promise<any> {
-    const settings = await this.findByBusinessId(businessId)
+    const settings = await this.findByBusinessIdOrNull(businessId)
+    
+    if (!settings) {
+      return this.getDefaultAppointmentSettings()
+    }
     
     return {
-      appointmentStatuses: settings.appointmentStatuses,
-      cancellationReasons: settings.cancellationReasons,
-      defaultAppointmentDuration: settings.defaultAppointmentDuration,
-      bookingWindowHours: settings.bookingWindowHours,
-      allowOnlineBooking: settings.allowOnlineBooking,
-      requireClientConfirmation: settings.requireClientConfirmation
+      appointmentStatuses: settings.appointmentStatuses || this.getDefaultAppointmentSettings().appointmentStatuses,
+      cancellationReasons: settings.cancellationReasons || this.getDefaultAppointmentSettings().cancellationReasons,
+      defaultAppointmentDuration: settings.defaultAppointmentDuration ?? 30,
+      bookingWindowHours: settings.bookingWindowHours ?? 2,
+      allowOnlineBooking: settings.allowOnlineBooking ?? true,
+      requireClientConfirmation: settings.requireClientConfirmation ?? true
     }
   }
 
   async getPaymentSettings(businessId: string): Promise<any> {
-    const settings = await this.findByBusinessId(businessId)
+    const settings = await this.findByBusinessIdOrNull(businessId)
+
+    if (!settings) {
+      return this.getDefaultPaymentSettings()
+    }
 
     return {
-      paymentMethods: settings.paymentMethods,
-      serviceCharges: settings.serviceCharges,
-      taxes: settings.taxes,
-      defaultCurrency: settings.defaultCurrency
+      paymentMethods: settings.paymentMethods || this.getDefaultPaymentSettings().paymentMethods,
+      serviceCharges: settings.serviceCharges || [],
+      taxes: settings.taxes || [],
+      defaultCurrency: settings.defaultCurrency || 'NGN'
     }
   }
 
   async getNotificationSettings(businessId: string): Promise<any> {
-    const settings = await this.findByBusinessId(businessId)
-    
-    // Return notification settings if they exist in schema, or throw error
-    throw new Error("Notification settings not implemented in current schema")
+    // Return default notification settings
+    return this.getDefaultNotificationSettings()
   }
 
   // ==================== UPDATE ====================

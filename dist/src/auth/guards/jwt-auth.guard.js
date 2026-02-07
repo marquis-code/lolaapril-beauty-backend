@@ -19,17 +19,49 @@ let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
         super();
         this.reflector = reflector;
     }
-    canActivate(context) {
+    async canActivate(context) {
         const isPublic = this.reflector.getAllAndOverride(public_decorator_1.IS_PUBLIC_KEY, [
             context.getHandler(),
             context.getClass(),
         ]);
+        const request = context.switchToHttp().getRequest();
+        const hasAuthHeader = !!request.headers?.authorization;
+        console.log('🛡️ JwtAuthGuard.canActivate:', {
+            isPublic,
+            hasAuthHeader,
+            authHeader: hasAuthHeader ? request.headers.authorization.substring(0, 30) + '...' : 'none'
+        });
         if (isPublic) {
+            if (hasAuthHeader) {
+                try {
+                    console.log('🔄 Attempting JWT validation for public route with token...');
+                    const result = await super.canActivate(context);
+                    console.log('✅ JWT validation successful for public route, user attached:', !!request.user);
+                }
+                catch (error) {
+                    console.log('⚠️ JWT validation failed for public route:', error.message);
+                }
+            }
             return true;
         }
         return super.canActivate(context);
     }
-    handleRequest(err, user, info) {
+    handleRequest(err, user, info, context) {
+        const isPublic = this.reflector.getAllAndOverride(public_decorator_1.IS_PUBLIC_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        console.log('🛡️ JwtAuthGuard.handleRequest:', {
+            isPublic,
+            hasError: !!err,
+            errorMessage: err?.message,
+            hasUser: !!user,
+            userBusinessId: user?.businessId,
+            info: info?.message || info?.name || info
+        });
+        if (isPublic) {
+            return user || undefined;
+        }
         if (err || !user) {
             throw err || new common_1.UnauthorizedException('Invalid token');
         }

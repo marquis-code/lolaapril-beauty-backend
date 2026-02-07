@@ -1,39 +1,3 @@
-// import { IsString, IsNotEmpty, IsNumber, IsEmail, IsOptional, Min } from "class-validator"
-// import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-
-// export class InitializePaymentDto {
-//   @ApiProperty({ example: "client@example.com", description: "Client email address" })
-//   @IsEmail()
-//   @IsNotEmpty()
-//   email: string
-
-//   @ApiProperty({ example: 5000, description: "Payment amount in Naira" })
-//   @IsNumber()
-//   @Min(100)
-//   amount: number
-
-//   @ApiProperty({ example: "507f1f77bcf86cd799439011", description: "Client ID" })
-//   @IsString()
-//   @IsNotEmpty()
-//   clientId: string
-
-//   @ApiPropertyOptional({ example: "507f1f77bcf86cd799439012", description: "Appointment ID" })
-//   @IsOptional()
-//   @IsString()
-//   appointmentId?: string
-
-//   @ApiPropertyOptional({ example: "507f1f77bcf86cd799439013", description: "Booking ID" })
-//   @IsOptional()
-//   @IsString()
-//   bookingId?: string
-
-//   @ApiPropertyOptional({ 
-//     description: "Additional metadata for the payment",
-//     example: { businessId: "507f1f77bcf86cd799439014", serviceName: "Hair Cut" }
-//   })
-//   @IsOptional()
-//   metadata?: any
-// }
 
 import { IsString, IsNotEmpty, IsNumber, IsEmail, IsOptional, Min } from "class-validator"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"

@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AnalyticsService } from './analytics.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard, BusinessId } from '../auth';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/schemas/user.schema';
@@ -33,7 +33,7 @@ import { AuditAction, AuditEntity } from '../audit/schemas/audit-log.schema';
 @ApiTags('Analytics')
 @ApiBearerAuth()
 @Controller('analytics')
-
+@UseGuards(JwtAuthGuard, RolesGuard)
 @UseInterceptors(AuditInterceptor)
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
@@ -50,7 +50,6 @@ export class AnalyticsController {
     summary: 'Generate a financial report',
     description: 'Generates a comprehensive financial report for a specified period',
   })
-  @ApiQuery({ name: 'businessId', required: true, type: String })
   @ApiQuery({ name: 'startDate', required: true, type: String, description: 'ISO date string (YYYY-MM-DD)' })
   @ApiQuery({ name: 'endDate', required: true, type: String, description: 'ISO date string (YYYY-MM-DD)' })
   @ApiQuery({
@@ -68,10 +67,10 @@ export class AnalyticsController {
     description: 'Invalid date format or business ID',
   })
   async generateFinancialReport(
-    @Query('businessId') businessId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
-    @Query('reportPeriod') reportPeriod?: string,
+    @Query('reportPeriod') reportPeriod: string = 'custom',
+    @BusinessId() businessId: string,
   ) {
     try {
       const start = new Date(startDate);
@@ -89,7 +88,7 @@ export class AnalyticsController {
         businessId,
         start,
         end,
-        reportPeriod || 'custom',
+        reportPeriod,
       );
 
       return {
@@ -146,7 +145,6 @@ export class AnalyticsController {
     summary: 'Get detailed commission breakdown',
     description: 'Returns commission breakdown by source and booking type',
   })
-  @ApiQuery({ name: 'businessId', required: true, type: String })
   @ApiQuery({ name: 'startDate', required: true, type: String })
   @ApiQuery({ name: 'endDate', required: true, type: String })
   @ApiResponse({
@@ -154,9 +152,9 @@ export class AnalyticsController {
     description: 'Commission breakdown retrieved successfully',
   })
   async getCommissionBreakdown(
-    @Query('businessId') businessId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
+    @BusinessId() businessId: string,
   ) {
     try {
       const start = new Date(startDate);
@@ -184,21 +182,20 @@ export class AnalyticsController {
 
   /**
    * Get Dashboard Metrics
-   * GET /analytics/dashboard/:businessId
+   * GET /analytics/dashboard
    */
-  @Get('dashboard/:businessId')
+  @Get('dashboard')
   @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.ANALYTICS })
   @ApiOperation({
     summary: 'Get real-time dashboard metrics',
     description: 'Returns today, month-to-date, and trend metrics for the business',
   })
-  @ApiParam({ name: 'businessId', type: String })
   @ApiResponse({
     status: 200,
     description: 'Dashboard metrics retrieved successfully',
   })
-  async getDashboardMetrics(@Param('businessId') businessId: string) {
+  async getDashboardMetrics(@BusinessId() businessId: string) {
     try {
       const metrics = await this.analyticsService.getDashboardMetrics(businessId);
 
@@ -214,21 +211,20 @@ export class AnalyticsController {
 
   /**
    * Get Fee Comparison
-   * GET /analytics/fee-comparison/:businessId
+   * GET /analytics/fee-comparison
    */
-  @Get('fee-comparison/:businessId')
+  @Get('fee-comparison')
   @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.ANALYTICS })
   @ApiOperation({
     summary: 'Compare fees with competitor platforms',
     description: 'Shows how much you save compared to Fresha, Booksy, and other platforms',
   })
-  @ApiParam({ name: 'businessId', type: String })
   @ApiResponse({
     status: 200,
     description: 'Fee comparison retrieved successfully',
   })
-  async getFeeComparison(@Param('businessId') businessId: string) {
+  async getFeeComparison(@BusinessId() businessId: string) {
     try {
       const comparison = await this.analyticsService.getFeeComparison(businessId);
 
@@ -287,20 +283,19 @@ export class AnalyticsController {
 
   /**
    * Get Quick Stats (Today & This Month)
-   * GET /analytics/quick-stats/:businessId
+   * GET /analytics/quick-stats
    */
-  @Get('quick-stats/:businessId')
+  @Get('quick-stats')
   @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({
     summary: 'Get quick stats for today and this month',
     description: 'Returns simplified metrics for quick overview',
   })
-  @ApiParam({ name: 'businessId', type: String })
   @ApiResponse({
     status: 200,
     description: 'Quick stats retrieved successfully',
   })
-  async getQuickStats(@Param('businessId') businessId: string) {
+  async getQuickStats(@BusinessId() businessId: string) {
     try {
       const metrics = await this.analyticsService.getDashboardMetrics(businessId);
 
@@ -339,7 +334,6 @@ export class AnalyticsController {
     summary: 'Get revenue trends over time',
     description: 'Returns revenue data for charting and trend analysis',
   })
-  @ApiQuery({ name: 'businessId', required: true, type: String })
   @ApiQuery({ name: 'startDate', required: true, type: String })
   @ApiQuery({ name: 'endDate', required: true, type: String })
   @ApiQuery({
@@ -353,10 +347,10 @@ export class AnalyticsController {
     description: 'Revenue trends retrieved successfully',
   })
   async getRevenueTrends(
-    @Query('businessId') businessId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
     @Query('granularity') granularity: string = 'daily',
+    @BusinessId() businessId: string,
   ) {
     try {
       const start = new Date(startDate);
@@ -415,7 +409,6 @@ export class AnalyticsController {
     summary: 'Get booking source performance metrics',
     description: 'Analyzes which booking sources generate the most revenue',
   })
-  @ApiQuery({ name: 'businessId', required: true, type: String })
   @ApiQuery({ name: 'startDate', required: true, type: String })
   @ApiQuery({ name: 'endDate', required: true, type: String })
   @ApiResponse({
@@ -423,9 +416,9 @@ export class AnalyticsController {
     description: 'Source performance retrieved successfully',
   })
   async getSourcePerformance(
-    @Query('businessId') businessId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
+    @BusinessId() businessId: string,
   ) {
     try {
       const start = new Date(startDate);
@@ -465,16 +458,15 @@ export class AnalyticsController {
 
   /**
    * Get Commission Insights
-   * GET /analytics/commissions/insights/:businessId
+   * GET /analytics/commissions/insights
    */
-  @Get('commissions/insights/:businessId')
+  @Get('commissions/insights')
   @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN)
   @Audit({ action: AuditAction.VIEW, entity: AuditEntity.ANALYTICS })
   @ApiOperation({
     summary: 'Get commission insights and savings',
     description: 'Shows detailed commission insights and potential savings',
   })
-  @ApiParam({ name: 'businessId', type: String })
   @ApiQuery({
     name: 'months',
     required: false,
@@ -486,8 +478,8 @@ export class AnalyticsController {
     description: 'Commission insights retrieved successfully',
   })
   async getCommissionInsights(
-    @Param('businessId') businessId: string,
     @Query('months') months: number = 3,
+    @BusinessId() businessId: string,
   ) {
     try {
       const endDate = new Date();

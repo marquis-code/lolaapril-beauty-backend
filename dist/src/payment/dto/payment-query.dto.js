@@ -16,6 +16,12 @@ const pagination_dto_1 = require("../../common/dto/pagination.dto");
 class PaymentQueryDto extends pagination_dto_1.PaginationDto {
 }
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: "Filter by business ID" }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], PaymentQueryDto.prototype, "businessId", void 0);
+__decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: "Filter by client ID" }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

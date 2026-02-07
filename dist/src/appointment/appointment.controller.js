@@ -16,6 +16,7 @@ exports.AppointmentController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const appointment_service_1 = require("./appointment.service");
+const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const create_appointment_dto_1 = require("./dto/create-appointment.dto");
 const update_appointment_dto_1 = require("./dto/update-appointment.dto");
 const appointment_query_dto_1 = require("./dto/appointment-query.dto");
@@ -27,11 +28,11 @@ let AppointmentController = class AppointmentController {
     constructor(appointmentService) {
         this.appointmentService = appointmentService;
     }
-    create(createAppointmentDto) {
-        return this.appointmentService.create(createAppointmentDto);
+    create(businessId, createAppointmentDto) {
+        return this.appointmentService.create({ ...createAppointmentDto, businessId });
     }
-    findAll(query) {
-        return this.appointmentService.findAll(query);
+    findAll(businessId, query) {
+        return this.appointmentService.findAll({ ...query, businessId });
     }
     getStats() {
         return this.appointmentService.getAppointmentStats();
@@ -39,11 +40,11 @@ let AppointmentController = class AppointmentController {
     getAvailableSlots(date, staffId) {
         return this.appointmentService.getAvailableTimeSlots(date, staffId);
     }
-    getByDate(date) {
-        return this.appointmentService.getAppointmentsByDate(date);
+    getByDate(businessId, date) {
+        return this.appointmentService.getAppointmentsByDate(businessId, date);
     }
-    getByStaff(staffId, date) {
-        return this.appointmentService.getAppointmentsByStaff(staffId, date);
+    getByStaff(businessId, staffId, date) {
+        return this.appointmentService.getAppointmentsByStaff(businessId, staffId, date);
     }
     findOne(id) {
         return this.appointmentService.findOne(id);
@@ -68,18 +69,20 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Create a new appointment" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Appointment created successfully" }),
     (0, swagger_1.ApiResponse)({ status: 409, description: "Time slot conflict" }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_appointment_dto_1.CreateAppointmentDto]),
+    __metadata("design:paramtypes", [String, create_appointment_dto_1.CreateAppointmentDto]),
     __metadata("design:returntype", void 0)
 ], AppointmentController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: "Get all appointments" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointments retrieved successfully" }),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [appointment_query_dto_1.AppointmentQueryDto]),
+    __metadata("design:paramtypes", [String, appointment_query_dto_1.AppointmentQueryDto]),
     __metadata("design:returntype", void 0)
 ], AppointmentController.prototype, "findAll", null);
 __decorate([
@@ -105,8 +108,9 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get appointments by date" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointments retrieved successfully" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], AppointmentController.prototype, "getByDate", null);
 __decorate([
@@ -114,8 +118,9 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get appointments by staff member" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Appointments retrieved successfully" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], AppointmentController.prototype, "getByStaff", null);
 __decorate([

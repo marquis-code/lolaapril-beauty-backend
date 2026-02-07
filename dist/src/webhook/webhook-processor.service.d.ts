@@ -5,7 +5,7 @@ export declare class WebhookProcessorService {
     private webhookModel;
     private configService;
     constructor(webhookModel: Model<WebhookDocument>, configService: ConfigService);
-    processWebhook(source: string, payload: any, signature: string): Promise<{
+    processWebhook(source: string, businessId: string, payload: any, signature: string): Promise<{
         success: boolean;
     }>;
     private verifySignature;

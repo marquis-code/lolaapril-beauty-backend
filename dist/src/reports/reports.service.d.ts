@@ -10,10 +10,10 @@ export declare class ReportsService {
     private appointmentModel;
     private clientModel;
     constructor(dailySalesSummaryModel: Model<DailySalesSummaryDocument>, saleModel: Model<SaleDocument>, appointmentModel: Model<AppointmentDocument>, clientModel: Model<ClientDocument>);
-    generateDailySalesSummary(date: string): Promise<ApiResponse<DailySalesSummary>>;
-    getDailySalesSummary(date: string): Promise<ApiResponse<DailySalesSummary>>;
-    getWeeklySalesReport(startDate: string, endDate: string): Promise<ApiResponse<any>>;
-    getMonthlySalesReport(year: number, month: number): Promise<ApiResponse<any>>;
+    generateDailySalesSummary(businessId: string, date: string): Promise<ApiResponse<DailySalesSummary>>;
+    getDailySalesSummary(businessId: string, date: string): Promise<ApiResponse<DailySalesSummary>>;
+    getWeeklySalesReport(businessId: string, startDate: string, endDate: string): Promise<ApiResponse<any>>;
+    getMonthlySalesReport(businessId: string, year: number, month: number): Promise<ApiResponse<any>>;
     private calculateServicesSummary;
     private calculateStaffSummary;
     private calculatePaymentMethodsSummary;

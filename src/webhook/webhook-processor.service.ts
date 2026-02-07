@@ -13,7 +13,7 @@ export class WebhookProcessorService {
     private configService: ConfigService,
   ) {}
 
-  async processWebhook(source: string, payload: any, signature: string) {
+  async processWebhook(source: string, businessId: string, payload: any, signature: string) {
     // Verify signature
     const isValid = this.verifySignature(source, payload, signature);
     
@@ -23,6 +23,7 @@ export class WebhookProcessorService {
 
     // Store webhook
     const webhook = new this.webhookModel({
+      businessId,
       event: payload.event || payload.type,
       source,
       payload,

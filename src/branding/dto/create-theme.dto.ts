@@ -1,4 +1,4 @@
-import { IsObject, IsBoolean, IsOptional, ValidateNested, IsString, IsNumber } from 'class-validator';
+import { IsObject, IsBoolean, IsOptional, ValidateNested, IsString, IsNumber, Allow } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
@@ -30,6 +30,9 @@ class ColorScheme {
   @ApiProperty({ example: '#10B981', description: 'Success color' })
   @IsString()
   success: string;
+
+  @Allow() // Allow MongoDB _id field to pass through
+  _id?: any;
 }
 
 class Typography {
@@ -44,6 +47,9 @@ class Typography {
   @ApiProperty({ example: 'Inter, sans-serif', description: 'Body text font' })
   @IsString()
   bodyFont: string;
+
+  @Allow() // Allow MongoDB _id field to pass through
+  _id?: any;
 }
 
 class Logo {
@@ -62,12 +68,18 @@ class Logo {
   @ApiProperty({ example: 'Company Logo', description: 'Logo alt text' })
   @IsString()
   alt: string;
+
+  @Allow() // Allow MongoDB _id field to pass through
+  _id?: any;
 }
 
 class Favicon {
   @ApiProperty({ example: 'https://example.com/favicon.ico', description: 'Favicon URL' })
   @IsString()
   url: string;
+
+  @Allow() // Allow MongoDB _id field to pass through
+  _id?: any;
 }
 
 class CustomCss {
@@ -78,6 +90,9 @@ class CustomCss {
   @ApiProperty({ example: '.custom-class { color: red; }', description: 'Custom CSS code' })
   @IsString()
   cssCode: string;
+
+  @Allow() // Allow MongoDB _id field to pass through
+  _id?: any;
 }
 
 export class CreateThemeDto {

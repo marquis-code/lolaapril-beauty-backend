@@ -14,7 +14,7 @@ import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from "@nestjs/swagger"
 import { UploadService } from "./upload.service"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
-import { CurrentUser } from "../auth"
+import { BusinessId, CurrentUser } from "../auth/decorators/business-context.decorator"
 
 @ApiTags("File Upload")
 @Controller("upload")
@@ -28,8 +28,8 @@ export class UploadController {
   @ApiOperation({ summary: 'Upload single image' })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ status: 201, description: 'Image uploaded successfully' })
-  async uploadImage(@UploadedFile() file: Express.Multer.File) {
-    return this.uploadService.uploadImage(file)
+  async uploadImage(@BusinessId() businessId: string, @UploadedFile() file: Express.Multer.File) {
+    return this.uploadService.uploadImage(businessId, file)
   }
 
   @Post('images')
@@ -37,8 +37,8 @@ export class UploadController {
   @ApiOperation({ summary: 'Upload multiple images' })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ status: 201, description: 'Images uploaded successfully' })
-  async uploadImages(@UploadedFiles() files: Express.Multer.File[]) {
-    return this.uploadService.uploadMultipleImages(files)
+  async uploadImages(@BusinessId() businessId: string, @UploadedFiles() files: Express.Multer.File[]) {
+    return this.uploadService.uploadMultipleImages(businessId, files)
   }
 
   @Post('document')
@@ -46,15 +46,15 @@ export class UploadController {
   @ApiOperation({ summary: 'Upload document' })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ status: 201, description: 'Document uploaded successfully' })
-  async uploadDocument(@UploadedFile() file: Express.Multer.File) {
-    return this.uploadService.uploadDocument(file)
+  async uploadDocument(@BusinessId() businessId: string, @UploadedFile() file: Express.Multer.File) {
+    return this.uploadService.uploadDocument(businessId, file)
   }
 
   @Delete('image/:publicId')
   @ApiOperation({ summary: 'Delete image' })
   @ApiResponse({ status: 200, description: 'Image deleted successfully' })
-  async deleteImage(@Param('publicId') publicId: string) {
-    await this.uploadService.deleteImage(publicId)
+  async deleteImage(@BusinessId() businessId: string, @Param('publicId') publicId: string) {
+    await this.uploadService.deleteImage(businessId, publicId)
     return { message: 'Image deleted successfully' }
   }
 

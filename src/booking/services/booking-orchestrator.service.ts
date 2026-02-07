@@ -2571,7 +2571,7 @@ private async checkForConflictingBookings(
     await this.bookingService.updateBookingStatus(booking._id.toString(), 'slot_unavailable')
 
     // Initiate refund (integrate with your payment provider's refund API)
-    await this.paymentService.initiateRefund(transactionReference, booking.estimatedTotal)
+    await this.paymentService.initiateRefund(booking.businessId.toString(), transactionReference, booking.estimatedTotal)
 
     // Parse booking date
     const bookingDate = this.parseDate(booking.preferredDate)

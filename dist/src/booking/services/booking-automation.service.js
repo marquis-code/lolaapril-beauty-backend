@@ -247,7 +247,7 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
     }
     async handleUnavailableSlot(booking, transactionReference) {
         await this.bookingService.updateBookingStatus(booking._id.toString(), 'slot_unavailable');
-        await this.paymentService.initiateRefund(transactionReference, booking.estimatedTotal);
+        await this.paymentService.initiateRefund(booking.businessId.toString(), transactionReference, booking.estimatedTotal);
         await this.notificationService.notifySlotUnavailableRefund(booking._id.toString(), booking.clientId.toString(), booking.businessId.toString(), {
             clientName: booking.clientName,
             amount: booking.estimatedTotal,

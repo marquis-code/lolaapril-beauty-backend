@@ -35,8 +35,8 @@ export declare class MembershipService {
     private membershipModel;
     private clientMembershipModel;
     constructor(membershipModel: Model<MembershipDocument>, clientMembershipModel: Model<ClientMembershipDocument>);
-    createMembership(createMembershipDto: CreateMembershipDto): Promise<Membership>;
-    findAllMemberships(query: MembershipQueryDto): Promise<{
+    createMembership(businessId: string, createMembershipDto: CreateMembershipDto): Promise<Membership>;
+    findAllMemberships(businessId: string, query: MembershipQueryDto): Promise<{
         memberships: (import("mongoose").Document<unknown, {}, MembershipDocument, {}, {}> & Membership & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
             _id: Types.ObjectId;
         }> & {
@@ -49,24 +49,24 @@ export declare class MembershipService {
             pages: number;
         };
     }>;
-    findMembershipById(id: string): Promise<Membership>;
-    updateMembership(id: string, updateMembershipDto: UpdateMembershipDto): Promise<Membership>;
-    removeMembership(id: string): Promise<void>;
-    enrollClient(createClientMembershipDto: CreateClientMembershipDto): Promise<ClientMembership>;
-    findClientMemberships(clientId: string): Promise<(import("mongoose").Document<unknown, {}, ClientMembershipDocument, {}, {}> & ClientMembership & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    findMembershipById(businessId: string, id: string): Promise<Membership>;
+    updateMembership(businessId: string, id: string, updateMembershipDto: UpdateMembershipDto): Promise<Membership>;
+    removeMembership(businessId: string, id: string): Promise<void>;
+    enrollClient(businessId: string, createClientMembershipDto: CreateClientMembershipDto): Promise<ClientMembership>;
+    findClientMemberships(businessId: string, clientId: string): Promise<(import("mongoose").Document<unknown, {}, ClientMembershipDocument, {}, {}> & ClientMembership & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: Types.ObjectId;
     }> & {
         __v: number;
     })[]>;
     findClientMembershipById(id: string): Promise<ClientMembership>;
-    addPoints(clientMembershipId: string, points: number, description: string, saleId?: string, appointmentId?: string): Promise<ClientMembership>;
-    redeemPoints(clientMembershipId: string, points: number, description: string, appointmentId?: string): Promise<ClientMembership>;
-    updateSpending(clientMembershipId: string, amount: number): Promise<ClientMembership>;
+    addPoints(businessId: string, clientMembershipId: string, points: number, description: string, saleId?: string, appointmentId?: string): Promise<ClientMembership>;
+    redeemPoints(businessId: string, clientMembershipId: string, points: number, description: string, appointmentId?: string): Promise<ClientMembership>;
+    updateSpending(businessId: string, clientMembershipId: string, amount: number): Promise<ClientMembership>;
     private checkTierUpgrade;
-    getMembershipStats(): Promise<{
+    getMembershipStats(businessId: string): Promise<{
         programs: any;
         members: any;
         tierDistribution: any[];
     }>;
-    getClientMembershipBenefits(clientId: string): Promise<any[]>;
+    getClientMembershipBenefits(businessId: string, clientId: string): Promise<any[]>;
 }

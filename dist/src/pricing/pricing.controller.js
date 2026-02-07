@@ -19,6 +19,8 @@ const pricing_service_1 = require("./pricing.service");
 const create_pricing_tier_dto_1 = require("./dto/create-pricing-tier.dto");
 const create_fee_structure_dto_1 = require("./dto/create-fee-structure.dto");
 const auth_1 = require("../auth");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const user_schema_1 = require("../auth/schemas/user.schema");
 let PricingController = class PricingController {
     constructor(pricingService) {
         this.pricingService = pricingService;
@@ -47,7 +49,8 @@ let PricingController = class PricingController {
 };
 __decorate([
     (0, common_1.Post)('tiers'),
-    (0, swagger_1.ApiOperation)({ summary: 'Create pricing tier (Admin only)' }),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.SUPER_ADMIN),
+    (0, swagger_1.ApiOperation)({ summary: 'Create pricing tier (Super Admin only)' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_pricing_tier_dto_1.CreatePricingTierDto]),

@@ -32,8 +32,8 @@ import { RequestWithUser } from "../auth/types/request-with-user.interface";
 export declare class VoucherController {
     private readonly voucherService;
     constructor(voucherService: VoucherService);
-    create(createVoucherDto: CreateVoucherDto, req: RequestWithUser): Promise<import("./schemas/voucher.schema").Voucher>;
-    findAll(query: VoucherQueryDto): Promise<{
+    create(businessId: string, createVoucherDto: CreateVoucherDto, req: RequestWithUser): Promise<import("./schemas/voucher.schema").Voucher>;
+    findAll(businessId: string, query: VoucherQueryDto): Promise<{
         vouchers: (import("mongoose").Document<unknown, {}, import("./schemas/voucher.schema").VoucherDocument, {}, {}> & import("./schemas/voucher.schema").Voucher & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
             _id: import("mongoose").Types.ObjectId;
         }> & {
@@ -46,11 +46,11 @@ export declare class VoucherController {
             pages: number;
         };
     }>;
-    getStats(): Promise<{
+    getStats(businessId: string): Promise<{
         overview: any;
         byDiscountType: any[];
     }>;
-    validateVoucher(body: {
+    validateVoucher(businessId: string, body: {
         voucherCode: string;
         clientId: string;
         serviceIds: string[];
@@ -61,9 +61,9 @@ export declare class VoucherController {
         discountAmount?: number;
         message?: string;
     }>;
-    useVoucher(voucherCode: string): Promise<import("./schemas/voucher.schema").Voucher>;
-    findByCode(voucherCode: string): Promise<import("./schemas/voucher.schema").Voucher>;
-    findOne(id: string): Promise<import("./schemas/voucher.schema").Voucher>;
-    update(id: string, updateVoucherDto: UpdateVoucherDto): Promise<import("./schemas/voucher.schema").Voucher>;
-    remove(id: string): Promise<void>;
+    useVoucher(businessId: string, voucherCode: string): Promise<import("./schemas/voucher.schema").Voucher>;
+    findByCode(businessId: string, voucherCode: string): Promise<import("./schemas/voucher.schema").Voucher>;
+    findOne(businessId: string, id: string): Promise<import("./schemas/voucher.schema").Voucher>;
+    update(businessId: string, id: string, updateVoucherDto: UpdateVoucherDto): Promise<import("./schemas/voucher.schema").Voucher>;
+    remove(businessId: string, id: string): Promise<void>;
 }

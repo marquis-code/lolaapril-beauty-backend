@@ -37,8 +37,12 @@ export declare class AppointmentService {
     private notificationService;
     private staffService;
     constructor(appointmentModel: Model<AppointmentDocument>, paymentService: PaymentService, notificationService: NotificationService, staffService: StaffService);
-    create(createAppointmentDto: CreateAppointmentDto): Promise<Appointment>;
-    findAll(query: AppointmentQueryDto): Promise<{
+    create(createAppointmentDto: CreateAppointmentDto & {
+        businessId: string;
+    }): Promise<Appointment>;
+    findAll(query: AppointmentQueryDto & {
+        businessId: string;
+    }): Promise<{
         appointments: (import("mongoose").Document<unknown, {}, AppointmentDocument, {}, {}> & Appointment & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
             _id: import("mongoose").Types.ObjectId;
         }> & {
@@ -56,8 +60,8 @@ export declare class AppointmentService {
     remove(id: string): Promise<void>;
     updateStatus(id: string, status: string, cancellationReason?: string): Promise<Appointment>;
     assignStaff(id: string, staffId: string): Promise<Appointment>;
-    getAppointmentsByDate(date: string): Promise<Appointment[]>;
-    getAppointmentsByStaff(staffId: string, date?: string): Promise<Appointment[]>;
+    getAppointmentsByDate(businessId: string, date: string): Promise<Appointment[]>;
+    getAppointmentsByStaff(businessId: string, staffId: string, date?: string): Promise<Appointment[]>;
     getAppointmentStats(): Promise<{
         overview: any;
         revenue: any;

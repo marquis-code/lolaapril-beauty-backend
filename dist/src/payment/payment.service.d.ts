@@ -88,8 +88,8 @@ export declare class PaymentService {
     }): Promise<any>;
     createPaymentForAppointment(appointment: any): Promise<any>;
     updatePaymentStatus(paymentId: string, status: 'completed' | 'failed' | 'pending' | 'cancelled' | 'refunded', transactionReference: string): Promise<any>;
-    processRefund(id: string, refundAmount: number, refundReason: string): Promise<ApiResponse<Payment>>;
-    initiateRefund(transactionReference: string, amount: number): Promise<void>;
+    processRefund(businessId: string, id: string, refundAmount: number, refundReason: string): Promise<ApiResponse<Payment>>;
+    initiateRefund(businessId: string, transactionReference: string, amount: number): Promise<void>;
     create(createPaymentDto: CreatePaymentDto): Promise<ApiResponse<Payment>>;
     findAll(): Promise<ApiResponse<Payment[]>>;
     findAllWithQuery(query: PaymentQueryDto): Promise<{

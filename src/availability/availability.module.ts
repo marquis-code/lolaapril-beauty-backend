@@ -30,6 +30,7 @@ import { AvailabilitySchedulerService } from './availability-scheduler.service'
 
 import { BusinessHours, BusinessHoursSchema } from './schemas/business-hours.schema'
 import { StaffAvailability, StaffAvailabilitySchema } from './schemas/staff-availability.schema'
+import { Appointment, AppointmentSchema } from '../appointment/schemas/appointment.schema'
 
 // Import from Auth module for guards and decorators
 import { AuthModule } from '../auth/auth.module'
@@ -44,6 +45,7 @@ import { BookingModule } from '../booking/booking.module'
     MongooseModule.forFeature([
       { name: BusinessHours.name, schema: BusinessHoursSchema },
       { name: StaffAvailability.name, schema: StaffAvailabilitySchema },
+      { name: Appointment.name, schema: AppointmentSchema },
     ]),
     ScheduleModule.forRoot(), // For cron jobs
     AuthModule,  // Provides JWT guards and decorators

@@ -56,7 +56,7 @@ export declare class VoucherService {
         message?: string;
     }>;
     useVoucher(voucherCode: string): Promise<Voucher>;
-    getVoucherStats(): Promise<{
+    getVoucherStats(businessId: string): Promise<{
         overview: any;
         byDiscountType: any[];
     }>;

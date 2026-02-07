@@ -32,6 +32,8 @@ import {
   AutoResponse,
   AutoResponseSchema,
 } from './schemas/chat.schema'
+import { BusinessModule } from '../business/business.module'
+import { User, UserSchema } from '../auth/schemas/user.schema'
 
 @Global()
 @Module({
@@ -69,6 +71,10 @@ import {
         name: AutoResponse.name,
         schema: AutoResponseSchema,
       },
+      {
+        name: User.name,
+        schema: UserSchema,
+      },
     ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -78,6 +84,7 @@ import {
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
+    BusinessModule,
   ],
   controllers: [NotificationController, ChatController],
   // @ts-ignore - TS2590: Complex union type fix

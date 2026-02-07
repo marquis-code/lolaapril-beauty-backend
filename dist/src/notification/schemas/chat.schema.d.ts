@@ -50,6 +50,9 @@ export declare class ChatRoom {
         tags?: string[];
         customerLocation?: string;
         lastSeen?: Date;
+        ownerId?: string;
+        memberId?: string;
+        superAdminId?: string;
     };
 }
 export declare const ChatRoomSchema: import("mongoose").Schema<ChatRoom, import("mongoose").Model<ChatRoom, any, any, any, Document<unknown, any, ChatRoom, any, {}> & ChatRoom & {

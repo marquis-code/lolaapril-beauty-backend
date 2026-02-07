@@ -112,6 +112,7 @@ async getAvailableSlots(
             date: '2026-01-20',
             hasSlots: true,
             availableSlotCount: 24,
+            takenSlotCount: 8,
             totalSlots: 32,
             staffAvailable: 3
           }

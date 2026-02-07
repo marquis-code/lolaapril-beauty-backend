@@ -14,20 +14,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MarketplaceController = void 0;
 const common_1 = require("@nestjs/common");
+const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const marketplace_service_1 = require("./marketplace.service");
 const create_review_dto_1 = require("./dto/create-review.dto");
 let MarketplaceController = class MarketplaceController {
     constructor(marketplaceService) {
         this.marketplaceService = marketplaceService;
     }
-    submitVerification(tenantId, documents) {
-        return this.marketplaceService.submitForVerification(tenantId, documents);
+    submitVerification(businessId, documents) {
+        return this.marketplaceService.submitForVerification(businessId, documents);
     }
     updateVerificationStatus(id, body) {
         return this.marketplaceService.updateVerificationStatus(id, body.status, body.verifiedBy, body.notes);
     }
-    getVerificationStatus(tenantId) {
-        return this.marketplaceService.getVerificationStatus(tenantId);
+    getVerificationStatus(businessId) {
+        return this.marketplaceService.getVerificationStatus(businessId);
     }
     getPendingVerifications(page, limit) {
         return this.marketplaceService.getPendingVerifications(page, limit);
@@ -47,11 +48,11 @@ let MarketplaceController = class MarketplaceController {
     markHelpful(id, helpful) {
         return this.marketplaceService.markReviewHelpful(id, helpful);
     }
-    updateQualityMetrics(tenantId) {
-        return this.marketplaceService.updateQualityMetrics(tenantId);
+    updateQualityMetrics(businessId) {
+        return this.marketplaceService.updateQualityMetrics(businessId);
     }
-    getQualityScore(tenantId) {
-        return this.marketplaceService.getBusinessQualityScore(tenantId);
+    getQualityScore(businessId) {
+        return this.marketplaceService.getBusinessQualityScore(businessId);
     }
     searchBusinesses(filters) {
         return this.marketplaceService.searchBusinesses(filters);
@@ -61,8 +62,8 @@ let MarketplaceController = class MarketplaceController {
     }
 };
 __decorate([
-    (0, common_1.Post)('verification/:tenantId'),
-    __param(0, (0, common_1.Param)('tenantId')),
+    (0, common_1.Post)('verification'),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
@@ -77,8 +78,8 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MarketplaceController.prototype, "updateVerificationStatus", null);
 __decorate([
-    (0, common_1.Get)('verification/:tenantId'),
-    __param(0, (0, common_1.Param)('tenantId')),
+    (0, common_1.Get)('verification'),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
@@ -132,15 +133,15 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MarketplaceController.prototype, "markHelpful", null);
 __decorate([
-    (0, common_1.Post)('quality/:tenantId/update'),
-    __param(0, (0, common_1.Param)('tenantId')),
+    (0, common_1.Post)('quality/update'),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], MarketplaceController.prototype, "updateQualityMetrics", null);
 __decorate([
-    (0, common_1.Get)('quality/:tenantId'),
-    __param(0, (0, common_1.Param)('tenantId')),
+    (0, common_1.Get)('quality'),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)

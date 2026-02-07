@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Body, Param, Query } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import { NotificationService } from './notification.service'
@@ -22,6 +22,56 @@ export class NotificationController {
     @InjectModel(NotificationPreference.name)
     private notificationPreferenceModel: Model<NotificationPreferenceDocument>,
   ) {}
+
+  // ================== NOTIFICATION LOGS ==================
+
+  @Patch(':notificationId/read')
+  async markAsRead(@Param('notificationId') notificationId: string) {
+    const notification = await this.notificationLogModel.findByIdAndUpdate(
+      notificationId,
+      { 
+        isRead: true, 
+        readAt: new Date() 
+      },
+      { new: true }
+    )
+
+    if (!notification) {
+      return { success: false, message: 'Notification not found' }
+    }
+
+    return { success: true, message: 'Notification marked as read', notification }
+  }
+
+  @Patch('read-all/:businessId')
+  async markAllAsRead(@Param('businessId') businessId: string) {
+    const result = await this.notificationLogModel.updateMany(
+      { 
+        businessId: new Types.ObjectId(businessId),
+        isRead: false 
+      },
+      { 
+        isRead: true, 
+        readAt: new Date() 
+      }
+    )
+
+    return { 
+      success: true, 
+      message: 'All notifications marked as read',
+      count: result.modifiedCount 
+    }
+  }
+
+  @Get('unread-count/:businessId')
+  async getUnreadCount(@Param('businessId') businessId: string) {
+    const count = await this.notificationLogModel.countDocuments({
+      businessId: new Types.ObjectId(businessId),
+      isRead: false,
+    })
+
+    return { unreadCount: count }
+  }
 
   @Get('templates/:businessId')
   async getTemplates(@Param('businessId') businessId: string) {

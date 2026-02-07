@@ -7,12 +7,12 @@ import { UpdateSaleDto } from "./dto/update-sale.dto";
 export declare class SalesService {
     private saleModel;
     constructor(saleModel: Model<SaleDocument>);
-    create(createSaleDto: CreateSaleDto): Promise<ApiResponse<Sale>>;
-    findAll(): Promise<ApiResponse<Sale[]>>;
-    findOne(id: string): Promise<ApiResponse<Sale>>;
-    completeSale(id: string, completedBy: string): Promise<ApiResponse<Sale>>;
-    getSalesStats(): Promise<ApiResponse<any>>;
-    findAllWithQuery(query: SalesQueryDto): Promise<{
+    create(businessId: string, createSaleDto: CreateSaleDto): Promise<ApiResponse<Sale>>;
+    findAll(businessId: string): Promise<ApiResponse<Sale[]>>;
+    findOne(businessId: string, id: string): Promise<ApiResponse<Sale>>;
+    completeSale(businessId: string, id: string, completedBy: string): Promise<ApiResponse<Sale>>;
+    getSalesStats(businessId: string): Promise<ApiResponse<any>>;
+    findAllWithQuery(businessId: string, query: SalesQueryDto): Promise<{
         success: boolean;
         data: {
             sales: SaleDocument[];
@@ -24,10 +24,10 @@ export declare class SalesService {
             };
         };
     }>;
-    update(id: string, updateSaleDto: UpdateSaleDto): Promise<ApiResponse<Sale>>;
-    updateStatus(id: string, status: string): Promise<ApiResponse<Sale>>;
-    updatePaymentStatus(id: string, paymentStatus: string, amountPaid?: number): Promise<ApiResponse<Sale>>;
-    getTopServices(): Promise<ApiResponse<any>>;
-    getRevenueByPeriod(period: "daily" | "weekly" | "monthly"): Promise<ApiResponse<any>>;
-    remove(id: string): Promise<ApiResponse<void>>;
+    update(businessId: string, id: string, updateSaleDto: UpdateSaleDto): Promise<ApiResponse<Sale>>;
+    updateStatus(businessId: string, id: string, status: string): Promise<ApiResponse<Sale>>;
+    updatePaymentStatus(businessId: string, id: string, paymentStatus: string, amountPaid?: number): Promise<ApiResponse<Sale>>;
+    getTopServices(businessId: string): Promise<ApiResponse<any>>;
+    getRevenueByPeriod(businessId: string, period: "daily" | "weekly" | "monthly"): Promise<ApiResponse<any>>;
+    remove(businessId: string, id: string): Promise<ApiResponse<void>>;
 }

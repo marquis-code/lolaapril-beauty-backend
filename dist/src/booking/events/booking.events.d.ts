@@ -1,9 +1,11 @@
 import { NotificationService } from '../../notification/notification.service';
+import { ChatService } from '../../notification/services/chat.service';
 export declare class BookingEventHandler {
     private readonly notificationService;
+    private readonly chatService;
     private readonly logger;
-    constructor(notificationService: NotificationService);
-    handleBookingCreated(booking: any): Promise<void>;
+    constructor(notificationService: NotificationService, chatService: ChatService);
+    handleBookingCreated(payload: any): Promise<void>;
     handleBookingConfirmed(data: {
         booking: any;
         staffId: string;
@@ -16,6 +18,7 @@ export declare class BookingEventHandler {
     }): Promise<void>;
     handleBookingExpired(booking: any): Promise<void>;
     handlePaymentReminder(booking: any): Promise<void>;
+    private sendAutomatedChatMessage;
     handleAppointmentCreated(data: {
         appointment: any;
         booking: any;

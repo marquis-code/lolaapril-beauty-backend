@@ -19,12 +19,14 @@ const mongoose_2 = require("mongoose");
 const business_hours_schema_1 = require("./schemas/business-hours.schema");
 const staff_availability_schema_1 = require("./schemas/staff-availability.schema");
 const business_schema_1 = require("../business/schemas/business.schema");
+const appointment_schema_1 = require("../appointment/schemas/appointment.schema");
 const booking_service_1 = require("../booking/services/booking.service");
 let AvailabilityService = class AvailabilityService {
-    constructor(businessHoursModel, staffAvailabilityModel, businessModel, bookingService) {
+    constructor(businessHoursModel, staffAvailabilityModel, businessModel, appointmentModel, bookingService) {
         this.businessHoursModel = businessHoursModel;
         this.staffAvailabilityModel = staffAvailabilityModel;
         this.businessModel = businessModel;
+        this.appointmentModel = appointmentModel;
         this.bookingService = bookingService;
     }
     async getAvailableSlots(dto, authenticatedBusinessId) {
@@ -412,6 +414,39 @@ let AvailabilityService = class AvailabilityService {
         const endDate = dto.endDate
             ? this.parseDate(dto.endDate)
             : new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+        const rangeStart = this.normalizeDate(startDate);
+        const rangeEnd = this.normalizeDate(endDate);
+        rangeEnd.setHours(23, 59, 59, 999);
+        const appointmentStatuses = [
+            'pending_confirmation',
+            'confirmed',
+            'in_progress',
+        ];
+        const appointments = await this.appointmentModel
+            .find({
+            'businessInfo.businessId': businessId,
+            selectedDate: { $gte: rangeStart, $lte: rangeEnd },
+            status: { $in: appointmentStatuses },
+        })
+            .lean()
+            .exec();
+        const appointmentsByDate = {};
+        for (const appointment of appointments) {
+            const dateKey = new Date(appointment.selectedDate).toISOString().split('T')[0];
+            const startTime = appointment.appointmentDetails?.startTime || appointment.selectedTime;
+            const endTime = appointment.appointmentDetails?.endTime;
+            if (!startTime || !endTime) {
+                continue;
+            }
+            if (!appointmentsByDate[dateKey]) {
+                appointmentsByDate[dateKey] = [];
+            }
+            appointmentsByDate[dateKey].push({
+                startTime,
+                endTime,
+                assignedStaff: appointment.assignedStaff,
+            });
+        }
         const slotsData = {};
         for (let currentDate = new Date(startDate); currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
             const date = new Date(currentDate);
@@ -423,6 +458,7 @@ let AvailabilityService = class AvailabilityService {
                     date: dateString,
                     hasSlots: false,
                     availableSlotCount: 0,
+                    takenSlotCount: 0,
                     totalSlots: 0,
                     staffAvailable: 0
                 };
@@ -430,14 +466,39 @@ let AvailabilityService = class AvailabilityService {
             }
             let totalSlots = 0;
             let availableSlotCount = 0;
+            let takenSlotCount = 0;
+            const slotsForDay = [];
             for (const businessHour of businessHours) {
                 const startMinutes = this.timeToMinutes(businessHour.startTime);
                 const endMinutes = this.timeToMinutes(businessHour.endTime);
                 const defaultDuration = 30;
-                const possibleSlots = Math.floor((endMinutes - startMinutes) / defaultDuration);
-                totalSlots += possibleSlots;
-                availableSlotCount += possibleSlots;
+                for (let currentMinutes = startMinutes; currentMinutes + defaultDuration <= endMinutes; currentMinutes += defaultDuration) {
+                    const slotStart = this.minutesToTime(currentMinutes);
+                    slotsForDay.push({
+                        startMinutes: currentMinutes,
+                        endMinutes: currentMinutes + defaultDuration,
+                        key: slotStart,
+                    });
+                }
             }
+            totalSlots = slotsForDay.length;
+            const appointmentsForDate = appointmentsByDate[dateString] || [];
+            const relevantAppointments = dto.staffId
+                ? appointmentsForDate.filter(appointment => appointment.assignedStaff?.toString() === dto.staffId)
+                : appointmentsForDate;
+            const takenSlots = new Set();
+            for (const appointment of relevantAppointments) {
+                const appointmentStart = this.timeToMinutes(appointment.startTime);
+                const appointmentEnd = this.timeToMinutes(appointment.endTime);
+                for (const slot of slotsForDay) {
+                    const overlaps = slot.startMinutes < appointmentEnd && slot.endMinutes > appointmentStart;
+                    if (overlaps) {
+                        takenSlots.add(slot.key);
+                    }
+                }
+            }
+            takenSlotCount = takenSlots.size;
+            availableSlotCount = Math.max(totalSlots - takenSlotCount, 0);
             let staffAvailableCount = 0;
             if (dto.staffId) {
                 const staffAvailability = await this.staffAvailabilityModel
@@ -467,6 +528,7 @@ let AvailabilityService = class AvailabilityService {
                 date: dateString,
                 hasSlots: availableSlotCount > 0,
                 availableSlotCount,
+                takenSlotCount,
                 totalSlots,
                 staffAvailable: staffAvailableCount
             };
@@ -1025,8 +1087,10 @@ AvailabilityService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(business_hours_schema_1.BusinessHours.name)),
     __param(1, (0, mongoose_1.InjectModel)(staff_availability_schema_1.StaffAvailability.name)),
     __param(2, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
-    __param(3, (0, common_1.Inject)((0, common_1.forwardRef)(() => booking_service_1.BookingService))),
+    __param(3, (0, mongoose_1.InjectModel)(appointment_schema_1.Appointment.name)),
+    __param(4, (0, common_1.Inject)((0, common_1.forwardRef)(() => booking_service_1.BookingService))),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         booking_service_1.BookingService])

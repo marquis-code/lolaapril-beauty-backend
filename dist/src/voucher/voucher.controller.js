@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoucherController = void 0;
 const common_1 = require("@nestjs/common");
+const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const swagger_1 = require("@nestjs/swagger");
 const voucher_service_1 = require("./voucher.service");
 const create_voucher_dto_1 = require("./dto/create-voucher.dto");
@@ -28,32 +29,32 @@ let VoucherController = class VoucherController {
     constructor(voucherService) {
         this.voucherService = voucherService;
     }
-    create(createVoucherDto, req) {
+    create(businessId, createVoucherDto, req) {
         const userId = req.user.userId;
         return this.voucherService.create(createVoucherDto, userId);
     }
-    findAll(query) {
+    findAll(businessId, query) {
         return this.voucherService.findAll(query);
     }
-    getStats() {
-        return this.voucherService.getVoucherStats();
+    getStats(businessId) {
+        return this.voucherService.getVoucherStats(businessId);
     }
-    validateVoucher(body) {
+    validateVoucher(businessId, body) {
         return this.voucherService.validateVoucher(body.voucherCode, body.clientId, body.serviceIds, body.totalAmount);
     }
-    useVoucher(voucherCode) {
+    useVoucher(businessId, voucherCode) {
         return this.voucherService.useVoucher(voucherCode);
     }
-    findByCode(voucherCode) {
+    findByCode(businessId, voucherCode) {
         return this.voucherService.findByCode(voucherCode);
     }
-    findOne(id) {
+    findOne(businessId, id) {
         return this.voucherService.findOne(id);
     }
-    update(id, updateVoucherDto) {
+    update(businessId, id, updateVoucherDto) {
         return this.voucherService.update(id, updateVoucherDto);
     }
-    remove(id) {
+    remove(businessId, id) {
         return this.voucherService.remove(id);
     }
 };
@@ -63,10 +64,11 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.VOUCHER }),
     (0, swagger_1.ApiOperation)({ summary: "Create a new voucher" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Voucher created successfully" }),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Req)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_voucher_dto_1.CreateVoucherDto, Object]),
+    __metadata("design:paramtypes", [String, create_voucher_dto_1.CreateVoucherDto, Object]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "create", null);
 __decorate([
@@ -74,9 +76,10 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: 'Get all vouchers' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Vouchers retrieved successfully' }),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [voucher_query_dto_1.VoucherQueryDto]),
+    __metadata("design:paramtypes", [String, voucher_query_dto_1.VoucherQueryDto]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "findAll", null);
 __decorate([
@@ -84,8 +87,9 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get voucher statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Voucher statistics retrieved successfully" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "getStats", null);
 __decorate([
@@ -93,9 +97,10 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: 'Validate a voucher' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher validation result' }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "validateVoucher", null);
 __decorate([
@@ -104,9 +109,10 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.VOUCHER }),
     (0, swagger_1.ApiOperation)({ summary: 'Use a voucher' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher used successfully' }),
-    __param(0, (0, common_1.Param)('code')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('code')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "useVoucher", null);
 __decorate([
@@ -115,9 +121,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get voucher by code' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher retrieved successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Voucher not found' }),
-    __param(0, (0, common_1.Param)('code')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('code')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "findByCode", null);
 __decorate([
@@ -127,9 +134,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get voucher by ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher retrieved successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Voucher not found' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "findOne", null);
 __decorate([
@@ -139,10 +147,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update voucher" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Voucher updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Voucher not found" }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_voucher_dto_1.UpdateVoucherDto]),
+    __metadata("design:paramtypes", [String, String, update_voucher_dto_1.UpdateVoucherDto]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "update", null);
 __decorate([
@@ -152,9 +161,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Delete voucher' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Voucher deleted successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Voucher not found' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], VoucherController.prototype, "remove", null);
 VoucherController = __decorate([

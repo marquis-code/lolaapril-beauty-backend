@@ -2,6 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { NotificationService } from '../../notification/notification.service'
+import { ChatService } from '../../notification/services/chat.service'
 
 @Injectable()
 export class BookingEventHandler {
@@ -9,37 +10,54 @@ export class BookingEventHandler {
 
   constructor(
     private readonly notificationService: NotificationService,
+    private readonly chatService: ChatService,
   ) {}
 
   @OnEvent('booking.created')
-  async handleBookingCreated(booking: any) {
+  async handleBookingCreated(payload: any) {
+    const booking = payload?.booking || payload
+
     this.logger.log(`Handling booking created event for: ${booking.bookingNumber}`)
-    
+
     // Send notification to business staff
     await this.notificationService.notifyStaffNewBooking(booking)
+
+    // Start customer chat with a helpful message
+    await this.sendAutomatedChatMessage(booking, {
+      senderName: 'Booking Assistant',
+      content: `Hi ${booking.clientName || 'there'}! We noticed you started a booking${booking.bookingNumber ? ` (${booking.bookingNumber})` : ''}. If you need help completing your booking or have any questions, just reply here and we’ll assist you.`
+    })
   }
 
   @OnEvent('booking.confirmed')
   async handleBookingConfirmed(data: { booking: any; staffId: string; confirmedBy: string }) {
-    this.logger.log(`Handling booking confirmed event for: ${data.booking.bookingNumber}`)
+    const booking = data.booking
+
+    this.logger.log(`Handling booking confirmed event for: ${booking.bookingNumber}`)
     
     // Send confirmation notification to client
     await this.notificationService.notifyBookingConfirmation(
-      data.booking._id,
-      data.booking.clientId,
-      data.booking.businessId,
+      booking._id,
+      booking.clientId,
+      booking.businessId,
       {
-        clientName: data.booking.clientName,
-        serviceName: data.booking.services.map(s => s.serviceName).join(', '),
-        date: data.booking.preferredDate.toDateString(),
-        time: data.booking.preferredStartTime,
-        businessName: data.booking.businessName,
-        businessAddress: data.booking.businessAddress || '',
-        appointmentNumber: data.booking.bookingNumber,
-        clientEmail: data.booking.clientEmail,
-        clientPhone: data.booking.clientPhone
+        clientName: booking.clientName,
+        serviceName: booking.services.map(s => s.serviceName).join(', '),
+        date: booking.preferredDate.toDateString(),
+        time: booking.preferredStartTime,
+        businessName: booking.businessName,
+        businessAddress: booking.businessAddress || '',
+        appointmentNumber: booking.bookingNumber,
+        clientEmail: booking.clientEmail,
+        clientPhone: booking.clientPhone
       }
     )
+
+    // Send confirmation chat message
+    await this.sendAutomatedChatMessage(booking, {
+      senderName: 'Booking Assistant',
+      content: `🎉 Congratulations ${booking.clientName || ''}! Your booking${booking.bookingNumber ? ` (${booking.bookingNumber})` : ''} is confirmed. If you need anything else, just reply here and we’ll help you.`
+    })
   }
 
   @OnEvent('booking.cancelled')
@@ -69,9 +87,12 @@ export class BookingEventHandler {
   @OnEvent('booking.expired')
   async handleBookingExpired(booking: any) {
     this.logger.log(`Handling booking expired event for: ${booking.bookingNumber}`)
-    
-    // Optionally send expiration notification
-    // await this.notificationService.notifyBookingExpired(booking)
+
+    // Optional: send expiration notification via chat
+    await this.sendAutomatedChatMessage(booking, {
+      senderName: 'Booking Assistant',
+      content: `Hi ${booking.clientName || 'there'}, it looks like your booking${booking.bookingNumber ? ` (${booking.bookingNumber})` : ''} wasn’t completed in time. Do you need help finishing it? I’m here to assist you.`
+    })
   }
 
   @OnEvent('booking.payment.reminder')
@@ -96,6 +117,77 @@ export class BookingEventHandler {
         clientPhone: booking.clientPhone
       }
     )
+
+    // Send chat reminder
+    await this.sendAutomatedChatMessage(booking, {
+      senderName: 'Booking Assistant',
+      content: `Hi ${booking.clientName || 'there'}! Your booking${booking.bookingNumber ? ` (${booking.bookingNumber})` : ''} is waiting for payment to be confirmed. If you need help, just reply here and we’ll assist you.`
+    })
+  }
+
+  private async sendAutomatedChatMessage(
+    booking: any,
+    message: { senderName: string; content: string }
+  ) {
+    try {
+      if (!booking?.businessId) return
+
+      // Use client ID if available, otherwise use a consistent guest identifier
+      const clientId = booking.clientId?._id?.toString() || booking.clientId?.toString()
+      const userId = clientId || booking.clientEmail || `guest_${booking._id}`
+
+      const isGuest = !clientId
+
+      // Skip if no way to identify the customer
+      if (isGuest && !booking.clientEmail) {
+        this.logger.warn(`Skipping chat message - no client ID or email for booking ${booking.bookingNumber}`)
+        return
+      }
+
+      // Find existing room first to avoid duplicates
+      const room = await this.chatService.createOrGetCustomerChatRoom(
+        booking.businessId.toString(),
+        userId,
+        {
+          name: booking.clientName || 'Customer',
+          email: booking.clientEmail,
+          phone: booking.clientPhone,
+          isGuest,
+          guestInfo: isGuest ? { 
+            bookingId: booking._id?.toString(),
+            email: booking.clientEmail 
+          } : undefined,
+        }
+      )
+
+      // Check if we've already sent this exact message recently (prevent duplicates)
+      const recentMessages = await this.chatService.getRoomMessages(room._id.toString(), { limit: 5 })
+      const isDuplicate = recentMessages.messages?.some((msg: any) => 
+        msg.isAutomated && 
+        msg.content === message.content &&
+        new Date().getTime() - new Date(msg.createdAt).getTime() < 60000 // Within last minute
+      )
+
+      if (isDuplicate) {
+        this.logger.log(`Skipping duplicate automated message for room ${room._id}`)
+        return
+      }
+
+      await this.chatService.sendMessage(
+        room._id.toString(),
+        'system',
+        'system',
+        message.content,
+        {
+          senderName: message.senderName,
+          isAutomated: true,
+        }
+      )
+
+      this.logger.log(`✅ Sent automated chat message to room ${room._id}`)
+    } catch (error) {
+      this.logger.error(`Failed to send automated chat message: ${error.message}`)
+    }
   }
 
   @OnEvent('appointment.created')

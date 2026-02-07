@@ -1,6 +1,7 @@
-import { Controller, Query, Body, Get, Post, Patch, Delete, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Controller, Query, Body, Get, Post, Patch, Delete, UseGuards, UseInterceptors, Req } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { AppointmentService } from "./appointment.service"
+import { BusinessId } from "../auth/decorators/business-context.decorator"
 import { CreateAppointmentDto } from "./dto/create-appointment.dto"
 import { UpdateAppointmentDto } from "./dto/update-appointment.dto"
 import { AppointmentQueryDto } from "./dto/appointment-query.dto"
@@ -26,16 +27,16 @@ export class AppointmentController {
   @ApiOperation({ summary: "Create a new appointment" })
   @ApiResponse({ status: 201, description: "Appointment created successfully" })
   @ApiResponse({ status: 409, description: "Time slot conflict" })
-  create(@Body() createAppointmentDto: CreateAppointmentDto) {
-    return this.appointmentService.create(createAppointmentDto)
+  create(@BusinessId() businessId: string, @Body() createAppointmentDto: CreateAppointmentDto) {
+    return this.appointmentService.create({ ...createAppointmentDto, businessId })
   }
 
   @Get()
   // @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get all appointments" })
   @ApiResponse({ status: 200, description: "Appointments retrieved successfully" })
-  findAll(@Query() query: AppointmentQueryDto) {
-    return this.appointmentService.findAll(query)
+  findAll(@BusinessId() businessId: string, @Query() query: AppointmentQueryDto) {
+    return this.appointmentService.findAll({ ...query, businessId })
   }
 
   @Get("stats")
@@ -58,16 +59,16 @@ export class AppointmentController {
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get appointments by date" })
   @ApiResponse({ status: 200, description: "Appointments retrieved successfully" })
-  getByDate(date: string) {
-    return this.appointmentService.getAppointmentsByDate(date)
+  getByDate(@BusinessId() businessId: string, date: string) {
+    return this.appointmentService.getAppointmentsByDate(businessId, date)
   }
 
   @Get("by-staff/:staffId")
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get appointments by staff member" })
   @ApiResponse({ status: 200, description: "Appointments retrieved successfully" })
-  getByStaff(staffId: string, date?: string) {
-    return this.appointmentService.getAppointmentsByStaff(staffId, date)
+  getByStaff(@BusinessId() businessId: string, staffId: string, date?: string) {
+    return this.appointmentService.getAppointmentsByStaff(businessId, staffId, date)
   }
 
   @Get(":id")

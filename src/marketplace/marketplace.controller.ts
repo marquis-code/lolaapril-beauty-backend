@@ -1,5 +1,6 @@
 // marketplace.controller.ts
 import { Controller, Get, Post, Put, Body, Param, Query } from '@nestjs/common';
+import { BusinessId } from '../auth/decorators/business-context.decorator';
 import { MarketplaceService } from './marketplace.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 
@@ -7,9 +8,10 @@ import { CreateReviewDto } from './dto/create-review.dto';
 export class MarketplaceController {
   constructor(private readonly marketplaceService: MarketplaceService) {}
 
-  @Post('verification/:tenantId')
-  submitVerification(@Param('tenantId') tenantId: string, @Body() documents: any) {
-    return this.marketplaceService.submitForVerification(tenantId, documents);
+
+  @Post('verification')
+  submitVerification(@BusinessId() businessId: string, @Body() documents: any) {
+    return this.marketplaceService.submitForVerification(businessId, documents);
   }
 
   @Put('verification/:id/status')
@@ -25,9 +27,10 @@ export class MarketplaceController {
     );
   }
 
-  @Get('verification/:tenantId')
-  getVerificationStatus(@Param('tenantId') tenantId: string) {
-    return this.marketplaceService.getVerificationStatus(tenantId);
+
+  @Get('verification')
+  getVerificationStatus(@BusinessId() businessId: string) {
+    return this.marketplaceService.getVerificationStatus(businessId);
   }
 
   @Get('verification/pending')
@@ -67,14 +70,16 @@ export class MarketplaceController {
     return this.marketplaceService.markReviewHelpful(id, helpful);
   }
 
-  @Post('quality/:tenantId/update')
-  updateQualityMetrics(@Param('tenantId') tenantId: string) {
-    return this.marketplaceService.updateQualityMetrics(tenantId);
+
+  @Post('quality/update')
+  updateQualityMetrics(@BusinessId() businessId: string) {
+    return this.marketplaceService.updateQualityMetrics(businessId);
   }
 
-  @Get('quality/:tenantId')
-  getQualityScore(@Param('tenantId') tenantId: string) {
-    return this.marketplaceService.getBusinessQualityScore(tenantId);
+
+  @Get('quality')
+  getQualityScore(@BusinessId() businessId: string) {
+    return this.marketplaceService.getBusinessQualityScore(businessId);
   }
 
   @Get('search')

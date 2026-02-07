@@ -25,15 +25,15 @@ let MarketplaceService = class MarketplaceService {
         this.reviewModel = reviewModel;
         this.qualityMetricModel = qualityMetricModel;
     }
-    async submitForVerification(tenantId, documents) {
+    async submitForVerification(businessId, documents) {
         const existing = await this.verificationModel.findOne({
-            tenantId: new mongoose_2.Types.ObjectId(tenantId)
+            businessId: new mongoose_2.Types.ObjectId(businessId)
         });
         if (existing) {
             throw new common_1.BadRequestException('Verification already submitted');
         }
         const verification = new this.verificationModel({
-            tenantId: new mongoose_2.Types.ObjectId(tenantId),
+            businessId: new mongoose_2.Types.ObjectId(businessId),
             status: 'pending',
             verificationLevel: 'basic',
             businessDocuments: documents,
@@ -58,9 +58,9 @@ let MarketplaceService = class MarketplaceService {
         }
         return verification.save();
     }
-    async getVerificationStatus(tenantId) {
+    async getVerificationStatus(businessId) {
         return this.verificationModel
-            .findOne({ tenantId: new mongoose_2.Types.ObjectId(tenantId) })
+            .findOne({ businessId: new mongoose_2.Types.ObjectId(businessId) })
             .populate('verifiedBy', 'firstName lastName')
             .exec();
     }
@@ -193,7 +193,7 @@ let MarketplaceService = class MarketplaceService {
         ]);
         return stats[0] || null;
     }
-    async updateQualityMetrics(tenantId) {
+    async updateQualityMetrics(businessId) {
         const now = new Date();
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         const metrics = {
@@ -203,9 +203,9 @@ let MarketplaceService = class MarketplaceService {
             cancellationRate: 2,
             onTimeRate: 96,
         };
-        await this.verificationModel.updateOne({ tenantId: new mongoose_2.Types.ObjectId(tenantId) }, { qualityMetrics: metrics });
+        await this.verificationModel.updateOne({ businessId: new mongoose_2.Types.ObjectId(businessId) }, { qualityMetrics: metrics });
         const metric = new this.qualityMetricModel({
-            tenantId: new mongoose_2.Types.ObjectId(tenantId),
+            businessId: new mongoose_2.Types.ObjectId(businessId),
             metricType: 'overall_quality',
             value: Object.values(metrics).reduce((a, b) => a + b, 0) / Object.keys(metrics).length,
             period: 'monthly',
@@ -215,9 +215,9 @@ let MarketplaceService = class MarketplaceService {
         await metric.save();
         return metrics;
     }
-    async getBusinessQualityScore(tenantId) {
+    async getBusinessQualityScore(businessId) {
         const verification = await this.verificationModel.findOne({
-            tenantId: new mongoose_2.Types.ObjectId(tenantId),
+            businessId: new mongoose_2.Types.ObjectId(businessId),
         });
         if (!verification || !verification.qualityMetrics) {
             return null;

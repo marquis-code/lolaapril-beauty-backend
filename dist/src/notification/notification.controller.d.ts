@@ -32,6 +32,27 @@ export declare class NotificationController {
     private notificationLogModel;
     private notificationPreferenceModel;
     constructor(notificationService: NotificationService, notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>);
+    markAsRead(notificationId: string): Promise<{
+        success: boolean;
+        message: string;
+        notification?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        notification: import("mongoose").Document<unknown, {}, NotificationLogDocument, {}, {}> & NotificationLog & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: Types.ObjectId;
+        }> & {
+            __v: number;
+        };
+    }>;
+    markAllAsRead(businessId: string): Promise<{
+        success: boolean;
+        message: string;
+        count: number;
+    }>;
+    getUnreadCount(businessId: string): Promise<{
+        unreadCount: number;
+    }>;
     getTemplates(businessId: string): Promise<(import("mongoose").Document<unknown, {}, NotificationTemplateDocument, {}, {}> & NotificationTemplate & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: Types.ObjectId;
     }> & {

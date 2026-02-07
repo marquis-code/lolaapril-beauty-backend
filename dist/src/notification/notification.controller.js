@@ -25,6 +25,37 @@ let NotificationController = class NotificationController {
         this.notificationLogModel = notificationLogModel;
         this.notificationPreferenceModel = notificationPreferenceModel;
     }
+    async markAsRead(notificationId) {
+        const notification = await this.notificationLogModel.findByIdAndUpdate(notificationId, {
+            isRead: true,
+            readAt: new Date()
+        }, { new: true });
+        if (!notification) {
+            return { success: false, message: 'Notification not found' };
+        }
+        return { success: true, message: 'Notification marked as read', notification };
+    }
+    async markAllAsRead(businessId) {
+        const result = await this.notificationLogModel.updateMany({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            isRead: false
+        }, {
+            isRead: true,
+            readAt: new Date()
+        });
+        return {
+            success: true,
+            message: 'All notifications marked as read',
+            count: result.modifiedCount
+        };
+    }
+    async getUnreadCount(businessId) {
+        const count = await this.notificationLogModel.countDocuments({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            isRead: false,
+        });
+        return { unreadCount: count };
+    }
     async getTemplates(businessId) {
         return await this.notificationTemplateModel.find({
             businessId: new mongoose_2.Types.ObjectId(businessId),
@@ -104,6 +135,27 @@ let NotificationController = class NotificationController {
         return { success: true, message: 'Templates seeded successfully' };
     }
 };
+__decorate([
+    (0, common_1.Patch)(':notificationId/read'),
+    __param(0, (0, common_1.Param)('notificationId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], NotificationController.prototype, "markAsRead", null);
+__decorate([
+    (0, common_1.Patch)('read-all/:businessId'),
+    __param(0, (0, common_1.Param)('businessId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], NotificationController.prototype, "markAllAsRead", null);
+__decorate([
+    (0, common_1.Get)('unread-count/:businessId'),
+    __param(0, (0, common_1.Param)('businessId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], NotificationController.prototype, "getUnreadCount", null);
 __decorate([
     (0, common_1.Get)('templates/:businessId'),
     __param(0, (0, common_1.Param)('businessId')),

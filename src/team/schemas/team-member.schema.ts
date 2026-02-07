@@ -85,6 +85,9 @@ export const CommissionSchema = SchemaFactory.createForClass(Commission)
 
 @Schema({ timestamps: true })
 export class TeamMember {
+  @Prop({ type: Types.ObjectId, ref: 'Business', required: true, index: true })
+  businessId: Types.ObjectId
+
   @Prop({ required: true })
   firstName: string
 

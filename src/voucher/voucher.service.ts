@@ -568,8 +568,9 @@ if (voucher.restrictions.excludedServices?.length > 0) {
     return voucher
   }
 
-  async getVoucherStats() {
+  async getVoucherStats(businessId: string) {
     const stats = await this.voucherModel.aggregate([
+      { $match: { businessId } },
       {
         $group: {
           _id: null,
@@ -583,6 +584,7 @@ if (voucher.restrictions.excludedServices?.length > 0) {
     ])
 
     const discountTypeStats = await this.voucherModel.aggregate([
+      { $match: { businessId } },
       {
         $group: {
           _id: "$discountType",

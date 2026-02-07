@@ -123,6 +123,12 @@ export class NotificationLog {
   @Prop({ type: Types.ObjectId, ref: 'NotificationTemplate' })
   templateId: Types.ObjectId
 
+  @Prop({ default: false })
+  isRead: boolean
+
+  @Prop()
+  readAt: Date
+
   @Prop({ default: Date.now })
   createdAt: Date
 }

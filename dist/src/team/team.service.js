@@ -71,16 +71,17 @@ let TeamService = class TeamService {
             }
         }
     }
-    async create(createTeamMemberDto) {
+    async create(businessId, createTeamMemberDto) {
         try {
             const existingMember = await this.teamMemberModel.findOne({
                 email: createTeamMemberDto.email,
+                businessId: new mongoose_1.Types.ObjectId(businessId),
             });
             if (existingMember) {
                 throw new common_1.ConflictException("Team member with this email already exists");
             }
             await this.validateServiceReferences(createTeamMemberDto);
-            const teamMember = new this.teamMemberModel(createTeamMemberDto);
+            const teamMember = new this.teamMemberModel({ ...createTeamMemberDto, businessId: new mongoose_1.Types.ObjectId(businessId) });
             const savedTeamMember = await teamMember.save();
             return {
                 success: true,
@@ -95,10 +96,10 @@ let TeamService = class TeamService {
             throw new Error(`Failed to create team member: ${error.message}`);
         }
     }
-    async findAll(query) {
+    async findAll(businessId, query) {
         try {
             const { page = 1, limit = 10, search, role, status, department, sortBy = "createdAt", sortOrder = "desc" } = query;
-            const filter = {};
+            const filter = { businessId: new mongoose_1.Types.ObjectId(businessId) };
             if (search) {
                 filter.$or = [
                     { firstName: { $regex: search, $options: "i" } },
@@ -139,11 +140,11 @@ let TeamService = class TeamService {
             throw new Error(`Failed to fetch team members: ${error.message}`);
         }
     }
-    async findOne(id) {
+    async findOne(businessId, id) {
         try {
             this.validateObjectId(id, "Team member");
             const teamMember = await this.teamMemberModel
-                .findById(new mongoose_1.Types.ObjectId(id))
+                .findOne({ _id: new mongoose_1.Types.ObjectId(id), businessId: new mongoose_1.Types.ObjectId(businessId) })
                 .populate('skills.services', 'basicDetails.serviceName pricingAndDuration')
                 .populate('commissions.serviceId', 'basicDetails.serviceName pricingAndDuration');
             if (!teamMember) {
@@ -161,13 +162,14 @@ let TeamService = class TeamService {
             throw new Error(`Failed to fetch team member: ${error.message}`);
         }
     }
-    async update(id, updateTeamMemberDto) {
+    async update(businessId, id, updateTeamMemberDto) {
         try {
             this.validateObjectId(id, "Team member");
             if (updateTeamMemberDto.email) {
                 const existingMember = await this.teamMemberModel.findOne({
                     email: updateTeamMemberDto.email,
                     _id: { $ne: new mongoose_1.Types.ObjectId(id) },
+                    businessId: new mongoose_1.Types.ObjectId(businessId),
                 });
                 if (existingMember) {
                     throw new common_1.ConflictException("Team member with this email already exists");
@@ -177,7 +179,7 @@ let TeamService = class TeamService {
                 await this.validateServiceReferences(updateTeamMemberDto);
             }
             const teamMember = await this.teamMemberModel
-                .findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { ...updateTeamMemberDto, updatedAt: new Date() }, { new: true, runValidators: true })
+                .findOneAndUpdate({ _id: new mongoose_1.Types.ObjectId(id), businessId: new mongoose_1.Types.ObjectId(businessId) }, { ...updateTeamMemberDto, updatedAt: new Date() }, { new: true, runValidators: true })
                 .populate('skills.services', 'basicDetails.serviceName')
                 .populate('commissions.serviceId', 'basicDetails.serviceName');
             if (!teamMember) {
@@ -196,10 +198,10 @@ let TeamService = class TeamService {
             throw new Error(`Failed to update team member: ${error.message}`);
         }
     }
-    async remove(id) {
+    async remove(businessId, id) {
         try {
             this.validateObjectId(id, "Team member");
-            const result = await this.teamMemberModel.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { isActive: false, updatedAt: new Date() }, { new: true });
+            const result = await this.teamMemberModel.findOneAndUpdate({ _id: new mongoose_1.Types.ObjectId(id), businessId: new mongoose_1.Types.ObjectId(businessId) }, { isActive: false, updatedAt: new Date() }, { new: true });
             if (!result) {
                 throw new common_1.NotFoundException("Team member not found");
             }
@@ -215,10 +217,10 @@ let TeamService = class TeamService {
             throw new Error(`Failed to deactivate team member: ${error.message}`);
         }
     }
-    async findByRole(role) {
+    async findByRole(businessId, role) {
         try {
             const teamMembers = await this.teamMemberModel
-                .find({ role, isActive: true })
+                .find({ businessId: new mongoose_1.Types.ObjectId(businessId), role, isActive: true })
                 .populate('skills.services', 'basicDetails.serviceName')
                 .exec();
             return {
@@ -230,10 +232,10 @@ let TeamService = class TeamService {
             throw new Error(`Failed to fetch team members by role: ${error.message}`);
         }
     }
-    async findByDepartment(department) {
+    async findByDepartment(businessId, department) {
         try {
             const teamMembers = await this.teamMemberModel
-                .find({ department, isActive: true })
+                .find({ businessId: new mongoose_1.Types.ObjectId(businessId), department, isActive: true })
                 .populate('skills.services', 'basicDetails.serviceName')
                 .exec();
             return {
@@ -245,10 +247,10 @@ let TeamService = class TeamService {
             throw new Error(`Failed to fetch team members by department: ${error.message}`);
         }
     }
-    async updateStatus(id, status) {
+    async updateStatus(businessId, id, status) {
         try {
             this.validateObjectId(id, "Team member");
-            const teamMember = await this.teamMemberModel.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { isActive: status, updatedAt: new Date() }, { new: true });
+            const teamMember = await this.teamMemberModel.findOneAndUpdate({ _id: new mongoose_1.Types.ObjectId(id), businessId: new mongoose_1.Types.ObjectId(businessId) }, { isActive: status, updatedAt: new Date() }, { new: true });
             if (!teamMember) {
                 throw new common_1.NotFoundException("Team member not found");
             }
@@ -265,7 +267,7 @@ let TeamService = class TeamService {
             throw new Error(`Failed to update team member status: ${error.message}`);
         }
     }
-    async addCommission(teamMemberId, serviceId, commissionData) {
+    async addCommission(businessId, teamMemberId, serviceId, commissionData) {
         try {
             this.validateObjectId(teamMemberId, "Team member");
             this.validateObjectId(serviceId, "Service");
@@ -273,7 +275,7 @@ let TeamService = class TeamService {
             if (!service) {
                 throw new common_1.NotFoundException("Service not found");
             }
-            const teamMember = await this.teamMemberModel.findById(new mongoose_1.Types.ObjectId(teamMemberId));
+            const teamMember = await this.teamMemberModel.findOne({ _id: new mongoose_1.Types.ObjectId(teamMemberId), businessId: new mongoose_1.Types.ObjectId(businessId) });
             if (!teamMember) {
                 throw new common_1.NotFoundException("Team member not found");
             }
@@ -303,9 +305,10 @@ let TeamService = class TeamService {
             throw new Error(`Failed to add commission: ${error.message}`);
         }
     }
-    async getTeamStats() {
+    async getTeamStats(businessId) {
         try {
             const stats = await this.teamMemberModel.aggregate([
+                { $match: { businessId: new mongoose_1.Types.ObjectId(businessId) } },
                 {
                     $group: {
                         _id: null,
@@ -316,7 +319,7 @@ let TeamService = class TeamService {
                 },
             ]);
             const roleStats = await this.teamMemberModel.aggregate([
-                { $match: { isActive: true } },
+                { $match: { businessId: new mongoose_1.Types.ObjectId(businessId), isActive: true } },
                 {
                     $group: {
                         _id: "$role",
@@ -326,7 +329,7 @@ let TeamService = class TeamService {
                 { $sort: { count: -1 } },
             ]);
             const employmentStats = await this.teamMemberModel.aggregate([
-                { $match: { isActive: true } },
+                { $match: { businessId: new mongoose_1.Types.ObjectId(businessId), isActive: true } },
                 {
                     $group: {
                         _id: "$employmentType",
@@ -336,7 +339,7 @@ let TeamService = class TeamService {
                 { $sort: { count: -1 } },
             ]);
             const skillsStats = await this.teamMemberModel.aggregate([
-                { $match: { isActive: true, "skills.services": { $exists: true, $ne: [] } } },
+                { $match: { businessId: new mongoose_1.Types.ObjectId(businessId), isActive: true, "skills.services": { $exists: true, $ne: [] } } },
                 { $unwind: "$skills.services" },
                 {
                     $lookup: {

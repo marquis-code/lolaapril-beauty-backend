@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import {
@@ -14,6 +14,7 @@ import {
   AutoResponseDocument,
 } from '../schemas/chat.schema'
 import { RealtimeGateway } from '../gateways/realtime.gateway'
+import { User, UserDocument, UserRole } from '../../auth/schemas/user.schema'
 
 @Injectable()
 export class ChatService {
@@ -25,6 +26,7 @@ export class ChatService {
     @InjectModel(ChatParticipant.name) private chatParticipantModel: Model<ChatParticipantDocument>,
     @InjectModel(FAQ.name) private faqModel: Model<FAQDocument>,
     @InjectModel(AutoResponse.name) private autoResponseModel: Model<AutoResponseDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private realtimeGateway: RealtimeGateway,
   ) {}
 
@@ -82,22 +84,53 @@ export class ChatService {
       throw new Error('Please provide a valid email address')
     }
     
-    // For guests, try to find room by sessionId if provided
-    let query: any = {
-      businessId: new Types.ObjectId(businessId),
-      roomType: 'customer-support',
-      isActive: true,
+    // Try multiple queries to find existing room
+    let room: any = null
+    const businessObjectId = new Types.ObjectId(businessId)
+
+    // 1. Look for room by userId first
+    if (userId && !userId.startsWith('guest_')) {
+      room = await this.chatRoomModel.findOne({
+        businessId: businessObjectId,
+        roomType: 'customer-support',
+        isActive: true,
+        'metadata.userId': userId,
+      }).exec()
     }
 
-    if (isGuest && userInfo.guestInfo?.sessionId) {
-      // Look for existing guest session
-      query['metadata.guestInfo.sessionId'] = userInfo.guestInfo.sessionId
-    } else if (!isGuest) {
-      // Look for authenticated user's room
-      query['metadata.userId'] = userId
+    // 2. Look for room by email if not found
+    if (!room && userInfo.email) {
+      room = await this.chatRoomModel.findOne({
+        businessId: businessObjectId,
+        roomType: 'customer-support',
+        isActive: true,
+        $or: [
+          { 'metadata.email': userInfo.email },
+          { 'metadata.userEmail': userInfo.email },
+          { 'metadata.guestInfo.email': userInfo.email },
+        ]
+      }).exec()
+
+      // If found by email, update the userId to link the account
+      if (room && userId && !userId.startsWith('guest_') && !room.metadata?.userId) {
+        await this.chatRoomModel.findByIdAndUpdate(room._id, {
+          'metadata.userId': userId,
+          'metadata.userType': 'customer',
+          'metadata.isGuest': false,
+        }).exec()
+        this.logger.log(`🔗 Linked existing room ${room._id} to user ${userId}`)
+      }
     }
 
-    let room: any = await this.chatRoomModel.findOne(query).exec()
+    // 3. Look for room by guestInfo.sessionId
+    if (!room && isGuest && userInfo.guestInfo?.sessionId) {
+      room = await this.chatRoomModel.findOne({
+        businessId: businessObjectId,
+        roomType: 'customer-support',
+        isActive: true,
+        'metadata.guestInfo.sessionId': userInfo.guestInfo.sessionId,
+      }).exec()
+    }
 
     if (!room) {
       // Create new room
@@ -105,22 +138,26 @@ export class ChatService {
         userType: isGuest ? 'guest' : 'customer',
         userName: userInfo.name,
         userEmail: userInfo.email,
+        email: userInfo.email, // Store email at root level too for easier lookup
         userPhone: userInfo.phone,
         priority: 'medium',
         tags: isGuest ? ['new-guest', 'anonymous'] : ['new-customer'],
         isGuest,
       }
 
-      if (!isGuest) {
+      if (!isGuest && userId) {
         metadata.userId = userId
       }
 
       if (isGuest && userInfo.guestInfo) {
-        metadata.guestInfo = userInfo.guestInfo
+        metadata.guestInfo = {
+          ...userInfo.guestInfo,
+          email: userInfo.email, // Also store email in guestInfo
+        }
       }
 
       room = await this.chatRoomModel.create({
-        businessId: new Types.ObjectId(businessId),
+        businessId: businessObjectId,
         roomType: 'customer-support',
         roomName: `Chat with ${userInfo.name}${isGuest ? ' (Guest)' : ''}`,
         isActive: true,
@@ -129,6 +166,16 @@ export class ChatService {
 
       // Send welcome message
       await this.sendWelcomeMessage(room._id.toString(), businessId)
+
+      // Notify business team inside the chat (system message)
+      await this.sendMessage(room._id.toString(), '', 'system',
+        `New customer chat started by ${userInfo.name}${userInfo.email ? ` (${userInfo.email})` : ''}.`,
+        {
+          senderName: 'System',
+          messageType: 'system',
+          isAutomated: true,
+        }
+      )
 
       // Notify business of new chat
       this.realtimeGateway.notifyBusinessNewChat(businessId, {
@@ -142,6 +189,108 @@ export class ChatService {
       this.logger.log(`✅ Created new ${isGuest ? 'guest' : 'customer'} chat room ${room._id} for ${userId}`)
     } else {
       this.logger.log(`♻️ Found existing room ${room._id} for ${userId}`)
+    }
+
+    return room
+  }
+
+  /**
+   * Get chat room by id
+   */
+  async getRoomById(roomId: string): Promise<any> {
+    return this.chatRoomModel.findById(roomId).lean<any>().exec()
+  }
+
+  /**
+   * Create or get a 1:1 team chat between business owner/admin and a team member
+   */
+  async createOrGetTeamChatRoom(
+    businessId: string,
+    ownerId: string,
+    memberId: string,
+    memberInfo?: { name?: string; email?: string }
+  ): Promise<any> {
+    if (!ownerId || !memberId) {
+      throw new BadRequestException('ownerId and memberId are required')
+    }
+
+    const query: any = {
+      businessId: new Types.ObjectId(businessId),
+      roomType: 'team-chat',
+      isActive: true,
+      'metadata.ownerId': ownerId,
+      'metadata.memberId': memberId,
+    }
+
+    let room: any = await this.chatRoomModel.findOne(query).exec()
+
+    if (!room) {
+      room = await this.chatRoomModel.create({
+        businessId: new Types.ObjectId(businessId),
+        roomType: 'team-chat',
+        roomName: `Team chat`,
+        isActive: true,
+        metadata: {
+          userType: 'team',
+          ownerId,
+          memberId,
+          userName: memberInfo?.name,
+          userEmail: memberInfo?.email,
+          priority: 'medium',
+        },
+      })
+    }
+
+    return room
+  }
+
+  /**
+   * Create or get a support chat between business owner/admin and super admin
+   */
+  async createOrGetBusinessSupportRoom(
+    businessId: string,
+    ownerId: string,
+    ownerInfo?: { name?: string; email?: string },
+    superAdminId?: string
+  ): Promise<any> {
+    if (!ownerId) {
+      throw new BadRequestException('ownerId is required')
+    }
+
+    let resolvedSuperAdminId = superAdminId
+    if (!resolvedSuperAdminId) {
+      const superAdmin = await this.userModel.findOne({ role: UserRole.SUPER_ADMIN }).lean<any>().exec()
+      if (!superAdmin) {
+        throw new NotFoundException('No super admin found')
+      }
+      resolvedSuperAdminId = superAdmin._id.toString()
+    }
+
+    const query: any = {
+      businessId: new Types.ObjectId(businessId),
+      roomType: 'admin-support',
+      isActive: true,
+      'metadata.ownerId': ownerId,
+      'metadata.superAdminId': resolvedSuperAdminId,
+    }
+
+    let room: any = await this.chatRoomModel.findOne(query).exec()
+
+    if (!room) {
+      room = await this.chatRoomModel.create({
+        businessId: new Types.ObjectId(businessId),
+        roomType: 'admin-support',
+        roomName: `Business support chat`,
+        isActive: true,
+        metadata: {
+          userType: 'admin',
+          ownerId,
+          superAdminId: resolvedSuperAdminId,
+          userName: ownerInfo?.name,
+          userEmail: ownerInfo?.email,
+          priority: 'medium',
+        },
+      })
     }
 
     return room
@@ -182,6 +331,40 @@ export class ChatService {
       total,
       page,
       totalPages: Math.ceil(total / limit),
+    }
+  }
+
+  /**
+   * Get unread message counts for a business
+   * Returns total unread count and per-room breakdown
+   */
+  async getBusinessUnreadCounts(businessId: string): Promise<{
+    totalUnread: number
+    roomsWithUnread: number
+    rooms: Array<{ roomId: string; unreadCount: number; lastMessageAt: Date; customerName: string }>
+  }> {
+    const rooms = await this.chatRoomModel.find({
+      businessId: new Types.ObjectId(businessId),
+      isActive: true,
+      unreadCount: { $gt: 0 },
+    })
+      .select('_id unreadCount lastMessageAt metadata')
+      .sort({ lastMessageAt: -1 })
+      .limit(50)
+      .lean<any>()
+      .exec()
+
+    const totalUnread = rooms.reduce((sum: number, room: any) => sum + (room.unreadCount || 0), 0)
+
+    return {
+      totalUnread,
+      roomsWithUnread: rooms.length,
+      rooms: rooms.map((room: any) => ({
+        roomId: room._id.toString(),
+        unreadCount: room.unreadCount || 0,
+        lastMessageAt: room.lastMessageAt,
+        customerName: room.metadata?.userName || room.metadata?.name || 'Unknown',
+      })),
     }
   }
 
@@ -404,23 +587,17 @@ async sendMessage(
 
   /**
    * Handle incoming customer message with automation
+   * This will automatically respond with FAQ answers or auto-responses
    */
   private async handleIncomingCustomerMessage(roomId: string, message: string, businessId: string): Promise<void> {
     try {
-      // 1. Check if business is available
-      const isBusinessAvailable = await this.isBusinessAvailable(businessId)
+      this.logger.log(`🤖 Processing automation for message: "${message.substring(0, 50)}..."`)
 
-      if (!isBusinessAvailable) {
-        // Send offline auto-response
-        await this.sendOfflineAutoResponse(roomId, businessId)
-        return
-      }
-
-      // 2. Try to match with FAQ
+      // 1. Try to match with FAQ first (highest priority)
       const faqMatch = await this.findMatchingFAQ(message, businessId)
 
-      if (faqMatch && faqMatch.confidence > 70) {
-        // High confidence FAQ match - send automated response
+      if (faqMatch && faqMatch.confidence >= 50) {
+        // FAQ match found - send automated response immediately
         await this.sendMessage(
           roomId,
           null,
@@ -439,42 +616,62 @@ async sendMessage(
           $inc: { usageCount: 1 },
         }).exec()
 
-        // Ask if the answer was helpful
-        setTimeout(() => {
-          this.sendMessage(
-            roomId,
-            null,
-            'bot',
-            'Was this answer helpful? If you need more assistance, please let me know!',
-            {
-              senderName: 'Auto Assistant',
-              isAutomated: true,
-            }
-          )
+        this.logger.log(`🤖 FAQ auto-response sent (confidence: ${faqMatch.confidence.toFixed(1)}%)`)
+
+        // Ask if the answer was helpful after a short delay
+        setTimeout(async () => {
+          try {
+            await this.sendMessage(
+              roomId,
+              null,
+              'bot',
+              'Was this answer helpful? If you need more assistance, a team member will be happy to help!',
+              {
+                senderName: 'Auto Assistant',
+                isAutomated: true,
+              }
+            )
+          } catch (err) {
+            this.logger.error('Error sending follow-up message:', err)
+          }
         }, 2000)
 
-        this.logger.log(`🤖 Sent FAQ auto-response for room ${roomId}`)
-      } else {
-        // No FAQ match - notify staff and send acknowledgment
-        await this.sendMessage(
-          roomId,
-          null,
-          'bot',
-          'Thank you for your message! A team member will respond shortly. ⏰',
-          {
-            senderName: 'Auto Assistant',
-            isAutomated: true,
-          }
-        )
+        return
+      }
 
-        // Notify business staff
+      // 2. Check if business is available (staff online)
+      const isBusinessAvailable = await this.isBusinessAvailable(businessId)
+
+      if (!isBusinessAvailable) {
+        // Send offline auto-response
+        await this.sendOfflineAutoResponse(roomId, businessId)
+        return
+      }
+
+      // 3. No FAQ match and business is online - send acknowledgment
+      await this.sendMessage(
+        roomId,
+        null,
+        'bot',
+        'Thank you for your message! A team member will respond shortly. ⏰',
+        {
+          senderName: 'Auto Assistant',
+          isAutomated: true,
+        }
+      )
+
+      // 4. Notify business staff (safely)
+      try {
         this.realtimeGateway.notifyBusinessNewChat(businessId, {
           roomId,
           message,
           requiresAttention: true,
           timestamp: new Date(),
         })
+      } catch (notifyError) {
+        this.logger.warn('Could not notify business staff:', notifyError.message)
       }
+
     } catch (error) {
       this.logger.error(`Error handling automated response: ${error.message}`)
     }
@@ -482,10 +679,11 @@ async sendMessage(
 
   /**
    * Find matching FAQ for a message
+   * Uses keyword matching and similarity scoring
    */
   private async findMatchingFAQ(message: string, businessId: string): Promise<{ faq: FAQ; confidence: number } | null> {
-    const messageLower = message.toLowerCase()
-    const messageWords = messageLower.split(/\s+/)
+    const messageLower = message.toLowerCase().trim()
+    const messageWords = messageLower.split(/\s+/).filter(w => w.length > 2) // Filter short words
 
     // Get all active FAQs for business
     const faqs = await this.faqModel.find({
@@ -493,36 +691,66 @@ async sendMessage(
       isActive: true,
     }).sort({ priority: -1 }).exec()
 
+    if (faqs.length === 0) {
+      this.logger.log('📋 No FAQs configured for this business')
+      return null
+    }
+
     let bestMatch: { faq: FAQ; confidence: number } | null = null
     let highestConfidence = 0
 
     for (const faq of faqs) {
       let matchScore = 0
-      let totalKeywords = faq.keywords.length
+      let maxPossibleScore = 0
 
-      // Check keywords match
-      for (const keyword of faq.keywords) {
-        if (messageLower.includes(keyword.toLowerCase())) {
-          matchScore += 1
+      // 1. Check keyword matches (each keyword can contribute up to 1 point)
+      if (faq.keywords && faq.keywords.length > 0) {
+        maxPossibleScore += faq.keywords.length
+        for (const keyword of faq.keywords) {
+          const keywordLower = keyword.toLowerCase()
+          if (messageLower.includes(keywordLower)) {
+            matchScore += 1
+          }
         }
       }
 
-      // Check alternative questions
-      for (const altQuestion of faq.alternativeQuestions) {
-        const similarity = this.calculateSimilarity(messageLower, altQuestion.toLowerCase())
-        if (similarity > 0.7) {
-          matchScore += 2 // Higher weight for alternative questions
-          totalKeywords += 2
+      // 2. Check direct question similarity
+      const questionSimilarity = this.calculateSimilarity(messageLower, faq.question.toLowerCase())
+      if (questionSimilarity > 0.5) {
+        matchScore += questionSimilarity * 3 // Weight question match heavily
+        maxPossibleScore += 3
+      } else {
+        maxPossibleScore += 3
+      }
+
+      // 3. Check alternative questions
+      if (faq.alternativeQuestions && faq.alternativeQuestions.length > 0) {
+        for (const altQuestion of faq.alternativeQuestions) {
+          const similarity = this.calculateSimilarity(messageLower, altQuestion.toLowerCase())
+          if (similarity > 0.6) {
+            matchScore += similarity * 2 // Good match on alternative question
+          }
         }
+        maxPossibleScore += 2 // Only count once for alternatives
       }
 
       // Calculate confidence percentage
-      const confidence = totalKeywords > 0 ? (matchScore / totalKeywords) * 100 : 0
+      const confidence = maxPossibleScore > 0 ? (matchScore / maxPossibleScore) * 100 : 0
 
-      if (confidence > highestConfidence && confidence >= faq.confidenceThreshold) {
+      this.logger.debug(`FAQ "${faq.question.substring(0, 30)}..." - Score: ${matchScore.toFixed(2)}/${maxPossibleScore}, Confidence: ${confidence.toFixed(1)}%`)
+
+      // Check if this is the best match and meets threshold
+      const threshold = faq.confidenceThreshold || 50
+      if (confidence > highestConfidence && confidence >= threshold) {
         highestConfidence = confidence
         bestMatch = { faq, confidence }
       }
+    }
+
+    if (bestMatch) {
+      this.logger.log(`✅ FAQ Match found: "${bestMatch.faq.question.substring(0, 40)}..." with ${bestMatch.confidence.toFixed(1)}% confidence`)
+    } else {
+      this.logger.log(`❌ No FAQ match found for: "${messageLower.substring(0, 40)}..."`)
     }
 
     return bestMatch
@@ -636,7 +864,7 @@ async getBusinessFAQs(businessId: string, options?: {
   category?: string
   isActive?: boolean
 }): Promise<FAQ[]> {
-  const query: any = { businessId: businessId } // Remove the Types.ObjectId conversion
+  const query: any = { businessId: new Types.ObjectId(businessId) }
   
   if (options?.category) query.category = options.category
   if (options?.isActive !== undefined) query.isActive = options.isActive
@@ -687,7 +915,7 @@ async getBusinessFAQs(businessId: string, options?: {
    */
   async getBusinessAutoResponses(businessId: string): Promise<AutoResponse[]> {
     return this.autoResponseModel.find({
-      businessId: businessId,
+      businessId: new Types.ObjectId(businessId),
       isActive: true,
     }).exec()
   }
@@ -697,5 +925,49 @@ async getBusinessFAQs(businessId: string, options?: {
    */
   async updateAutoResponse(responseId: string, updates: Partial<AutoResponse>): Promise<AutoResponse> {
     return this.autoResponseModel.findByIdAndUpdate(responseId, updates, { new: true }).exec()
+  }
+
+  /**
+   * Manually trigger an auto-response by type
+   */
+  async triggerAutoResponse(roomId: string, businessId: string, responseType: string): Promise<any> {
+    const autoResponse = await this.autoResponseModel.findOne({
+      businessId: new Types.ObjectId(businessId),
+      responseType: responseType,
+      isActive: true,
+    }).exec()
+
+    if (!autoResponse) {
+      return {
+        success: false,
+        message: `No active auto-response found for type: ${responseType}`,
+        availableTypes: ['welcome', 'offline', 'busy', 'away', 'closing-soon', 'holiday', 'custom'],
+      }
+    }
+
+    // Send the auto-response message
+    const message = await this.sendMessage(roomId, null, 'bot', autoResponse.message, {
+      senderName: 'Auto Assistant',
+      isAutomated: true,
+    })
+
+    // Increment usage count
+    await this.autoResponseModel.findByIdAndUpdate(autoResponse._id, {
+      $inc: { usageCount: 1 },
+    }).exec()
+
+    this.logger.log(`✅ Triggered auto-response: ${autoResponse.name} (${responseType})`)
+
+    return {
+      success: true,
+      message: 'Auto-response triggered successfully',
+      autoResponse: {
+        id: autoResponse._id,
+        name: autoResponse.name,
+        responseType: autoResponse.responseType,
+        quickReplies: autoResponse.quickReplies,
+      },
+      sentMessage: message,
+    }
   }
 }

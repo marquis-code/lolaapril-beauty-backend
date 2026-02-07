@@ -94,6 +94,7 @@ export declare const CommissionSchema: import("mongoose").Schema<Commission, imp
     __v: number;
 }>;
 export declare class TeamMember {
+    businessId: Types.ObjectId;
     firstName: string;
     lastName: string;
     email: string;

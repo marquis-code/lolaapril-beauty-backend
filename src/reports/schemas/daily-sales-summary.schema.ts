@@ -50,6 +50,8 @@ export class PaymentMethodSummary {
 
 @Schema({ timestamps: true })
 export class DailySalesSummary {
+  @Prop({ type: 'ObjectId', ref: 'Business', required: true, index: true })
+  businessId: string
   @Prop({ required: true, unique: true })
   date: string // YYYY-MM-DD format
 
@@ -105,5 +107,5 @@ export class DailySalesSummary {
 export const DailySalesSummarySchema = SchemaFactory.createForClass(DailySalesSummary)
 
 // Add indexes
-DailySalesSummarySchema.index({ date: 1 })
+DailySalesSummarySchema.index({ businessId: 1, date: 1 })
 DailySalesSummarySchema.index({ createdAt: -1 })

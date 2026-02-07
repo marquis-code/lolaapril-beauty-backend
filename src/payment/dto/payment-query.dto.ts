@@ -3,6 +3,11 @@ import { ApiPropertyOptional } from "@nestjs/swagger"
 import { PaginationDto } from "../../common/dto/pagination.dto"
 
 export class PaymentQueryDto extends PaginationDto {
+  @ApiPropertyOptional({ description: "Filter by business ID" })
+  @IsOptional()
+  @IsString()
+  businessId?: string
+
   @ApiPropertyOptional({ description: "Filter by client ID" })
   @IsOptional()
   @IsString()

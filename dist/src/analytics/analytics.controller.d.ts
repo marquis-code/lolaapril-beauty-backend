@@ -3,7 +3,7 @@ import { AnalyticsService } from './analytics.service';
 export declare class AnalyticsController {
     private readonly analyticsService;
     constructor(analyticsService: AnalyticsService);
-    generateFinancialReport(businessId: string, startDate: string, endDate: string, reportPeriod?: string): Promise<{
+    generateFinancialReport(startDate: string, endDate: string, reportPeriod: string, businessId: string): Promise<{
         success: boolean;
         message: string;
         data: any;
@@ -12,7 +12,7 @@ export declare class AnalyticsController {
         success: boolean;
         data: import("./schemas/financial-report.schema").FinancialReportDocument;
     }>;
-    getCommissionBreakdown(businessId: string, startDate: string, endDate: string): Promise<{
+    getCommissionBreakdown(startDate: string, endDate: string, businessId: string): Promise<{
         success: boolean;
         message: string;
         data: any;
@@ -47,7 +47,7 @@ export declare class AnalyticsController {
             trends: any;
         };
     }>;
-    getRevenueTrends(businessId: string, startDate: string, endDate: string, granularity?: string): Promise<{
+    getRevenueTrends(startDate: string, endDate: string, granularity: string, businessId: string): Promise<{
         success: boolean;
         message: string;
         data: {
@@ -72,7 +72,7 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getSourcePerformance(businessId: string, startDate: string, endDate: string): Promise<{
+    getSourcePerformance(startDate: string, endDate: string, businessId: string): Promise<{
         success: boolean;
         message: string;
         data: {
@@ -88,7 +88,7 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getCommissionInsights(businessId: string, months?: number): Promise<{
+    getCommissionInsights(months: number, businessId: string): Promise<{
         success: boolean;
         message: string;
         data: {

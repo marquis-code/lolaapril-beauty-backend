@@ -11,17 +11,17 @@ export declare class TeamService {
     constructor(teamMemberModel: Model<TeamMemberDocument>, serviceModel: Model<ServiceDocument>);
     private validateObjectId;
     private validateServiceReferences;
-    create(createTeamMemberDto: CreateTeamMemberDto): Promise<ApiResponse<TeamMember>>;
-    findAll(query: TeamMemberQueryDto): Promise<ApiResponse<TeamMember[]>>;
-    findOne(id: string): Promise<ApiResponse<TeamMember>>;
-    update(id: string, updateTeamMemberDto: UpdateTeamMemberDto): Promise<ApiResponse<TeamMember>>;
-    remove(id: string): Promise<ApiResponse<null>>;
-    findByRole(role: string): Promise<ApiResponse<TeamMember[]>>;
-    findByDepartment(department: string): Promise<ApiResponse<TeamMember[]>>;
-    updateStatus(id: string, status: string): Promise<ApiResponse<TeamMember>>;
-    addCommission(teamMemberId: string, serviceId: string, commissionData: {
+    create(businessId: string, createTeamMemberDto: CreateTeamMemberDto): Promise<ApiResponse<TeamMember>>;
+    findAll(businessId: string, query: TeamMemberQueryDto): Promise<ApiResponse<TeamMember[]>>;
+    findOne(businessId: string, id: string): Promise<ApiResponse<TeamMember>>;
+    update(businessId: string, id: string, updateTeamMemberDto: UpdateTeamMemberDto): Promise<ApiResponse<TeamMember>>;
+    remove(businessId: string, id: string): Promise<ApiResponse<null>>;
+    findByRole(businessId: string, role: string): Promise<ApiResponse<TeamMember[]>>;
+    findByDepartment(businessId: string, department: string): Promise<ApiResponse<TeamMember[]>>;
+    updateStatus(businessId: string, id: string, status: string): Promise<ApiResponse<TeamMember>>;
+    addCommission(businessId: string, teamMemberId: string, serviceId: string, commissionData: {
         commissionType: string;
         commissionValue: number;
     }): Promise<ApiResponse<TeamMember>>;
-    getTeamStats(): Promise<ApiResponse<any>>;
+    getTeamStats(businessId: string): Promise<ApiResponse<any>>;
 }

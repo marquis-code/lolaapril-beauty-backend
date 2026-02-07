@@ -31,10 +31,11 @@ let PaymentController = class PaymentController {
     constructor(paymentService) {
         this.paymentService = paymentService;
     }
-    initializePayment(initializePaymentDto) {
-        return this.paymentService.initializePayment(initializePaymentDto);
+    initializePayment(jwtBusinessId, initializePaymentDto) {
+        const businessId = jwtBusinessId || initializePaymentDto.businessId;
+        return this.paymentService.initializePayment({ ...initializePaymentDto, businessId });
     }
-    verifyPayment(reference) {
+    verifyPayment(businessId, reference) {
         return this.paymentService.verifyPayment(reference);
     }
     async handleWebhook(signature, req) {
@@ -42,49 +43,50 @@ let PaymentController = class PaymentController {
         await this.paymentService.handleWebhook(payload, signature, 'paystack');
         return { message: 'Webhook received' };
     }
-    initiateRefund(reference, body) {
-        return this.paymentService.initiateRefund(reference, body.amount);
+    initiateRefund(businessId, reference, body) {
+        return this.paymentService.initiateRefund(businessId, reference, body.amount);
     }
-    create(createPaymentDto) {
-        return this.paymentService.create(createPaymentDto);
+    create(businessId, createPaymentDto) {
+        return this.paymentService.create({ ...createPaymentDto, businessId });
     }
     getMyTransactions(user) {
         return this.paymentService.getUserTransactions(user.sub);
     }
-    findAll(query) {
-        return this.paymentService.findAllWithQuery(query);
+    findAll(businessId, query) {
+        return this.paymentService.findAllWithQuery({ ...query, businessId });
     }
-    getStats() {
+    getStats(businessId) {
         return this.paymentService.getPaymentStats();
     }
-    findOne(id) {
+    findOne(businessId, id) {
         return this.paymentService.findOne(id);
     }
-    update(id, updatePaymentDto) {
+    update(businessId, id, updatePaymentDto) {
         return this.paymentService.update(id, updatePaymentDto);
     }
-    updateStatus(id, body) {
+    updateStatus(businessId, id, body) {
         return this.paymentService.updateStatus(id, body.status, body.transactionId);
     }
-    processRefund(id, body) {
-        return this.paymentService.processRefund(id, body.refundAmount, body.refundReason);
+    processRefund(businessId, id, body) {
+        return this.paymentService.processRefund(businessId, id, body.refundAmount, body.refundReason);
     }
-    remove(id) {
+    remove(businessId, id) {
         return this.paymentService.remove(id);
     }
 };
 __decorate([
     (0, common_1.Post)('initialize'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
+    (0, public_decorator_1.Public)(),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Initialize payment with gateway' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Initialize payment with gateway (Public - requires subdomain or businessId in body, or authentication)' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Payment initialized successfully' }),
     (0, swagger_1.ApiBody)({ type: initialize_payment_dto_1.InitializePaymentDto }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.OptionalBusinessId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [initialize_payment_dto_1.InitializePaymentDto]),
+    __metadata("design:paramtypes", [String, initialize_payment_dto_1.InitializePaymentDto]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "initializePayment", null);
 __decorate([
@@ -96,9 +98,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Verify payment with gateway' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Payment verified successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Payment not found' }),
-    __param(0, (0, common_1.Param)('reference')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('reference')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "verifyPayment", null);
 __decorate([
@@ -121,10 +124,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Initiate refund via payment gateway' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Refund initiated successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Payment not found' }),
-    __param(0, (0, common_1.Param)('reference')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('reference')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "initiateRefund", null);
 __decorate([
@@ -135,9 +139,10 @@ __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Create a new payment" }),
     (0, swagger_1.ApiResponse)({ status: 201, description: "Payment created successfully" }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_payment_dto_1.CreatePaymentDto]),
+    __metadata("design:paramtypes", [String, create_payment_dto_1.CreatePaymentDto]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "create", null);
 __decorate([
@@ -160,9 +165,10 @@ __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: "Get all payments" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payments retrieved successfully" }),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [payment_query_dto_1.PaymentQueryDto]),
+    __metadata("design:paramtypes", [String, payment_query_dto_1.PaymentQueryDto]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "findAll", null);
 __decorate([
@@ -171,8 +177,9 @@ __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Get payment statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payment statistics retrieved successfully" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "getStats", null);
 __decorate([
@@ -184,9 +191,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get payment by ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Payment retrieved successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Payment not found' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "findOne", null);
 __decorate([
@@ -198,10 +206,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update payment" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payment updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Payment not found" }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_payment_dto_1.UpdatePaymentDto]),
+    __metadata("design:paramtypes", [String, String, update_payment_dto_1.UpdatePaymentDto]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "update", null);
 __decorate([
@@ -213,10 +222,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update payment status" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Payment status updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Payment not found" }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "updateStatus", null);
 __decorate([
@@ -228,10 +238,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Process payment refund" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Refund processed successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Payment not found" }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "processRefund", null);
 __decorate([
@@ -243,9 +254,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Delete payment' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Payment deleted successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Payment not found' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], PaymentController.prototype, "remove", null);
 PaymentController = __decorate([

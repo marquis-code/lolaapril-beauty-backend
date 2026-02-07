@@ -62,6 +62,8 @@ export declare class NotificationLog {
     relatedEntityId: Types.ObjectId;
     relatedEntityType: string;
     templateId: Types.ObjectId;
+    isRead: boolean;
+    readAt: Date;
     createdAt: Date;
 }
 export declare class NotificationPreference {

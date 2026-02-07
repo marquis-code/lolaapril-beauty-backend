@@ -17,8 +17,8 @@ export class MembershipService {
   ) {}
 
   // Membership Program Management
-  async createMembership(createMembershipDto: CreateMembershipDto): Promise<Membership> {
-    const membership = new this.membershipModel(createMembershipDto)
+  async createMembership(businessId: string, createMembershipDto: CreateMembershipDto): Promise<Membership> {
+    const membership = new this.membershipModel({ ...createMembershipDto, businessId })
     return membership.save()
   }
 
@@ -64,96 +64,84 @@ export class MembershipService {
   //   }
   // }
 
-  async findAllMemberships(query: MembershipQueryDto) {
-  const { page = 1, limit = 10, membershipType, isActive, search, sortBy = "createdAt", sortOrder = "desc" } = query
-
-  const filter: any = {}
-
-  if (membershipType) filter.membershipType = membershipType
-  if (isActive !== undefined) filter.isActive = isActive
-
-  // Search functionality
-  if (search) {
-    filter.$or = [
-      { membershipName: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
-    ]
+  async findAllMemberships(businessId: string, query: MembershipQueryDto) {
+    const { page = 1, limit = 10, membershipType, isActive, search, sortBy = "createdAt", sortOrder = "desc" } = query
+    const filter: any = { businessId }
+    if (membershipType) filter.membershipType = membershipType
+    if (isActive !== undefined) filter.isActive = isActive
+    if (search) {
+      filter.$or = [
+        { membershipName: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ]
+    }
+    const skip = (page - 1) * limit
+    const sortOptions: any = {}
+    sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1
+    const memberships = await this.membershipModel
+      .find(filter)
+      .populate("createdBy", "firstName lastName email")
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .exec()
+    const total = await this.membershipModel.countDocuments(filter)
+    return {
+      memberships,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    }
   }
 
-  const skip = (page - 1) * limit
-  const sortOptions: any = {}
-  sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1
-
-  // Execute queries separately to avoid complex type inference
-  const memberships = await this.membershipModel
-    .find(filter)
-    .populate("createdBy", "firstName lastName email")
-    .sort(sortOptions)
-    .skip(skip)
-    .limit(limit)
-    .exec()
-  
-  const total = await this.membershipModel.countDocuments(filter)
-
-  return {
-    memberships,
-    pagination: {
-      page,
-      limit,
-      total,
-      pages: Math.ceil(total / limit),
-    },
-  }
-}
-
-  async findMembershipById(id: string): Promise<Membership> {
-    const membership = await this.membershipModel.findById(id).populate("createdBy", "firstName lastName email").exec()
-
+  async findMembershipById(businessId: string, id: string): Promise<Membership> {
+    const membership = await this.membershipModel.findOne({ _id: id, businessId }).populate("createdBy", "firstName lastName email").exec()
     if (!membership) {
       throw new NotFoundException("Membership not found")
     }
     return membership
   }
 
-  async updateMembership(id: string, updateMembershipDto: UpdateMembershipDto): Promise<Membership> {
+  async updateMembership(businessId: string, id: string, updateMembershipDto: UpdateMembershipDto): Promise<Membership> {
     const membership = await this.membershipModel
-      .findByIdAndUpdate(id, { ...updateMembershipDto, updatedAt: new Date() }, { new: true })
+      .findOneAndUpdate({ _id: id, businessId }, { ...updateMembershipDto, updatedAt: new Date() }, { new: true })
       .populate("createdBy", "firstName lastName email")
       .exec()
-
     if (!membership) {
       throw new NotFoundException("Membership not found")
     }
     return membership
   }
 
-  async removeMembership(id: string): Promise<void> {
-    const result = await this.membershipModel.findByIdAndDelete(id)
+  async removeMembership(businessId: string, id: string): Promise<void> {
+    const result = await this.membershipModel.findOneAndDelete({ _id: id, businessId })
     if (!result) {
       throw new NotFoundException("Membership not found")
     }
   }
 
   // Client Membership Management
-  async enrollClient(createClientMembershipDto: CreateClientMembershipDto): Promise<ClientMembership> {
+  async enrollClient(businessId: string, createClientMembershipDto: CreateClientMembershipDto): Promise<ClientMembership> {
     // Check if client already has this membership
     const existingMembership = await this.clientMembershipModel.findOne({
+      businessId,
       clientId: createClientMembershipDto.clientId,
       membershipId: createClientMembershipDto.membershipId,
       status: "active",
     })
-
     if (existingMembership) {
       throw new BadRequestException("Client already has an active membership of this type")
     }
-
-    const clientMembership = new this.clientMembershipModel(createClientMembershipDto)
+    const clientMembership = new this.clientMembershipModel({ ...createClientMembershipDto, businessId })
     return clientMembership.save()
   }
 
-  async findClientMemberships(clientId: string) {
+  async findClientMemberships(businessId: string, clientId: string) {
     return this.clientMembershipModel
-      .find({ clientId })
+      .find({ businessId, clientId })
       .populate("membershipId")
       .populate("clientId", "firstName lastName email")
       .sort({ joinDate: -1 })
@@ -174,94 +162,76 @@ export class MembershipService {
   }
 
   async addPoints(
+    businessId: string,
     clientMembershipId: string,
     points: number,
     description: string,
     saleId?: string,
     appointmentId?: string,
   ): Promise<ClientMembership> {
-    const clientMembership = await this.clientMembershipModel.findById(clientMembershipId)
-
+    const clientMembership = await this.clientMembershipModel.findOne({ _id: clientMembershipId, businessId })
     if (!clientMembership) {
       throw new NotFoundException("Client membership not found")
     }
-
     const pointsTransaction: any = {
       transactionType: "earned",
       points,
       description,
       transactionDate: new Date(),
     }
-
-    // Only add ObjectId fields if they are provided
     if (saleId) {
       pointsTransaction.saleId = new Types.ObjectId(saleId)
     }
     if (appointmentId) {
       pointsTransaction.appointmentId = new Types.ObjectId(appointmentId)
     }
-
     clientMembership.totalPoints += points
     clientMembership.pointsHistory.push(pointsTransaction)
     clientMembership.lastActivity = new Date()
     clientMembership.updatedAt = new Date()
-
-    // Check for tier upgrade
     await this.checkTierUpgrade(clientMembership)
-
     return clientMembership.save()
   }
 
   async redeemPoints(
+    businessId: string,
     clientMembershipId: string, 
     points: number, 
     description: string,
     appointmentId?: string
   ): Promise<ClientMembership> {
-    const clientMembership = await this.clientMembershipModel.findById(clientMembershipId)
-
+    const clientMembership = await this.clientMembershipModel.findOne({ _id: clientMembershipId, businessId })
     if (!clientMembership) {
       throw new NotFoundException("Client membership not found")
     }
-
     if (clientMembership.totalPoints < points) {
       throw new BadRequestException("Insufficient points")
     }
-
     const pointsTransaction: any = {
       transactionType: "redeemed",
       points: -points,
       description,
       transactionDate: new Date(),
     }
-
-    // Only add ObjectId fields if they are provided
     if (appointmentId) {
       pointsTransaction.appointmentId = new Types.ObjectId(appointmentId)
     }
-
     clientMembership.totalPoints -= points
     clientMembership.pointsHistory.push(pointsTransaction)
     clientMembership.lastActivity = new Date()
     clientMembership.updatedAt = new Date()
-
     return clientMembership.save()
   }
 
-  async updateSpending(clientMembershipId: string, amount: number): Promise<ClientMembership> {
-    const clientMembership = await this.clientMembershipModel.findById(clientMembershipId)
-
+  async updateSpending(businessId: string, clientMembershipId: string, amount: number): Promise<ClientMembership> {
+    const clientMembership = await this.clientMembershipModel.findOne({ _id: clientMembershipId, businessId })
     if (!clientMembership) {
       throw new NotFoundException("Client membership not found")
     }
-
     clientMembership.totalSpent += amount
     clientMembership.lastActivity = new Date()
     clientMembership.updatedAt = new Date()
-
-    // Check for tier upgrade
     await this.checkTierUpgrade(clientMembership)
-
     return clientMembership.save()
   }
 
@@ -295,9 +265,10 @@ export class MembershipService {
     }
   }
 
-  async getMembershipStats() {
+  async getMembershipStats(businessId: string) {
     const [membershipStats, clientMembershipStats] = await Promise.all([
       this.membershipModel.aggregate([
+        { $match: { businessId } },
         {
           $group: {
             _id: null,
@@ -313,6 +284,7 @@ export class MembershipService {
         },
       ]),
       this.clientMembershipModel.aggregate([
+        { $match: { businessId } },
         {
           $group: {
             _id: null,
@@ -324,9 +296,8 @@ export class MembershipService {
         },
       ]),
     ])
-
     const tierDistribution = await this.clientMembershipModel.aggregate([
-      { $match: { status: "active" } },
+      { $match: { businessId, status: "active" } },
       {
         $group: {
           _id: "$currentTier",
@@ -334,7 +305,6 @@ export class MembershipService {
         },
       },
     ])
-
     return {
       programs: membershipStats[0] || { total: 0, active: 0, byType: [] },
       members: clientMembershipStats[0] || {
@@ -347,20 +317,16 @@ export class MembershipService {
     }
   }
 
-  async getClientMembershipBenefits(clientId: string): Promise<any[]> {
+  async getClientMembershipBenefits(businessId: string, clientId: string): Promise<any[]> {
     const clientMemberships = await this.clientMembershipModel
-      .find({ clientId, status: "active" })
+      .find({ businessId, clientId, status: "active" })
       .populate("membershipId")
       .exec()
-
     const benefits = []
-
     for (const clientMembership of clientMemberships) {
       const membership = clientMembership.membershipId as any
-
       // Add general benefits
       benefits.push(...membership.generalBenefits)
-
       // Add tier-specific benefits
       if (clientMembership.currentTier) {
         const currentTier = membership.tiers.find((tier) => tier.tierName === clientMembership.currentTier)
@@ -369,7 +335,6 @@ export class MembershipService {
         }
       }
     }
-
     return benefits
   }
 }

@@ -417,20 +417,17 @@ import { InjectModel } from "@nestjs/mongoose"
 export class SalesService {
   constructor(@InjectModel(Sale.name) private saleModel: Model<SaleDocument>) {}
 
-  async create(createSaleDto: CreateSaleDto): Promise<ApiResponse<Sale>> {
+  async create(businessId: string, createSaleDto: CreateSaleDto): Promise<ApiResponse<Sale>> {
     try {
-      const sale = new this.saleModel(createSaleDto)
+      const sale = new this.saleModel({ ...createSaleDto, businessId })
       await sale.save()
-
       const savedSale = await this.saleModel
-        .findById(sale._id)
+        .findOne({ _id: sale._id, businessId })
         .lean<SaleDocument>()
         .exec()
-
       if (!savedSale) {
         throw new Error("Failed to retrieve saved sale")
       }
-
       return {
         success: true,
         data: savedSale,
@@ -441,16 +438,15 @@ export class SalesService {
     }
   }
 
-  async findAll(): Promise<ApiResponse<Sale[]>> {
+  async findAll(businessId: string): Promise<ApiResponse<Sale[]>> {
     try {
       const sales = await this.saleModel
-        .find()
+        .find({ businessId })
         .populate("clientId", "profile.firstName profile.lastName profile.email")
         .populate("createdBy", "firstName lastName")
         .sort({ createdAt: -1 })
         .lean<SaleDocument[]>()
         .exec()
-
       return {
         success: true,
         data: sales,
@@ -460,20 +456,18 @@ export class SalesService {
     }
   }
 
-  async findOne(id: string): Promise<ApiResponse<Sale>> {
+  async findOne(businessId: string, id: string): Promise<ApiResponse<Sale>> {
     try {
       const sale = await this.saleModel
-        .findById(id)
+        .findOne({ _id: id, businessId })
         .populate("clientId", "profile.firstName profile.lastName profile.email")
         .populate("createdBy", "firstName lastName")
         .populate("completedBy", "firstName lastName")
         .lean<SaleDocument>()
         .exec()
-
       if (!sale) {
         throw new NotFoundException("Sale not found")
       }
-
       return {
         success: true,
         data: sale,
@@ -486,11 +480,11 @@ export class SalesService {
     }
   }
 
-  async completeSale(id: string, completedBy: string): Promise<ApiResponse<Sale>> {
+  async completeSale(businessId: string, id: string, completedBy: string): Promise<ApiResponse<Sale>> {
     try {
       const sale = await this.saleModel
-        .findByIdAndUpdate(
-          id,
+        .findOneAndUpdate(
+          { _id: id, businessId },
           {
             status: "completed",
             completedBy,
@@ -501,11 +495,9 @@ export class SalesService {
         )
         .lean<SaleDocument>()
         .exec()
-
       if (!sale) {
         throw new NotFoundException("Sale not found")
       }
-
       return {
         success: true,
         data: sale,
@@ -519,20 +511,19 @@ export class SalesService {
     }
   }
 
-  async getSalesStats(): Promise<ApiResponse<any>> {
+  async getSalesStats(businessId: string): Promise<ApiResponse<any>> {
     try {
       const [totalSales, completedSales, totalRevenue, pendingSales] = await Promise.all([
-        this.saleModel.countDocuments(),
-        this.saleModel.countDocuments({ status: "completed" }),
+        this.saleModel.countDocuments({ businessId }),
+        this.saleModel.countDocuments({ businessId, status: "completed" }),
         this.saleModel.aggregate([
-          { $match: { status: "completed" } },
+          { $match: { businessId, status: "completed" } },
           { $group: { _id: null, total: { $sum: "$totalAmount" } } },
         ]),
-        this.saleModel.countDocuments({ status: { $in: ["draft", "confirmed"] } }),
+        this.saleModel.countDocuments({ businessId, status: { $in: ["draft", "confirmed"] } }),
       ])
-
       const topServices = await this.saleModel.aggregate([
-        { $match: { status: "completed" } },
+        { $match: { businessId, status: "completed" } },
         { $unwind: "$items" },
         {
           $group: {
@@ -544,7 +535,6 @@ export class SalesService {
         { $sort: { revenue: -1 } },
         { $limit: 10 },
       ])
-
       return {
         success: true,
         data: {
@@ -560,7 +550,7 @@ export class SalesService {
     }
   }
 
-  async findAllWithQuery(query: SalesQueryDto) {
+  async findAllWithQuery(businessId: string, query: SalesQueryDto) {
     const {
       page = 1,
       limit = 10,
@@ -577,7 +567,7 @@ export class SalesService {
       sortOrder = "desc",
     } = query
 
-    const filter: any = {}
+    const filter: any = { businessId }
 
     if (clientId) filter.clientId = clientId
     if (appointmentId) filter.appointmentId = appointmentId
@@ -623,7 +613,6 @@ export class SalesService {
       .limit(limit)
       .lean<SaleDocument[]>()
       .exec()
-
     const total = await this.saleModel.countDocuments(filter).exec()
 
     return {
@@ -640,20 +629,18 @@ export class SalesService {
     }
   }
 
-  async update(id: string, updateSaleDto: UpdateSaleDto): Promise<ApiResponse<Sale>> {
+  async update(businessId: string, id: string, updateSaleDto: UpdateSaleDto): Promise<ApiResponse<Sale>> {
     try {
       const sale = await this.saleModel
-        .findByIdAndUpdate(id, { ...updateSaleDto, updatedAt: new Date() }, { new: true })
+        .findOneAndUpdate({ _id: id, businessId }, { ...updateSaleDto, updatedAt: new Date() }, { new: true })
         .populate("clientId", "firstName lastName email phone")
         .populate("createdBy", "firstName lastName email")
         .populate("completedBy", "firstName lastName email")
         .lean<SaleDocument>()
         .exec()
-
       if (!sale) {
         throw new NotFoundException("Sale not found")
       }
-
       return {
         success: true,
         data: sale,
@@ -667,19 +654,17 @@ export class SalesService {
     }
   }
 
-  async updateStatus(id: string, status: string): Promise<ApiResponse<Sale>> {
+  async updateStatus(businessId: string, id: string, status: string): Promise<ApiResponse<Sale>> {
     try {
       const sale = await this.saleModel
-        .findByIdAndUpdate(id, { status, updatedAt: new Date() }, { new: true })
+        .findOneAndUpdate({ _id: id, businessId }, { status, updatedAt: new Date() }, { new: true })
         .populate("clientId", "firstName lastName email phone")
         .populate("createdBy", "firstName lastName email")
         .lean<SaleDocument>()
         .exec()
-
       if (!sale) {
         throw new NotFoundException("Sale not found")
       }
-
       return {
         success: true,
         data: sale,
@@ -693,34 +678,29 @@ export class SalesService {
     }
   }
 
-  async updatePaymentStatus(id: string, paymentStatus: string, amountPaid?: number): Promise<ApiResponse<Sale>> {
+  async updatePaymentStatus(businessId: string, id: string, paymentStatus: string, amountPaid?: number): Promise<ApiResponse<Sale>> {
     try {
       const updateData: any = { paymentStatus, updatedAt: new Date() }
-
       if (amountPaid !== undefined) {
         updateData.amountPaid = amountPaid
         // Calculate amount due
         const sale = await this.saleModel
-          .findById(id)
+          .findOne({ _id: id, businessId })
           .lean<SaleDocument>()
           .exec()
-
         if (sale) {
           updateData.amountDue = Math.max(0, sale.totalAmount - amountPaid)
         }
       }
-
       const sale = await this.saleModel
-        .findByIdAndUpdate(id, updateData, { new: true })
+        .findOneAndUpdate({ _id: id, businessId }, updateData, { new: true })
         .populate("clientId", "firstName lastName email phone")
         .populate("createdBy", "firstName lastName email")
         .lean<SaleDocument>()
         .exec()
-
       if (!sale) {
         throw new NotFoundException("Sale not found")
       }
-
       return {
         success: true,
         data: sale,
@@ -734,10 +714,10 @@ export class SalesService {
     }
   }
 
-  async getTopServices(): Promise<ApiResponse<any>> {
+  async getTopServices(businessId: string): Promise<ApiResponse<any>> {
     try {
       const topServices = await this.saleModel.aggregate([
-        { $match: { status: "completed" } },
+        { $match: { businessId, status: "completed" } },
         { $unwind: "$items" },
         {
           $group: {
@@ -755,7 +735,6 @@ export class SalesService {
         { $sort: { totalRevenue: -1 } },
         { $limit: 20 },
       ])
-
       return {
         success: true,
         data: topServices,
@@ -765,11 +744,10 @@ export class SalesService {
     }
   }
 
-  async getRevenueByPeriod(period: "daily" | "weekly" | "monthly"): Promise<ApiResponse<any>> {
+  async getRevenueByPeriod(businessId: string, period: "daily" | "weekly" | "monthly"): Promise<ApiResponse<any>> {
     try {
       let groupBy: any
       let dateFormat: string
-
       switch (period) {
         case "daily":
           groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
@@ -784,9 +762,8 @@ export class SalesService {
           dateFormat = "YYYY-MM"
           break
       }
-
       const revenueData = await this.saleModel.aggregate([
-        { $match: { status: "completed" } },
+        { $match: { businessId, status: "completed" } },
         {
           $group: {
             _id: groupBy,
@@ -798,7 +775,6 @@ export class SalesService {
         { $sort: { _id: 1 } },
         { $limit: 30 }, // Last 30 periods
       ])
-
       return {
         success: true,
         data: {
@@ -812,13 +788,12 @@ export class SalesService {
     }
   }
 
-  async remove(id: string): Promise<ApiResponse<void>> {
+  async remove(businessId: string, id: string): Promise<ApiResponse<void>> {
     try {
-      const result = await this.saleModel.findByIdAndDelete(id).exec()
+      const result = await this.saleModel.findOneAndDelete({ _id: id, businessId }).exec()
       if (!result) {
         throw new NotFoundException("Sale not found")
       }
-
       return {
         success: true,
         message: "Sale deleted successfully",

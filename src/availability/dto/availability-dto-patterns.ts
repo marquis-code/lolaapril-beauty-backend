@@ -1,12 +1,3 @@
-// src/modules/availability/dto/availability-dto-patterns.ts
-
-/**
- * DTO PATTERNS FOR BUSINESS CONTEXT
- * 
- * This file demonstrates best practices for DTOs when working with
- * business context from JWT vs public endpoints
- */
-
 import { IsString, IsDateString, IsArray, ValidateNested, IsOptional } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger'

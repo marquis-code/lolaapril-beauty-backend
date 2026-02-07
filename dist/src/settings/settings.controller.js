@@ -43,7 +43,7 @@ let SettingsController = class SettingsController {
         return this.settingsService.create(businessId, createSettingsDto);
     }
     findAll(businessId) {
-        return this.settingsService.findByBusinessId(businessId);
+        return this.settingsService.findOrCreateDefault(businessId);
     }
     update(businessId, updateSettingsDto) {
         return this.settingsService.update(businessId, updateSettingsDto);

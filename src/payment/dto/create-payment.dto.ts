@@ -46,6 +46,11 @@ export class PaymentItemDto {
 }
 
 export class CreatePaymentDto {
+  @ApiPropertyOptional({ example: "507f1f77bcf86cd799439011" })
+  @IsOptional()
+  @IsString()
+  businessId?: string
+
   @ApiProperty({ example: "507f1f77bcf86cd799439011" })
   @IsString()
   @IsNotEmpty()

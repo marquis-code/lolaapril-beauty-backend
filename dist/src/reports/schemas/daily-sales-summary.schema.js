@@ -80,6 +80,10 @@ exports.PaymentMethodSummary = PaymentMethodSummary;
 let DailySalesSummary = class DailySalesSummary {
 };
 __decorate([
+    (0, mongoose_1.Prop)({ type: 'ObjectId', ref: 'Business', required: true, index: true }),
+    __metadata("design:type", String)
+], DailySalesSummary.prototype, "businessId", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true, unique: true }),
     __metadata("design:type", String)
 ], DailySalesSummary.prototype, "date", void 0);
@@ -152,6 +156,6 @@ DailySalesSummary = __decorate([
 ], DailySalesSummary);
 exports.DailySalesSummary = DailySalesSummary;
 exports.DailySalesSummarySchema = mongoose_1.SchemaFactory.createForClass(DailySalesSummary);
-exports.DailySalesSummarySchema.index({ date: 1 });
+exports.DailySalesSummarySchema.index({ businessId: 1, date: 1 });
 exports.DailySalesSummarySchema.index({ createdAt: -1 });
 //# sourceMappingURL=daily-sales-summary.schema.js.map

@@ -7,6 +7,8 @@ export type WebhookDocument = Webhook & Document;
 
 @Schema({ timestamps: true })
 export class Webhook {
+  @Prop({ type: Types.ObjectId, ref: 'Business', required: true, index: true })
+  businessId: Types.ObjectId;
   @Prop({ required: true })
   event: string; // 'payment.success', 'booking.created', etc.
 

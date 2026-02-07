@@ -12,12 +12,19 @@ const mongoose_1 = require("@nestjs/mongoose");
 const settings_service_1 = require("./settings.service");
 const settings_controller_1 = require("./settings.controller");
 const business_settings_schema_1 = require("./schemas/business-settings.schema");
+const business_schema_1 = require("../business/schemas/business.schema");
 const audit_module_1 = require("../audit/audit.module");
 let SettingsModule = class SettingsModule {
 };
 SettingsModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: business_settings_schema_1.BusinessSettings.name, schema: business_settings_schema_1.BusinessSettingsSchema }]), audit_module_1.AuditModule],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: business_settings_schema_1.BusinessSettings.name, schema: business_settings_schema_1.BusinessSettingsSchema },
+                { name: business_schema_1.Business.name, schema: business_schema_1.BusinessSchema }
+            ]),
+            audit_module_1.AuditModule
+        ],
         controllers: [settings_controller_1.SettingsController],
         providers: [settings_service_1.SettingsService],
         exports: [settings_service_1.SettingsService],

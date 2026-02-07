@@ -26,6 +26,7 @@
 import { Document, Types } from 'mongoose';
 export type WebhookDocument = Webhook & Document;
 export declare class Webhook {
+    businessId: Types.ObjectId;
     event: string;
     source: string;
     payload: any;

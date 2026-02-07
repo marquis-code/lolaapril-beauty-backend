@@ -1,3 +1,4 @@
+/// <reference types="multer" />
 /// <reference types="mongoose/types/aggregate" />
 /// <reference types="mongoose/types/callback" />
 /// <reference types="mongoose/types/collection" />
@@ -24,6 +25,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
+import { UploadService } from '../upload/upload.service';
 import { BrandingService } from './branding.service';
 import { CreateThemeDto, UpdateThemeDto } from './dto/create-theme.dto';
 import { CreateEmailTemplateDto, UpdateEmailTemplateDto } from './dto/email-template.dto';
@@ -32,7 +34,8 @@ import { RequestCustomDomainDto } from './dto/custom-domain.dto';
 import type { BusinessContext as BusinessCtx } from '../auth/decorators/business-context.decorator';
 export declare class BrandingController {
     private readonly brandingService;
-    constructor(brandingService: BrandingService);
+    private readonly uploadService;
+    constructor(brandingService: BrandingService, uploadService: UploadService);
     createOrUpdateTheme(businessId: string, themeDto: CreateThemeDto): Promise<{
         success: boolean;
         message: string;
@@ -82,6 +85,188 @@ export declare class BrandingController {
         }> & {
             __v: number;
         };
+    }>;
+    uploadLogo(businessId: string, file: Express.Multer.File): Promise<{
+        success: boolean;
+        data: {
+            url: string;
+            publicId: string;
+            width: number;
+            height: number;
+        };
+        message: string;
+    }>;
+    uploadFavicon(businessId: string, file: Express.Multer.File): Promise<{
+        success: boolean;
+        data: {
+            url: string;
+            publicId: string;
+        };
+        message: string;
+    }>;
+    uploadEmailHeader(businessId: string, file: Express.Multer.File): Promise<{
+        success: boolean;
+        data: {
+            url: string;
+            publicId: string;
+        };
+        message: string;
+    }>;
+    getStorefrontConfig(businessId: string): Promise<{
+        success: boolean;
+        isDefault: boolean;
+        storefront: any;
+        componentStyles: any;
+        navbar: any;
+        footer: any;
+        seo: any;
+    }>;
+    updateFullStorefront(businessId: string, storefrontDto: any): Promise<any>;
+    updateStorefrontLayout(businessId: string, layoutDto: any): Promise<{
+        success: boolean;
+        message: string;
+        storefront: any;
+    }>;
+    updateHeroSection(businessId: string, heroDto: any): Promise<{
+        success: boolean;
+        message: string;
+        storefront: any;
+    }>;
+    updateSectionsOrder(businessId: string, sectionsDto: {
+        sections: any[];
+    }): Promise<{
+        success: boolean;
+        message: string;
+        storefront: any;
+    }>;
+    updateComponentStyles(businessId: string, stylesDto: any): Promise<{
+        success: boolean;
+        message: string;
+        componentStyles: any;
+    }>;
+    updateNavbar(businessId: string, navbarDto: any): Promise<{
+        success: boolean;
+        message: string;
+        navbar: any;
+    }>;
+    updateFooter(businessId: string, footerDto: any): Promise<{
+        success: boolean;
+        message: string;
+        footer: any;
+    }>;
+    updateSeo(businessId: string, seoDto: any): Promise<{
+        success: boolean;
+        message: string;
+        seo: any;
+    }>;
+    uploadHeroImage(businessId: string, file: Express.Multer.File): Promise<{
+        success: boolean;
+        data: {
+            url: string;
+            publicId: string;
+        };
+        message: string;
+    }>;
+    uploadGalleryImage(businessId: string, file: Express.Multer.File): Promise<{
+        success: boolean;
+        data: {
+            url: string;
+            publicId: string;
+        };
+        message: string;
+    }>;
+    getStorefrontContent(businessId: string): Promise<{
+        success: boolean;
+        content: any;
+    }>;
+    addTestimonial(businessId: string, testimonialDto: any): Promise<{
+        success: boolean;
+        message: string;
+        testimonial: {
+            id: string;
+            clientName: any;
+            clientPhoto: any;
+            clientTitle: any;
+            content: any;
+            rating: any;
+            date: any;
+            serviceName: any;
+            isVisible: boolean;
+            order: any;
+        };
+        totalTestimonials: any;
+    }>;
+    updateTestimonials(businessId: string, testimonialsDto: {
+        testimonials: any[];
+    }): Promise<{
+        success: boolean;
+        message: string;
+        testimonials: any;
+    }>;
+    deleteTestimonial(businessId: string, testimonialId: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    addFAQ(businessId: string, faqDto: any): Promise<{
+        success: boolean;
+        message: string;
+        faq: {
+            id: string;
+            question: any;
+            answer: any;
+            category: any;
+            isVisible: boolean;
+            order: any;
+        };
+        totalFAQs: any;
+    }>;
+    updateFAQs(businessId: string, faqsDto: {
+        faqs: any[];
+    }): Promise<{
+        success: boolean;
+        message: string;
+        faqs: any;
+    }>;
+    deleteFAQ(businessId: string, faqId: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    importFAQsFromChat(businessId: string, importDto: {
+        replaceExisting?: boolean;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    updateAboutContent(businessId: string, aboutDto: any): Promise<{
+        success: boolean;
+        message: string;
+        about: any;
+    }>;
+    addGalleryImageToContent(businessId: string, imageDto: any): Promise<{
+        success: boolean;
+        message: string;
+        image: {
+            id: string;
+            url: any;
+            thumbnail: any;
+            caption: any;
+            category: any;
+            serviceName: any;
+            isVisible: boolean;
+            order: any;
+        };
+        totalImages: any;
+    }>;
+    updateGalleryImages(businessId: string, imagesDto: {
+        images: any[];
+    }): Promise<{
+        success: boolean;
+        message: string;
+        images: any;
+    }>;
+    deleteGalleryImage(businessId: string, imageId: string): Promise<{
+        success: boolean;
+        message: string;
     }>;
     requestCustomDomain(context: BusinessCtx, domainDto: RequestCustomDomainDto): Promise<{
         success: boolean;
@@ -236,11 +421,11 @@ export declare class BrandingController {
             setupProgress: number;
         };
     }>;
-    previewTheme(businessId: string, previewData: CreateThemeDto): Promise<{
-        preview: boolean;
-        theme: CreateThemeDto;
-        previewUrl: string;
+    createPreviewSession(businessId: string, previewData: CreateThemeDto): Promise<{
+        expiresIn: string;
         message: string;
-        expires: Date;
+        previewId: string;
+        previewUrl: string;
+        success: boolean;
     }>;
 }

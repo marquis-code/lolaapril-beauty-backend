@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MembershipController = void 0;
 const common_1 = require("@nestjs/common");
+const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 const swagger_1 = require("@nestjs/swagger");
 const membership_service_1 = require("./membership.service");
 const create_membership_dto_1 = require("./dto/create-membership.dto");
@@ -29,41 +30,41 @@ let MembershipController = class MembershipController {
     constructor(membershipService) {
         this.membershipService = membershipService;
     }
-    createMembership(createMembershipDto) {
-        return this.membershipService.createMembership(createMembershipDto);
+    createMembership(businessId, createMembershipDto) {
+        return this.membershipService.createMembership(businessId, createMembershipDto);
     }
-    findAllMemberships(query) {
-        return this.membershipService.findAllMemberships(query);
+    findAllMemberships(businessId, query) {
+        return this.membershipService.findAllMemberships(businessId, query);
     }
-    getStats() {
-        return this.membershipService.getMembershipStats();
+    getStats(businessId) {
+        return this.membershipService.getMembershipStats(businessId);
     }
-    findMembershipById(id) {
-        return this.membershipService.findMembershipById(id);
+    findMembershipById(businessId, id) {
+        return this.membershipService.findMembershipById(businessId, id);
     }
-    updateMembership(id, updateMembershipDto) {
-        return this.membershipService.updateMembership(id, updateMembershipDto);
+    updateMembership(businessId, id, updateMembershipDto) {
+        return this.membershipService.updateMembership(businessId, id, updateMembershipDto);
     }
-    removeMembership(id) {
-        return this.membershipService.removeMembership(id);
+    removeMembership(businessId, id) {
+        return this.membershipService.removeMembership(businessId, id);
     }
-    enrollClient(createClientMembershipDto) {
-        return this.membershipService.enrollClient(createClientMembershipDto);
+    enrollClient(businessId, createClientMembershipDto) {
+        return this.membershipService.enrollClient(businessId, createClientMembershipDto);
     }
-    findClientMemberships(clientId) {
-        return this.membershipService.findClientMemberships(clientId);
+    findClientMemberships(businessId, clientId) {
+        return this.membershipService.findClientMemberships(businessId, clientId);
     }
-    getClientBenefits(clientId) {
-        return this.membershipService.getClientMembershipBenefits(clientId);
+    getClientBenefits(businessId, clientId) {
+        return this.membershipService.getClientMembershipBenefits(businessId, clientId);
     }
-    addPoints(id, body) {
-        return this.membershipService.addPoints(id, body.points, body.description, body.saleId);
+    addPoints(businessId, id, body) {
+        return this.membershipService.addPoints(businessId, id, body.points, body.description, body.saleId);
     }
-    redeemPoints(id, body) {
-        return this.membershipService.redeemPoints(id, body.points, body.description);
+    redeemPoints(businessId, id, body) {
+        return this.membershipService.redeemPoints(businessId, id, body.points, body.description);
     }
-    updateSpending(id, body) {
-        return this.membershipService.updateSpending(id, body.amount);
+    updateSpending(businessId, id, body) {
+        return this.membershipService.updateSpending(businessId, id, body.amount);
     }
 };
 __decorate([
@@ -72,9 +73,10 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: 'Create a new membership program' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Membership program created successfully' }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_membership_dto_1.CreateMembershipDto]),
+    __metadata("design:paramtypes", [String, create_membership_dto_1.CreateMembershipDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "createMembership", null);
 __decorate([
@@ -82,9 +84,10 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: 'Get all membership programs' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Membership programs retrieved successfully' }),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [membership_query_dto_1.MembershipQueryDto]),
+    __metadata("design:paramtypes", [String, membership_query_dto_1.MembershipQueryDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "findAllMemberships", null);
 __decorate([
@@ -92,8 +95,9 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({ summary: "Get membership statistics" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Membership statistics retrieved successfully" }),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "getStats", null);
 __decorate([
@@ -103,9 +107,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get membership program by ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Membership program retrieved successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Membership program not found' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "findMembershipById", null);
 __decorate([
@@ -115,10 +120,11 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: "Update membership program" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Membership program updated successfully" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Membership program not found" }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_membership_dto_1.UpdateMembershipDto]),
+    __metadata("design:paramtypes", [String, String, update_membership_dto_1.UpdateMembershipDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "updateMembership", null);
 __decorate([
@@ -128,9 +134,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Delete membership program' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Membership program deleted successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Membership program not found' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "removeMembership", null);
 __decorate([
@@ -139,9 +146,10 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.CREATE, entity: audit_log_schema_1.AuditEntity.CLIENT_MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: 'Enroll client in membership program' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Client enrolled successfully' }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_client_membership_dto_1.CreateClientMembershipDto]),
+    __metadata("design:paramtypes", [String, create_client_membership_dto_1.CreateClientMembershipDto]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "enrollClient", null);
 __decorate([
@@ -149,9 +157,10 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: 'Get client memberships' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Client memberships retrieved successfully' }),
-    __param(0, (0, common_1.Param)('clientId')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('clientId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "findClientMemberships", null);
 __decorate([
@@ -159,9 +168,10 @@ __decorate([
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
     (0, swagger_1.ApiOperation)({ summary: 'Get client membership benefits' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Client benefits retrieved successfully' }),
-    __param(0, (0, common_1.Param)('clientId')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('clientId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "getClientBenefits", null);
 __decorate([
@@ -170,10 +180,11 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.CLIENT_MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: "Add points to client membership" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Points added successfully" }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "addPoints", null);
 __decorate([
@@ -182,10 +193,11 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.CLIENT_MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: "Redeem points from client membership" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Points redeemed successfully" }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "redeemPoints", null);
 __decorate([
@@ -194,10 +206,11 @@ __decorate([
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.UPDATE, entity: audit_log_schema_1.AuditEntity.CLIENT_MEMBERSHIP }),
     (0, swagger_1.ApiOperation)({ summary: "Update client spending" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Spending updated successfully" }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], MembershipController.prototype, "updateSpending", null);
 MembershipController = __decorate([

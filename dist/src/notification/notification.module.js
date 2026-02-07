@@ -23,6 +23,8 @@ const realtime_gateway_1 = require("./gateways/realtime.gateway");
 const chat_controller_1 = require("./controllers/chat.controller");
 const notification_schema_1 = require("../notification/schemas/notification.schema");
 const chat_schema_1 = require("./schemas/chat.schema");
+const business_module_1 = require("../business/business.module");
+const user_schema_1 = require("../auth/schemas/user.schema");
 let NotificationModule = class NotificationModule {
 };
 NotificationModule = __decorate([
@@ -62,6 +64,10 @@ NotificationModule = __decorate([
                     name: chat_schema_1.AutoResponse.name,
                     schema: chat_schema_1.AutoResponseSchema,
                 },
+                {
+                    name: user_schema_1.User.name,
+                    schema: user_schema_1.UserSchema,
+                },
             ]),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
@@ -71,6 +77,7 @@ NotificationModule = __decorate([
                 inject: [config_1.ConfigService],
             }),
             schedule_1.ScheduleModule.forRoot(),
+            business_module_1.BusinessModule,
         ],
         controllers: [notification_controller_1.NotificationController, chat_controller_1.ChatController],
         providers: [

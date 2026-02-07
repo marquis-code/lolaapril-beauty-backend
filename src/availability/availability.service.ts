@@ -3101,6 +3101,7 @@ import { CreateStaffAvailabilityDto } from './dto/create-staff-availability.dto'
 import { CheckAvailabilityDto } from './dto/check-availability.dto'
 import { GetAvailableSlotsDto } from './dto/get-available-slots.dto'
 import { Business, BusinessDocument } from '../business/schemas/business.schema'
+import { Appointment, AppointmentDocument } from '../appointment/schemas/appointment.schema'
 import { BlockStaffTimeDto } from './dto/block-staff-time.dto'
 import { GetAllSlotsDto } from "./dto/get-all-slots.dto"
 import { Cron, CronExpression } from '@nestjs/schedule'
@@ -3148,6 +3149,8 @@ export class AvailabilityService {
     @InjectModel(StaffAvailability.name)
     private staffAvailabilityModel: Model<StaffAvailabilityDocument>,
     @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
+    @InjectModel(Appointment.name)
+    private appointmentModel: Model<AppointmentDocument>,
     @Inject(forwardRef(() => BookingService))
     private bookingService: BookingService,
   ) {}
@@ -4695,6 +4698,7 @@ async getAllSlots(
     date: string
     hasSlots: boolean
     availableSlotCount: number
+    takenSlotCount: number
     totalSlots: number
     staffAvailable: number
   }>
@@ -4730,10 +4734,51 @@ async getAllSlots(
     ? this.parseDate(dto.endDate) 
     : new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000)
 
+  const rangeStart = this.normalizeDate(startDate)
+  const rangeEnd = this.normalizeDate(endDate)
+  rangeEnd.setHours(23, 59, 59, 999)
+
+  const appointmentStatuses = [
+    'pending_confirmation',
+    'confirmed',
+    'in_progress',
+  ]
+
+  const appointments = await this.appointmentModel
+    .find({
+      'businessInfo.businessId': businessId,
+      selectedDate: { $gte: rangeStart, $lte: rangeEnd },
+      status: { $in: appointmentStatuses },
+    })
+    .lean()
+    .exec()
+
+  const appointmentsByDate: Record<string, Array<{ startTime: string; endTime: string; assignedStaff?: Types.ObjectId }>> = {}
+  for (const appointment of appointments) {
+    const dateKey = new Date(appointment.selectedDate).toISOString().split('T')[0]
+    const startTime = appointment.appointmentDetails?.startTime || appointment.selectedTime
+    const endTime = appointment.appointmentDetails?.endTime
+
+    if (!startTime || !endTime) {
+      continue
+    }
+
+    if (!appointmentsByDate[dateKey]) {
+      appointmentsByDate[dateKey] = []
+    }
+
+    appointmentsByDate[dateKey].push({
+      startTime,
+      endTime,
+      assignedStaff: appointment.assignedStaff,
+    })
+  }
+
   const slotsData: Record<string, {
     date: string
     hasSlots: boolean
     availableSlotCount: number
+    takenSlotCount: number
     totalSlots: number
     staffAvailable: number
   }> = {}
@@ -4753,6 +4798,7 @@ async getAllSlots(
         date: dateString,
         hasSlots: false,
         availableSlotCount: 0,
+        takenSlotCount: 0,
         totalSlots: 0,
         staffAvailable: 0
       }
@@ -4764,6 +4810,8 @@ async getAllSlots(
     
     let totalSlots = 0
     let availableSlotCount = 0
+    let takenSlotCount = 0
+    const slotsForDay: Array<{ startMinutes: number; endMinutes: number; key: string }> = []
     
     // Calculate total available slots based on business hours
     for (const businessHour of businessHours) {
@@ -4771,11 +4819,44 @@ async getAllSlots(
       const endMinutes = this.timeToMinutes(businessHour.endTime)
       const defaultDuration = 30 // Default slot duration
       
-      // Count total possible slots
-      const possibleSlots = Math.floor((endMinutes - startMinutes) / defaultDuration)
-      totalSlots += possibleSlots
-      availableSlotCount += possibleSlots // All slots are available by default
+      for (
+        let currentMinutes = startMinutes; 
+        currentMinutes + defaultDuration <= endMinutes; 
+        currentMinutes += defaultDuration
+      ) {
+        const slotStart = this.minutesToTime(currentMinutes)
+        slotsForDay.push({
+          startMinutes: currentMinutes,
+          endMinutes: currentMinutes + defaultDuration,
+          key: slotStart,
+        })
+      }
     }
+
+    totalSlots = slotsForDay.length
+
+    const appointmentsForDate = appointmentsByDate[dateString] || []
+    const relevantAppointments = dto.staffId
+      ? appointmentsForDate.filter(appointment =>
+          appointment.assignedStaff?.toString() === dto.staffId
+        )
+      : appointmentsForDate
+
+    const takenSlots = new Set<string>()
+    for (const appointment of relevantAppointments) {
+      const appointmentStart = this.timeToMinutes(appointment.startTime)
+      const appointmentEnd = this.timeToMinutes(appointment.endTime)
+
+      for (const slot of slotsForDay) {
+        const overlaps = slot.startMinutes < appointmentEnd && slot.endMinutes > appointmentStart
+        if (overlaps) {
+          takenSlots.add(slot.key)
+        }
+      }
+    }
+
+    takenSlotCount = takenSlots.size
+    availableSlotCount = Math.max(totalSlots - takenSlotCount, 0)
     
     // Optional: Get staff count if filtering by staff
     let staffAvailableCount = 0
@@ -4813,6 +4894,7 @@ async getAllSlots(
       date: dateString,
       hasSlots: availableSlotCount > 0,
       availableSlotCount,
+      takenSlotCount,
       totalSlots,
       staffAvailable: staffAvailableCount
     }

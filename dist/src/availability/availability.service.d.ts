@@ -5,6 +5,7 @@ import { CreateStaffAvailabilityDto } from './dto/create-staff-availability.dto'
 import { CheckAvailabilityDto } from './dto/check-availability.dto';
 import { GetAvailableSlotsDto } from './dto/get-available-slots.dto';
 import { BusinessDocument } from '../business/schemas/business.schema';
+import { AppointmentDocument } from '../appointment/schemas/appointment.schema';
 import { BlockStaffTimeDto } from './dto/block-staff-time.dto';
 import { GetAllSlotsDto } from "./dto/get-all-slots.dto";
 import { BookingService } from '../booking/services/booking.service';
@@ -20,8 +21,9 @@ export declare class AvailabilityService {
     private businessHoursModel;
     private staffAvailabilityModel;
     private businessModel;
+    private appointmentModel;
     private bookingService;
-    constructor(businessHoursModel: Model<BusinessHoursDocument>, staffAvailabilityModel: Model<StaffAvailabilityDocument>, businessModel: Model<BusinessDocument>, bookingService: BookingService);
+    constructor(businessHoursModel: Model<BusinessHoursDocument>, staffAvailabilityModel: Model<StaffAvailabilityDocument>, businessModel: Model<BusinessDocument>, appointmentModel: Model<AppointmentDocument>, bookingService: BookingService);
     getAvailableSlots(dto: GetAvailableSlotsDto, authenticatedBusinessId?: string): Promise<AvailabilitySlot[]>;
     private generateSlotsFromBusinessHours;
     private checkSlotsAgainstBookings;
@@ -68,6 +70,7 @@ export declare class AvailabilityService {
             date: string;
             hasSlots: boolean;
             availableSlotCount: number;
+            takenSlotCount: number;
             totalSlots: number;
             staffAvailable: number;
         }>;

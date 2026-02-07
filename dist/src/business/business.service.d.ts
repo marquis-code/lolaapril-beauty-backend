@@ -3,13 +3,22 @@ import { BusinessDocument } from './schemas/business.schema';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { UserDocument } from '../auth/schemas/user.schema';
 import { PaystackService } from '../integration/payment-gateways/paystack/paystack.service';
+import { BrandingService } from '../branding/branding.service';
+import { ServiceService } from '../service/service.service';
+import { StaffService } from '../staff/staff.service';
 export declare class BusinessService {
     private businessModel;
     private userModel;
     private readonly subscriptionService;
     private readonly paystackService;
+    private readonly brandingService;
+    private readonly serviceService;
+    private readonly staffService;
     private readonly logger;
-    constructor(businessModel: Model<BusinessDocument>, userModel: Model<UserDocument>, subscriptionService: SubscriptionService, paystackService: PaystackService);
+    constructor(businessModel: Model<BusinessDocument>, userModel: Model<UserDocument>, subscriptionService: SubscriptionService, paystackService: PaystackService, brandingService: BrandingService, serviceService: ServiceService, staffService: StaffService);
+    getBusinessWorkingHours(businessId: string): Promise<any[]>;
+    createBusinessWorkingHours(businessId: string, workingHours: any[]): Promise<any[]>;
+    updateBusinessWorkingHours(businessId: string, workingHours: any[]): Promise<any[]>;
     isSubdomainAvailable(subdomain: string): Promise<boolean>;
     getBySubdomain(subdomain: string): Promise<any>;
     getById(businessId: string): Promise<any>;
@@ -38,4 +47,13 @@ export declare class BusinessService {
     verifyBusinessKYC(businessId: string, adminId?: string): Promise<any>;
     rejectBusinessKYC(businessId: string, reason: string, adminId?: string): Promise<any>;
     getSubaccountDetails(businessId: string): Promise<any>;
+    getPublicStorefront(subdomain: string): Promise<any>;
+    private getDefaultTheme;
+    private getDefaultHeroSection;
+    private getDefaultSections;
+    private getDefaultStorefrontLayout;
+    private getDefaultComponentStyles;
+    private getDefaultBookingFlow;
+    private getDefaultNavbar;
+    private getDefaultFooter;
 }

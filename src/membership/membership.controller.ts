@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BusinessId } from "../auth/decorators/business-context.decorator"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { MembershipService } from "./membership.service"
 import { CreateMembershipDto } from "./dto/create-membership.dto"
@@ -27,24 +28,24 @@ export class MembershipController {
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.MEMBERSHIP })
   @ApiOperation({ summary: 'Create a new membership program' })
   @ApiResponse({ status: 201, description: 'Membership program created successfully' })
-  createMembership(@Body() createMembershipDto: CreateMembershipDto) {
-    return this.membershipService.createMembership(createMembershipDto)
+  createMembership(@BusinessId() businessId: string, @Body() createMembershipDto: CreateMembershipDto) {
+    return this.membershipService.createMembership(businessId, createMembershipDto)
   }
 
   @Get()
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Get all membership programs' })
   @ApiResponse({ status: 200, description: 'Membership programs retrieved successfully' })
-  findAllMemberships(@Query() query: MembershipQueryDto) {
-    return this.membershipService.findAllMemberships(query)
+  findAllMemberships(@BusinessId() businessId: string, @Query() query: MembershipQueryDto) {
+    return this.membershipService.findAllMemberships(businessId, query)
   }
 
   @Get("stats")
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: "Get membership statistics" })
   @ApiResponse({ status: 200, description: "Membership statistics retrieved successfully" })
-  getStats() {
-    return this.membershipService.getMembershipStats()
+  getStats(@BusinessId() businessId: string) {
+    return this.membershipService.getMembershipStats(businessId)
   }
 
   @Get(':id')
@@ -53,8 +54,8 @@ export class MembershipController {
   @ApiOperation({ summary: 'Get membership program by ID' })
   @ApiResponse({ status: 200, description: 'Membership program retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Membership program not found' })
-  findMembershipById(@Param('id') id: string) {
-    return this.membershipService.findMembershipById(id)
+  findMembershipById(@BusinessId() businessId: string, @Param('id') id: string) {
+    return this.membershipService.findMembershipById(businessId, id)
   }
 
   @Patch(":id")
@@ -63,8 +64,8 @@ export class MembershipController {
   @ApiOperation({ summary: "Update membership program" })
   @ApiResponse({ status: 200, description: "Membership program updated successfully" })
   @ApiResponse({ status: 404, description: "Membership program not found" })
-  updateMembership(@Param('id') id: string, @Body() updateMembershipDto: UpdateMembershipDto) {
-    return this.membershipService.updateMembership(id, updateMembershipDto)
+  updateMembership(@BusinessId() businessId: string, @Param('id') id: string, @Body() updateMembershipDto: UpdateMembershipDto) {
+    return this.membershipService.updateMembership(businessId, id, updateMembershipDto)
   }
 
   @Delete(':id')
@@ -73,8 +74,8 @@ export class MembershipController {
   @ApiOperation({ summary: 'Delete membership program' })
   @ApiResponse({ status: 200, description: 'Membership program deleted successfully' })
   @ApiResponse({ status: 404, description: 'Membership program not found' })
-  removeMembership(@Param('id') id: string) {
-    return this.membershipService.removeMembership(id)
+  removeMembership(@BusinessId() businessId: string, @Param('id') id: string) {
+    return this.membershipService.removeMembership(businessId, id)
   }
 
   // Client Membership Management
@@ -83,24 +84,24 @@ export class MembershipController {
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.CLIENT_MEMBERSHIP })
   @ApiOperation({ summary: 'Enroll client in membership program' })
   @ApiResponse({ status: 201, description: 'Client enrolled successfully' })
-  enrollClient(@Body() createClientMembershipDto: CreateClientMembershipDto) {
-    return this.membershipService.enrollClient(createClientMembershipDto)
+  enrollClient(@BusinessId() businessId: string, @Body() createClientMembershipDto: CreateClientMembershipDto) {
+    return this.membershipService.enrollClient(businessId, createClientMembershipDto)
   }
 
   @Get('client/:clientId')
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: 'Get client memberships' })
   @ApiResponse({ status: 200, description: 'Client memberships retrieved successfully' })
-  findClientMemberships(@Param('clientId') clientId: string) {
-    return this.membershipService.findClientMemberships(clientId)
+  findClientMemberships(@BusinessId() businessId: string, @Param('clientId') clientId: string) {
+    return this.membershipService.findClientMemberships(businessId, clientId)
   }
 
   @Get('client/:clientId/benefits')
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
   @ApiOperation({ summary: 'Get client membership benefits' })
   @ApiResponse({ status: 200, description: 'Client benefits retrieved successfully' })
-  getClientBenefits(@Param('clientId') clientId: string) {
-    return this.membershipService.getClientMembershipBenefits(clientId)
+  getClientBenefits(@BusinessId() businessId: string, @Param('clientId') clientId: string) {
+    return this.membershipService.getClientMembershipBenefits(businessId, clientId)
   }
 
   @Post("client-membership/:id/points/add")
@@ -108,8 +109,8 @@ export class MembershipController {
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.CLIENT_MEMBERSHIP })
   @ApiOperation({ summary: "Add points to client membership" })
   @ApiResponse({ status: 200, description: "Points added successfully" })
-  addPoints(@Param('id') id: string, @Body() body: { points: number; description: string; saleId?: string }) {
-    return this.membershipService.addPoints(id, body.points, body.description, body.saleId)
+  addPoints(@BusinessId() businessId: string, @Param('id') id: string, @Body() body: { points: number; description: string; saleId?: string }) {
+    return this.membershipService.addPoints(businessId, id, body.points, body.description, body.saleId)
   }
 
   @Post("client-membership/:id/points/redeem")
@@ -117,8 +118,8 @@ export class MembershipController {
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.CLIENT_MEMBERSHIP })
   @ApiOperation({ summary: "Redeem points from client membership" })
   @ApiResponse({ status: 200, description: "Points redeemed successfully" })
-  redeemPoints(@Param('id') id: string, @Body() body: { points: number; description: string }) {
-    return this.membershipService.redeemPoints(id, body.points, body.description)
+  redeemPoints(@BusinessId() businessId: string, @Param('id') id: string, @Body() body: { points: number; description: string }) {
+    return this.membershipService.redeemPoints(businessId, id, body.points, body.description)
   }
 
   @Post("client-membership/:id/spending")
@@ -126,7 +127,7 @@ export class MembershipController {
   @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.CLIENT_MEMBERSHIP })
   @ApiOperation({ summary: "Update client spending" })
   @ApiResponse({ status: 200, description: "Spending updated successfully" })
-  updateSpending(@Param('id') id: string, @Body() body: { amount: number }) {
-    return this.membershipService.updateSpending(id, body.amount)
+  updateSpending(@BusinessId() businessId: string, @Param('id') id: string, @Body() body: { amount: number }) {
+    return this.membershipService.updateSpending(businessId, id, body.amount)
   }
 }

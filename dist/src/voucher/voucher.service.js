@@ -169,8 +169,9 @@ let VoucherService = class VoucherService {
         }
         return voucher;
     }
-    async getVoucherStats() {
+    async getVoucherStats(businessId) {
         const stats = await this.voucherModel.aggregate([
+            { $match: { businessId } },
             {
                 $group: {
                     _id: null,
@@ -183,6 +184,7 @@ let VoucherService = class VoucherService {
             },
         ]);
         const discountTypeStats = await this.voucherModel.aggregate([
+            { $match: { businessId } },
             {
                 $group: {
                     _id: "$discountType",

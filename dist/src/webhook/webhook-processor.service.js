@@ -24,12 +24,13 @@ let WebhookProcessorService = class WebhookProcessorService {
         this.webhookModel = webhookModel;
         this.configService = configService;
     }
-    async processWebhook(source, payload, signature) {
+    async processWebhook(source, businessId, payload, signature) {
         const isValid = this.verifySignature(source, payload, signature);
         if (!isValid) {
             throw new common_1.BadRequestException('Invalid webhook signature');
         }
         const webhook = new this.webhookModel({
+            businessId,
             event: payload.event || payload.type,
             source,
             payload,

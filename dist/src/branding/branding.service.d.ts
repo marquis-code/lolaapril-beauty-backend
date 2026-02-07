@@ -31,12 +31,16 @@ import { BookingWidget, BookingWidgetDocument } from './schemas/booking-widget.s
 import { CreateThemeDto, UpdateThemeDto } from './dto/create-theme.dto';
 import { CreateEmailTemplateDto, UpdateEmailTemplateDto } from './dto/email-template.dto';
 import { CreateWidgetDto, UpdateWidgetDto } from './dto/widget.dto';
+import { CacheService } from '../cache/cache.service';
 export declare class BrandingService {
     private themeModel;
     private customDomainModel;
     private emailTemplateModel;
     private bookingWidgetModel;
-    constructor(themeModel: Model<ThemeDocument>, customDomainModel: Model<CustomDomainDocument>, emailTemplateModel: Model<EmailTemplateDocument>, bookingWidgetModel: Model<BookingWidgetDocument>);
+    private readonly cacheService;
+    private readonly PREVIEW_TTL;
+    private readonly PREVIEW_KEY_PREFIX;
+    constructor(themeModel: Model<ThemeDocument>, customDomainModel: Model<CustomDomainDocument>, emailTemplateModel: Model<EmailTemplateDocument>, bookingWidgetModel: Model<BookingWidgetDocument>, cacheService: CacheService);
     createOrUpdateTheme(businessId: string, themeDto: CreateThemeDto): Promise<{
         success: boolean;
         message: string;
@@ -92,6 +96,140 @@ export declare class BrandingService {
         message: string;
     }>;
     private getDefaultTheme;
+    updateStorefrontLayout(businessId: string, layoutDto: any): Promise<{
+        success: boolean;
+        message: string;
+        storefront: any;
+    }>;
+    updateHeroSection(businessId: string, heroDto: any): Promise<{
+        success: boolean;
+        message: string;
+        storefront: any;
+    }>;
+    updateSectionsOrder(businessId: string, sections: any[]): Promise<{
+        success: boolean;
+        message: string;
+        storefront: any;
+    }>;
+    updateComponentStyles(businessId: string, stylesDto: any): Promise<{
+        success: boolean;
+        message: string;
+        componentStyles: any;
+    }>;
+    updateNavbar(businessId: string, navbarDto: any): Promise<{
+        success: boolean;
+        message: string;
+        navbar: any;
+    }>;
+    updateFooter(businessId: string, footerDto: any): Promise<{
+        success: boolean;
+        message: string;
+        footer: any;
+    }>;
+    updateSeo(businessId: string, seoDto: any): Promise<{
+        success: boolean;
+        message: string;
+        seo: any;
+    }>;
+    updateFullStorefront(businessId: string, fullDto: any): Promise<any>;
+    getStorefrontConfig(businessId: string): Promise<{
+        success: boolean;
+        isDefault: boolean;
+        storefront: any;
+        componentStyles: any;
+        navbar: any;
+        footer: any;
+        seo: any;
+    }>;
+    private getDefaultStorefrontLayout;
+    addTestimonial(businessId: string, testimonialDto: any): Promise<{
+        success: boolean;
+        message: string;
+        testimonial: {
+            id: string;
+            clientName: any;
+            clientPhoto: any;
+            clientTitle: any;
+            content: any;
+            rating: any;
+            date: any;
+            serviceName: any;
+            isVisible: boolean;
+            order: any;
+        };
+        totalTestimonials: any;
+    }>;
+    updateTestimonials(businessId: string, testimonialsDto: any): Promise<{
+        success: boolean;
+        message: string;
+        testimonials: any;
+    }>;
+    deleteTestimonial(businessId: string, testimonialId: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    addFAQ(businessId: string, faqDto: any): Promise<{
+        success: boolean;
+        message: string;
+        faq: {
+            id: string;
+            question: any;
+            answer: any;
+            category: any;
+            isVisible: boolean;
+            order: any;
+        };
+        totalFAQs: any;
+    }>;
+    updateFAQs(businessId: string, faqsDto: any): Promise<{
+        success: boolean;
+        message: string;
+        faqs: any;
+    }>;
+    deleteFAQ(businessId: string, faqId: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    importFAQsFromChat(businessId: string, replaceExisting?: boolean): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    updateAboutContent(businessId: string, aboutDto: any): Promise<{
+        success: boolean;
+        message: string;
+        about: any;
+    }>;
+    addGalleryImage(businessId: string, imageDto: any): Promise<{
+        success: boolean;
+        message: string;
+        image: {
+            id: string;
+            url: any;
+            thumbnail: any;
+            caption: any;
+            category: any;
+            serviceName: any;
+            isVisible: boolean;
+            order: any;
+        };
+        totalImages: any;
+    }>;
+    updateGalleryImages(businessId: string, imagesDto: any): Promise<{
+        success: boolean;
+        message: string;
+        images: any;
+    }>;
+    deleteGalleryImage(businessId: string, imageId: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    getStorefrontContent(businessId: string): Promise<{
+        success: boolean;
+        content: any;
+    }>;
+    private getDefaultComponentStyles;
+    private getDefaultNavbar;
+    private getDefaultFooter;
     requestCustomDomain(businessId: string, domain: string, userId: string): Promise<{
         success: boolean;
         message: string;
@@ -267,12 +405,16 @@ export declare class BrandingService {
     }>;
     private calculateSetupProgress;
     generateThemePreview(businessId: string, themeData: CreateThemeDto): Promise<{
+        success: boolean;
         preview: boolean;
         theme: CreateThemeDto;
+        cssVariables: string;
         previewUrl: string;
+        localPreviewUrl: string;
         message: string;
         expires: Date;
     }>;
+    private generateCssVariables;
     exportBrandingConfig(businessId: string): Promise<{
         exportedAt: Date;
         businessId: string;
@@ -297,4 +439,11 @@ export declare class BrandingService {
             widgets: any[];
         };
     }>;
+    createPreviewSession(businessId: string, themeData: CreateThemeDto): Promise<{
+        previewId: string;
+        previewUrl: string;
+    }>;
+    getPreviewSession(previewId: string): Promise<any>;
+    deletePreviewSession(previewId: string): Promise<void>;
+    extendPreviewSession(previewId: string): Promise<void>;
 }

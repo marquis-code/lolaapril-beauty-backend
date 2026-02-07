@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common'
+import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger, Inject, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import { Business, BusinessDocument } from './schemas/business.schema'
 import { SubscriptionService } from '../subscription/subscription.service' 
 import { User, UserDocument, UserRole } from '../auth/schemas/user.schema'
 import { PaystackService } from '../integration/payment-gateways/paystack/paystack.service'
+import { BrandingService } from '../branding/branding.service'
+import { ServiceService } from '../service/service.service'
+import { StaffService } from '../staff/staff.service'
 import * as bcrypt from 'bcryptjs'
 
 @Injectable()
@@ -16,7 +19,41 @@ export class BusinessService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly subscriptionService: SubscriptionService,
     private readonly paystackService: PaystackService,
+    @Inject(forwardRef(() => BrandingService)) private readonly brandingService: BrandingService,
+    @Inject(forwardRef(() => ServiceService)) private readonly serviceService: ServiceService,
+    @Inject(forwardRef(() => StaffService)) private readonly staffService: StaffService,
   ) {}
+
+  // ==================== BUSINESS WORKING HOURS ====================
+  async getBusinessWorkingHours(businessId: string): Promise<any[]> {
+    const business = await this.businessModel.findById(businessId).select('businessHours').exec();
+    if (!business) {
+      throw new NotFoundException('Business not found');
+    }
+    return business.businessHours || [];
+  }
+
+  async createBusinessWorkingHours(businessId: string, workingHours: any[]): Promise<any[]> {
+    const business = await this.businessModel.findById(businessId).exec();
+    if (!business) {
+      throw new NotFoundException('Business not found');
+    }
+    business.businessHours = workingHours;
+    await business.save();
+    return business.businessHours;
+  }
+
+  async updateBusinessWorkingHours(businessId: string, workingHours: any[]): Promise<any[]> {
+    const business = await this.businessModel.findByIdAndUpdate(
+      businessId,
+      { businessHours: workingHours, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    ).select('businessHours').exec();
+    if (!business) {
+      throw new NotFoundException('Business not found');
+    }
+    return business.businessHours || [];
+  }
 
   // ==================== BUSINESS LOOKUP ====================
   
@@ -456,6 +493,369 @@ export class BusinessService {
       percentageCharge: subaccountData.percentage_charge,
       isActive: subaccountData.is_verified,
       currency: subaccountData.currency,
+    };
+  }
+
+  // ==================== PUBLIC STOREFRONT ====================
+
+  /**
+   * Get complete storefront data for public booking widget
+   * Returns business info, theme/branding, services, categories, staff, and layout configuration
+   * This endpoint powers the entire booking widget UI with full customization
+   */
+  async getPublicStorefront(subdomain: string): Promise<any> {
+    try {
+      this.logger.log(`📦 Fetching storefront data for subdomain: ${subdomain}`);
+
+      // 1. Get business data
+      const business = await this.getBySubdomain(subdomain);
+      if (!business) {
+        throw new NotFoundException(`Business with subdomain '${subdomain}' not found`);
+      }
+
+      const businessId = business._id.toString();
+
+      // 2. Fetch all data (using separate async calls to avoid complex type inference)
+      let themeResult: any = { isDefault: true, theme: this.getDefaultTheme() };
+      let categoriesResult: any = { success: false, data: [] };
+      let servicesResult: any = { success: false, data: [] };
+      let staffResult: any = [];
+
+      try {
+        themeResult = await this.brandingService.getTheme(businessId);
+      } catch (err: any) {
+        this.logger.warn(`Theme fetch failed: ${err.message}`);
+      }
+
+      try {
+        categoriesResult = await this.serviceService.findAllCategories(undefined, businessId);
+      } catch (err: any) {
+        this.logger.warn(`Categories fetch failed: ${err.message}`);
+      }
+
+      try {
+        servicesResult = await this.serviceService.findAllServices({} as any, businessId);
+      } catch (err: any) {
+        this.logger.warn(`Services fetch failed: ${err.message}`);
+      }
+
+      try {
+        staffResult = await this.staffService.getStaffByBusiness(businessId, 'active');
+      } catch (err: any) {
+        this.logger.warn(`Staff fetch failed: ${err.message}`);
+      }
+
+      // 3. Format business info (exclude sensitive data)
+      const businessInfo = {
+        id: business._id,
+        businessName: business.businessName,
+        subdomain: business.subdomain,
+        businessDescription: business.businessDescription,
+        businessType: business.businessType,
+        logo: business.logo,
+        images: business.images || [],
+        address: {
+          street: business.address?.street,
+          city: business.address?.city,
+          state: business.address?.state,
+          country: business.address?.country,
+          postalCode: business.address?.postalCode,
+          latitude: business.address?.latitude,
+          longitude: business.address?.longitude,
+        },
+        contact: {
+          primaryPhone: business.contact?.primaryPhone,
+          secondaryPhone: business.contact?.secondaryPhone,
+          email: business.contact?.email,
+          website: business.contact?.website,
+          socialMedia: business.contact?.socialMedia,
+        },
+        settings: {
+          timezone: business.settings?.timezone || 'Africa/Lagos',
+          currency: business.settings?.currency || 'NGN',
+          language: business.settings?.language || 'en',
+          defaultAppointmentDuration: business.settings?.defaultAppointmentDuration || 30,
+          bufferTimeBetweenAppointments: business.settings?.bufferTimeBetweenAppointments || 15,
+          cancellationPolicyHours: business.settings?.cancellationPolicyHours || 24,
+          advanceBookingDays: business.settings?.advanceBookingDays || 7,
+          allowOnlineBooking: business.settings?.allowOnlineBooking ?? true,
+          taxRate: business.settings?.taxRate || 0,
+          serviceCharge: business.settings?.serviceCharge || 0,
+        },
+        businessHours: business.businessHours || [],
+        // Statistics for social proof
+        stats: {
+          totalReviews: business.totalReviews || 0,
+          averageRating: business.averageRating || 0,
+          totalClients: business.totalClients || 0,
+        },
+      };
+
+      // 4. Format categories with full details
+      const categories = (categoriesResult?.data || []).map((cat: any) => ({
+        id: cat._id,
+        categoryName: cat.categoryName,
+        description: cat.description,
+        icon: cat.icon,
+        image: cat.image,
+        displayOrder: cat.displayOrder || 0,
+        appointmentColor: cat.appointmentColor,
+        isActive: cat.isActive,
+      }));
+
+      // 5. Format services with FULL details for booking interface
+      const services = (servicesResult?.data || [])
+        .filter((svc: any) => svc.isActive)
+        .map((svc: any) => {
+          // Handle the nested structure from Service schema
+          const basicDetails = svc.basicDetails || {};
+          const pricingAndDuration = svc.pricingAndDuration || {};
+          const teamMembers = svc.teamMembers || {};
+          const settings = svc.settings || {};
+
+          return {
+            id: svc._id,
+            // Basic details
+            serviceName: basicDetails.serviceName || svc.serviceName,
+            serviceType: basicDetails.serviceType || svc.serviceType,
+            categoryId: basicDetails.category || svc.categoryId,
+            description: basicDetails.description || svc.description,
+            // Pricing
+            priceType: pricingAndDuration.priceType || 'Fixed',
+            price: pricingAndDuration.price || svc.price || { currency: 'NGN', amount: 0 },
+            // Duration
+            duration: pricingAndDuration.duration || svc.duration || {
+              servicingTime: { value: 30, unit: 'min' },
+              processingTime: { value: 0, unit: 'min' },
+              totalDuration: '30 min',
+            },
+            extraTimeOptions: pricingAndDuration.extraTimeOptions,
+            // Images
+            images: svc.images || [],
+            // Team/Staff assignment
+            allTeamMembers: teamMembers.allTeamMembers || false,
+            assignedStaffIds: (teamMembers.selectedMembers || [])
+              .filter((m: any) => m.selected)
+              .map((m: any) => m.id?.toString()),
+            // Booking settings
+            onlineBooking: {
+              enabled: settings.onlineBooking?.enabled ?? true,
+              availableFor: settings.onlineBooking?.availableFor || 'All clients',
+            },
+            // Variants (if any)
+            variants: (svc.variants || []).map((v: any) => ({
+              variantName: v.variantName,
+              variantDescription: v.variantDescription,
+              pricing: v.pricing,
+            })),
+            // Add-ons
+            serviceAddOns: svc.serviceAddOns || [],
+            isActive: svc.isActive,
+          };
+        });
+
+      // 6. Format staff with FULL details for booking interface
+      const staff = (staffResult || []).map((s: any) => ({
+        id: s._id,
+        staffId: s.staffId,
+        firstName: s.userId?.firstName || s.firstName,
+        lastName: s.userId?.lastName || s.lastName,
+        email: s.email,
+        phone: s.phone,
+        profileImage: s.profileImage,
+        bio: s.bio,
+        title: s.title,
+        role: s.role,
+        employmentType: s.employmentType,
+        status: s.status,
+        // Services this staff can perform
+        skills: (s.skills || []).filter((sk: any) => sk.isActive).map((sk: any) => ({
+          serviceId: sk.serviceId?.toString(),
+          serviceName: sk.serviceName,
+          skillLevel: sk.skillLevel,
+        })),
+        serviceIds: (s.skills || []).filter((sk: any) => sk.isActive).map((sk: any) => sk.serviceId?.toString()),
+        // Ratings
+        rating: {
+          average: s.totalReviews > 0 ? (s.totalRating / s.totalReviews).toFixed(1) : null,
+          totalReviews: s.totalReviews || 0,
+        },
+        completedAppointments: s.completedAppointments || 0,
+        certifications: s.certifications || [],
+      }));
+
+      // 7. Extract storefront layout configuration from theme
+      const theme = themeResult.theme || {};
+      const storefrontLayout = theme.storefront || this.getDefaultStorefrontLayout();
+      const componentStyles = theme.componentStyles || this.getDefaultComponentStyles();
+
+      this.logger.log(`✅ Storefront data fetched: ${categories.length} categories, ${services.length} services, ${staff.length} staff`);
+
+      return {
+        success: true,
+        business: businessInfo,
+        // Theme & Branding
+        theme: {
+          colors: theme.colors || this.getDefaultTheme().colors,
+          typography: theme.typography || this.getDefaultTheme().typography,
+          logo: theme.logo,
+          favicon: theme.favicon,
+          customCss: theme.customCss,
+          seo: theme.seo,
+          navbar: theme.navbar || this.getDefaultNavbar(),
+          footer: theme.footer || this.getDefaultFooter(),
+        },
+        isDefaultTheme: themeResult.isDefault,
+        // Storefront Layout & Customization
+        layout: {
+          hero: storefrontLayout.hero || this.getDefaultHeroSection(),
+          sections: storefrontLayout.sections || this.getDefaultSections(),
+          serviceDisplay: storefrontLayout.serviceDisplay || { layout: 'grid', columns: 3, showPrices: true, showDuration: true, showDescription: true, showImages: true, groupByCategory: true },
+          staffDisplay: storefrontLayout.staffDisplay || { layout: 'grid', columns: 4, showBio: true, showSpecialties: true, showRatings: true },
+          gallery: storefrontLayout.gallery || { enabled: false, images: [], layout: 'grid', columns: 3 },
+          testimonials: storefrontLayout.testimonials || { enabled: true, showRating: true, layout: 'carousel', maxToShow: 6 },
+          contact: storefrontLayout.contact || { showMap: true, showAddress: true, showPhone: true, showEmail: true, showSocialLinks: true, showBusinessHours: true },
+          bookingFlow: storefrontLayout.bookingFlow || this.getDefaultBookingFlow(),
+          socialProof: storefrontLayout.socialProof || { showReviewCount: true, showAverageRating: true, showTotalBookings: false },
+          // Section Content (testimonials, FAQs, about, gallery images)
+          content: storefrontLayout.content || { testimonials: [], faqs: [], about: {}, galleryImages: [] },
+        },
+        componentStyles,
+        // Data
+        categories,
+        services,
+        staff,
+        message: 'Storefront data retrieved successfully',
+      };
+    } catch (error) {
+      this.logger.error(`❌ Failed to fetch storefront: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get default theme for businesses without custom branding
+   */
+  private getDefaultTheme() {
+    return {
+      colors: {
+        primary: '#3B82F6',
+        secondary: '#10B981',
+        accent: '#F59E0B',
+        background: '#FFFFFF',
+        text: '#1F2937',
+        error: '#EF4444',
+        success: '#10B981',
+        muted: '#6B7280',
+        border: '#E5E7EB',
+        cardBackground: '#FFFFFF',
+        inputBackground: '#F9FAFB',
+      },
+      typography: {
+        fontFamily: 'Inter, sans-serif',
+        headingFont: 'Inter, sans-serif',
+        bodyFont: 'Inter, sans-serif',
+      },
+      logo: null,
+      favicon: null,
+      customCss: {
+        enabled: false,
+        cssCode: '',
+      },
+    };
+  }
+
+  private getDefaultHeroSection() {
+    return {
+      enabled: true,
+      type: 'gradient',
+      gradient: { from: '#3B82F6', to: '#8B5CF6', direction: 'to-right' },
+      headline: 'Welcome to Our Salon',
+      subheadline: 'Book your appointment today',
+      textAlignment: 'center',
+      overlayStyle: 'dark',
+      overlayOpacity: 0.4,
+      height: '500px',
+      showBookButton: true,
+      bookButtonText: 'Book Now',
+    };
+  }
+
+  private getDefaultSections() {
+    return [
+      { id: 'services', type: 'services', title: 'Our Services', enabled: true, order: 1 },
+      { id: 'staff', type: 'staff', title: 'Meet Our Team', enabled: true, order: 2 },
+      { id: 'gallery', type: 'gallery', title: 'Our Work', enabled: false, order: 3 },
+      { id: 'testimonials', type: 'testimonials', title: 'What Our Clients Say', enabled: true, order: 4 },
+      { id: 'about', type: 'about', title: 'About Us', enabled: true, order: 5 },
+      { id: 'contact', type: 'contact', title: 'Contact Us', enabled: true, order: 6 },
+    ];
+  }
+
+  private getDefaultStorefrontLayout() {
+    return {
+      hero: this.getDefaultHeroSection(),
+      sections: this.getDefaultSections(),
+      serviceDisplay: { layout: 'grid', columns: 3, showPrices: true, showDuration: true, showDescription: true, showImages: true, groupByCategory: true, showFilters: false },
+      staffDisplay: { layout: 'grid', columns: 4, showBio: true, showSpecialties: true, showRatings: true, showBookButton: false },
+      gallery: { enabled: false, images: [], layout: 'grid', columns: 3 },
+      testimonials: { enabled: true, showRating: true, layout: 'carousel', maxToShow: 6 },
+      contact: { showMap: true, showAddress: true, showPhone: true, showEmail: true, showSocialLinks: true, showBusinessHours: true },
+      bookingFlow: this.getDefaultBookingFlow(),
+      socialProof: { showReviewCount: true, showAverageRating: true, showTotalBookings: false, showTrustBadges: false, badges: [] },
+    };
+  }
+
+  private getDefaultComponentStyles() {
+    return {
+      buttons: { borderRadius: '8px', style: 'filled', size: 'medium', uppercase: false, fontWeight: '600' },
+      cards: { borderRadius: '12px', shadow: true, shadowIntensity: 'medium', border: true, borderColor: '#E5E7EB' },
+      inputBorderRadius: '8px',
+      sectionSpacing: '24px',
+      maxContentWidth: '1200px',
+    };
+  }
+
+  private getDefaultBookingFlow() {
+    return {
+      flow: 'service-first',
+      allowGuestBooking: true,
+      showStaffSelection: true,
+      requireStaffSelection: false,
+      showServiceImages: true,
+      allowMultipleServices: true,
+      datePickerStyle: 'calendar',
+      showAvailableSlots: true,
+      slotDuration: 30,
+      advanceBookingDays: 30,
+      minAdvanceHours: 2,
+    };
+  }
+
+  private getDefaultNavbar() {
+    return {
+      style: 'default',
+      showLogo: true,
+      showBusinessName: true,
+      showBookButton: true,
+      bookButtonText: 'Book Now',
+      menuItems: [
+        { label: 'Services', sectionId: 'services' },
+        { label: 'Team', sectionId: 'staff' },
+        { label: 'Contact', sectionId: 'contact' },
+      ],
+    };
+  }
+
+  private getDefaultFooter() {
+    return {
+      enabled: true,
+      showSocialLinks: true,
+      showQuickLinks: true,
+      showContactInfo: true,
+      showNewsletter: false,
+      copyrightText: '© 2026 All rights reserved.',
+      customLinks: [],
     };
   }
 }

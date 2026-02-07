@@ -29,7 +29,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 export declare class MarketplaceController {
     private readonly marketplaceService;
     constructor(marketplaceService: MarketplaceService);
-    submitVerification(tenantId: string, documents: any): Promise<import("mongoose").Document<unknown, {}, import("./schemas/business-verification.schema").BusinessVerificationDocument, {}, {}> & import("./schemas/business-verification.schema").BusinessVerification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    submitVerification(businessId: string, documents: any): Promise<import("mongoose").Document<unknown, {}, import("./schemas/business-verification.schema").BusinessVerificationDocument, {}, {}> & import("./schemas/business-verification.schema").BusinessVerification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;
@@ -43,7 +43,7 @@ export declare class MarketplaceController {
     }> & {
         __v: number;
     }>;
-    getVerificationStatus(tenantId: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/business-verification.schema").BusinessVerificationDocument, {}, {}> & import("./schemas/business-verification.schema").BusinessVerification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    getVerificationStatus(businessId: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/business-verification.schema").BusinessVerificationDocument, {}, {}> & import("./schemas/business-verification.schema").BusinessVerification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;
@@ -101,14 +101,14 @@ export declare class MarketplaceController {
     }> & {
         __v: number;
     }>;
-    updateQualityMetrics(tenantId: string): Promise<{
+    updateQualityMetrics(businessId: string): Promise<{
         responseRate: number;
         avgResponseTime: number;
         completionRate: number;
         cancellationRate: number;
         onTimeRate: number;
     }>;
-    getQualityScore(tenantId: string): Promise<{
+    getQualityScore(businessId: string): Promise<{
         score: number;
         metrics: {
             responseRate: number;

@@ -166,6 +166,14 @@ __decorate([
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], NotificationLog.prototype, "templateId", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], NotificationLog.prototype, "isRead", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Date)
+], NotificationLog.prototype, "readAt", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)
 ], NotificationLog.prototype, "createdAt", void 0);

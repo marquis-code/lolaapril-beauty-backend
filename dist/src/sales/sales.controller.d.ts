@@ -5,8 +5,8 @@ import { SalesQueryDto } from "./dto/sales-query.dto";
 export declare class SalesController {
     private readonly salesService;
     constructor(salesService: SalesService);
-    create(createSaleDto: CreateSaleDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
-    findAll(query: SalesQueryDto): Promise<{
+    create(businessId: string, createSaleDto: CreateSaleDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
+    findAll(businessId: string, query: SalesQueryDto): Promise<{
         success: boolean;
         data: {
             sales: import("./schemas/sale.schema").SaleDocument[];
@@ -18,20 +18,20 @@ export declare class SalesController {
             };
         };
     }>;
-    getStats(): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    getTopServices(): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    getRevenueByPeriod(period?: "daily" | "weekly" | "monthly"): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    findOne(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
-    update(id: string, updateSaleDto: UpdateSaleDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
-    completeSale(id: string, body: {
+    getStats(businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    getTopServices(businessId: string): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    getRevenueByPeriod(businessId: string, period?: "daily" | "weekly" | "monthly"): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
+    findOne(businessId: string, id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
+    update(businessId: string, id: string, updateSaleDto: UpdateSaleDto): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
+    completeSale(businessId: string, id: string, body: {
         completedBy: string;
     }): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
-    updateStatus(id: string, body: {
+    updateStatus(businessId: string, id: string, body: {
         status: string;
     }): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
-    updatePaymentStatus(id: string, body: {
+    updatePaymentStatus(businessId: string, id: string, body: {
         paymentStatus: string;
         amountPaid?: number;
     }): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/sale.schema").Sale>>;
-    remove(id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<void>>;
+    remove(businessId: string, id: string): Promise<import("../common/interfaces/common.interface").ApiResponse<void>>;
 }

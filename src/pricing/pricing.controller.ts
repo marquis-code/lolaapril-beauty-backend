@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { PricingService } from './pricing.service'
 import { CreatePricingTierDto } from './dto/create-pricing-tier.dto'
 import { CreateFeeStructureDto } from './dto/create-fee-structure.dto'
 import { Public, ValidateBusiness, BusinessId } from '../auth'
+import { Roles } from '../auth/decorators/roles.decorator'
+import { UserRole } from '../auth/schemas/user.schema'
 
 @ApiTags('Pricing & Fees')
 @ApiBearerAuth()
@@ -12,7 +14,8 @@ export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
   @Post('tiers')
-  @ApiOperation({ summary: 'Create pricing tier (Admin only)' })
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Create pricing tier (Super Admin only)' })
   async createTier(@Body() createDto: CreatePricingTierDto) {
     return this.pricingService.createTier(createDto)
   }

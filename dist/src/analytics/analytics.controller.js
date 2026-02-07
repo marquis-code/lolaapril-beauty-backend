@@ -16,6 +16,8 @@ exports.AnalyticsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const analytics_service_1 = require("./analytics.service");
+const auth_1 = require("../auth");
+const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_schema_1 = require("../auth/schemas/user.schema");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
@@ -25,7 +27,7 @@ let AnalyticsController = class AnalyticsController {
     constructor(analyticsService) {
         this.analyticsService = analyticsService;
     }
-    async generateFinancialReport(businessId, startDate, endDate, reportPeriod) {
+    async generateFinancialReport(startDate, endDate, reportPeriod = 'custom', businessId) {
         try {
             const start = new Date(startDate);
             const end = new Date(endDate);
@@ -35,7 +37,7 @@ let AnalyticsController = class AnalyticsController {
             if (start > end) {
                 throw new common_1.BadRequestException('Start date must be before end date');
             }
-            const report = await this.analyticsService.generateFinancialReport(businessId, start, end, reportPeriod || 'custom');
+            const report = await this.analyticsService.generateFinancialReport(businessId, start, end, reportPeriod);
             return {
                 success: true,
                 message: 'Financial report generated successfully',
@@ -58,7 +60,7 @@ let AnalyticsController = class AnalyticsController {
             throw new common_1.BadRequestException(error.message);
         }
     }
-    async getCommissionBreakdown(businessId, startDate, endDate) {
+    async getCommissionBreakdown(startDate, endDate, businessId) {
         try {
             const start = new Date(startDate);
             const end = new Date(endDate);
@@ -140,7 +142,7 @@ let AnalyticsController = class AnalyticsController {
             throw new common_1.BadRequestException(error.message);
         }
     }
-    async getRevenueTrends(businessId, startDate, endDate, granularity = 'daily') {
+    async getRevenueTrends(startDate, endDate, granularity = 'daily', businessId) {
         try {
             const start = new Date(startDate);
             const end = new Date(endDate);
@@ -178,7 +180,7 @@ let AnalyticsController = class AnalyticsController {
             throw new common_1.BadRequestException(error.message);
         }
     }
-    async getSourcePerformance(businessId, startDate, endDate) {
+    async getSourcePerformance(startDate, endDate, businessId) {
         try {
             const start = new Date(startDate);
             const end = new Date(endDate);
@@ -207,7 +209,7 @@ let AnalyticsController = class AnalyticsController {
             throw new common_1.BadRequestException(error.message);
         }
     }
-    async getCommissionInsights(businessId, months = 3) {
+    async getCommissionInsights(months = 3, businessId) {
         try {
             const endDate = new Date();
             const startDate = new Date();
@@ -264,7 +266,6 @@ __decorate([
         summary: 'Generate a financial report',
         description: 'Generates a comprehensive financial report for a specified period',
     }),
-    (0, swagger_1.ApiQuery)({ name: 'businessId', required: true, type: String }),
     (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String, description: 'ISO date string (YYYY-MM-DD)' }),
     (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String, description: 'ISO date string (YYYY-MM-DD)' }),
     (0, swagger_1.ApiQuery)({
@@ -281,10 +282,10 @@ __decorate([
         status: 400,
         description: 'Invalid date format or business ID',
     }),
-    __param(0, (0, common_1.Query)('businessId')),
-    __param(1, (0, common_1.Query)('startDate')),
-    __param(2, (0, common_1.Query)('endDate')),
-    __param(3, (0, common_1.Query)('reportPeriod')),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, common_1.Query)('reportPeriod')),
+    __param(3, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", Promise)
@@ -319,52 +320,49 @@ __decorate([
         summary: 'Get detailed commission breakdown',
         description: 'Returns commission breakdown by source and booking type',
     }),
-    (0, swagger_1.ApiQuery)({ name: 'businessId', required: true, type: String }),
     (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String }),
     (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String }),
     (0, swagger_1.ApiResponse)({
         status: 200,
         description: 'Commission breakdown retrieved successfully',
     }),
-    __param(0, (0, common_1.Query)('businessId')),
-    __param(1, (0, common_1.Query)('startDate')),
-    __param(2, (0, common_1.Query)('endDate')),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getCommissionBreakdown", null);
 __decorate([
-    (0, common_1.Get)('dashboard/:businessId'),
+    (0, common_1.Get)('dashboard'),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.ANALYTICS }),
     (0, swagger_1.ApiOperation)({
         summary: 'Get real-time dashboard metrics',
         description: 'Returns today, month-to-date, and trend metrics for the business',
     }),
-    (0, swagger_1.ApiParam)({ name: 'businessId', type: String }),
     (0, swagger_1.ApiResponse)({
         status: 200,
         description: 'Dashboard metrics retrieved successfully',
     }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getDashboardMetrics", null);
 __decorate([
-    (0, common_1.Get)('fee-comparison/:businessId'),
+    (0, common_1.Get)('fee-comparison'),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.ANALYTICS }),
     (0, swagger_1.ApiOperation)({
         summary: 'Compare fees with competitor platforms',
         description: 'Shows how much you save compared to Fresha, Booksy, and other platforms',
     }),
-    (0, swagger_1.ApiParam)({ name: 'businessId', type: String }),
     (0, swagger_1.ApiResponse)({
         status: 200,
         description: 'Fee comparison retrieved successfully',
     }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
@@ -397,18 +395,17 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "exportReportToCSV", null);
 __decorate([
-    (0, common_1.Get)('quick-stats/:businessId'),
+    (0, common_1.Get)('quick-stats'),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
     (0, swagger_1.ApiOperation)({
         summary: 'Get quick stats for today and this month',
         description: 'Returns simplified metrics for quick overview',
     }),
-    (0, swagger_1.ApiParam)({ name: 'businessId', type: String }),
     (0, swagger_1.ApiResponse)({
         status: 200,
         description: 'Quick stats retrieved successfully',
     }),
-    __param(0, (0, common_1.Param)('businessId')),
+    __param(0, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
@@ -421,7 +418,6 @@ __decorate([
         summary: 'Get revenue trends over time',
         description: 'Returns revenue data for charting and trend analysis',
     }),
-    (0, swagger_1.ApiQuery)({ name: 'businessId', required: true, type: String }),
     (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String }),
     (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String }),
     (0, swagger_1.ApiQuery)({
@@ -434,10 +430,10 @@ __decorate([
         status: 200,
         description: 'Revenue trends retrieved successfully',
     }),
-    __param(0, (0, common_1.Query)('businessId')),
-    __param(1, (0, common_1.Query)('startDate')),
-    __param(2, (0, common_1.Query)('endDate')),
-    __param(3, (0, common_1.Query)('granularity')),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, common_1.Query)('granularity')),
+    __param(3, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", Promise)
@@ -450,29 +446,27 @@ __decorate([
         summary: 'Get booking source performance metrics',
         description: 'Analyzes which booking sources generate the most revenue',
     }),
-    (0, swagger_1.ApiQuery)({ name: 'businessId', required: true, type: String }),
     (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String }),
     (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String }),
     (0, swagger_1.ApiResponse)({
         status: 200,
         description: 'Source performance retrieved successfully',
     }),
-    __param(0, (0, common_1.Query)('businessId')),
-    __param(1, (0, common_1.Query)('startDate')),
-    __param(2, (0, common_1.Query)('endDate')),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getSourcePerformance", null);
 __decorate([
-    (0, common_1.Get)('commissions/insights/:businessId'),
+    (0, common_1.Get)('commissions/insights'),
     (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN),
     (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.ANALYTICS }),
     (0, swagger_1.ApiOperation)({
         summary: 'Get commission insights and savings',
         description: 'Shows detailed commission insights and potential savings',
     }),
-    (0, swagger_1.ApiParam)({ name: 'businessId', type: String }),
     (0, swagger_1.ApiQuery)({
         name: 'months',
         required: false,
@@ -483,16 +477,17 @@ __decorate([
         status: 200,
         description: 'Commission insights retrieved successfully',
     }),
-    __param(0, (0, common_1.Param)('businessId')),
-    __param(1, (0, common_1.Query)('months')),
+    __param(0, (0, common_1.Query)('months')),
+    __param(1, (0, auth_1.BusinessId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Number]),
+    __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getCommissionInsights", null);
 AnalyticsController = __decorate([
     (0, swagger_1.ApiTags)('Analytics'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('analytics'),
+    (0, common_1.UseGuards)(auth_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
     __metadata("design:paramtypes", [analytics_service_1.AnalyticsService])
 ], AnalyticsController);

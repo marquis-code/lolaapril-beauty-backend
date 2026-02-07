@@ -9,6 +9,7 @@ export declare class PaymentItemDto {
     tax?: number;
 }
 export declare class CreatePaymentDto {
+    businessId?: string;
     clientId: string;
     appointmentId?: string;
     bookingId?: string;

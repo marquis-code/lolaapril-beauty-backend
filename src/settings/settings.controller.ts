@@ -73,7 +73,7 @@ export class SettingsController {
   @ApiOperation({ summary: "Get settings for current business" })
   @ApiResponse({ status: 200, description: "Settings retrieved successfully" })
   findAll(@BusinessId() businessId: string) {
-    return this.settingsService.findByBusinessId(businessId)
+    return this.settingsService.findOrCreateDefault(businessId)
   }
 
   // ==================== UPDATE SETTINGS ====================

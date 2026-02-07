@@ -17,22 +17,22 @@ const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const upload_service_1 = require("./upload.service");
-const auth_1 = require("../auth");
+const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
 let UploadController = class UploadController {
     constructor(uploadService) {
         this.uploadService = uploadService;
     }
-    async uploadImage(file) {
-        return this.uploadService.uploadImage(file);
+    async uploadImage(businessId, file) {
+        return this.uploadService.uploadImage(businessId, file);
     }
-    async uploadImages(files) {
-        return this.uploadService.uploadMultipleImages(files);
+    async uploadImages(businessId, files) {
+        return this.uploadService.uploadMultipleImages(businessId, files);
     }
-    async uploadDocument(file) {
-        return this.uploadService.uploadDocument(file);
+    async uploadDocument(businessId, file) {
+        return this.uploadService.uploadDocument(businessId, file);
     }
-    async deleteImage(publicId) {
-        await this.uploadService.deleteImage(publicId);
+    async deleteImage(businessId, publicId) {
+        await this.uploadService.deleteImage(businessId, publicId);
         return { message: 'Image deleted successfully' };
     }
     async uploadKYCDocument(file, businessId, documentType, user) {
@@ -63,9 +63,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Upload single image' }),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Image uploaded successfully' }),
-    __param(0, (0, common_1.UploadedFile)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadImage", null);
 __decorate([
@@ -74,9 +75,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Upload multiple images' }),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Images uploaded successfully' }),
-    __param(0, (0, common_1.UploadedFiles)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.UploadedFiles)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array]),
+    __metadata("design:paramtypes", [String, Array]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadImages", null);
 __decorate([
@@ -85,18 +87,20 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Upload document' }),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Document uploaded successfully' }),
-    __param(0, (0, common_1.UploadedFile)()),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadDocument", null);
 __decorate([
     (0, common_1.Delete)('image/:publicId'),
     (0, swagger_1.ApiOperation)({ summary: 'Delete image' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Image deleted successfully' }),
-    __param(0, (0, common_1.Param)('publicId')),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(1, (0, common_1.Param)('publicId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "deleteImage", null);
 __decorate([
@@ -145,7 +149,7 @@ __decorate([
     __param(0, (0, common_1.UploadedFile)()),
     __param(1, (0, common_1.Body)('businessId')),
     __param(2, (0, common_1.Body)('documentType')),
-    __param(3, (0, auth_1.CurrentUser)()),
+    __param(3, (0, business_context_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, String, Object]),
     __metadata("design:returntype", Promise)

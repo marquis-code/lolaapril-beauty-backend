@@ -14,27 +14,39 @@ exports.BookingEventHandler = void 0;
 const common_1 = require("@nestjs/common");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const notification_service_1 = require("../../notification/notification.service");
+const chat_service_1 = require("../../notification/services/chat.service");
 let BookingEventHandler = BookingEventHandler_1 = class BookingEventHandler {
-    constructor(notificationService) {
+    constructor(notificationService, chatService) {
         this.notificationService = notificationService;
+        this.chatService = chatService;
         this.logger = new common_1.Logger(BookingEventHandler_1.name);
     }
-    async handleBookingCreated(booking) {
+    async handleBookingCreated(payload) {
+        const booking = payload?.booking || payload;
         this.logger.log(`Handling booking created event for: ${booking.bookingNumber}`);
         await this.notificationService.notifyStaffNewBooking(booking);
+        await this.sendAutomatedChatMessage(booking, {
+            senderName: 'Booking Assistant',
+            content: `Hi ${booking.clientName || 'there'}! We noticed you started a booking${booking.bookingNumber ? ` (${booking.bookingNumber})` : ''}. If you need help completing your booking or have any questions, just reply here and we’ll assist you.`
+        });
     }
     async handleBookingConfirmed(data) {
-        this.logger.log(`Handling booking confirmed event for: ${data.booking.bookingNumber}`);
-        await this.notificationService.notifyBookingConfirmation(data.booking._id, data.booking.clientId, data.booking.businessId, {
-            clientName: data.booking.clientName,
-            serviceName: data.booking.services.map(s => s.serviceName).join(', '),
-            date: data.booking.preferredDate.toDateString(),
-            time: data.booking.preferredStartTime,
-            businessName: data.booking.businessName,
-            businessAddress: data.booking.businessAddress || '',
-            appointmentNumber: data.booking.bookingNumber,
-            clientEmail: data.booking.clientEmail,
-            clientPhone: data.booking.clientPhone
+        const booking = data.booking;
+        this.logger.log(`Handling booking confirmed event for: ${booking.bookingNumber}`);
+        await this.notificationService.notifyBookingConfirmation(booking._id, booking.clientId, booking.businessId, {
+            clientName: booking.clientName,
+            serviceName: booking.services.map(s => s.serviceName).join(', '),
+            date: booking.preferredDate.toDateString(),
+            time: booking.preferredStartTime,
+            businessName: booking.businessName,
+            businessAddress: booking.businessAddress || '',
+            appointmentNumber: booking.bookingNumber,
+            clientEmail: booking.clientEmail,
+            clientPhone: booking.clientPhone
+        });
+        await this.sendAutomatedChatMessage(booking, {
+            senderName: 'Booking Assistant',
+            content: `🎉 Congratulations ${booking.clientName || ''}! Your booking${booking.bookingNumber ? ` (${booking.bookingNumber})` : ''} is confirmed. If you need anything else, just reply here and we’ll help you.`
         });
     }
     async handleBookingCancelled(data) {
@@ -53,6 +65,10 @@ let BookingEventHandler = BookingEventHandler_1 = class BookingEventHandler {
     }
     async handleBookingExpired(booking) {
         this.logger.log(`Handling booking expired event for: ${booking.bookingNumber}`);
+        await this.sendAutomatedChatMessage(booking, {
+            senderName: 'Booking Assistant',
+            content: `Hi ${booking.clientName || 'there'}, it looks like your booking${booking.bookingNumber ? ` (${booking.bookingNumber})` : ''} wasn’t completed in time. Do you need help finishing it? I’m here to assist you.`
+        });
     }
     async handlePaymentReminder(booking) {
         this.logger.log(`Sending payment reminder for booking: ${booking.bookingNumber}`);
@@ -68,6 +84,49 @@ let BookingEventHandler = BookingEventHandler_1 = class BookingEventHandler {
             clientEmail: booking.clientEmail,
             clientPhone: booking.clientPhone
         });
+        await this.sendAutomatedChatMessage(booking, {
+            senderName: 'Booking Assistant',
+            content: `Hi ${booking.clientName || 'there'}! Your booking${booking.bookingNumber ? ` (${booking.bookingNumber})` : ''} is waiting for payment to be confirmed. If you need help, just reply here and we’ll assist you.`
+        });
+    }
+    async sendAutomatedChatMessage(booking, message) {
+        try {
+            if (!booking?.businessId)
+                return;
+            const clientId = booking.clientId?._id?.toString() || booking.clientId?.toString();
+            const userId = clientId || booking.clientEmail || `guest_${booking._id}`;
+            const isGuest = !clientId;
+            if (isGuest && !booking.clientEmail) {
+                this.logger.warn(`Skipping chat message - no client ID or email for booking ${booking.bookingNumber}`);
+                return;
+            }
+            const room = await this.chatService.createOrGetCustomerChatRoom(booking.businessId.toString(), userId, {
+                name: booking.clientName || 'Customer',
+                email: booking.clientEmail,
+                phone: booking.clientPhone,
+                isGuest,
+                guestInfo: isGuest ? {
+                    bookingId: booking._id?.toString(),
+                    email: booking.clientEmail
+                } : undefined,
+            });
+            const recentMessages = await this.chatService.getRoomMessages(room._id.toString(), { limit: 5 });
+            const isDuplicate = recentMessages.messages?.some((msg) => msg.isAutomated &&
+                msg.content === message.content &&
+                new Date().getTime() - new Date(msg.createdAt).getTime() < 60000);
+            if (isDuplicate) {
+                this.logger.log(`Skipping duplicate automated message for room ${room._id}`);
+                return;
+            }
+            await this.chatService.sendMessage(room._id.toString(), 'system', 'system', message.content, {
+                senderName: message.senderName,
+                isAutomated: true,
+            });
+            this.logger.log(`✅ Sent automated chat message to room ${room._id}`);
+        }
+        catch (error) {
+            this.logger.error(`Failed to send automated chat message: ${error.message}`);
+        }
     }
     async handleAppointmentCreated(data) {
         this.logger.log(`Handling appointment created event for: ${data.appointment.appointmentNumber}`);
@@ -138,7 +197,8 @@ __decorate([
 ], BookingEventHandler.prototype, "handleAppointmentCreated", null);
 BookingEventHandler = BookingEventHandler_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [notification_service_1.NotificationService])
+    __metadata("design:paramtypes", [notification_service_1.NotificationService,
+        chat_service_1.ChatService])
 ], BookingEventHandler);
 exports.BookingEventHandler = BookingEventHandler;
 //# sourceMappingURL=booking.events.js.map

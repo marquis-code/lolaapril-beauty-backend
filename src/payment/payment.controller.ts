@@ -12,7 +12,7 @@ import { RolesGuard } from "../auth/guards/roles.guard"
 import { Roles } from "../auth/decorators/roles.decorator"
 import { Public } from "../auth/decorators/public.decorator"
 import { UserRole } from "../auth/schemas/user.schema"
-import { CurrentUser } from "../auth/decorators/business-context.decorator"
+import { CurrentUser, BusinessId, OptionalBusinessId } from "../auth/decorators/business-context.decorator"
 import { RequestWithUser } from "../auth/types/request-with-user.interface"
 import { AuditInterceptor } from "../audit/interceptors/audit.interceptor"
 import { Audit } from "../audit/decorators/audit.decorator"
@@ -26,15 +26,20 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('initialize')
-  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
+  @Public() // Allow both authenticated and unauthenticated users
   @UseInterceptors(AuditInterceptor)
   @Audit({ action: AuditAction.CREATE, entity: AuditEntity.PAYMENT })
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Initialize payment with gateway' })
+  @ApiOperation({ summary: 'Initialize payment with gateway (Public - requires subdomain or businessId in body, or authentication)' })
   @ApiResponse({ status: 201, description: 'Payment initialized successfully' })
   @ApiBody({ type: InitializePaymentDto })
-  initializePayment(@Body() initializePaymentDto: InitializePaymentDto) {
-    return this.paymentService.initializePayment(initializePaymentDto)
+  initializePayment(
+    @OptionalBusinessId() jwtBusinessId: string | undefined, 
+    @Body() initializePaymentDto: InitializePaymentDto
+  ) {
+    // Use businessId from JWT if authenticated, otherwise use from body (subdomain will be resolved in service)
+    const businessId = jwtBusinessId || initializePaymentDto.businessId
+    return this.paymentService.initializePayment({ ...initializePaymentDto, businessId })
   }
 
   @Get('verify/:reference')
@@ -45,7 +50,7 @@ export class PaymentController {
   @ApiOperation({ summary: 'Verify payment with gateway' })
   @ApiResponse({ status: 200, description: 'Payment verified successfully' })
   @ApiResponse({ status: 404, description: 'Payment not found' })
-  verifyPayment(@Param('reference') reference: string) {
+  verifyPayment(@BusinessId() businessId: string, @Param('reference') reference: string) {
     return this.paymentService.verifyPayment(reference)
   }
 
@@ -71,10 +76,11 @@ export class PaymentController {
   @ApiResponse({ status: 200, description: 'Refund initiated successfully' })
   @ApiResponse({ status: 404, description: 'Payment not found' })
   initiateRefund(
+    @BusinessId() businessId: string,
     @Param('reference') reference: string,
     @Body() body: { amount?: number }
   ) {
-    return this.paymentService.initiateRefund(reference, body.amount)
+    return this.paymentService.initiateRefund(businessId, reference, body.amount)
   }
 
   @Post()
@@ -84,8 +90,8 @@ export class PaymentController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Create a new payment" })
   @ApiResponse({ status: 201, description: "Payment created successfully" })
-  create(@Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentService.create(createPaymentDto)
+  create(@BusinessId() businessId: string, @Body() createPaymentDto: CreatePaymentDto) {
+    return this.paymentService.create({ ...createPaymentDto, businessId })
   }
 
   @Get('my/transactions')
@@ -105,8 +111,8 @@ export class PaymentController {
   @Get()
   @ApiOperation({ summary: "Get all payments" })
   @ApiResponse({ status: 200, description: "Payments retrieved successfully" })
-  findAll(@Query() query: PaymentQueryDto) {
-    return this.paymentService.findAllWithQuery(query)
+  findAll(@BusinessId() businessId: string, @Query() query: PaymentQueryDto) {
+    return this.paymentService.findAllWithQuery({ ...query, businessId })
   }
 
   @Get("stats")
@@ -114,7 +120,7 @@ export class PaymentController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get payment statistics" })
   @ApiResponse({ status: 200, description: "Payment statistics retrieved successfully" })
-  getStats() {
+  getStats(@BusinessId() businessId: string) {
     return this.paymentService.getPaymentStats()
   }
 
@@ -126,7 +132,7 @@ export class PaymentController {
   @ApiOperation({ summary: 'Get payment by ID' })
   @ApiResponse({ status: 200, description: 'Payment retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Payment not found' })
-  findOne(@Param('id') id: string) {
+  findOne(@BusinessId() businessId: string, @Param('id') id: string) {
     return this.paymentService.findOne(id)
   }
 
@@ -138,7 +144,7 @@ export class PaymentController {
   @ApiOperation({ summary: "Update payment" })
   @ApiResponse({ status: 200, description: "Payment updated successfully" })
   @ApiResponse({ status: 404, description: "Payment not found" })
-  update(@Param('id') id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
+  update(@BusinessId() businessId: string, @Param('id') id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
     return this.paymentService.update(id, updatePaymentDto)
   }
 
@@ -151,6 +157,7 @@ export class PaymentController {
   @ApiResponse({ status: 200, description: "Payment status updated successfully" })
   @ApiResponse({ status: 404, description: "Payment not found" })
   updateStatus(
+    @BusinessId() businessId: string,
     @Param('id') id: string, 
     @Body() body: { status: string; transactionId?: string }
   ) {
@@ -166,10 +173,11 @@ export class PaymentController {
   @ApiResponse({ status: 200, description: "Refund processed successfully" })
   @ApiResponse({ status: 404, description: "Payment not found" })
   processRefund(
+    @BusinessId() businessId: string,
     @Param('id') id: string, 
     @Body() body: { refundAmount: number; refundReason: string }
   ) {
-    return this.paymentService.processRefund(id, body.refundAmount, body.refundReason)
+    return this.paymentService.processRefund(businessId, id, body.refundAmount, body.refundReason)
   }
 
   @Delete(':id')
@@ -180,7 +188,7 @@ export class PaymentController {
   @ApiOperation({ summary: 'Delete payment' })
   @ApiResponse({ status: 200, description: 'Payment deleted successfully' })
   @ApiResponse({ status: 404, description: 'Payment not found' })
-  remove(@Param('id') id: string) {
+  remove(@BusinessId() businessId: string, @Param('id') id: string) {
     return this.paymentService.remove(id)
   }
 }

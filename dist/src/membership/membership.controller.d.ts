@@ -32,8 +32,8 @@ import { MembershipQueryDto } from "./dto/membership-query.dto";
 export declare class MembershipController {
     private readonly membershipService;
     constructor(membershipService: MembershipService);
-    createMembership(createMembershipDto: CreateMembershipDto): Promise<import("./schemas/membership.schema").Membership>;
-    findAllMemberships(query: MembershipQueryDto): Promise<{
+    createMembership(businessId: string, createMembershipDto: CreateMembershipDto): Promise<import("./schemas/membership.schema").Membership>;
+    findAllMemberships(businessId: string, query: MembershipQueryDto): Promise<{
         memberships: (import("mongoose").Document<unknown, {}, import("./schemas/membership.schema").MembershipDocument, {}, {}> & import("./schemas/membership.schema").Membership & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
             _id: import("mongoose").Types.ObjectId;
         }> & {
@@ -46,31 +46,31 @@ export declare class MembershipController {
             pages: number;
         };
     }>;
-    getStats(): Promise<{
+    getStats(businessId: string): Promise<{
         programs: any;
         members: any;
         tierDistribution: any[];
     }>;
-    findMembershipById(id: string): Promise<import("./schemas/membership.schema").Membership>;
-    updateMembership(id: string, updateMembershipDto: UpdateMembershipDto): Promise<import("./schemas/membership.schema").Membership>;
-    removeMembership(id: string): Promise<void>;
-    enrollClient(createClientMembershipDto: CreateClientMembershipDto): Promise<import("./schemas/client-membership.schema").ClientMembership>;
-    findClientMemberships(clientId: string): Promise<(import("mongoose").Document<unknown, {}, import("./schemas/client-membership.schema").ClientMembershipDocument, {}, {}> & import("./schemas/client-membership.schema").ClientMembership & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+    findMembershipById(businessId: string, id: string): Promise<import("./schemas/membership.schema").Membership>;
+    updateMembership(businessId: string, id: string, updateMembershipDto: UpdateMembershipDto): Promise<import("./schemas/membership.schema").Membership>;
+    removeMembership(businessId: string, id: string): Promise<void>;
+    enrollClient(businessId: string, createClientMembershipDto: CreateClientMembershipDto): Promise<import("./schemas/client-membership.schema").ClientMembership>;
+    findClientMemberships(businessId: string, clientId: string): Promise<(import("mongoose").Document<unknown, {}, import("./schemas/client-membership.schema").ClientMembershipDocument, {}, {}> & import("./schemas/client-membership.schema").ClientMembership & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;
     })[]>;
-    getClientBenefits(clientId: string): Promise<any[]>;
-    addPoints(id: string, body: {
+    getClientBenefits(businessId: string, clientId: string): Promise<any[]>;
+    addPoints(businessId: string, id: string, body: {
         points: number;
         description: string;
         saleId?: string;
     }): Promise<import("./schemas/client-membership.schema").ClientMembership>;
-    redeemPoints(id: string, body: {
+    redeemPoints(businessId: string, id: string, body: {
         points: number;
         description: string;
     }): Promise<import("./schemas/client-membership.schema").ClientMembership>;
-    updateSpending(id: string, body: {
+    updateSpending(businessId: string, id: string, body: {
         amount: number;
     }): Promise<import("./schemas/client-membership.schema").ClientMembership>;
 }

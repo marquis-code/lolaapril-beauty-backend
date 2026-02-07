@@ -14,6 +14,9 @@ const business_service_1 = require("./business.service");
 const business_schema_1 = require("./schemas/business.schema");
 const user_schema_1 = require("../auth/schemas/user.schema");
 const integration_module_1 = require("../integration/integration.module");
+const branding_module_1 = require("../branding/branding.module");
+const service_module_1 = require("../service/service.module");
+const staff_module_1 = require("../staff/staff.module");
 let BusinessModule = class BusinessModule {
 };
 BusinessModule = __decorate([
@@ -25,6 +28,9 @@ BusinessModule = __decorate([
                 { name: user_schema_1.User.name, schema: user_schema_1.UserSchema }
             ]),
             integration_module_1.IntegrationModule,
+            (0, common_1.forwardRef)(() => branding_module_1.BrandingModule),
+            (0, common_1.forwardRef)(() => service_module_1.ServiceModule),
+            (0, common_1.forwardRef)(() => staff_module_1.StaffModule),
         ],
         controllers: [business_controller_1.BusinessController],
         providers: [business_service_1.BusinessService],
