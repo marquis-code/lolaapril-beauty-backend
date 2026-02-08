@@ -557,7 +557,6 @@ export class StaffService {
     try {
       await this.staffAssignmentModel.findByIdAndUpdate(assignmentId, { status, updatedAt: new Date() }, { new: true }).exec()
     } catch (error) {
-      console.error('Failed to update assignment status:', error.message)
       throw error
     }
   }
@@ -568,7 +567,6 @@ export class StaffService {
         status: 'cancelled', cancellationReason: reason, updatedAt: new Date() 
       }, { new: true }).exec()
     } catch (error) {
-      console.error('Failed to cancel assignment:', error.message)
       throw error
     }
   }

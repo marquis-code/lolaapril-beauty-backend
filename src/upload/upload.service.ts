@@ -57,7 +57,6 @@ export class UploadService {
         publicId: (result as any).public_id,
       }
     } catch (error) {
-      console.error("Cloudinary upload error:", error)
       throw new BadRequestException(`Failed to upload image: ${error.message || 'Unknown error'}`)
     }
   }
