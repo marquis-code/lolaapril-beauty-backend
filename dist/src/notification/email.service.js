@@ -20,9 +20,12 @@ let EmailService = class EmailService {
         }
         this.resend = new resend_1.Resend(apiKey || 'demo_key');
     }
+    getNoReplyAddress() {
+        return process.env.NO_REPLY_EMAIL || 'no-reply@lolaapril.com';
+    }
     async sendEmail(to, subject, html, from) {
         try {
-            const fromEmail = from || process.env.FROM_EMAIL || 'onboarding@resend.dev';
+            const fromEmail = from || this.getNoReplyAddress();
             const { data, error } = await this.resend.emails.send({
                 from: fromEmail,
                 to: [to],

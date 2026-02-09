@@ -85,12 +85,14 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         const businessId = decoded.businessId || decoded.sub
         const userId = decoded.userId || decoded.id
 
-        // Store connection info for authenticated user
+        // Store connection info for authenticated user, including role
+        const userRole = decoded.role || decoded.userRole || decoded.type || 'CUSTOMER'
         this.connectedClients.set(client.id, {
           socket: client,
           businessId,
           userId,
           isGuest: false,
+          role: userRole,
         })
 
         // Join business room for business-specific broadcasts
@@ -398,11 +400,18 @@ async handleSendMessage(
     // - For guests: their guestId (e.g., "guest_1234567890_abc123")
     const senderId = clientInfo.userId
     
-    // Determine sender type and name
-    const senderType = clientInfo.isGuest ? 'customer' : 'staff'
-    const senderName = clientInfo.isGuest 
-      ? (clientInfo.guestInfo?.userName || 'Guest') 
-      : 'Staff Member'
+
+    // Determine sender type and name based on role
+    let senderType: 'customer' | 'staff' = 'customer'
+    if (clientInfo.isGuest) {
+      senderType = 'customer'
+    } else if (clientInfo.role) {
+      const staffRoles = ['BUSINESS_OWNER', 'BUSINESS_ADMIN', 'STAFF', 'SUPER_ADMIN']
+      senderType = staffRoles.includes(clientInfo.role) ? 'staff' : 'customer'
+    }
+    const senderName = clientInfo.isGuest
+      ? (clientInfo.guestInfo?.userName || 'Guest')
+      : (clientInfo.role === 'CUSTOMER' ? 'Customer' : 'Staff Member')
 
     // Send message via service (this will also emit via WebSocket)
     const message = await chatService.sendMessage(

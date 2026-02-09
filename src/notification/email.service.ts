@@ -14,6 +14,10 @@ export class EmailService {
     this.resend = new Resend(apiKey || 'demo_key')
   }
 
+  getNoReplyAddress() {
+    return process.env.NO_REPLY_EMAIL || 'no-reply@lolaapril.com';
+  }
+
   async sendEmail(
     to: string,
     subject: string,
@@ -21,8 +25,8 @@ export class EmailService {
     from?: string
   ): Promise<{ messageId: string; success: boolean; error?: string }> {
     try {
-      const fromEmail = from || process.env.FROM_EMAIL || 'onboarding@resend.dev'
-      
+      // Use no-reply as default sender for system notifications
+      const fromEmail = from || this.getNoReplyAddress();
       const { data, error } = await this.resend.emails.send({
         from: fromEmail,
         to: [to],

@@ -1,5 +1,5 @@
 // src/modules/auth/auth.service.ts
-import { Injectable, UnauthorizedException, ConflictException, ForbiddenException, BadRequestException, NotFoundException } from "@nestjs/common"
+import { Injectable, UnauthorizedException, ConflictException, ForbiddenException, BadRequestException, NotFoundException, Inject, forwardRef } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model, Types } from "mongoose"
 import { JwtService } from "@nestjs/jwt"
@@ -14,6 +14,7 @@ import { LoginDto } from "./dto/login.dto"
 import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto"
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto"
 import { OAuth2Client } from "google-auth-library"
+import { EmailService } from '../notification/email.service'
 import { AddBusinessDto } from "./dto/add-business.dto"
 import { FirebaseService } from "./services/firebase.service"
 import { FirebaseAuthDto } from "./dto/firebase-auth.dto"
@@ -29,6 +30,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private firebaseService: FirebaseService,
+    @Inject(forwardRef(() => EmailService)) private emailService: EmailService,
   ) {
     this.googleClient = new OAuth2Client(this.configService.get<string>("GOOGLE_CLIENT_ID"))
   }
@@ -129,7 +131,7 @@ export class AuthService {
   // }
 
 
-   async registerBusiness(registerDto: BusinessRegisterDto) {
+  async registerBusiness(registerDto: BusinessRegisterDto) {
       const { owner, businessName, subdomain, businessType, businessDescription, address, contact } = registerDto
   
       // Check subdomain availability
@@ -230,6 +232,18 @@ export class AuthService {
       delete userResponse.resetPasswordOTPExpires;
       delete userResponse.emailVerificationToken;
   
+      // Send welcome email to business owner
+      try {
+        await this.emailService.sendEmail(
+          savedUser.email,
+          'Welcome to LolaApril! Your business is live',
+          `<p>Hi ${savedUser.firstName},</p><p>Your business <b>${savedBusiness.businessName}</b> has been registered successfully. Start managing your appointments and clients today!</p>`,
+          this.emailService.getNoReplyAddress()
+        )
+      } catch (e) {
+        // Log but don't block registration
+        console.error('Failed to send business owner welcome email:', e)
+      }
       return {
         user: {
           ...userResponse,
@@ -281,6 +295,18 @@ export class AuthService {
     delete userResponse.resetPasswordOTPExpires;
     delete userResponse.emailVerificationToken;
 
+    // Send welcome email to user
+    try {
+      await this.emailService.sendEmail(
+        user.email,
+        'Welcome to LolaApril!',
+        `<p>Hi ${user.firstName || user.email},</p><p>Welcome to LolaApril! Your account has been created successfully. You can now book appointments and manage your profile.</p>`,
+        this.emailService.getNoReplyAddress()
+      )
+    } catch (e) {
+      // Log but don't block registration
+      console.error('Failed to send user welcome email:', e)
+    }
     return {
       user: {
         ...userResponse,
@@ -1868,14 +1894,17 @@ async addBusinessToUser(userId: string, addBusinessDto: AddBusinessDto) {
     user.resetPasswordOTPExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     await user.save();
 
-    // TODO: Send OTP via email/SMS
-    // await this.notificationService.sendPasswordResetOTP(user.email, otp);
-
-    console.log('🔐 Password reset OTP generated:', {
-      email: user.email,
-      otp: otp, // Remove this in production - only for development
-      expiresAt: user.resetPasswordOTPExpires,
-    });
+    // Send OTP via email
+    try {
+      await this.emailService.sendEmail(
+        user.email,
+        'LolaApril Password Reset OTP',
+        `<p>Hi ${user.firstName || user.email},</p><p>Your password reset OTP is: <b>${otp}</b></p><p>This code will expire in 15 minutes.</p>`,
+        this.emailService.getNoReplyAddress()
+      )
+    } catch (e) {
+      console.error('Failed to send password reset OTP email:', e)
+    }
 
     return {
       success: true,
@@ -1943,10 +1972,17 @@ async addBusinessToUser(userId: string, addBusinessDto: AddBusinessDto) {
     user.refreshToken = undefined; // Invalidate all sessions
     await user.save();
 
-    console.log('✅ Password reset successful for:', user.email);
-
-    // TODO: Send confirmation email
-    // await this.notificationService.sendPasswordResetConfirmation(user.email);
+    // Send confirmation email
+    try {
+      await this.emailService.sendEmail(
+        user.email,
+        'LolaApril Password Reset Successful',
+        `<p>Hi ${user.firstName || user.email},</p><p>Your password has been reset successfully. If you did not perform this action, please contact support immediately.</p>`,
+        this.emailService.getNoReplyAddress()
+      )
+    } catch (e) {
+      console.error('Failed to send password reset confirmation email:', e)
+    }
 
     return {
       success: true,

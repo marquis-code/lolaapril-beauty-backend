@@ -23,15 +23,17 @@ const user_schema_1 = require("./schemas/user.schema");
 const business_schema_1 = require("../business/schemas/business.schema");
 const subscription_schema_1 = require("../business/schemas/subscription.schema");
 const google_auth_library_1 = require("google-auth-library");
+const email_service_1 = require("../notification/email.service");
 const firebase_service_1 = require("./services/firebase.service");
 let AuthService = class AuthService {
-    constructor(userModel, businessModel, subscriptionModel, jwtService, configService, firebaseService) {
+    constructor(userModel, businessModel, subscriptionModel, jwtService, configService, firebaseService, emailService) {
         this.userModel = userModel;
         this.businessModel = businessModel;
         this.subscriptionModel = subscriptionModel;
         this.jwtService = jwtService;
         this.configService = configService;
         this.firebaseService = firebaseService;
+        this.emailService = emailService;
         this.googleClient = new google_auth_library_1.OAuth2Client(this.configService.get("GOOGLE_CLIENT_ID"));
     }
     async registerBusiness(registerDto) {
@@ -103,6 +105,12 @@ let AuthService = class AuthService {
         delete userResponse.resetPasswordOTP;
         delete userResponse.resetPasswordOTPExpires;
         delete userResponse.emailVerificationToken;
+        try {
+            await this.emailService.sendEmail(savedUser.email, 'Welcome to LolaApril! Your business is live', `<p>Hi ${savedUser.firstName},</p><p>Your business <b>${savedBusiness.businessName}</b> has been registered successfully. Start managing your appointments and clients today!</p>`, this.emailService.getNoReplyAddress());
+        }
+        catch (e) {
+            console.error('Failed to send business owner welcome email:', e);
+        }
         return {
             user: {
                 ...userResponse,
@@ -143,6 +151,12 @@ let AuthService = class AuthService {
         delete userResponse.resetPasswordOTP;
         delete userResponse.resetPasswordOTPExpires;
         delete userResponse.emailVerificationToken;
+        try {
+            await this.emailService.sendEmail(user.email, 'Welcome to LolaApril!', `<p>Hi ${user.firstName || user.email},</p><p>Welcome to LolaApril! Your account has been created successfully. You can now book appointments and manage your profile.</p>`, this.emailService.getNoReplyAddress());
+        }
+        catch (e) {
+            console.error('Failed to send user welcome email:', e);
+        }
         return {
             user: {
                 ...userResponse,
@@ -1038,11 +1052,12 @@ let AuthService = class AuthService {
         user.resetPasswordOTP = hashedOTP;
         user.resetPasswordOTPExpires = new Date(Date.now() + 15 * 60 * 1000);
         await user.save();
-        console.log('🔐 Password reset OTP generated:', {
-            email: user.email,
-            otp: otp,
-            expiresAt: user.resetPasswordOTPExpires,
-        });
+        try {
+            await this.emailService.sendEmail(user.email, 'LolaApril Password Reset OTP', `<p>Hi ${user.firstName || user.email},</p><p>Your password reset OTP is: <b>${otp}</b></p><p>This code will expire in 15 minutes.</p>`, this.emailService.getNoReplyAddress());
+        }
+        catch (e) {
+            console.error('Failed to send password reset OTP email:', e);
+        }
         return {
             success: true,
             message: 'If an account with that email exists, a password reset OTP has been sent.',
@@ -1083,7 +1098,12 @@ let AuthService = class AuthService {
         user.resetPasswordOTPExpires = undefined;
         user.refreshToken = undefined;
         await user.save();
-        console.log('✅ Password reset successful for:', user.email);
+        try {
+            await this.emailService.sendEmail(user.email, 'LolaApril Password Reset Successful', `<p>Hi ${user.firstName || user.email},</p><p>Your password has been reset successfully. If you did not perform this action, please contact support immediately.</p>`, this.emailService.getNoReplyAddress());
+        }
+        catch (e) {
+            console.error('Failed to send password reset confirmation email:', e);
+        }
         return {
             success: true,
             message: 'Password has been reset successfully. Please login with your new password.',
@@ -1095,12 +1115,14 @@ AuthService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
     __param(1, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
     __param(2, (0, mongoose_1.InjectModel)(subscription_schema_1.Subscription.name)),
+    __param(6, (0, common_1.Inject)((0, common_1.forwardRef)(() => email_service_1.EmailService))),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         jwt_1.JwtService,
         config_1.ConfigService,
-        firebase_service_1.FirebaseService])
+        firebase_service_1.FirebaseService,
+        email_service_1.EmailService])
 ], AuthService);
 exports.AuthService = AuthService;
 //# sourceMappingURL=auth.service.js.map

@@ -57,7 +57,6 @@ let UploadService = class UploadService {
             };
         }
         catch (error) {
-            console.error("Cloudinary upload error:", error);
             throw new common_1.BadRequestException(`Failed to upload image: ${error.message || 'Unknown error'}`);
         }
     }

@@ -514,7 +514,6 @@ let StaffService = class StaffService {
             await this.staffAssignmentModel.findByIdAndUpdate(assignmentId, { status, updatedAt: new Date() }, { new: true }).exec();
         }
         catch (error) {
-            console.error('Failed to update assignment status:', error.message);
             throw error;
         }
     }
@@ -525,7 +524,6 @@ let StaffService = class StaffService {
             }, { new: true }).exec();
         }
         catch (error) {
-            console.error('Failed to cancel assignment:', error.message);
             throw error;
         }
     }

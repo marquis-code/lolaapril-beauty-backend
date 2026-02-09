@@ -1,6 +1,7 @@
 export declare class EmailService {
     private resend;
     constructor();
+    getNoReplyAddress(): string;
     sendEmail(to: string, subject: string, html: string, from?: string): Promise<{
         messageId: string;
         success: boolean;

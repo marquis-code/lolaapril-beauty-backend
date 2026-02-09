@@ -65,11 +65,13 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
                 });
                 const businessId = decoded.businessId || decoded.sub;
                 const userId = decoded.userId || decoded.id;
+                const userRole = decoded.role || decoded.userRole || decoded.type || 'CUSTOMER';
                 this.connectedClients.set(client.id, {
                     socket: client,
                     businessId,
                     userId,
                     isGuest: false,
+                    role: userRole,
                 });
                 client.join(`business:${businessId}`);
                 client.join(`user:${userId}`);
@@ -246,10 +248,17 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
             const { ChatService } = await Promise.resolve().then(() => require('../services/chat.service'));
             const chatService = this.moduleRef.get(ChatService, { strict: false });
             const senderId = clientInfo.userId;
-            const senderType = clientInfo.isGuest ? 'customer' : 'staff';
+            let senderType = 'customer';
+            if (clientInfo.isGuest) {
+                senderType = 'customer';
+            }
+            else if (clientInfo.role) {
+                const staffRoles = ['BUSINESS_OWNER', 'BUSINESS_ADMIN', 'STAFF', 'SUPER_ADMIN'];
+                senderType = staffRoles.includes(clientInfo.role) ? 'staff' : 'customer';
+            }
             const senderName = clientInfo.isGuest
                 ? (clientInfo.guestInfo?.userName || 'Guest')
-                : 'Staff Member';
+                : (clientInfo.role === 'CUSTOMER' ? 'Customer' : 'Staff Member');
             const message = await chatService.sendMessage(data.roomId, senderId, senderType, data.content, {
                 senderName,
                 attachments: data.attachments,
