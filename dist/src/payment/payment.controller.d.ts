@@ -36,7 +36,7 @@ export declare class PaymentController {
     private readonly paymentService;
     constructor(paymentService: PaymentService);
     initializePayment(jwtBusinessId: string | undefined, initializePaymentDto: InitializePaymentDto): Promise<import("../common/interfaces/common.interface").ApiResponse<any>>;
-    verifyPayment(businessId: string, reference: string): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
+    verifyPayment(businessId: string | undefined, reference: string): Promise<import("../common/interfaces/common.interface").ApiResponse<import("./schemas/payment.schema").Payment>>;
     handleWebhook(signature: string, req: RawBodyRequest<Request>): Promise<{
         message: string;
     }>;

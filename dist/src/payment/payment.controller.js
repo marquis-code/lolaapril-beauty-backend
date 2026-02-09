@@ -91,14 +91,11 @@ __decorate([
 ], PaymentController.prototype, "initializePayment", null);
 __decorate([
     (0, common_1.Get)('verify/:reference'),
-    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF, user_schema_1.UserRole.CLIENT),
-    (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
-    (0, audit_decorator_1.Audit)({ action: audit_log_schema_1.AuditAction.VIEW, entity: audit_log_schema_1.AuditEntity.PAYMENT }),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Verify payment with gateway' }),
+    (0, public_decorator_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Verify payment with gateway (Public)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Payment verified successfully' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Payment not found' }),
-    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __param(0, (0, business_context_decorator_1.OptionalBusinessId)()),
     __param(1, (0, common_1.Param)('reference')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),

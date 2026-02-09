@@ -43,14 +43,11 @@ export class PaymentController {
   }
 
   @Get('verify/:reference')
-  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
-  @UseInterceptors(AuditInterceptor)
-  @Audit({ action: AuditAction.VIEW, entity: AuditEntity.PAYMENT })
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Verify payment with gateway' })
+  @Public() // Allow both authenticated and unauthenticated users
+  @ApiOperation({ summary: 'Verify payment with gateway (Public)' })
   @ApiResponse({ status: 200, description: 'Payment verified successfully' })
   @ApiResponse({ status: 404, description: 'Payment not found' })
-  verifyPayment(@BusinessId() businessId: string, @Param('reference') reference: string) {
+  verifyPayment(@OptionalBusinessId() businessId: string | undefined, @Param('reference') reference: string) {
     return this.paymentService.verifyPayment(reference)
   }
 
