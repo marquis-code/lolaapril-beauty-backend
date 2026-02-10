@@ -373,7 +373,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   
   @SubscribeMessage('chat:send-message')
 async handleSendMessage(
-  @MessageBody() data: { roomId: string; content: string; attachments?: any[] },
+  @MessageBody() data: { roomId: string; content: string; attachments?: any[]; senderType?: 'customer' | 'staff' | 'system' | 'bot'; senderId?: string; senderName?: string },
   @ConnectedSocket() client: Socket
 ) {
   const clientInfo = this.connectedClients.get(client.id)
@@ -394,29 +394,57 @@ async handleSendMessage(
     const { ChatService } = await import('../services/chat.service')
     const chatService = this.moduleRef.get(ChatService, { strict: false })
 
-    // ✅ FIX: Use the correct userId (which is guestId for guests)
-    // The userId field in clientInfo already contains the correct ID:
-    // - For authenticated users: their actual userId
-    // - For guests: their guestId (e.g., "guest_1234567890_abc123")
-    const senderId = clientInfo.userId
-    
 
-    // Determine sender type and name based on role
-    let senderType: 'customer' | 'staff' = 'customer'
-    if (clientInfo.isGuest) {
-      senderType = 'customer'
-    } else if (clientInfo.role) {
-      const staffRoles = ['BUSINESS_OWNER', 'BUSINESS_ADMIN', 'STAFF', 'SUPER_ADMIN']
-      senderType = staffRoles.includes(clientInfo.role) ? 'staff' : 'customer'
+    // Enforce and validate senderType
+    const staffRoles = ['BUSINESS_OWNER', 'BUSINESS_ADMIN', 'STAFF', 'SUPER_ADMIN']
+    const normalizedRole = typeof clientInfo.role === 'string' ? clientInfo.role.toUpperCase() : clientInfo.role;
+    let senderType = data.senderType;
+    let senderId = data.senderId || clientInfo.userId;
+    let senderName = data.senderName;
+
+    // Validate senderType
+    if (clientInfo.isGuest && senderType !== 'customer') {
+      return { success: false, error: 'Guests can only send as customer' };
     }
-    const senderName = clientInfo.isGuest
-      ? (clientInfo.guestInfo?.userName || 'Guest')
-      : (clientInfo.role === 'CUSTOMER' ? 'Customer' : 'Staff Member')
+    if (!clientInfo.isGuest && staffRoles.includes(normalizedRole) && senderType !== 'staff') {
+      return { success: false, error: 'Staff can only send as staff' };
+    }
+    if (!clientInfo.isGuest && !staffRoles.includes(normalizedRole) && senderType !== 'customer') {
+      return { success: false, error: 'Customers can only send as customer' };
+    }
+
+
+    // Enforce senderName matches senderType
+    if (senderType === 'customer') {
+      // Always use guest name, customer name, or fallback
+      if (!senderName) {
+        if (clientInfo.isGuest) {
+          senderName = clientInfo.guestInfo?.userName || 'Guest';
+        } else if (clientInfo.role === 'CUSTOMER' && clientInfo.userName) {
+          senderName = clientInfo.userName;
+        } else {
+          senderName = 'Customer';
+        }
+      }
+      // Prevent staff name for customer
+      if (senderName === 'Staff Member') {
+        senderName = 'Customer';
+      }
+    } else if (senderType === 'staff') {
+      // Always use staff name or fallback
+      if (!senderName) {
+        senderName = clientInfo.userName || 'Staff Member';
+      }
+      // Prevent customer/guest name for staff
+      if (senderName === 'Customer' || senderName === 'Guest') {
+        senderName = 'Staff Member';
+      }
+    }
 
     // Send message via service (this will also emit via WebSocket)
     const message = await chatService.sendMessage(
       data.roomId,
-      senderId, // ✅ This is now correct for both guests and authenticated users
+      senderId,
       senderType,
       data.content,
       {

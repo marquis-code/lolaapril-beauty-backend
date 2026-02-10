@@ -247,18 +247,44 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
             });
             const { ChatService } = await Promise.resolve().then(() => require('../services/chat.service'));
             const chatService = this.moduleRef.get(ChatService, { strict: false });
-            const senderId = clientInfo.userId;
-            let senderType = 'customer';
-            if (clientInfo.isGuest) {
-                senderType = 'customer';
+            const staffRoles = ['BUSINESS_OWNER', 'BUSINESS_ADMIN', 'STAFF', 'SUPER_ADMIN'];
+            const normalizedRole = typeof clientInfo.role === 'string' ? clientInfo.role.toUpperCase() : clientInfo.role;
+            let senderType = data.senderType;
+            let senderId = data.senderId || clientInfo.userId;
+            let senderName = data.senderName;
+            if (clientInfo.isGuest && senderType !== 'customer') {
+                return { success: false, error: 'Guests can only send as customer' };
             }
-            else if (clientInfo.role) {
-                const staffRoles = ['BUSINESS_OWNER', 'BUSINESS_ADMIN', 'STAFF', 'SUPER_ADMIN'];
-                senderType = staffRoles.includes(clientInfo.role) ? 'staff' : 'customer';
+            if (!clientInfo.isGuest && staffRoles.includes(normalizedRole) && senderType !== 'staff') {
+                return { success: false, error: 'Staff can only send as staff' };
             }
-            const senderName = clientInfo.isGuest
-                ? (clientInfo.guestInfo?.userName || 'Guest')
-                : (clientInfo.role === 'CUSTOMER' ? 'Customer' : 'Staff Member');
+            if (!clientInfo.isGuest && !staffRoles.includes(normalizedRole) && senderType !== 'customer') {
+                return { success: false, error: 'Customers can only send as customer' };
+            }
+            if (senderType === 'customer') {
+                if (!senderName) {
+                    if (clientInfo.isGuest) {
+                        senderName = clientInfo.guestInfo?.userName || 'Guest';
+                    }
+                    else if (clientInfo.role === 'CUSTOMER' && clientInfo.userName) {
+                        senderName = clientInfo.userName;
+                    }
+                    else {
+                        senderName = 'Customer';
+                    }
+                }
+                if (senderName === 'Staff Member') {
+                    senderName = 'Customer';
+                }
+            }
+            else if (senderType === 'staff') {
+                if (!senderName) {
+                    senderName = clientInfo.userName || 'Staff Member';
+                }
+                if (senderName === 'Customer' || senderName === 'Guest') {
+                    senderName = 'Staff Member';
+                }
+            }
             const message = await chatService.sendMessage(data.roomId, senderId, senderType, data.content, {
                 senderName,
                 attachments: data.attachments,

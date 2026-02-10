@@ -101,6 +101,9 @@ export declare class RealtimeGateway implements OnGatewayInit, OnGatewayConnecti
         roomId: string;
         content: string;
         attachments?: any[];
+        senderType?: 'customer' | 'staff' | 'system' | 'bot';
+        senderId?: string;
+        senderName?: string;
     }, client: Socket): Promise<{
         success: boolean;
         messageId: any;
