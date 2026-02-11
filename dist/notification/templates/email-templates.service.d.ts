@@ -150,4 +150,22 @@ export declare class EmailTemplatesService {
         subject: string;
         html: string;
     };
+    mobileSpaRequestReceived(data: {
+        clientName: string;
+        services: Array<{
+            serviceName: string;
+            price: number;
+            quantity?: number;
+        }>;
+        requestedDate: string;
+        requestedTime?: string;
+        location: {
+            address: string;
+        };
+        totalAmount: number;
+        logoUrl?: string;
+    }): {
+        subject: string;
+        html: string;
+    };
 }

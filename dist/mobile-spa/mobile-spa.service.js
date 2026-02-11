@@ -97,6 +97,27 @@ let MobileSpaService = MobileSpaService_1 = class MobileSpaService {
         catch (err) {
             this.logger.error(`Failed to send mobile SPA request email: ${err.message}`);
         }
+        try {
+            const clientEmailData = this.emailTemplatesService.mobileSpaRequestReceived({
+                clientName,
+                services: services.map(s => ({
+                    serviceName: s.serviceName,
+                    price: s.price,
+                    quantity: s.quantity,
+                })),
+                requestedDate: new Date(dto.requestedDate).toLocaleDateString('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                }),
+                requestedTime: dto.requestedTime,
+                location: dto.location,
+                totalAmount,
+            });
+            await this.emailService.sendEmail(clientEmail, clientEmailData.subject, clientEmailData.html);
+            this.logger.log(`✅ Mobile SPA confirmation email sent to client ${clientEmail}`);
+        }
+        catch (err) {
+            this.logger.error(`Failed to send mobile SPA confirmation email to client: ${err.message}`);
+        }
         return saved;
     }
     async acceptRequest(requestId, dto) {

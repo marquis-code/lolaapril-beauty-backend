@@ -569,4 +569,61 @@ export class EmailTemplatesService {
       html: this.wrapInLayout('Sale Recorded', body, data.logoUrl),
     };
   }
+
+  // ================================================================
+  // MOBILE SPA REQUEST RECEIVED (to Client)
+  // ================================================================
+  mobileSpaRequestReceived(data: {
+    clientName: string;
+    services: Array<{ serviceName: string; price: number; quantity?: number }>;
+    requestedDate: string;
+    requestedTime?: string;
+    location: { address: string };
+    totalAmount: number;
+    logoUrl?: string;
+  }): { subject: string; html: string } {
+    const homeUrl = this.frontendUrl;
+
+    const body = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <p style="font-size:48px;margin:0;">🌸✨</p>
+        <h2 style="margin:8px 0;font-size:24px;color:${this.brandDark};">Request Received!</h2>
+      </div>
+
+      <p style="font-size:15px;color:#3a5a60;line-height:1.6;">
+        Hi <strong>${data.clientName}</strong>,
+      </p>
+      <p style="font-size:15px;color:#3a5a60;line-height:1.6;">
+        Thank you for choosing Lola April Mobile Spa! We have received your request and our team is currently reviewing it to ensure everything is perfect. 💆‍♀️
+      </p>
+
+      <div style="padding:16px 20px;background:#f0f9ff;border-radius:12px;border-left:4px solid ${this.brandColor};margin:24px 0;">
+        <p style="margin:0 0 8px;font-size:14px;color:${this.brandDark};"><strong>Location:</strong> ${data.location.address}</p>
+        <p style="margin:0;font-size:14px;color:${this.brandDark};"><strong>Requested for:</strong> ${data.requestedDate} ${data.requestedTime ? `at ${data.requestedTime}` : ''}</p>
+      </div>
+
+      ${this.serviceTable(data.services)}
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
+         <tr>
+           <td style="padding:12px 0;font-size:18px;color:${this.brandDark};font-weight:700;">Estimated Total</td>
+           <td style="padding:12px 0;font-size:18px;color:${this.brandColor};font-weight:700;text-align:right;">₦${data.totalAmount.toLocaleString()}</td>
+         </tr>
+       </table>
+
+      <p style="margin:24px 0 16px;font-size:15px;color:#3a5a60;line-height:1.6;text-align:center;">
+        We will get back to you shortly with a confirmation. In the meantime, why not explore more services?
+      </p>
+
+      ${this.ctaButton('Explore More Services', homeUrl)}
+      
+      <p style="margin:24px 0 0;font-size:13px;color:#5a7a80;text-align:center;">
+        "Beauty comes from within, but a little spa time never hurts!" ✨
+      </p>`;
+
+    return {
+      subject: `🌸 Request Received! We're reviewing your Mobile Spa booking`,
+      html: this.wrapInLayout('Request Received', body, data.logoUrl),
+    };
+  }
 }
