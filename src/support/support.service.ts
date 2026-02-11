@@ -257,10 +257,6 @@ export class SupportService {
     for (const ticket of breachedTickets) {
       ticket.sla.breached = true;
       await ticket.save();
-
-      // Send escalation notification
-      console.log(`SLA breached for ticket ${ticket.ticketNumber}`);
-      // Implement notification logic here
     }
 
     return breachedTickets.length;

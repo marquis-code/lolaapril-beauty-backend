@@ -9,11 +9,11 @@
     "prebuild": "rimraf dist",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:dev": "nest start --watch",
-    "start": "node --max-old-space-size=8192 dist/src/main.js",
+    "start": "node --max-old-space-size=8192 dist/main.js",
     "build": "NODE_OPTIONS=--max-old-space-size=8192 nest build",
     "copy-templates": "node copy-templates.js",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node --max-old-space-size=8192 dist/src/main.js",
+    "start:prod": "node --max-old-space-size=8192 dist/main.js",
     "migration:run": "ts-node src/migrations/run-migrations.ts"
   },
   "dependencies": {
