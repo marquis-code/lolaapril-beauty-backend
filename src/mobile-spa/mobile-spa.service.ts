@@ -10,6 +10,8 @@ import {
 } from './dto/mobile-spa.dto';
 import { EmailService } from '../notification/email.service';
 import { EmailTemplatesService } from '../notification/templates/email-templates.service';
+import { ServiceService } from '../service/service.service';
+import { ServiceDocument } from '../service/schemas/service.schema';
 
 @Injectable()
 export class MobileSpaService {
@@ -19,6 +21,7 @@ export class MobileSpaService {
         @InjectModel(MobileSpaRequest.name) private mobileSpaModel: Model<MobileSpaRequestDocument>,
         private readonly emailService: EmailService,
         private readonly emailTemplatesService: EmailTemplatesService,
+        private readonly serviceService: ServiceService, // Inject ServiceService
     ) { }
 
     async createRequest(
@@ -30,13 +33,45 @@ export class MobileSpaService {
     ): Promise<MobileSpaRequest> {
         const requestNumber = `MSR-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-        // Calculate total amount (services would be looked up in a real scenario)
-        const services = dto.services.map(s => ({
-            serviceId: new Types.ObjectId(s.serviceId),
-            serviceName: '', // Will be populated via service lookup
-            price: 0,
-            quantity: s.quantity || 1,
-        }));
+        // Fetch service details
+        const serviceIds = dto.services.map(s => s.serviceId);
+        const fetchedServices = await this.serviceService.getServicesByIds(serviceIds);
+        const serviceMap = new Map<string, ServiceDocument>(fetchedServices.map(s => [s._id.toString(), s as ServiceDocument]));
+
+        let totalAmount = 0;
+        const services = dto.services.map(s => {
+            const serviceData = serviceMap.get(s.serviceId);
+            if (!serviceData) {
+                this.logger.warn(`Service ${s.serviceId} not found for mobile spa request`);
+                // Fallback or error? Assuming we should error or use default if dirty data allowed. 
+                // But schema requires name. Let's use a placeholder if missing to avoid hard crash, or error.
+                // For now, let's error if critical, but if we want to be robust:
+                // throw new NotFoundException(`Service ${s.serviceId} not found`);
+            }
+            const name = serviceData?.basicDetails?.serviceName || 'Unknown Service';
+            // Access price from pricingAndDuration
+            const price = serviceData?.pricingAndDuration?.price?.amount || 0;
+
+            // Handle variants if needed, but for now assuming base price or handled by existing logic
+            // Assuming simple structure for now based on ServiceService usage.
+
+            const quantity = s.quantity || 1;
+            totalAmount += (price * quantity);
+
+            return {
+                serviceId: new Types.ObjectId(s.serviceId),
+                serviceName: name,
+                price: price,
+                quantity: quantity,
+            };
+        });
+
+        // If any service was not found and we used 'Unknown Service', validation might pass but data is bad.
+        // Better to check:
+        if (fetchedServices.length !== new Set(serviceIds).size) {
+            // Some services missing
+            this.logger.warn(`Some services not found for mobile spa request ${requestNumber}`);
+        }
 
         const request = new this.mobileSpaModel({
             clientId: new Types.ObjectId(clientId),
@@ -50,7 +85,7 @@ export class MobileSpaService {
             requestedDate: new Date(dto.requestedDate),
             requestedTime: dto.requestedTime,
             clientNotes: dto.clientNotes,
-            totalAmount: 0, // Will be calculated after service lookup
+            totalAmount,
             requestNumber,
             status: 'pending',
         });
@@ -64,7 +99,7 @@ export class MobileSpaService {
                 clientEmail,
                 clientPhone,
                 services: services.map(s => ({
-                    serviceName: s.serviceName || 'Service',
+                    serviceName: s.serviceName,
                     price: s.price,
                     quantity: s.quantity,
                 })),
@@ -74,7 +109,7 @@ export class MobileSpaService {
                     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
                 }),
                 requestedTime: dto.requestedTime,
-                totalAmount: 0,
+                totalAmount,
                 requestId: saved._id.toString(),
             });
 

@@ -1,0 +1,55 @@
+import { OnModuleInit } from "@nestjs/common";
+import { Model } from "mongoose";
+import { ServiceCategory, ServiceCategoryDocument } from "./schemas/service-category.schema";
+import { Service, ServiceDocument } from "./schemas/service.schema";
+import { ServiceBundle, ServiceBundleDocument } from "./schemas/service-bundle.schema";
+import { CreateServiceCategoryDto } from "./dto/create-service-category.dto";
+import { CreateServiceDto } from "./dto/create-service.dto";
+import { CreateServiceBundleDto } from "./dto/create-service-bundle.dto";
+import { CreateServiceVariantDto } from "./dto/service-variant.dto";
+import { UpdateServiceCategoryDto } from "./dto/update-service-category.dto";
+import { UpdateServiceDto } from "./dto/update-service.dto";
+import { UpdateServiceBundleDto } from "./dto/update-service-bundle.dto";
+import { ServiceQueryDto } from "./dto/service-query.dto";
+import { ApiResponse } from "../common/interfaces/common.interface";
+import { BusinessDocument } from "../business/schemas/business.schema";
+export declare class ServiceService implements OnModuleInit {
+    private serviceCategoryModel;
+    private serviceModel;
+    private serviceBundleModel;
+    private businessModel;
+    private readonly logger;
+    constructor(serviceCategoryModel: Model<ServiceCategoryDocument>, serviceModel: Model<ServiceDocument>, serviceBundleModel: Model<ServiceBundleDocument>, businessModel: Model<BusinessDocument>);
+    onModuleInit(): Promise<void>;
+    private validateObjectId;
+    createCategory(createCategoryDto: CreateServiceCategoryDto, businessId: string): Promise<ApiResponse<ServiceCategory>>;
+    bulkCreateCategories(categories: CreateServiceCategoryDto[], businessId: string): Promise<ApiResponse<{
+        created: ServiceCategory[];
+        failed: Array<{
+            category: string;
+            error: string;
+        }>;
+    }>>;
+    findAllCategories(subdomain?: string, businessId?: string): Promise<ApiResponse<ServiceCategory[]>>;
+    fixCategoryBusinessIds(): Promise<void>;
+    updateCategory(id: string, updateCategoryDto: UpdateServiceCategoryDto): Promise<ApiResponse<ServiceCategory>>;
+    createService(createServiceDto: CreateServiceDto, businessId: string): Promise<ApiResponse<Service>>;
+    bulkCreateServices(services: CreateServiceDto[], businessId: string): Promise<ApiResponse<{
+        created: Service[];
+        failed: Array<{
+            service: string;
+            error: string;
+        }>;
+    }>>;
+    findAllServices(query: ServiceQueryDto, businessId?: string): Promise<ApiResponse<Service[]>>;
+    getServicesByIds(serviceIds: string[]): Promise<ServiceDocument[]>;
+    findOneService(id: string): Promise<ApiResponse<Service>>;
+    updateService(id: string, updateServiceDto: UpdateServiceDto): Promise<ApiResponse<Service>>;
+    addServiceVariant(serviceId: string, variantDto: CreateServiceVariantDto): Promise<ApiResponse<Service>>;
+    createBundle(createBundleDto: CreateServiceBundleDto, businessId: string): Promise<ApiResponse<ServiceBundle>>;
+    findAllBundles(subdomain?: string, businessId?: string): Promise<ApiResponse<ServiceBundle[]>>;
+    findOneBundle(id: string): Promise<ApiResponse<ServiceBundle>>;
+    updateBundle(id: string, updateBundleDto: UpdateServiceBundleDto): Promise<ApiResponse<ServiceBundle>>;
+    removeService(id: string): Promise<ApiResponse<null>>;
+    getServiceStats(businessId: string): Promise<ApiResponse<any>>;
+}
