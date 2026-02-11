@@ -7,6 +7,7 @@ import { NotificationService } from './notification.service'
 import { NotificationController } from './notification.controller'
 import { EmailService } from './email.service'
 import { SMSService } from './sms.service'
+import { EmailTemplatesService } from './templates/email-templates.service'
 import { ChatService } from './services/chat.service'
 import { ChatSeederService } from './services/chat-seeder.service'
 import { NotificationEventListener } from './services/notification-event.listener'
@@ -92,6 +93,7 @@ import { User, UserSchema } from '../auth/schemas/user.schema'
     NotificationService,
     EmailService,
     SMSService,
+    EmailTemplatesService,
     ChatService,
     ChatSeederService,
     NotificationEventListener,
@@ -102,9 +104,10 @@ import { User, UserSchema } from '../auth/schemas/user.schema'
     NotificationService,
     EmailService,
     SMSService,
+    EmailTemplatesService,
     ChatService,
     ChatSeederService,
     RealtimeGateway,
   ],
 })
-export class NotificationModule {}
+export class NotificationModule { }

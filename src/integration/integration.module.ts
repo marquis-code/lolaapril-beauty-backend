@@ -6,6 +6,7 @@ import { GatewayManagerService } from './gateway-manager.service';
 import { PaystackService } from './payment-gateways/paystack/paystack.service';
 import { StripeService } from './payment-gateways/stripe/stripe.service';
 import { SquareService } from './payment-gateways/square/square.service';
+import { GoogleCalendarService } from './google-calendar.service';
 
 @Module({
   imports: [ConfigModule],
@@ -14,7 +15,8 @@ import { SquareService } from './payment-gateways/square/square.service';
     PaystackService,
     StripeService,
     SquareService,
+    GoogleCalendarService,
   ],
-  exports: [GatewayManagerService, PaystackService],
+  exports: [GatewayManagerService, PaystackService, GoogleCalendarService],
 })
-export class IntegrationModule {}
+export class IntegrationModule { }

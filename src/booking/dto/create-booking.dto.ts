@@ -14,12 +14,18 @@ export class ServiceBookingDto {
   @IsOptional()
   @Min(0)
   bufferTime?: number
+
+  @ApiPropertyOptional({ description: 'Number of people for this service', example: 2 })
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
+  quantity?: number
 }
 
 export class BookingSourceDto {
-  @ApiProperty({ 
-    enum: ['marketplace', 'direct_link', 'qr_code', 'business_website', 
-           'google_search', 'social_media', 'referral', 'walk_in', 'phone'],
+  @ApiProperty({
+    enum: ['marketplace', 'direct_link', 'qr_code', 'business_website',
+      'google_search', 'social_media', 'referral', 'walk_in', 'phone'],
     example: 'qr_code'
   })
   @IsString()

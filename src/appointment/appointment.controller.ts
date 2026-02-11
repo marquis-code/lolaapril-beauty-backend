@@ -1,4 +1,4 @@
-import { Controller, Query, Body, Get, Post, Patch, Delete, UseGuards, UseInterceptors, Req } from "@nestjs/common"
+import { Controller, Query, Body, Get, Post, Patch, Delete, UseGuards, UseInterceptors, Req, Param } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger"
 import { AppointmentService } from "./appointment.service"
 import { BusinessId } from "../auth/decorators/business-context.decorator"
@@ -19,7 +19,7 @@ import { AuditAction, AuditEntity } from "../audit/schemas/audit-log.schema"
 // @UseInterceptors(AuditInterceptor)
 // @ApiBearerAuth()
 export class AppointmentController {
-  constructor(private readonly appointmentService: AppointmentService) {}
+  constructor(private readonly appointmentService: AppointmentService) { }
 
   @Post()
   @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF, UserRole.CLIENT)
@@ -100,6 +100,27 @@ export class AppointmentController {
   @ApiResponse({ status: 404, description: "Appointment not found" })
   updateStatus(id: string, body: { status: string; cancellationReason?: string }) {
     return this.appointmentService.updateStatus(id, body.status, body.cancellationReason)
+  }
+
+  @Post(":id/complete")
+  @Roles(UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  @Audit({ action: AuditAction.UPDATE, entity: AuditEntity.APPOINTMENT })
+  @ApiOperation({
+    summary: "Mark appointment as completed — creates a sale record",
+    description: "Business calls this to indicate a service has been completed. This creates a sale record for reports/tax, sends a thank-you email, and schedules a 2-week re-book reminder.",
+  })
+  @ApiResponse({ status: 200, description: "Appointment completed, sale recorded" })
+  @ApiResponse({ status: 404, description: "Appointment not found" })
+  async completeAppointment(
+    @Param('id') id: string,
+    @BusinessId() businessId: string,
+  ) {
+    const result = await this.appointmentService.completeAppointment(id);
+    return {
+      success: true,
+      data: result,
+      message: "Appointment completed successfully. Sale recorded for reports.",
+    };
   }
 
   @Patch(":id/assign-staff")

@@ -51,6 +51,8 @@ import { RateLimiterModule } from './rate-limiter/rate-limiter.module'
 import { MarketplaceModule } from './marketplace/marketplace.module'
 import { SubscriptionModule } from './subscription/subscription.module'
 import { MigrationsModule } from './migrations/migrations.module';
+import { ReviewModule } from './review/review.module';
+import { MobileSpaModule } from './mobile-spa/mobile-spa.module';
 
 @Module({
   imports: [
@@ -128,20 +130,20 @@ import { MigrationsModule } from './migrations/migrations.module';
             winston.format.colorize({ all: true }),
             winston.format.printf(({ level, message, timestamp, ms, context, stack, ...meta }) => {
               let log = `${timestamp} [${context || 'Application'}] ${level}: ${message}`;
-              
+
               // Add execution time if available
               if (ms) log += ` ${ms}`;
-              
+
               // Add metadata if present
               if (Object.keys(meta).length > 0) {
                 log += `\n   📋 Meta: ${JSON.stringify(meta, null, 2)}`;
               }
-              
+
               // Add stack trace for errors
               if (stack) {
                 log += `\n   🔥 Stack: ${stack}`;
               }
-              
+
               return log;
             }),
           ),
@@ -209,7 +211,7 @@ import { MigrationsModule } from './migrations/migrations.module';
         }),
       ],
       // Set default metadata
-      defaultMeta: { 
+      defaultMeta: {
         service: 'lola-beauty-backend',
         environment: process.env.NODE_ENV || 'development'
       },
@@ -238,7 +240,7 @@ import { MigrationsModule } from './migrations/migrations.module';
             console.log(`🔗 Host: ${connection.host}:${connection.port}`);
             console.log(`⏰ Connected at: ${new Date().toISOString()}`);
           });
-          
+
           connection.on('error', (error: any) => {
             console.error('❌ MongoDB connection error:', {
               message: error.message,
@@ -247,7 +249,7 @@ import { MigrationsModule } from './migrations/migrations.module';
               timestamp: new Date().toISOString()
             });
           });
-          
+
           connection.on('disconnected', () => {
             console.log('⚠️  MongoDB disconnected at:', new Date().toISOString());
           });
@@ -259,7 +261,7 @@ import { MigrationsModule } from './migrations/migrations.module';
           connection.on('close', () => {
             console.log('🔴 MongoDB connection closed at:', new Date().toISOString());
           });
-          
+
           return connection;
         },
       }),
@@ -279,10 +281,10 @@ import { MigrationsModule } from './migrations/migrations.module';
 
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
-    
+
     // ⚠️ IMPORTANT: AuthModule MUST be imported before using guards
     AuthModule,
-    
+
     // Feature Modules
     BusinessModule,
     AuditModule,
@@ -313,6 +315,8 @@ import { MigrationsModule } from './migrations/migrations.module';
     WebhookModule,
     SubscriptionModule,
     MigrationsModule,
+    ReviewModule,
+    MobileSpaModule,
   ],
 
   providers: [
@@ -321,7 +325,7 @@ import { MigrationsModule } from './migrations/migrations.module';
       provide: APP_INTERCEPTOR,
       useClass: AuditInterceptor,
     },
-    
+
     // 🔥 GLOBAL GUARDS - Applied to ALL routes by default
     {
       provide: APP_GUARD,

@@ -7,6 +7,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JobsService } from './jobs.service';
 import { PayoutProcessor } from './processors/payout.processor';
 import { ReportGenerationProcessor } from './processors/report-generation.processor';
+import { BookingCronService } from './booking-cron.service';
+import { PostCompletionCronService } from './post-completion-cron.service';
+import { BusinessReminderCronService } from './business-reminder-cron.service';
+import { ScheduledReminder, ScheduledReminderSchema } from './schemas/scheduled-reminder.schema';
+import { Appointment, AppointmentSchema } from '../appointment/schemas/appointment.schema';
+import { EmailTemplatesService } from '../notification/templates/email-templates.service';
 
 import { Payment, PaymentSchema } from '../payment/schemas/payment.schema';
 import { Booking, BookingSchema } from '../booking/schemas/booking.schema';
@@ -19,7 +25,7 @@ import { IntegrationModule } from '../integration/integration.module';
 @Module({
   imports: [
     ConfigModule,
-    
+
     // Register Bull queues
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -41,7 +47,7 @@ import { IntegrationModule } from '../integration/integration.module';
       }),
       inject: [ConfigService],
     }),
-    
+
     // Register individual queues
     BullModule.registerQueue(
       { name: 'payouts' },
@@ -49,13 +55,15 @@ import { IntegrationModule } from '../integration/integration.module';
       { name: 'notifications' },
       { name: 'analytics' },
     ),
-    
+
     // Mongoose schemas
     MongooseModule.forFeature([
       { name: Payment.name, schema: PaymentSchema },
       { name: Booking.name, schema: BookingSchema },
+      { name: ScheduledReminder.name, schema: ScheduledReminderSchema },
+      { name: Appointment.name, schema: AppointmentSchema },
     ]),
-    
+
     // Other modules
     NotificationModule,
     CacheModule,
@@ -66,7 +74,11 @@ import { IntegrationModule } from '../integration/integration.module';
     JobsService,
     PayoutProcessor,
     ReportGenerationProcessor,
+    BookingCronService,
+    PostCompletionCronService,
+    BusinessReminderCronService,
+    EmailTemplatesService,
   ],
   exports: [JobsService, BullModule],
 })
-export class JobsModule {}
+export class JobsModule { }

@@ -44,6 +44,9 @@ export class Sale {
   @Prop({ required: true, unique: true })
   saleNumber: string
 
+  @Prop({ type: String, required: true, index: true })
+  businessId: string
+
   @Prop({ type: Types.ObjectId, ref: "Client", required: true })
   clientId: Types.ObjectId
 

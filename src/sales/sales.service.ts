@@ -415,7 +415,7 @@ import { InjectModel } from "@nestjs/mongoose"
 
 @Injectable()
 export class SalesService {
-  constructor(@InjectModel(Sale.name) private saleModel: Model<SaleDocument>) {}
+  constructor(@InjectModel(Sale.name) private saleModel: Model<SaleDocument>) { }
 
   async create(businessId: string, createSaleDto: CreateSaleDto): Promise<ApiResponse<Sale>> {
     try {
@@ -436,6 +436,48 @@ export class SalesService {
     } catch (error) {
       throw new Error(`Failed to create sale: ${error.message}`)
     }
+  }
+
+  /**
+   * Create a sale record directly from a completed appointment.
+   * Only called when a business marks an appointment as completed.
+   * This is what feeds into daily reports and tax remittance.
+   */
+  async createFromAppointment(appointment: any, businessId: string): Promise<Sale> {
+    const saleNumber = `SALE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+    const items = [{
+      itemType: 'service',
+      itemId: appointment.serviceDetails?.serviceId?.toString() || appointment._id.toString(),
+      itemName: appointment.serviceDetails?.serviceName || 'Service',
+      quantity: 1,
+      unitPrice: appointment.serviceDetails?.price || 0,
+      totalPrice: appointment.serviceDetails?.price || 0,
+      discount: 0,
+      tax: 0,
+    }];
+
+    const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
+
+    const sale = new this.saleModel({
+      saleNumber,
+      businessId,
+      clientId: appointment.clientId,
+      appointmentId: appointment._id,
+      items,
+      subtotal: totalAmount,
+      totalAmount,
+      amountPaid: totalAmount,
+      amountDue: 0,
+      paymentStatus: 'paid',
+      status: 'completed',
+      createdBy: appointment.clientId,
+      completedBy: appointment.clientId,
+      completedAt: new Date(),
+      notes: `Auto-generated from completed appointment ${appointment.appointmentNumber || appointment._id}`,
+    });
+
+    return sale.save();
   }
 
   async findAll(businessId: string): Promise<ApiResponse<Sale[]>> {

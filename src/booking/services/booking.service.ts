@@ -18,113 +18,114 @@ export class BookingService {
     @InjectModel(Booking.name)
     private bookingModel: Model<BookingDocument>,
     private eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
 
   async createBooking(createBookingData: any): Promise<BookingDocument> {
-  try {
-    // DEBUG: Log what we're receiving
-    console.log('📥 Received booking data:', JSON.stringify(createBookingData, null, 2))
-    
-    // Generate booking number
-    const bookingNumber = await this.generateBookingNumber(createBookingData.businessId)
-    
-    // Set expiration time (30 minutes for payment)
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000)
+    try {
+      // DEBUG: Log what we're receiving
+      console.log('📥 Received booking data:', JSON.stringify(createBookingData, null, 2))
 
-    const bookingData = {
-      bookingNumber,
-      clientId: new Types.ObjectId(createBookingData.clientId),
-      businessId: new Types.ObjectId(createBookingData.businessId),
-      services: createBookingData.services.map((service: any) => {
-        console.log('📋 Mapping service:', service)
-        return {
-          serviceId: new Types.ObjectId(service.serviceId),
-          serviceName: service.serviceName,
-          duration: service.duration,
-          bufferTime: service.bufferTime || 0,
-          price: service.price,
-          preferredStaffId: service.preferredStaffId ? 
-            new Types.ObjectId(service.preferredStaffId) : undefined
-        }
-      }),
-      preferredDate: createBookingData.preferredDate,
-      preferredStartTime: createBookingData.preferredStartTime,
-      estimatedEndTime: createBookingData.estimatedEndTime,
-      totalDuration: createBookingData.totalDuration,
-      totalBufferTime: createBookingData.totalBufferTime || 0,
-      estimatedTotal: createBookingData.estimatedTotal,
-      clientName: createBookingData.clientName,
-      clientEmail: createBookingData.clientEmail,
-      clientPhone: createBookingData.clientPhone,
-      specialRequests: createBookingData.specialRequests,
-      bookingNotes: createBookingData.bookingNotes,
-      status: createBookingData.status || 'pending',
-      bookingSource: createBookingData.bookingSource || 'online',
-      expiresAt,
-      metadata: createBookingData.metadata || { platform: 'web' }
-    }
+      // Generate booking number
+      const bookingNumber = await this.generateBookingNumber(createBookingData.businessId)
 
-    console.log('💾 Saving booking data:', JSON.stringify(bookingData, null, 2))
+      // Set expiration time (30 minutes for payment)
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000)
 
-    // Create and save the booking
-    const savedBooking = await this.bookingModel.create(bookingData)
-    
-    console.log('✅ Booking saved with ID:', savedBooking._id)
-    
-    // Use lean() to get plain object without type complexity
-    const bookingResult = await this.bookingModel
-      .findById(savedBooking._id)
-      .lean<BookingDocument>()
-      .exec()
-    
-    if (!bookingResult) {
-      throw new Error('Failed to retrieve saved booking')
+      const bookingData = {
+        bookingNumber,
+        clientId: new Types.ObjectId(createBookingData.clientId),
+        businessId: new Types.ObjectId(createBookingData.businessId),
+        services: createBookingData.services.map((service: any) => {
+          console.log('📋 Mapping service:', service)
+          return {
+            serviceId: new Types.ObjectId(service.serviceId),
+            serviceName: service.serviceName,
+            duration: service.duration,
+            bufferTime: service.bufferTime || 0,
+            price: service.price,
+            quantity: service.quantity || 1, // Capture quantity for multi-person bookings
+            preferredStaffId: service.preferredStaffId ?
+              new Types.ObjectId(service.preferredStaffId) : undefined
+          }
+        }),
+        preferredDate: createBookingData.preferredDate,
+        preferredStartTime: createBookingData.preferredStartTime,
+        estimatedEndTime: createBookingData.estimatedEndTime,
+        totalDuration: createBookingData.totalDuration,
+        totalBufferTime: createBookingData.totalBufferTime || 0,
+        estimatedTotal: createBookingData.estimatedTotal,
+        clientName: createBookingData.clientName,
+        clientEmail: createBookingData.clientEmail,
+        clientPhone: createBookingData.clientPhone,
+        specialRequests: createBookingData.specialRequests,
+        bookingNotes: createBookingData.bookingNotes,
+        status: createBookingData.status || 'pending',
+        bookingSource: createBookingData.bookingSource || 'online',
+        expiresAt,
+        metadata: createBookingData.metadata || { platform: 'web' }
+      }
+
+      console.log('💾 Saving booking data:', JSON.stringify(bookingData, null, 2))
+
+      // Create and save the booking
+      const savedBooking = await this.bookingModel.create(bookingData)
+
+      console.log('✅ Booking saved with ID:', savedBooking._id)
+
+      // Use lean() to get plain object without type complexity
+      const bookingResult = await this.bookingModel
+        .findById(savedBooking._id)
+        .lean<BookingDocument>()
+        .exec()
+
+      if (!bookingResult) {
+        throw new Error('Failed to retrieve saved booking')
+      }
+
+      // Emit event for any listeners
+      this.eventEmitter.emit('booking.created', {
+        businessId: bookingResult.businessId.toString(),
+        booking: bookingResult
+      })
+
+      this.logger.log(`Booking created: ${bookingResult.bookingNumber} - Total: ₦${bookingResult.estimatedTotal}`)
+
+      return bookingResult
+    } catch (error) {
+      this.logger.error(`Failed to create booking: ${error.message}`)
+      this.logger.error(`Stack: ${error.stack}`)
+
+      // Additional debug info
+      if (error.name === 'ValidationError') {
+        this.logger.error('Validation errors:', JSON.stringify(error.errors, null, 2))
+      }
+
+      throw error
     }
-    
-    // Emit event for any listeners
-    this.eventEmitter.emit('booking.created', {
-      businessId: bookingResult.businessId.toString(),
-      booking: bookingResult
-    })
-    
-    this.logger.log(`Booking created: ${bookingResult.bookingNumber} - Total: ₦${bookingResult.estimatedTotal}`)
-    
-    return bookingResult
-  } catch (error) {
-    this.logger.error(`Failed to create booking: ${error.message}`)
-    this.logger.error(`Stack: ${error.stack}`)
-    
-    // Additional debug info
-    if (error.name === 'ValidationError') {
-      this.logger.error('Validation errors:', JSON.stringify(error.errors, null, 2))
-    }
-    
-    throw error
   }
-}
 
-// ADD THIS METHOD - Generate unique booking number
-private async generateBookingNumber(businessId: string): Promise<string> {
-  const today = new Date()
-  const datePrefix = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`
-  
-  // Count bookings for today
-  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
-  
-  const count = await this.bookingModel.countDocuments({
-    businessId: new Types.ObjectId(businessId),
-    createdAt: {
-      $gte: startOfDay,
-      $lt: endOfDay
-    }
-  }).exec()
-  
-  const sequence = (count + 1).toString().padStart(4, '0')
-  
-  return `BK-${datePrefix}-${sequence}`
-}
+  // ADD THIS METHOD - Generate unique booking number
+  private async generateBookingNumber(businessId: string): Promise<string> {
+    const today = new Date()
+    const datePrefix = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`
+
+    // Count bookings for today
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+
+    const count = await this.bookingModel.countDocuments({
+      businessId: new Types.ObjectId(businessId),
+      createdAt: {
+        $gte: startOfDay,
+        $lt: endOfDay
+      }
+    }).exec()
+
+    const sequence = (count + 1).toString().padStart(4, '0')
+
+    return `BK-${datePrefix}-${sequence}`
+  }
 
   // async getBookingById(bookingId: string): Promise<BookingDocument> {
   //   const booking = await this.bookingModel
@@ -142,161 +143,161 @@ private async generateBookingNumber(businessId: string): Promise<string> {
   //   return booking
   // }
 
-  
+
 
   async getBookingById(bookingId: string): Promise<BookingDocument> {
-  try {
-    console.log('🔍 Looking for booking:', bookingId)
-    
-    // First, try to find the booking without populate
+    try {
+      console.log('🔍 Looking for booking:', bookingId)
+
+      // First, try to find the booking without populate
+      const booking = await this.bookingModel
+        .findById(bookingId)
+        .lean<BookingDocument>()
+        .exec()
+
+      if (!booking) {
+        console.log('❌ Booking not found:', bookingId)
+        throw new NotFoundException('Booking not found')
+      }
+
+      console.log('✅ Booking found:', booking.bookingNumber)
+      return booking
+
+    } catch (error) {
+      console.error('❌ Error fetching booking:', error.message)
+      throw new NotFoundException('Booking not found')
+    }
+  }
+
+
+  // Replace the getBookings method in booking.service.ts
+
+  async getBookings(query: GetBookingsDto & { businessId: string }): Promise<{
+    bookings: BookingDocument[]
+    total: number
+    page: number
+    limit: number
+  }> {
+    const filter: any = {
+      businessId: new Types.ObjectId(query.businessId)
+    }
+
+    if (query.clientId) {
+      filter.clientId = new Types.ObjectId(query.clientId)
+    }
+
+    if (query.status) {
+      // Handle both single status string and array of statuses
+      if (Array.isArray(query.status)) {
+        filter.status = { $in: query.status }
+      } else {
+        filter.status = query.status
+      }
+    }
+
+    if (query.startDate && query.endDate) {
+      filter.preferredDate = {
+        $gte: new Date(query.startDate),
+        $lte: new Date(query.endDate)
+      }
+    }
+
+    const limit = parseInt(query.limit) || 50
+    const offset = parseInt(query.offset) || 0
+    const page = Math.floor(offset / limit) + 1
+
+    // Execute queries - removed services.preferredStaffId populate
+    const bookings = await this.bookingModel
+      .find(filter)
+      .populate('services.serviceId', 'basicDetails pricingAndDuration')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(offset)
+      .lean<BookingDocument[]>()
+      .exec()
+
+    const total = await this.bookingModel.countDocuments(filter).exec()
+
+    return {
+      bookings,
+      total,
+      page,
+      limit
+    }
+  }
+
+  async updateBooking(
+    bookingId: string,
+    updateData: Partial<Booking>
+  ): Promise<BookingDocument> {
     const booking = await this.bookingModel
-      .findById(bookingId)
+      .findByIdAndUpdate(
+        bookingId,
+        {
+          $set: {
+            ...updateData,
+            updatedAt: new Date()
+          }
+        },
+        { new: true }
+      )
       .lean<BookingDocument>()
       .exec()
 
     if (!booking) {
-      console.log('❌ Booking not found:', bookingId)
       throw new NotFoundException('Booking not found')
     }
 
-    console.log('✅ Booking found:', booking.bookingNumber)
     return booking
-    
-  } catch (error) {
-    console.error('❌ Error fetching booking:', error.message)
-    throw new NotFoundException('Booking not found')
-  }
-}
-
-
-// Replace the getBookings method in booking.service.ts
-
-async getBookings(query: GetBookingsDto & { businessId: string }): Promise<{
-  bookings: BookingDocument[]
-  total: number
-  page: number
-  limit: number
-}> {
-  const filter: any = {
-    businessId: new Types.ObjectId(query.businessId)
   }
 
-  if (query.clientId) {
-    filter.clientId = new Types.ObjectId(query.clientId)
-  }
+  // Also fix getTodayBookings method
+  async getTodayBookings(businessId: string): Promise<BookingDocument[]> {
+    const today = new Date()
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
 
-  if (query.status) {
-    // Handle both single status string and array of statuses
-    if (Array.isArray(query.status)) {
-      filter.status = { $in: query.status }
-    } else {
-      filter.status = query.status
-    }
-  }
-
-  if (query.startDate && query.endDate) {
-    filter.preferredDate = {
-      $gte: new Date(query.startDate),
-      $lte: new Date(query.endDate)
-    }
-  }
-
-  const limit = parseInt(query.limit) || 50
-  const offset = parseInt(query.offset) || 0
-  const page = Math.floor(offset / limit) + 1
-
-  // Execute queries - removed services.preferredStaffId populate
-  const bookings = await this.bookingModel
-    .find(filter)
-    .populate('services.serviceId', 'basicDetails pricingAndDuration')
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .skip(offset)
-    .lean<BookingDocument[]>()
-    .exec()
-
-  const total = await this.bookingModel.countDocuments(filter).exec()
-
-  return {
-    bookings,
-    total,
-    page,
-    limit
-  }
-}
-
-async updateBooking(
-  bookingId: string,
-  updateData: Partial<Booking>
-): Promise<BookingDocument> {
-  const booking = await this.bookingModel
-    .findByIdAndUpdate(
-      bookingId,
-      {
-        $set: {
-          ...updateData,
-          updatedAt: new Date()
+    const bookings = await this.bookingModel
+      .find({
+        businessId: new Types.ObjectId(businessId),
+        preferredDate: {
+          $gte: startOfDay,
+          $lt: endOfDay
         }
-      },
-      { new: true }
-    )
-    .lean<BookingDocument>()
-    .exec()
+      })
+      .populate('services.serviceId', 'basicDetails pricingAndDuration')
+      .sort({ preferredStartTime: 1 })
+      .lean<BookingDocument[]>()
+      .exec()
 
-  if (!booking) {
-    throw new NotFoundException('Booking not found')
+    return bookings
   }
 
-  return booking
-}
+  // Fix getUpcomingBookings method
+  async getUpcomingBookings(
+    businessId: string,
+    days: number = 7
+  ): Promise<BookingDocument[]> {
+    const startDate = new Date()
+    const endDate = new Date()
+    endDate.setDate(endDate.getDate() + days)
 
-// Also fix getTodayBookings method
-async getTodayBookings(businessId: string): Promise<BookingDocument[]> {
-  const today = new Date()
-  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const bookings = await this.bookingModel
+      .find({
+        businessId: new Types.ObjectId(businessId),
+        status: { $in: ['confirmed', 'pending'] },
+        preferredDate: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      })
+      .populate('services.serviceId', 'basicDetails pricingAndDuration')
+      .sort({ preferredDate: 1, preferredStartTime: 1 })
+      .lean<BookingDocument[]>()
+      .exec()
 
-  const bookings = await this.bookingModel
-    .find({
-      businessId: new Types.ObjectId(businessId),
-      preferredDate: {
-        $gte: startOfDay,
-        $lt: endOfDay
-      }
-    })
-    .populate('services.serviceId', 'basicDetails pricingAndDuration')
-    .sort({ preferredStartTime: 1 })
-    .lean<BookingDocument[]>()
-    .exec()
-
-  return bookings
-}
-
-// Fix getUpcomingBookings method
-async getUpcomingBookings(
-  businessId: string,
-  days: number = 7
-): Promise<BookingDocument[]> {
-  const startDate = new Date()
-  const endDate = new Date()
-  endDate.setDate(endDate.getDate() + days)
-
-  const bookings = await this.bookingModel
-    .find({
-      businessId: new Types.ObjectId(businessId),
-      status: { $in: ['confirmed', 'pending'] },
-      preferredDate: {
-        $gte: startDate,
-        $lte: endDate
-      }
-    })
-    .populate('services.serviceId', 'basicDetails pricingAndDuration')
-    .sort({ preferredDate: 1, preferredStartTime: 1 })
-    .lean<BookingDocument[]>()
-    .exec()
-
-  return bookings
-}
+    return bookings
+  }
   // async getBookings(query: GetBookingsDto & { businessId: string }): Promise<{
   //   bookings: BookingDocument[]
   //   total: number
@@ -348,9 +349,9 @@ async getUpcomingBookings(
   // }
 
   async updateBookingStatus(
-    bookingId: string, 
-    status: string, 
-    updatedBy?: string, 
+    bookingId: string,
+    status: string,
+    updatedBy?: string,
     reason?: string
   ): Promise<BookingDocument> {
     const updateData: any = {
@@ -395,7 +396,7 @@ async getUpcomingBookings(
 
   async confirmBooking(bookingId: string, staffId: string, confirmedBy: string): Promise<BookingDocument> {
     const bookingDoc = await this.bookingModel.findById(bookingId).exec()
-    
+
     if (!bookingDoc) {
       throw new NotFoundException('Booking not found')
     }
@@ -435,7 +436,7 @@ async getUpcomingBookings(
 
   async rejectBooking(bookingId: string, reason: string, rejectedBy: string): Promise<void> {
     const bookingDoc = await this.bookingModel.findById(bookingId).exec()
-    
+
     if (!bookingDoc) {
       throw new NotFoundException('Booking not found')
     }
@@ -469,7 +470,7 @@ async getUpcomingBookings(
 
   async cancelBooking(bookingId: string, reason: string, cancelledBy: string): Promise<void> {
     const bookingDoc = await this.bookingModel.findById(bookingId).exec()
-    
+
     if (!bookingDoc) {
       throw new NotFoundException('Booking not found')
     }
@@ -577,11 +578,11 @@ async getUpcomingBookings(
     console.log('🔍 [GET CLIENT BOOKINGS] Input clientId:', clientId)
     console.log('🔍 [GET CLIENT BOOKINGS] Input clientId type:', typeof clientId)
     console.log('🔍 [GET CLIENT BOOKINGS] Status filter:', status)
-    
+
     // Convert string to ObjectId for comparison
     const clientObjectId = new Types.ObjectId(clientId)
     console.log('🔍 [GET CLIENT BOOKINGS] Converted to ObjectId:', clientObjectId.toString())
-    
+
     const filter: any = {
       clientId: clientObjectId
     }
@@ -622,7 +623,7 @@ async getUpcomingBookings(
     } else {
       console.log('⚠️ [GET CLIENT BOOKINGS] No bookings found for clientId:', clientId)
       console.log('⚠️ [GET CLIENT BOOKINGS] Searching with ObjectId:', clientObjectId.toString())
-      
+
       // Debug: Check all bookings in DB to help troubleshoot
       const allBookings = await this.bookingModel
         .find()
@@ -630,7 +631,7 @@ async getUpcomingBookings(
         .limit(10)
         .lean()
         .exec()
-      
+
       console.log('🔍 [DEBUG] Sample bookings in database:')
       allBookings.forEach(b => {
         console.log(`  - ${b.bookingNumber}: clientId=${b.clientId.toString()}, status=${(b as any).status}`)
@@ -713,7 +714,7 @@ async getUpcomingBookings(
 
   async extendBookingExpiry(bookingId: string, additionalMinutes: number = 30): Promise<BookingDocument> {
     const bookingDoc = await this.bookingModel.findById(bookingId).exec()
-    
+
     if (!bookingDoc) {
       throw new NotFoundException('Booking not found')
     }
@@ -723,7 +724,7 @@ async getUpcomingBookings(
     }
 
     const newExpiryTime = new Date(bookingDoc.expiresAt.getTime() + additionalMinutes * 60 * 1000)
-    
+
     // Use findByIdAndUpdate instead of save
     const booking = await this.bookingModel
       .findByIdAndUpdate(
@@ -835,7 +836,7 @@ async getUpcomingBookings(
           .findById(bookingId)
           .lean<BookingDocument>()
           .exec()
-        
+
         if (booking) {
           this.eventEmitter.emit('booking.payment.reminder', booking)
         }
@@ -857,7 +858,7 @@ async getUpcomingBookings(
   private calculateConversionRate(stats: any[]): number {
     const confirmedCount = stats.find(s => s._id === 'confirmed')?.count || 0
     const totalCount = stats.reduce((sum, s) => sum + s.count, 0)
-    
+
     return totalCount > 0 ? Math.round((confirmedCount / totalCount) * 100) : 0
   }
 }

@@ -8,10 +8,10 @@ export type BookingDocument = Booking & Document
 
 @Schema()
 export class BookingSource {
-  @Prop({ 
+  @Prop({
     required: true,
-    enum: ['marketplace', 'direct_link', 'qr_code', 'business_website', 
-           'google_search', 'social_media', 'referral', 'walk_in', 'phone']
+    enum: ['marketplace', 'direct_link', 'qr_code', 'business_website',
+      'google_search', 'social_media', 'referral', 'walk_in', 'phone']
   })
   sourceType: string
 
@@ -74,6 +74,9 @@ export class BookedService {
 
   @Prop({ required: true })
   price: number
+
+  @Prop({ default: 1, min: 1 })
+  quantity: number
 }
 
 @Schema()
@@ -219,6 +222,9 @@ export class Booking {
 
   @Prop()
   lastReminderAt: Date
+
+  @Prop({ type: [String], default: [] })
+  reminderTiersSent: string[]
 
   @Prop({ default: Date.now })
   createdAt: Date
