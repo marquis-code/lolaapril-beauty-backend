@@ -18,6 +18,38 @@ export class CampaignStats {
     clickedCount: number;
 }
 
+// Define nested schemas classes to avoid "type" key conflicts
+@Schema({ _id: false })
+class CampaignAudience {
+    @Prop({ type: String, enum: ['all', 'active_clients', 'specific_emails', 'query'], required: true })
+    type: string;
+
+    @Prop({ type: Object })
+    query?: any;
+
+    @Prop({ type: [String] })
+    specificEmails?: string[];
+}
+
+@Schema({ _id: false })
+class CampaignSchedule {
+    @Prop({ type: String, enum: ['now', 'scheduled', 'recurring'], required: true })
+    type: string;
+
+    @Prop({ type: Date })
+    scheduledAt?: Date;
+
+    @Prop({ type: String })
+    cronExpression?: string; // For recurring
+
+    @Prop({ type: String })
+    timezone?: string;
+}
+
+const CampaignAudienceSchema = SchemaFactory.createForClass(CampaignAudience);
+const CampaignScheduleSchema = SchemaFactory.createForClass(CampaignSchedule);
+
+
 @Schema({ timestamps: true })
 export class Campaign {
     @Prop({ type: Types.ObjectId, ref: 'Business', required: true, index: true })
@@ -30,40 +62,16 @@ export class Campaign {
     subject: string;
 
     @Prop({ required: true })
-    content: string; // HTML content or reference to template
+    content: string; // HTML content 
 
     @Prop()
     previewText: string;
 
-    @Prop({
-        type: {
-            type: { type: String, enum: ['all', 'active_clients', 'specific_emails', 'query'], required: true },
-            query: { type: Object }, // JSON for filtering
-            specificEmails: [{ type: String }],
-        },
-        required: true,
-    })
-    audience: {
-        type: 'all' | 'active_clients' | 'specific_emails' | 'query';
-        query?: any;
-        specificEmails?: string[];
-    };
+    @Prop({ type: CampaignAudienceSchema, required: true })
+    audience: CampaignAudience;
 
-    @Prop({
-        type: {
-            type: { type: String, enum: ['now', 'scheduled', 'recurring'], required: true },
-            scheduledAt: { type: Date },
-            cronExpression: { type: String },
-            timezone: { type: String },
-        },
-        required: true,
-    })
-    schedule: {
-        type: 'now' | 'scheduled' | 'recurring';
-        scheduledAt?: Date;
-        cronExpression?: string;
-        timezone?: string;
-    };
+    @Prop({ type: CampaignScheduleSchema, required: true })
+    schedule: CampaignSchedule;
 
     @Prop({
         type: String,
@@ -71,7 +79,7 @@ export class Campaign {
         default: 'draft',
         index: true,
     })
-    status: 'draft' | 'scheduled' | 'sending' | 'completed' | 'failed' | 'cancelled';
+    status: string;
 
     @Prop({ type: CampaignStats, default: {} })
     stats: CampaignStats;
