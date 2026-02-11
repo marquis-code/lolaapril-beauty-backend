@@ -168,6 +168,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "googleCallback", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)("google/token"),
     (0, swagger_1.ApiOperation)({ summary: "Authenticate with Google ID Token (for mobile/SPA)" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Google authentication successful" }),
@@ -243,6 +244,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getProfile", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Post)('refresh'),
     (0, swagger_1.ApiOperation)({ summary: 'Refresh access token' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Token refreshed successfully' }),

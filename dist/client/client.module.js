@@ -27,7 +27,7 @@ ClientModule = __decorate([
         ],
         controllers: [client_controller_1.ClientController],
         providers: [client_service_1.ClientService],
-        exports: [client_service_1.ClientService],
+        exports: [client_service_1.ClientService, mongoose_1.MongooseModule],
     })
 ], ClientModule);
 exports.ClientModule = ClientModule;

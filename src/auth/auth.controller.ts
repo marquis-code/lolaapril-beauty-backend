@@ -21,7 +21,7 @@ import { FirebaseAuthDto } from "./dto/firebase-auth.dto"
 @ApiTags("Authentication")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   // ========== FIREBASE AUTHENTICATION ==========
 
@@ -58,11 +58,11 @@ export class AuthController {
     try {
       // Process the Google user data
       const result = await this.authService.handleGoogleCallback(req.user, subdomain)
-      
+
       // Redirect to frontend with tokens
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001'
       const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}&user=${encodeURIComponent(JSON.stringify(result.user))}`
-      
+
       return res.redirect(redirectUrl)
     } catch (error) {
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001'
@@ -70,6 +70,7 @@ export class AuthController {
     }
   }
 
+  @Public()
   @Post("google/token")
   @ApiOperation({ summary: "Authenticate with Google ID Token (for mobile/SPA)" })
   @ApiResponse({ status: 200, description: "Google authentication successful" })
@@ -79,8 +80,8 @@ export class AuthController {
   }
 
   // ========== BUSINESS AUTHENTICATION ==========
-  
-    @Public()
+
+  @Public()
   @Post("business/register")
   @ApiOperation({ summary: "Register a new business with owner account" })
   @ApiResponse({ status: 201, description: "Business registered successfully" })
@@ -89,7 +90,7 @@ export class AuthController {
     return this.authService.registerBusiness(registerDto)
   }
 
-    @Public()
+  @Public()
   @Post("business/login")
   @ApiOperation({ summary: "Login as business owner" })
   @ApiResponse({ status: 200, description: "Business login successful" })
@@ -100,7 +101,7 @@ export class AuthController {
 
   // ========== STANDARD USER AUTHENTICATION ==========
 
-    @Public()
+  @Public()
   @Post("register")
   @ApiOperation({ summary: "Register a new user" })
   @ApiResponse({ status: 201, description: "User registered successfully" })
@@ -109,7 +110,7 @@ export class AuthController {
     return this.authService.register(registerDto)
   }
 
-    @Public()
+  @Public()
   @Post("login")
   @ApiOperation({ summary: "Login user" })
   @ApiResponse({ status: 200, description: "User logged in successfully" })
@@ -135,9 +136,9 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
   async getProfile(@CurrentUser() user: RequestWithUser['user']) {
     const userProfile = await this.authService.validateUser(user.sub)
-    
+
     const response: any = { user: userProfile }
-    
+
     // Include business context if available
     if (user.businessId && user.subdomain) {
       response.businessContext = {
@@ -145,10 +146,11 @@ export class AuthController {
         subdomain: user.subdomain,
       }
     }
-    
+
     return response
   }
 
+  @Public()
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
@@ -224,7 +226,7 @@ export class AuthController {
   }
 
   // ========== EXAMPLE: BUSINESS-SPECIFIC ENDPOINT ==========
-  
+
   /**
    * Example endpoint showing how to use BusinessContext decorator
    * This endpoint requires business authentication
@@ -257,73 +259,73 @@ export class AuthController {
     }
   }
 
-// ========== BUSINESS CONTEXT MANAGEMENT ==========
+  // ========== BUSINESS CONTEXT MANAGEMENT ==========
 
-@Post('switch-business')
-@ApiBearerAuth()
-@ApiOperation({ 
-  summary: 'Switch active business context',
-  description: 'Change the current business context and get new tokens'
-})
-@ApiResponse({ status: 200, description: 'Business context switched successfully' })
-@ApiResponse({ status: 403, description: 'Not authorized for this business' })
-@ApiResponse({ status: 404, description: 'Business not found' })
-async switchBusiness(
-  @CurrentUser() user: RequestWithUser['user'],
-  @Body() switchBusinessDto: SwitchBusinessDto
-) {
-  return this.authService.switchBusiness(user.sub, switchBusinessDto.businessId)
-}
+  @Post('switch-business')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Switch active business context',
+    description: 'Change the current business context and get new tokens'
+  })
+  @ApiResponse({ status: 200, description: 'Business context switched successfully' })
+  @ApiResponse({ status: 403, description: 'Not authorized for this business' })
+  @ApiResponse({ status: 404, description: 'Business not found' })
+  async switchBusiness(
+    @CurrentUser() user: RequestWithUser['user'],
+    @Body() switchBusinessDto: SwitchBusinessDto
+  ) {
+    return this.authService.switchBusiness(user.sub, switchBusinessDto.businessId)
+  }
 
-@Get('businesses')
-@ApiBearerAuth()
-@ApiOperation({ 
-  summary: 'Get all businesses user has access to',
-  description: 'Returns list of businesses where user is owner, admin, or staff'
-})
-@ApiResponse({ status: 200, description: 'Businesses retrieved successfully' })
-async getUserBusinesses(@CurrentUser() user: RequestWithUser['user']) {
-  return this.authService.getUserBusinesses(user.sub)
-}
+  @Get('businesses')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get all businesses user has access to',
+    description: 'Returns list of businesses where user is owner, admin, or staff'
+  })
+  @ApiResponse({ status: 200, description: 'Businesses retrieved successfully' })
+  async getUserBusinesses(@CurrentUser() user: RequestWithUser['user']) {
+    return this.authService.getUserBusinesses(user.sub)
+  }
 
-@Post('clear-business-context')
-@ApiBearerAuth()
-@ApiOperation({ 
-  summary: 'Clear business context (switch to client mode)',
-  description: 'Remove business context from session and get new tokens'
-})
-@ApiResponse({ status: 200, description: 'Business context cleared successfully' })
-async clearBusinessContext(@CurrentUser() user: RequestWithUser['user']) {
-  return this.authService.clearBusinessContext(user.sub)
-}
+  @Post('clear-business-context')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Clear business context (switch to client mode)',
+    description: 'Remove business context from session and get new tokens'
+  })
+  @ApiResponse({ status: 200, description: 'Business context cleared successfully' })
+  async clearBusinessContext(@CurrentUser() user: RequestWithUser['user']) {
+    return this.authService.clearBusinessContext(user.sub)
+  }
 
-@Post('business/add')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiOperation({ 
-  summary: 'Add a new business under existing user account',
-  description: 'Allows authenticated user to create additional business without registering new account'
-})
-@ApiResponse({ status: 201, description: 'Business added successfully' })
-@ApiResponse({ status: 409, description: 'Subdomain already taken' })
-@ApiResponse({ status: 401, description: 'Unauthorized' })
-async addBusiness(
-  @CurrentUser() user: RequestWithUser['user'],
-  @Body() addBusinessDto: AddBusinessDto
-) {
-  return this.authService.addBusinessToUser(user.sub, addBusinessDto)
-}
+  @Post('business/add')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Add a new business under existing user account',
+    description: 'Allows authenticated user to create additional business without registering new account'
+  })
+  @ApiResponse({ status: 201, description: 'Business added successfully' })
+  @ApiResponse({ status: 409, description: 'Subdomain already taken' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async addBusiness(
+    @CurrentUser() user: RequestWithUser['user'],
+    @Body() addBusinessDto: AddBusinessDto
+  ) {
+    return this.authService.addBusinessToUser(user.sub, addBusinessDto)
+  }
 
   // ========== PASSWORD RESET ==========
 
   @Public()
   @Post('forgot-password')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Request password reset OTP',
     description: 'Sends a 6-digit OTP to the user\'s email if the account exists (valid for 15 minutes)'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Password reset OTP sent (or account not found)',
     schema: {
       example: {
@@ -338,12 +340,12 @@ async addBusiness(
 
   @Public()
   @Post('verify-reset-otp')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Verify password reset OTP',
     description: 'Check if a 6-digit OTP is valid and not expired'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'OTP validation result',
     schema: {
       example: {
@@ -358,12 +360,12 @@ async addBusiness(
 
   @Public()
   @Post('reset-password')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Reset password with valid OTP',
     description: 'Updates the user\'s password using a valid 6-digit OTP'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Password reset successful',
     schema: {
       example: {

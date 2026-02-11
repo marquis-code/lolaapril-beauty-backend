@@ -2,7 +2,9 @@ export declare class EmailTemplatesService {
     private readonly brandColor;
     private readonly brandDark;
     private readonly brandLight;
+    private readonly brandAccent;
     private readonly frontendUrl;
+    private readonly defaultLogoUrl;
     private wrapInLayout;
     private ctaButton;
     private serviceTable;
@@ -23,6 +25,7 @@ export declare class EmailTemplatesService {
         businessName: string;
         businessPhone?: string;
         specialRequests?: string;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;
@@ -40,6 +43,7 @@ export declare class EmailTemplatesService {
         businessName: string;
         businessAddress?: string;
         reminderTier: string;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;
@@ -50,6 +54,7 @@ export declare class EmailTemplatesService {
         businessName: string;
         appointmentId: string;
         businessId: string;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;
@@ -59,6 +64,7 @@ export declare class EmailTemplatesService {
         serviceName: string;
         businessName: string;
         businessId: string;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;
@@ -82,6 +88,7 @@ export declare class EmailTemplatesService {
         requestedTime?: string;
         totalAmount: number;
         requestId: string;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;
@@ -98,6 +105,7 @@ export declare class EmailTemplatesService {
         confirmedTime: string;
         totalAmount: number;
         paymentLink: string;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;
@@ -111,6 +119,7 @@ export declare class EmailTemplatesService {
         suggestedTime: string;
         businessNotes?: string;
         requestId: string;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;
@@ -124,6 +133,7 @@ export declare class EmailTemplatesService {
             time: string;
             appointmentId: string;
         }>;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;
@@ -135,6 +145,7 @@ export declare class EmailTemplatesService {
         saleNumber: string;
         totalAmount: number;
         completedAt: string;
+        logoUrl?: string;
     }): {
         subject: string;
         html: string;

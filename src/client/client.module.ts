@@ -40,6 +40,6 @@ import { AuthModule } from "../auth/auth.module"
   ],
   controllers: [ClientController],
   providers: [ClientService],
-  exports: [ClientService],
+  exports: [ClientService, MongooseModule],
 })
-export class ClientModule {}
+export class ClientModule { }

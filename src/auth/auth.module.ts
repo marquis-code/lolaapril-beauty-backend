@@ -45,7 +45,7 @@ import { FirebaseService } from './services/firebase.service'
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '15m' },
+        signOptions: { expiresIn: '24h' },
       }),
       inject: [ConfigService],
     }),
@@ -55,11 +55,11 @@ import { FirebaseService } from './services/firebase.service'
     // Services
     AuthService,
     FirebaseService,
-    
+
     // Strategies
     JwtStrategy,
     GoogleStrategy,
-    
+
     // Guards
     JwtAuthGuard,
     ValidateBusinessAccessGuard,
@@ -67,7 +67,7 @@ import { FirebaseService } from './services/firebase.service'
     BusinessRolesGuard,
     RolesGuard,
     OptionalAuthGuard,
-    
+
     // Reflector for guards
     Reflector,
   ],
@@ -75,7 +75,7 @@ import { FirebaseService } from './services/firebase.service'
     // Export service for other modules
     AuthService,
     FirebaseService,
-    
+
     // Export guards for manual use if needed
     JwtAuthGuard,
     ValidateBusinessAccessGuard,
@@ -85,4 +85,4 @@ import { FirebaseService } from './services/firebase.service'
     OptionalAuthGuard,
   ],
 })
-export class AuthModule {}
+export class AuthModule { }

@@ -58,6 +58,7 @@ const subscription_module_1 = require("./subscription/subscription.module");
 const migrations_module_1 = require("./migrations/migrations.module");
 const review_module_1 = require("./review/review.module");
 const mobile_spa_module_1 = require("./mobile-spa/mobile-spa.module");
+const campaign_module_1 = require("./campaign/campaign.module");
 let AppModule = class AppModule {
     constructor() {
         console.log('🚀 Application Module Initialized');
@@ -266,6 +267,7 @@ AppModule = __decorate([
             migrations_module_1.MigrationsModule,
             review_module_1.ReviewModule,
             mobile_spa_module_1.MobileSpaModule,
+            campaign_module_1.CampaignModule,
         ],
         providers: [
             {

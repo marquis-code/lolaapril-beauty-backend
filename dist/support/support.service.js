@@ -202,7 +202,6 @@ let SupportService = class SupportService {
         for (const ticket of breachedTickets) {
             ticket.sla.breached = true;
             await ticket.save();
-            console.log(`SLA breached for ticket ${ticket.ticketNumber}`);
         }
         return breachedTickets.length;
     }
