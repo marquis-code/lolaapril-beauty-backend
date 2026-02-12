@@ -31,6 +31,12 @@ export class PaystackService implements IPaymentGateway {
       console.log('✅ Paystack: Using backend-generated reference:', metadata.reference);
     }
 
+    // ✅ REDIRECT URL: If explicitly provided, use it for this transaction
+    if (metadata.callback_url) {
+      payload.callback_url = metadata.callback_url;
+      console.log('✅ Paystack: Using custom callback URL:', metadata.callback_url);
+    }
+
     // ✅ SUBACCOUNT SPLIT: If business has a subaccount, use it for automatic splitting
     if (metadata.subaccount) {
       payload.subaccount = metadata.subaccount;

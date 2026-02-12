@@ -188,13 +188,16 @@ export class ConsultationService {
         await booking.save();
 
         // Initialize Paystack Payment
-        // We need the client's email for Paystack
         const populatedBooking = await booking.populate('clientId');
         const clientEmail = (populatedBooking.clientId as any).email;
+
+        const frontendUrl = process.env.FRONTEND_URL || 'https://lolaapril.com';
+        const callback_url = `${frontendUrl}/consultation-success?reference=${paymentReference}`;
 
         const payment = await this.gatewayManager.processPayment('paystack', pkg.price, {
             email: clientEmail,
             reference: paymentReference,
+            callback_url,
             metadata: {
                 bookingId: booking._id,
                 type: 'consultation',
