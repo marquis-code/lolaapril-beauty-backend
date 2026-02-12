@@ -192,7 +192,7 @@ export class ConsultationService {
         const clientEmail = (populatedBooking.clientId as any).email;
 
         const frontendUrl = process.env.FRONTEND_URL || 'https://lolaapril.com';
-        const callback_url = `${frontendUrl}/consultation-success?reference=${paymentReference}`;
+        const callback_url = `${frontendUrl}/consultation-success`;
 
         const payment = await this.gatewayManager.processPayment('paystack', pkg.price, {
             email: clientEmail,
