@@ -760,9 +760,6 @@ export class NotificationService {
     const { subject, html } = this.emailTemplatesService.consultationConfirmation(data);
 
     await this.emailService.sendEmail(data.clientEmail, subject, html);
-
-    // Minimal log - we're skipping full notification log for now for simplicity, 
-    // but in production, we should log it.
   }
 
   async sendConsultationReminder(clientId: string, businessId: string, data: any): Promise<void> {
@@ -780,6 +777,16 @@ export class NotificationService {
     if (!preferences.appointment_reminder.email) return;
 
     const { subject, html } = this.emailTemplatesService.consultationThankYou(data);
+
+    await this.emailService.sendEmail(data.clientEmail, subject, html);
+  }
+
+  async sendMarketingFollowUp(clientId: string, businessId: string, data: any): Promise<void> {
+    const preferences = await this.getUserPreferences(clientId, businessId);
+    // Use promotional preference or fallback to reminder
+    if (preferences.promotional && !preferences.promotional.email) return;
+
+    const { subject, html } = this.emailTemplatesService.marketingFollowUp(data);
 
     await this.emailService.sendEmail(data.clientEmail, subject, html);
   }

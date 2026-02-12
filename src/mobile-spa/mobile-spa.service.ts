@@ -12,6 +12,7 @@ import { EmailService } from '../notification/email.service';
 import { EmailTemplatesService } from '../notification/templates/email-templates.service';
 import { ServiceService } from '../service/service.service';
 import { ServiceDocument } from '../service/schemas/service.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MobileSpaService {
@@ -22,6 +23,7 @@ export class MobileSpaService {
         private readonly emailService: EmailService,
         private readonly emailTemplatesService: EmailTemplatesService,
         private readonly serviceService: ServiceService, // Inject ServiceService
+        private readonly configService: ConfigService,
     ) { }
 
     async createRequest(
@@ -173,7 +175,7 @@ export class MobileSpaService {
                 }),
                 confirmedTime: request.requestedTime || 'TBD',
                 totalAmount: request.totalAmount,
-                paymentLink: dto.paymentLink || `${process.env.FRONTEND_URL}/pay/${requestId}`,
+                paymentLink: dto.paymentLink || `${this.configService.get('FRONTEND_URL')}/pay/${requestId}`,
             });
 
             await this.emailService.sendEmail(request.clientEmail, emailData.subject, emailData.html);

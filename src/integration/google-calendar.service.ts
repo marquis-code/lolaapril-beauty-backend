@@ -1,26 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { google } from 'googleapis';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Google Calendar integration service.
- * 
- * Prerequisites:
- *   1. Enable Google Calendar API in Google Cloud Console
- *   2. Create OAuth2 credentials
- *   3. Set GOOGLE_CALENDAR_CLIENT_ID, GOOGLE_CALENDAR_CLIENT_SECRET,
- *      GOOGLE_CALENDAR_REDIRECT_URI in .env
- * 
- * This is a stub implementation that logs operations.
- * To fully enable, install `googleapis` and configure OAuth2 flow.
  */
 @Injectable()
 export class GoogleCalendarService {
     private readonly logger = new Logger(GoogleCalendarService.name);
 
+    constructor(private readonly configService: ConfigService) { }
+
     private get isConfigured(): boolean {
         return !!(
-            process.env.GOOGLE_CALENDAR_CLIENT_ID &&
-            process.env.GOOGLE_CALENDAR_CLIENT_SECRET
+            this.configService.get('GOOGLE_CALENDAR_CLIENT_ID') &&
+            this.configService.get('GOOGLE_CALENDAR_CLIENT_SECRET')
         );
     }
 
@@ -29,9 +23,10 @@ export class GoogleCalendarService {
             throw new Error('Google Calendar is not configured with environment variables');
         }
         return new google.auth.OAuth2(
-            process.env.GOOGLE_CALENDAR_CLIENT_ID,
-            process.env.GOOGLE_CALENDAR_CLIENT_SECRET,
-            process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${process.env.FRONTEND_URL}/settings/integrations/google-callback`,
+            this.configService.get('GOOGLE_CALENDAR_CLIENT_ID'),
+            this.configService.get('GOOGLE_CALENDAR_CLIENT_SECRET'),
+            this.configService.get('GOOGLE_CALENDAR_REDIRECT_URI') ||
+            `${this.configService.get('FRONTEND_URL')}/settings/integrations/google-callback`,
         );
     }
 
@@ -95,6 +90,10 @@ export class GoogleCalendarService {
                 (ep) => ep.entryPointType === 'video',
             )?.uri || null;
 
+            if (data.createMeetLink && !meetLink) {
+                this.logger.warn(`⚠️ Meet link requested but not returned for event ${event.data.id}. Ensure 'conferenceDataVersion: 1' is set and permissions are correct.`);
+            }
+
             this.logger.log(`📅 Created calendar event: ${event.data.id} ${meetLink ? `with Meet: ${meetLink}` : ''}`);
             return {
                 eventId: event.data.id || null,
@@ -102,7 +101,7 @@ export class GoogleCalendarService {
                 meetLink
             };
         } catch (error) {
-            this.logger.error(`Failed to create calendar event: ${error.message}`);
+            this.logger.error(`❌ Failed to create calendar event: ${error.message}`);
             return { eventId: null, htmlLink: null, meetLink: null };
         }
     }

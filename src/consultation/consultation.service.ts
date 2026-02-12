@@ -14,6 +14,7 @@ import { GoogleCalendarService } from '../integration/google-calendar.service';
 import { NotificationService } from '../notification/notification.service';
 import { Integration, IntegrationDocument } from '../integration/schemas/integration.schema';
 import { GatewayManagerService } from '../integration/gateway-manager.service';
+import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -29,6 +30,7 @@ export class ConsultationService {
         private readonly googleCalendarService: GoogleCalendarService,
         private readonly notificationService: NotificationService,
         private readonly gatewayManager: GatewayManagerService,
+        private readonly configService: ConfigService,
     ) { }
 
     // ================== PACKAGE MANAGEMENT ==================
@@ -191,7 +193,7 @@ export class ConsultationService {
         const populatedBooking = await booking.populate('clientId');
         const clientEmail = (populatedBooking.clientId as any).email;
 
-        const frontendUrl = process.env.FRONTEND_URL || 'https://lolaapril.com';
+        const frontendUrl = this.configService.get('FRONTEND_URL') || 'https://lolaapril.com';
         const callback_url = `${frontendUrl}/consultation-success`;
 
         const payment = await this.gatewayManager.processPayment('paystack', pkg.price, {
@@ -310,13 +312,15 @@ export class ConsultationService {
             provider: 'google'
         }).exec();
 
-        return integration?.refreshToken || process.env.DEBUG_GOOGLE_REFRESH_TOKEN || null;
+        return integration?.refreshToken || this.configService.get('DEBUG_GOOGLE_REFRESH_TOKEN') || null;
     }
 
     private async sendConfirmationEmail(booking: any) {
         try {
             const client = booking.clientId as any;
             const pkg = booking.packageId as any;
+
+            const advice = this.getRandomSpaAdvice();
 
             await this.notificationService.sendConsultationConfirmation(
                 client._id.toString(),
@@ -327,8 +331,9 @@ export class ConsultationService {
                     packageName: pkg.name,
                     date: moment(booking.startTime).format('LL'),
                     time: moment(booking.startTime).format('LT'),
-                    meetLink: booking.meetingLink || 'To be provided',
+                    meetLink: booking.meetingLink || 'To be provided shortly via email',
                     businessName: 'Lola April Beauty',
+                    advice,
                 }
             );
 
@@ -336,6 +341,20 @@ export class ConsultationService {
         } catch (error) {
             this.logger.error(`Failed to send confirmation email: ${error.message}`);
         }
+    }
+
+    private getRandomSpaAdvice(): string {
+        const advices = [
+            "Hydration is key! Drink plenty of water to maintain that post-spa glow.",
+            "Take time for a 5-minute deep breathing exercise daily to reduce stress.",
+            "Protect your skin with SPF even on cloudy days to maintain its health.",
+            "A warm bath with Epsom salts can help relax your muscles after a long week.",
+            "Consistency in your skincare routine is better than a one-time miracle product.",
+            "Prioritize 7-8 hours of sleep for natural cellular repair and revitalization.",
+            "Gently exfoliate your skin twice a week to remove dead cells and improve texture.",
+            "Healthy eating reflects on your skin—incorporate more greens into your diet."
+        ];
+        return advices[Math.floor(Math.random() * advices.length)];
     }
 
     // ================== CRON METHODS ==================
@@ -415,12 +434,46 @@ export class ConsultationService {
                     clientEmail: client.email,
                     packageName: pkg.name,
                     businessName: 'Lola April Beauty',
+                    advice: this.getRandomSpaAdvice(),
                 }
             );
 
             booking.status = 'completed';
             booking.thankYouSent = true;
             await booking.save();
+        }
+    }
+
+    async sendMarketingFollowUps() {
+        const oneWeekAgo = moment().subtract(7, 'days').toDate();
+        const eightDaysAgo = moment().subtract(8, 'days').toDate();
+
+        // Find bookings that were completed exactly a week ago and haven't had a marketing follow-up
+        const bookings = await this.bookingModel.find({
+            status: 'completed',
+            updatedAt: { $gte: eightDaysAgo, $lte: oneWeekAgo },
+            marketingFollowUpSent: { $ne: true }
+        }).populate('clientId packageId');
+
+        for (const booking of bookings) {
+            const client = booking.clientId as any;
+            const pkg = booking.packageId as any;
+
+            this.logger.log(`Sending marketing follow-up to ${client.email}`);
+
+            await this.notificationService.sendMarketingFollowUp(
+                client._id.toString(),
+                booking.businessId.toString(),
+                {
+                    clientName: client.firstName || 'Client',
+                    clientEmail: client.email,
+                    packageName: pkg.name,
+                    businessName: 'Lola April Beauty',
+                }
+            );
+
+            booking.marketingFollowUpSent = true;
+            await (booking as any).save();
         }
     }
 }

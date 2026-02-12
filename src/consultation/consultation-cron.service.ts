@@ -14,13 +14,19 @@ export class ConsultationCronService {
         await this.consultationService.sendReminders();
     }
 
-    @Cron(CronExpression.EVERY_HOUR)
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     async handleThankYouEmails() {
-        this.logger.log('Running consultation thank-you emails cron...');
+        this.logger.log('Running daily task: Consultation Thank You Emails');
         await this.consultationService.sendThankYouEmails();
     }
 
-    @Cron('*/15 * * * *')
+    @Cron('0 10 * * 0') // Every Sunday at 10 AM
+    async handleMarketingFollowUps() {
+        this.logger.log('Running weekly task: Marketing Follow-up Emails');
+        await this.consultationService.sendMarketingFollowUps();
+    }
+
+    @Cron(CronExpression.EVERY_HOUR)
     async handleExpiredBookings() {
         this.logger.log('Running expired consultation bookings cleanup...');
         await this.consultationService.cleanupExpiredBookings();

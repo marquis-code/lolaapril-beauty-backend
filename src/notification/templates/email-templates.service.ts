@@ -637,6 +637,7 @@ export class EmailTemplatesService {
     time: string;
     meetLink: string;
     businessName: string;
+    advice?: string;
     logoUrl?: string;
   }): { subject: string; html: string } {
     const body = `
@@ -656,6 +657,12 @@ export class EmailTemplatesService {
           ${this.infoBox('Type', 'Virtual', '🌐')}
         </tr>
       </table>
+
+      ${data.advice ? `
+        <div style="padding:20px;background:#fff9c4;border-radius:12px;border-left:4px solid #fbc02d;margin-bottom:24px;">
+          <p style="margin:0 0 4px;font-size:12px;color:#f57f17;text-transform:uppercase;font-weight:700;">✨ SPA Health Wisdom</p>
+          <p style="margin:0;font-size:14px;color:#5d4037;line-height:1.5;font-style:italic;">"${data.advice}"</p>
+        </div>` : ''}
 
       <div style="padding:24px;background:${this.brandLight};border-radius:16px;text-align:center;margin-bottom:24px;border:1px dashed ${this.brandColor};">
         <h3 style="margin:0 0 8px;font-size:16px;color:${this.brandDark};">Meeting Link</h3>
@@ -723,6 +730,7 @@ export class EmailTemplatesService {
     clientName: string;
     packageName: string;
     businessName: string;
+    advice?: string;
     logoUrl?: string;
   }): { subject: string; html: string } {
     const body = `
@@ -735,6 +743,12 @@ export class EmailTemplatesService {
         It was a pleasure speaking with you today during your <strong>${data.packageName}</strong>.
         We hope the session provided the clarity and guidance you were looking for! ✨
       </p>
+
+      ${data.advice ? `
+        <div style="margin:24px 0;padding:20px;background:#f0fdf4;border-radius:12px;border-left:4px solid ${this.brandColor};">
+          <p style="margin:0 0 4px;font-size:12px;color:${this.brandDark};text-transform:uppercase;font-weight:700;">🌿 Pro-Tip for Your Wellness Journey</p>
+          <p style="margin:0;font-size:14px;color:#3a5a60;line-height:1.5;">"${data.advice}"</p>
+        </div>` : ''}
 
       <div style="margin:32px 0;padding:24px;background:linear-gradient(135deg,${this.brandLight} 0%,#d4eef1 100%);border-radius:16px;text-align:center;">
         <h3 style="margin:0 0 8px;font-size:18px;color:${this.brandDark};">Ready for the next step?</h3>
@@ -751,6 +765,43 @@ export class EmailTemplatesService {
     return {
       subject: `💖 Thank You for Your Consultation with ${data.businessName}`,
       html: this.wrapInLayout('Thank You', body, data.logoUrl),
+    };
+  }
+
+  // ================================================================
+  // MARKETING FOLLOW-UP
+  // ================================================================
+  marketingFollowUp(data: {
+    clientName: string;
+    packageName: string;
+    businessName: string;
+    logoUrl?: string;
+  }): { subject: string; html: string } {
+    const body = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <p style="font-size:48px;margin:0;">✨🌸</p>
+        <h2 style="margin:8px 0;font-size:24px;color:${this.brandDark};">Checking in on You!</h2>
+        <p style="margin:0;font-size:15px;color:#3a5a60;line-height:1.6;">How is your wellness journey going?</p>
+      </div>
+
+      <p style="font-size:15px;color:#3a5a60;line-height:1.6;">Hi <strong>${data.clientName}</strong>,</p>
+      <p style="font-size:15px;color:#3a5a60;line-height:1.6;">It's been a week since your consultation for <strong>${data.packageName}</strong>. We're checking in to see if you have any follow-up questions or if you're ready to start your recommended treatment plan.</p>
+
+      <div style="margin:32px 0;padding:24px;background:linear-gradient(135deg,#fff 0%,${this.brandLight} 100%);border-radius:16px;text-align:center;border:1px solid #cce5e9;">
+        <h3 style="margin:0 0 8px;font-size:18px;color:${this.brandDark};">Take the Next Step</h3>
+        <p style="margin:0 0 16px;font-size:14px;color:#3a5a60;line-height:1.5;">
+          Your path to radiant beauty and wellness is just a click away. Explore our menu of luxury services curated just for you.
+        </p>
+        ${this.ctaButton('Explore Spa Services', `${this.frontendUrl}`)}
+      </div>
+
+      <p style="margin:24px 0 0;font-size:13px;color:#5a7a80;text-align:center;line-height:1.6;">
+        "Invest in yourself. You are your longest commitment." 💆‍♀️
+      </p>`;
+
+    return {
+      subject: `✨ Checking in: How is your wellness journey, ${data.clientName}?`,
+      html: this.wrapInLayout('Marketing Follow-up', body, data.logoUrl),
     };
   }
 }

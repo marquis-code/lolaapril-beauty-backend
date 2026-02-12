@@ -72,6 +72,9 @@ export class ConsultationBooking {
     @Prop({ default: false })
     thankYouSent: boolean;
 
+    @Prop({ default: false })
+    marketingFollowUpSent: boolean;
+
     @Prop()
     notes: string;
 }
