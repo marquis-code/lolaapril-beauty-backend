@@ -10,18 +10,18 @@ import { CreateReviewDto } from './dto/create-review.dto';
 @Injectable()
 export class MarketplaceService {
   constructor(
-    @InjectModel(BusinessVerification.name) 
+    @InjectModel(BusinessVerification.name)
     private verificationModel: Model<BusinessVerificationDocument>,
-    @InjectModel(Review.name) 
+    @InjectModel(Review.name)
     private reviewModel: Model<ReviewDocument>,
-    @InjectModel(QualityMetric.name) 
+    @InjectModel(QualityMetric.name)
     private qualityMetricModel: Model<QualityMetricDocument>,
-  ) {}
+  ) { }
 
   // ========== BUSINESS VERIFICATION ==========
   async submitForVerification(businessId: string, documents: any) {
-    const existing = await this.verificationModel.findOne({ 
-      businessId: new Types.ObjectId(businessId) 
+    const existing = await this.verificationModel.findOne({
+      businessId: new Types.ObjectId(businessId)
     });
     if (existing) {
       throw new BadRequestException('Verification already submitted');
@@ -72,6 +72,13 @@ export class MarketplaceService {
       .exec();
   }
 
+  async getVerification(id: string) {
+    return this.verificationModel
+      .findById(id)
+      .populate('verifiedBy', 'firstName lastName')
+      .exec();
+  }
+
   async getPendingVerifications(page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 
@@ -84,8 +91,8 @@ export class MarketplaceService {
       .limit(limit)
       .exec();
 
-    const total = await this.verificationModel.countDocuments({ 
-      status: { $in: ['pending', 'in_review'] } 
+    const total = await this.verificationModel.countDocuments({
+      status: { $in: ['pending', 'in_review'] }
     });
 
     return {
@@ -352,32 +359,32 @@ export class MarketplaceService {
   // }
 
   async searchBusinesses(filters: {
-  location?: string;
-  category?: string;
-  minRating?: number;
-  verifiedOnly?: boolean;
-  page?: number;
-  limit?: number;
-}) {
-  const page = filters.page || 1;
-  const limit = filters.limit || 20;
+    location?: string;
+    category?: string;
+    minRating?: number;
+    verifiedOnly?: boolean;
+    page?: number;
+    limit?: number;
+  }) {
+    const page = filters.page || 1;
+    const limit = filters.limit || 20;
 
-  // ✅ FIX: Remove .lean().exec() and just use .lean()
-  const verifiedBusinessIds = await this.verificationModel
-    .find({ status: 'verified' })
-    .select('tenantId')
-    .lean() as any  // ✅ Type assertion instead of chaining .exec()
+    // ✅ FIX: Remove .lean().exec() and just use .lean()
+    const verifiedBusinessIds = await this.verificationModel
+      .find({ status: 'verified' })
+      .select('tenantId')
+      .lean() as any  // ✅ Type assertion instead of chaining .exec()
 
-  return {
-    businesses: [],
-    pagination: {
-      page,
-      limit,
-      total: 0,
-      pages: 0,
-    },
-  };
-}
+    return {
+      businesses: [],
+      pagination: {
+        page,
+        limit,
+        total: 0,
+        pages: 0,
+      },
+    };
+  }
 
   // ========== ANALYTICS ==========
   async getMarketplaceStats() {

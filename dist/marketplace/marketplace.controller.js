@@ -27,8 +27,17 @@ let MarketplaceController = class MarketplaceController {
     updateVerificationStatus(id, body) {
         return this.marketplaceService.updateVerificationStatus(id, body.status, body.verifiedBy, body.notes);
     }
+    getVerification(id) {
+        return this.marketplaceService.getVerification(id);
+    }
     getVerificationStatus(businessId) {
         return this.marketplaceService.getVerificationStatus(businessId);
+    }
+    getQualityScoreById(id) {
+        return this.marketplaceService.getBusinessQualityScore(id);
+    }
+    getQualityScore(businessId) {
+        return this.marketplaceService.getBusinessQualityScore(businessId);
     }
     getPendingVerifications(page, limit) {
         return this.marketplaceService.getPendingVerifications(page, limit);
@@ -78,12 +87,33 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MarketplaceController.prototype, "updateVerificationStatus", null);
 __decorate([
+    (0, common_1.Get)('verification/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MarketplaceController.prototype, "getVerification", null);
+__decorate([
     (0, common_1.Get)('verification'),
     __param(0, (0, business_context_decorator_1.BusinessId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], MarketplaceController.prototype, "getVerificationStatus", null);
+__decorate([
+    (0, common_1.Get)('quality/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MarketplaceController.prototype, "getQualityScoreById", null);
+__decorate([
+    (0, common_1.Get)('quality'),
+    __param(0, (0, business_context_decorator_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MarketplaceController.prototype, "getQualityScore", null);
 __decorate([
     (0, common_1.Get)('verification/pending'),
     __param(0, (0, common_1.Query)('page')),

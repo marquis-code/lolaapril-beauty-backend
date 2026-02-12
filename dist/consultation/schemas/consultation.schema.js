@@ -100,6 +100,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], ConsultationBooking.prototype, "thankYouSent", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], ConsultationBooking.prototype, "marketingFollowUpSent", void 0);
+__decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
 ], ConsultationBooking.prototype, "notes", void 0);

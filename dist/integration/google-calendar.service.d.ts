@@ -1,5 +1,8 @@
+import { ConfigService } from '@nestjs/config';
 export declare class GoogleCalendarService {
+    private readonly configService;
     private readonly logger;
+    constructor(configService: ConfigService);
     private get isConfigured();
     private get oauth2Client();
     createCalendarEvent(data: {

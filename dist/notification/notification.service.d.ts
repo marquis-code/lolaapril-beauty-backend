@@ -35,4 +35,5 @@ export declare class NotificationService {
     sendConsultationConfirmation(clientId: string, businessId: string, data: any): Promise<void>;
     sendConsultationReminder(clientId: string, businessId: string, data: any): Promise<void>;
     sendConsultationThankYou(clientId: string, businessId: string, data: any): Promise<void>;
+    sendMarketingFollowUp(clientId: string, businessId: string, data: any): Promise<void>;
 }

@@ -22,10 +22,11 @@ const google_calendar_service_1 = require("../integration/google-calendar.servic
 const notification_service_1 = require("../notification/notification.service");
 const integration_schema_1 = require("../integration/schemas/integration.schema");
 const gateway_manager_service_1 = require("../integration/gateway-manager.service");
+const config_1 = require("@nestjs/config");
 const moment = require("moment");
 const uuid_1 = require("uuid");
 let ConsultationService = ConsultationService_1 = class ConsultationService {
-    constructor(packageModel, bookingModel, availabilityModel, integrationModel, googleCalendarService, notificationService, gatewayManager) {
+    constructor(packageModel, bookingModel, availabilityModel, integrationModel, googleCalendarService, notificationService, gatewayManager, configService) {
         this.packageModel = packageModel;
         this.bookingModel = bookingModel;
         this.availabilityModel = availabilityModel;
@@ -33,6 +34,7 @@ let ConsultationService = ConsultationService_1 = class ConsultationService {
         this.googleCalendarService = googleCalendarService;
         this.notificationService = notificationService;
         this.gatewayManager = gatewayManager;
+        this.configService = configService;
         this.logger = new common_1.Logger(ConsultationService_1.name);
     }
     async createPackage(businessId, dto) {
@@ -149,9 +151,12 @@ let ConsultationService = ConsultationService_1 = class ConsultationService {
         await booking.save();
         const populatedBooking = await booking.populate('clientId');
         const clientEmail = populatedBooking.clientId.email;
+        const frontendUrl = this.configService.get('FRONTEND_URL') || 'https://lolaapril.com';
+        const callback_url = `${frontendUrl}/consultation-success`;
         const payment = await this.gatewayManager.processPayment('paystack', pkg.price, {
             email: clientEmail,
             reference: paymentReference,
+            callback_url,
             metadata: {
                 bookingId: booking._id,
                 type: 'consultation',
@@ -240,26 +245,41 @@ let ConsultationService = ConsultationService_1 = class ConsultationService {
             businessId: new mongoose_2.Types.ObjectId(businessId),
             provider: 'google'
         }).exec();
-        return integration?.refreshToken || process.env.DEBUG_GOOGLE_REFRESH_TOKEN || null;
+        return integration?.refreshToken || this.configService.get('DEBUG_GOOGLE_REFRESH_TOKEN') || null;
     }
     async sendConfirmationEmail(booking) {
         try {
             const client = booking.clientId;
             const pkg = booking.packageId;
+            const advice = this.getRandomSpaAdvice();
             await this.notificationService.sendConsultationConfirmation(client._id.toString(), booking.businessId.toString(), {
                 clientName: client.firstName || 'Client',
                 clientEmail: client.email,
                 packageName: pkg.name,
                 date: moment(booking.startTime).format('LL'),
                 time: moment(booking.startTime).format('LT'),
-                meetLink: booking.meetingLink || 'To be provided',
+                meetLink: booking.meetingLink || 'To be provided shortly via email',
                 businessName: 'Lola April Beauty',
+                advice,
             });
             this.logger.log(`✅ Confirmation email sent to ${client.email}`);
         }
         catch (error) {
             this.logger.error(`Failed to send confirmation email: ${error.message}`);
         }
+    }
+    getRandomSpaAdvice() {
+        const advices = [
+            "Hydration is key! Drink plenty of water to maintain that post-spa glow.",
+            "Take time for a 5-minute deep breathing exercise daily to reduce stress.",
+            "Protect your skin with SPF even on cloudy days to maintain its health.",
+            "A warm bath with Epsom salts can help relax your muscles after a long week.",
+            "Consistency in your skincare routine is better than a one-time miracle product.",
+            "Prioritize 7-8 hours of sleep for natural cellular repair and revitalization.",
+            "Gently exfoliate your skin twice a week to remove dead cells and improve texture.",
+            "Healthy eating reflects on your skin—incorporate more greens into your diet."
+        ];
+        return advices[Math.floor(Math.random() * advices.length)];
     }
     async sendReminders() {
         const now = new Date();
@@ -316,9 +336,32 @@ let ConsultationService = ConsultationService_1 = class ConsultationService {
                 clientEmail: client.email,
                 packageName: pkg.name,
                 businessName: 'Lola April Beauty',
+                advice: this.getRandomSpaAdvice(),
             });
             booking.status = 'completed';
             booking.thankYouSent = true;
+            await booking.save();
+        }
+    }
+    async sendMarketingFollowUps() {
+        const oneWeekAgo = moment().subtract(7, 'days').toDate();
+        const eightDaysAgo = moment().subtract(8, 'days').toDate();
+        const bookings = await this.bookingModel.find({
+            status: 'completed',
+            updatedAt: { $gte: eightDaysAgo, $lte: oneWeekAgo },
+            marketingFollowUpSent: { $ne: true }
+        }).populate('clientId packageId');
+        for (const booking of bookings) {
+            const client = booking.clientId;
+            const pkg = booking.packageId;
+            this.logger.log(`Sending marketing follow-up to ${client.email}`);
+            await this.notificationService.sendMarketingFollowUp(client._id.toString(), booking.businessId.toString(), {
+                clientName: client.firstName || 'Client',
+                clientEmail: client.email,
+                packageName: pkg.name,
+                businessName: 'Lola April Beauty',
+            });
+            booking.marketingFollowUpSent = true;
             await booking.save();
         }
     }
@@ -335,7 +378,8 @@ ConsultationService = ConsultationService_1 = __decorate([
         mongoose_2.Model,
         google_calendar_service_1.GoogleCalendarService,
         notification_service_1.NotificationService,
-        gateway_manager_service_1.GatewayManagerService])
+        gateway_manager_service_1.GatewayManagerService,
+        config_1.ConfigService])
 ], ConsultationService);
 exports.ConsultationService = ConsultationService;
 //# sourceMappingURL=consultation.service.js.map

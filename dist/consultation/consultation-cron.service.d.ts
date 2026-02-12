@@ -5,5 +5,6 @@ export declare class ConsultationCronService {
     constructor(consultationService: ConsultationService);
     handleReminders(): Promise<void>;
     handleThankYouEmails(): Promise<void>;
+    handleMarketingFollowUps(): Promise<void>;
     handleExpiredBookings(): Promise<void>;
 }

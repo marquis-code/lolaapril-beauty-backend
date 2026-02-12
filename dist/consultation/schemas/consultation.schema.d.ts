@@ -57,6 +57,7 @@ export declare class ConsultationBooking {
     paymentReference?: string;
     reminderSentCount: number;
     thankYouSent: boolean;
+    marketingFollowUpSent: boolean;
     notes: string;
 }
 export declare const ConsultationBookingSchema: import("mongoose").Schema<ConsultationBooking, import("mongoose").Model<ConsultationBooking, any, any, any, Document<unknown, any, ConsultationBooking, any, {}> & ConsultationBooking & {

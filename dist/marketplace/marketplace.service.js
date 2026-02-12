@@ -64,6 +64,12 @@ let MarketplaceService = class MarketplaceService {
             .populate('verifiedBy', 'firstName lastName')
             .exec();
     }
+    async getVerification(id) {
+        return this.verificationModel
+            .findById(id)
+            .populate('verifiedBy', 'firstName lastName')
+            .exec();
+    }
     async getPendingVerifications(page = 1, limit = 20) {
         const skip = (page - 1) * limit;
         const verifications = await this.verificationModel

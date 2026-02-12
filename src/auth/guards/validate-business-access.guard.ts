@@ -1,10 +1,10 @@
 
-import { 
-  Injectable, 
-  CanActivate, 
-  ExecutionContext, 
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
   UnauthorizedException,
-  ForbiddenException 
+  ForbiddenException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { InjectModel } from '@nestjs/mongoose'
@@ -49,7 +49,7 @@ export class ValidateBusinessAccessGuard implements CanActivate {
     private reflector: Reflector,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // ===== STEP 1: Skip if route is public =====
@@ -93,9 +93,9 @@ export class ValidateBusinessAccessGuard implements CanActivate {
       .findById(user.businessId)
       .select('_id businessName subdomain status')
       .lean<LeanBusiness>()
-    
+
     const business = await businessQuery.exec()
-    
+
     if (!business) {
       throw new UnauthorizedException(
         'Business not found. Your session may be outdated. Please login again.'
@@ -120,20 +120,28 @@ export class ValidateBusinessAccessGuard implements CanActivate {
       .findById(user.sub)
       .select('_id ownedBusinesses adminBusinesses staffBusinessId')
       .lean<LeanUser>()
-    
+
     const dbUser = await userQuery.exec()
-    
+
     if (!dbUser) {
       throw new UnauthorizedException('User not found')
     }
 
     // Check if user has access (owner, admin, or staff)
-    const hasAccess = 
+    const hasAccess =
       dbUser.ownedBusinesses?.some(id => id.toString() === user.businessId) ||
       dbUser.adminBusinesses?.some(id => id.toString() === user.businessId) ||
       dbUser.staffBusinessId?.toString() === user.businessId
 
     if (!hasAccess) {
+      console.error(`❌ Access Denied details:
+        User ID: ${user.sub}
+        Target Business ID: ${user.businessId}
+        Owned Businesses: ${dbUser.ownedBusinesses?.map(id => id.toString()).join(', ') || 'None'}
+        Admin Businesses: ${dbUser.adminBusinesses?.map(id => id.toString()).join(', ') || 'None'}
+        Staff Business ID: ${dbUser.staffBusinessId?.toString() || 'None'}
+      `)
+
       throw new ForbiddenException(
         'Access to this business has been revoked. Please refresh your session or contact your administrator.'
       )

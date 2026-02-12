@@ -5,24 +5,30 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 var GoogleCalendarService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoogleCalendarService = void 0;
 const common_1 = require("@nestjs/common");
 const googleapis_1 = require("googleapis");
+const config_1 = require("@nestjs/config");
 let GoogleCalendarService = GoogleCalendarService_1 = class GoogleCalendarService {
-    constructor() {
+    constructor(configService) {
+        this.configService = configService;
         this.logger = new common_1.Logger(GoogleCalendarService_1.name);
     }
     get isConfigured() {
-        return !!(process.env.GOOGLE_CALENDAR_CLIENT_ID &&
-            process.env.GOOGLE_CALENDAR_CLIENT_SECRET);
+        return !!(this.configService.get('GOOGLE_CALENDAR_CLIENT_ID') &&
+            this.configService.get('GOOGLE_CALENDAR_CLIENT_SECRET'));
     }
     get oauth2Client() {
         if (!this.isConfigured) {
             throw new Error('Google Calendar is not configured with environment variables');
         }
-        return new googleapis_1.google.auth.OAuth2(process.env.GOOGLE_CALENDAR_CLIENT_ID, process.env.GOOGLE_CALENDAR_CLIENT_SECRET, process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${process.env.FRONTEND_URL}/settings/integrations/google-callback`);
+        return new googleapis_1.google.auth.OAuth2(this.configService.get('GOOGLE_CALENDAR_CLIENT_ID'), this.configService.get('GOOGLE_CALENDAR_CLIENT_SECRET'), this.configService.get('GOOGLE_CALENDAR_REDIRECT_URI') ||
+            `${this.configService.get('FRONTEND_URL')}/settings/integrations/google-callback`);
     }
     async createCalendarEvent(data) {
         if (!this.isConfigured) {
@@ -62,6 +68,9 @@ let GoogleCalendarService = GoogleCalendarService_1 = class GoogleCalendarServic
                 conferenceDataVersion: data.createMeetLink ? 1 : 0,
             });
             const meetLink = event.data.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === 'video')?.uri || null;
+            if (data.createMeetLink && !meetLink) {
+                this.logger.warn(`⚠️ Meet link requested but not returned for event ${event.data.id}. Ensure 'conferenceDataVersion: 1' is set and permissions are correct.`);
+            }
             this.logger.log(`📅 Created calendar event: ${event.data.id} ${meetLink ? `with Meet: ${meetLink}` : ''}`);
             return {
                 eventId: event.data.id || null,
@@ -70,7 +79,7 @@ let GoogleCalendarService = GoogleCalendarService_1 = class GoogleCalendarServic
             };
         }
         catch (error) {
-            this.logger.error(`Failed to create calendar event: ${error.message}`);
+            this.logger.error(`❌ Failed to create calendar event: ${error.message}`);
             return { eventId: null, htmlLink: null, meetLink: null };
         }
     }
@@ -145,7 +154,8 @@ let GoogleCalendarService = GoogleCalendarService_1 = class GoogleCalendarServic
     }
 };
 GoogleCalendarService = GoogleCalendarService_1 = __decorate([
-    (0, common_1.Injectable)()
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [config_1.ConfigService])
 ], GoogleCalendarService);
 exports.GoogleCalendarService = GoogleCalendarService;
 //# sourceMappingURL=google-calendar.service.js.map

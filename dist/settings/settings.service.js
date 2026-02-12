@@ -136,8 +136,18 @@ let SettingsService = class SettingsService {
                 defaultCurrency: paymentDefaults.defaultCurrency,
                 timezone: business.settings?.timezone || 'Africa/Lagos'
             };
-            settings = new this.settingsModel(defaultSettings);
-            await settings.save();
+            try {
+                settings = new this.settingsModel(defaultSettings);
+                await settings.save();
+                console.log(`✅ Default settings created for business: ${business.businessName}`);
+            }
+            catch (error) {
+                console.error(`❌ Failed to create default settings for business ${businessId}:`, error);
+                if (error.name === 'ValidationError') {
+                    console.error('Validation Errors:', JSON.stringify(error.errors, null, 2));
+                }
+                throw new Error(`Failed to initialize business settings: ${error.message}`);
+            }
         }
         return settings;
     }

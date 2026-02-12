@@ -33,6 +33,10 @@ let PaystackService = class PaystackService {
             payload.reference = metadata.reference;
             console.log('✅ Paystack: Using backend-generated reference:', metadata.reference);
         }
+        if (metadata.callback_url) {
+            payload.callback_url = metadata.callback_url;
+            console.log('✅ Paystack: Using custom callback URL:', metadata.callback_url);
+        }
         if (metadata.subaccount) {
             payload.subaccount = metadata.subaccount;
             payload.transaction_charge = Math.round((metadata.platformFee || 0) * 100);

@@ -6,7 +6,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 
 @Controller('marketplace')
 export class MarketplaceController {
-  constructor(private readonly marketplaceService: MarketplaceService) {}
+  constructor(private readonly marketplaceService: MarketplaceService) { }
 
 
   @Post('verification')
@@ -28,9 +28,24 @@ export class MarketplaceController {
   }
 
 
+  @Get('verification/:id')
+  getVerification(@Param('id') id: string) {
+    return this.marketplaceService.getVerification(id);
+  }
+
   @Get('verification')
   getVerificationStatus(@BusinessId() businessId: string) {
     return this.marketplaceService.getVerificationStatus(businessId);
+  }
+
+  @Get('quality/:id')
+  getQualityScoreById(@Param('id') id: string) {
+    return this.marketplaceService.getBusinessQualityScore(id);
+  }
+
+  @Get('quality')
+  getQualityScore(@BusinessId() businessId: string) {
+    return this.marketplaceService.getBusinessQualityScore(businessId);
   }
 
   @Get('verification/pending')

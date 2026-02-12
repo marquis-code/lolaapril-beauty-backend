@@ -548,6 +548,13 @@ let NotificationService = class NotificationService {
         const { subject, html } = this.emailTemplatesService.consultationThankYou(data);
         await this.emailService.sendEmail(data.clientEmail, subject, html);
     }
+    async sendMarketingFollowUp(clientId, businessId, data) {
+        const preferences = await this.getUserPreferences(clientId, businessId);
+        if (preferences.promotional && !preferences.promotional.email)
+            return;
+        const { subject, html } = this.emailTemplatesService.marketingFollowUp(data);
+        await this.emailService.sendEmail(data.clientEmail, subject, html);
+    }
 };
 __decorate([
     (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_HOUR),

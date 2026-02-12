@@ -58,7 +58,7 @@
 //   async getAppointmentSettings(): Promise<any> {
 //     const settings = await this.settingsModel.findOne().exec()
 //     if (!settings) return null
-    
+
 //     return {
 //       appointmentStatuses: settings.appointmentStatuses,
 //       cancellationReasons: settings.cancellationReasons,
@@ -92,11 +92,11 @@
 //   async updateBusinessHours(businessHours: BusinessHours[]): Promise<BusinessSettings> {
 //     // Get the first/main business settings document
 //     let settings = await this.settingsModel.findOne()
-    
+
 //     if (!settings) {
 //       throw new NotFoundException("Business settings not found. Please create business settings first.")
 //     }
-    
+
 //     settings.businessHours = businessHours
 //     // Remove manual updatedAt assignment - timestamps: true handles this automatically
 //     return settings.save()
@@ -105,11 +105,11 @@
 //   // Update appointment settings - expects single parameter (appointment settings data)
 //   async updateAppointmentSettings(appointmentSettings: any): Promise<BusinessSettings> {
 //     let settings = await this.settingsModel.findOne()
-    
+
 //     if (!settings) {
 //       throw new NotFoundException("Business settings not found. Please create business settings first.")
 //     }
-    
+
 //     // Update appointment-related fields
 //     if (appointmentSettings.appointmentStatuses) {
 //       settings.appointmentStatuses = appointmentSettings.appointmentStatuses
@@ -129,7 +129,7 @@
 //     if (typeof appointmentSettings.requireClientConfirmation === 'boolean') {
 //       settings.requireClientConfirmation = appointmentSettings.requireClientConfirmation
 //     }
-    
+
 //     // Remove manual updatedAt assignment - timestamps: true handles this automatically
 //     return settings.save()
 //   }
@@ -137,7 +137,7 @@
 //   // Update payment settings
 //   async updatePaymentSettings(id: string, paymentSettings: any): Promise<BusinessSettings> {
 //     const updateData: any = {}
-    
+
 //     if (paymentSettings.paymentMethods) {
 //       updateData.paymentMethods = paymentSettings.paymentMethods
 //     }
@@ -153,11 +153,11 @@
 
 //     // Remove manual updatedAt from updateData - timestamps: true handles this automatically
 //     const settings = await this.settingsModel.findByIdAndUpdate(id, updateData, { new: true })
-    
+
 //     if (!settings) {
 //       throw new NotFoundException("Settings not found")
 //     }
-    
+
 //     return settings
 //   }
 
@@ -169,12 +169,12 @@
 //   // Create or get default business settings
 //   async getOrCreateBusinessSettings(): Promise<BusinessSettings> {
 //     let settings = await this.settingsModel.findOne().exec()
-    
+
 //     if (!settings) {
 //       // Create default settings - you'll need to provide required fields
 //       throw new Error("No business settings found. Please create business settings first.")
 //     }
-    
+
 //     return settings
 //   }
 // }
@@ -192,7 +192,7 @@ export class SettingsService {
   constructor(
     @InjectModel(BusinessSettings.name) private settingsModel: Model<BusinessSettingsDocument>,
     @InjectModel(Business.name) private businessModel: Model<BusinessDocument>
-  ) {}
+  ) { }
 
   // ==================== DEFAULT SETTINGS ====================
   private getDefaultBusinessHours(): BusinessHours[] {
@@ -258,7 +258,7 @@ export class SettingsService {
   async create(businessId: string, createSettingsDto: CreateBusinessSettingsDto): Promise<BusinessSettings> {
     // Check if settings already exist for this business
     const existingSettings = await this.settingsModel.findOne({ businessId: new Types.ObjectId(businessId) })
-    
+
     if (existingSettings) {
       throw new ConflictException("Settings already exist for this business. Use update endpoint instead.")
     }
@@ -267,18 +267,18 @@ export class SettingsService {
       ...createSettingsDto,
       businessId: new Types.ObjectId(businessId)
     })
-    
+
     return settings.save()
   }
 
   // ==================== READ ====================
   async findByBusinessId(businessId: string): Promise<BusinessSettings> {
     const settings = await this.settingsModel.findOne({ businessId: new Types.ObjectId(businessId) })
-    
+
     if (!settings) {
       throw new NotFoundException("Settings not found for this business")
     }
-    
+
     return settings
   }
 
@@ -294,11 +294,11 @@ export class SettingsService {
    */
   async findOrCreateDefault(businessId: string): Promise<BusinessSettings> {
     let settings = await this.settingsModel.findOne({ businessId: new Types.ObjectId(businessId) })
-    
+
     if (!settings) {
       // Fetch business info to populate required fields
       const business = await this.businessModel.findById(businessId)
-      
+
       if (!business) {
         throw new NotFoundException("Business not found")
       }
@@ -311,9 +311,9 @@ export class SettingsService {
         businessId: new Types.ObjectId(businessId),
         businessName: business.businessName || 'My Business',
         businessEmail: business.contact?.email || 'business@example.com',
-        businessPhone: { 
-          countryCode: '+234', 
-          number: business.contact?.primaryPhone || '0000000000' 
+        businessPhone: {
+          countryCode: '+234',
+          number: business.contact?.primaryPhone || '0000000000'
         },
         businessAddress: {
           street: business.address?.street || '',
@@ -336,10 +336,20 @@ export class SettingsService {
         timezone: business.settings?.timezone || 'Africa/Lagos'
       }
 
-      settings = new this.settingsModel(defaultSettings)
-      await settings.save()
+      try {
+        settings = new this.settingsModel(defaultSettings)
+        await settings.save()
+        console.log(`✅ Default settings created for business: ${business.businessName}`)
+      } catch (error) {
+        console.error(`❌ Failed to create default settings for business ${businessId}:`, error)
+        // If validation error, log specific details
+        if (error.name === 'ValidationError') {
+          console.error('Validation Errors:', JSON.stringify(error.errors, null, 2))
+        }
+        throw new Error(`Failed to initialize business settings: ${error.message}`)
+      }
     }
-    
+
     return settings
   }
 
@@ -350,11 +360,11 @@ export class SettingsService {
 
   async getAppointmentSettings(businessId: string): Promise<any> {
     const settings = await this.findByBusinessIdOrNull(businessId)
-    
+
     if (!settings) {
       return this.getDefaultAppointmentSettings()
     }
-    
+
     return {
       appointmentStatuses: settings.appointmentStatuses || this.getDefaultAppointmentSettings().appointmentStatuses,
       cancellationReasons: settings.cancellationReasons || this.getDefaultAppointmentSettings().cancellationReasons,
@@ -392,11 +402,11 @@ export class SettingsService {
       updateSettingsDto,
       { new: true, runValidators: true }
     )
-    
+
     if (!settings) {
       throw new NotFoundException("Settings not found for this business")
     }
-    
+
     return settings
   }
 
@@ -406,21 +416,21 @@ export class SettingsService {
       { businessHours },
       { new: true, runValidators: true }
     )
-    
+
     if (!settings) {
       throw new NotFoundException("Settings not found for this business")
     }
-    
+
     return settings
   }
 
   async updateAppointmentSettings(businessId: string, appointmentSettings: any): Promise<BusinessSettings> {
     const settings = await this.settingsModel.findOne({ businessId: new Types.ObjectId(businessId) })
-    
+
     if (!settings) {
       throw new NotFoundException("Settings not found for this business")
     }
-    
+
     // Update appointment-related fields
     if (appointmentSettings.appointmentStatuses) {
       settings.appointmentStatuses = appointmentSettings.appointmentStatuses
@@ -440,16 +450,16 @@ export class SettingsService {
     if (typeof appointmentSettings.requireClientConfirmation === 'boolean') {
       settings.requireClientConfirmation = appointmentSettings.requireClientConfirmation
     }
-    
+
     return settings.save()
   }
 
   // ==================== DELETE ====================
   async remove(businessId: string): Promise<void> {
-    const result = await this.settingsModel.findOneAndDelete({ 
-      businessId: new Types.ObjectId(businessId) 
+    const result = await this.settingsModel.findOneAndDelete({
+      businessId: new Types.ObjectId(businessId)
     })
-    
+
     if (!result) {
       throw new NotFoundException("Settings not found for this business")
     }
@@ -458,16 +468,16 @@ export class SettingsService {
   // ==================== HELPER METHODS ====================
   async getOrCreateBusinessSettings(businessId: string): Promise<BusinessSettings> {
     let settings = await this.settingsModel.findOne({ businessId: new Types.ObjectId(businessId) })
-    
+
     if (!settings) {
       throw new NotFoundException("No business settings found. Please create business settings first.")
     }
-    
+
     return settings
   }
 
   // ==================== LEGACY METHODS (for backward compatibility) ====================
-  
+
   async findAll(): Promise<BusinessSettings[]> {
     return this.settingsModel.find().exec()
   }
@@ -489,7 +499,7 @@ export class SettingsService {
   // Update payment settings by ID (legacy method)
   async updatePaymentSettings(id: string, paymentSettings: any): Promise<BusinessSettings> {
     const updateData: any = {}
-    
+
     if (paymentSettings.paymentMethods) {
       updateData.paymentMethods = paymentSettings.paymentMethods
     }
@@ -504,11 +514,11 @@ export class SettingsService {
     }
 
     const settings = await this.settingsModel.findByIdAndUpdate(id, updateData, { new: true })
-    
+
     if (!settings) {
       throw new NotFoundException("Settings not found")
     }
-    
+
     return settings
   }
 

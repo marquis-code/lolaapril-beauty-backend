@@ -43,10 +43,27 @@ export declare class MarketplaceController {
     }> & {
         __v: number;
     }>;
+    getVerification(id: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/business-verification.schema").BusinessVerificationDocument, {}, {}> & import("./schemas/business-verification.schema").BusinessVerification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }>;
     getVerificationStatus(businessId: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/business-verification.schema").BusinessVerificationDocument, {}, {}> & import("./schemas/business-verification.schema").BusinessVerification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;
+    }>;
+    getQualityScoreById(id: string): Promise<{
+        score: number;
+        metrics: {
+            responseRate: number;
+            avgResponseTime: number;
+            completionRate: number;
+            cancellationRate: number;
+            onTimeRate: number;
+        };
+        verificationLevel: string;
+        isVerified: boolean;
     }>;
     getPendingVerifications(page: number, limit: number): Promise<{
         verifications: (import("mongoose").Document<unknown, {}, import("./schemas/business-verification.schema").BusinessVerificationDocument, {}, {}> & import("./schemas/business-verification.schema").BusinessVerification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
@@ -107,18 +124,6 @@ export declare class MarketplaceController {
         completionRate: number;
         cancellationRate: number;
         onTimeRate: number;
-    }>;
-    getQualityScore(businessId: string): Promise<{
-        score: number;
-        metrics: {
-            responseRate: number;
-            avgResponseTime: number;
-            completionRate: number;
-            cancellationRate: number;
-            onTimeRate: number;
-        };
-        verificationLevel: string;
-        isVerified: boolean;
     }>;
     searchBusinesses(filters: any): Promise<{
         businesses: any[];

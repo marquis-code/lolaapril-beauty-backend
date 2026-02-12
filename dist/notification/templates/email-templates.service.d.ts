@@ -175,6 +175,7 @@ export declare class EmailTemplatesService {
         time: string;
         meetLink: string;
         businessName: string;
+        advice?: string;
         logoUrl?: string;
     }): {
         subject: string;
@@ -193,6 +194,16 @@ export declare class EmailTemplatesService {
         html: string;
     };
     consultationThankYou(data: {
+        clientName: string;
+        packageName: string;
+        businessName: string;
+        advice?: string;
+        logoUrl?: string;
+    }): {
+        subject: string;
+        html: string;
+    };
+    marketingFollowUp(data: {
         clientName: string;
         packageName: string;
         businessName: string;

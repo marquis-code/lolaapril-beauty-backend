@@ -30,6 +30,7 @@ import { GoogleCalendarService } from '../integration/google-calendar.service';
 import { NotificationService } from '../notification/notification.service';
 import { IntegrationDocument } from '../integration/schemas/integration.schema';
 import { GatewayManagerService } from '../integration/gateway-manager.service';
+import { ConfigService } from '@nestjs/config';
 export declare class ConsultationService {
     private packageModel;
     private bookingModel;
@@ -38,8 +39,9 @@ export declare class ConsultationService {
     private readonly googleCalendarService;
     private readonly notificationService;
     private readonly gatewayManager;
+    private readonly configService;
     private readonly logger;
-    constructor(packageModel: Model<ConsultationPackageDocument>, bookingModel: Model<ConsultationBookingDocument>, availabilityModel: Model<ConsultationAvailabilityDocument>, integrationModel: Model<IntegrationDocument>, googleCalendarService: GoogleCalendarService, notificationService: NotificationService, gatewayManager: GatewayManagerService);
+    constructor(packageModel: Model<ConsultationPackageDocument>, bookingModel: Model<ConsultationBookingDocument>, availabilityModel: Model<ConsultationAvailabilityDocument>, integrationModel: Model<IntegrationDocument>, googleCalendarService: GoogleCalendarService, notificationService: NotificationService, gatewayManager: GatewayManagerService, configService: ConfigService);
     createPackage(businessId: string, dto: CreateConsultationPackageDto): Promise<import("mongoose").Document<unknown, {}, ConsultationPackageDocument, {}, {}> & ConsultationPackage & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: Types.ObjectId;
     }> & {
@@ -112,7 +114,9 @@ export declare class ConsultationService {
     }>;
     private getBusinessCalendarRefreshToken;
     private sendConfirmationEmail;
+    private getRandomSpaAdvice;
     sendReminders(): Promise<void>;
     private sendReminderEmail;
     sendThankYouEmails(): Promise<void>;
+    sendMarketingFollowUps(): Promise<void>;
 }

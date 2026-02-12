@@ -73,6 +73,13 @@ let ValidateBusinessAccessGuard = class ValidateBusinessAccessGuard {
             dbUser.adminBusinesses?.some(id => id.toString() === user.businessId) ||
             dbUser.staffBusinessId?.toString() === user.businessId;
         if (!hasAccess) {
+            console.error(`❌ Access Denied details:
+        User ID: ${user.sub}
+        Target Business ID: ${user.businessId}
+        Owned Businesses: ${dbUser.ownedBusinesses?.map(id => id.toString()).join(', ') || 'None'}
+        Admin Businesses: ${dbUser.adminBusinesses?.map(id => id.toString()).join(', ') || 'None'}
+        Staff Business ID: ${dbUser.staffBusinessId?.toString() || 'None'}
+      `);
             throw new common_1.ForbiddenException('Access to this business has been revoked. Please refresh your session or contact your administrator.');
         }
         request.validatedBusiness = business;

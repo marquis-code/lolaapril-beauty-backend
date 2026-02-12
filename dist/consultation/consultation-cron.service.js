@@ -24,8 +24,12 @@ let ConsultationCronService = ConsultationCronService_1 = class ConsultationCron
         await this.consultationService.sendReminders();
     }
     async handleThankYouEmails() {
-        this.logger.log('Running consultation thank-you emails cron...');
+        this.logger.log('Running daily task: Consultation Thank You Emails');
         await this.consultationService.sendThankYouEmails();
+    }
+    async handleMarketingFollowUps() {
+        this.logger.log('Running weekly task: Marketing Follow-up Emails');
+        await this.consultationService.sendMarketingFollowUps();
     }
     async handleExpiredBookings() {
         this.logger.log('Running expired consultation bookings cleanup...');
@@ -39,13 +43,19 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ConsultationCronService.prototype, "handleReminders", null);
 __decorate([
-    (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_HOUR),
+    (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_DAY_AT_MIDNIGHT),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ConsultationCronService.prototype, "handleThankYouEmails", null);
 __decorate([
-    (0, schedule_1.Cron)('*/15 * * * *'),
+    (0, schedule_1.Cron)('0 10 * * 0'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ConsultationCronService.prototype, "handleMarketingFollowUps", null);
+__decorate([
+    (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_HOUR),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

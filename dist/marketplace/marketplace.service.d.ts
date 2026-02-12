@@ -48,6 +48,11 @@ export declare class MarketplaceService {
     }> & {
         __v: number;
     }>;
+    getVerification(id: string): Promise<import("mongoose").Document<unknown, {}, BusinessVerificationDocument, {}, {}> & BusinessVerification & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: Types.ObjectId;
+    }> & {
+        __v: number;
+    }>;
     getPendingVerifications(page?: number, limit?: number): Promise<{
         verifications: (import("mongoose").Document<unknown, {}, BusinessVerificationDocument, {}, {}> & BusinessVerification & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
             _id: Types.ObjectId;

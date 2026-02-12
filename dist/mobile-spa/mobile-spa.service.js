@@ -21,12 +21,14 @@ const mobile_spa_request_schema_1 = require("./schemas/mobile-spa-request.schema
 const email_service_1 = require("../notification/email.service");
 const email_templates_service_1 = require("../notification/templates/email-templates.service");
 const service_service_1 = require("../service/service.service");
+const config_1 = require("@nestjs/config");
 let MobileSpaService = MobileSpaService_1 = class MobileSpaService {
-    constructor(mobileSpaModel, emailService, emailTemplatesService, serviceService) {
+    constructor(mobileSpaModel, emailService, emailTemplatesService, serviceService, configService) {
         this.mobileSpaModel = mobileSpaModel;
         this.emailService = emailService;
         this.emailTemplatesService = emailTemplatesService;
         this.serviceService = serviceService;
+        this.configService = configService;
         this.logger = new common_1.Logger(MobileSpaService_1.name);
     }
     async createRequest(clientId, clientName, clientEmail, clientPhone, dto) {
@@ -145,7 +147,7 @@ let MobileSpaService = MobileSpaService_1 = class MobileSpaService {
                 }),
                 confirmedTime: request.requestedTime || 'TBD',
                 totalAmount: request.totalAmount,
-                paymentLink: dto.paymentLink || `${process.env.FRONTEND_URL}/pay/${requestId}`,
+                paymentLink: dto.paymentLink || `${this.configService.get('FRONTEND_URL')}/pay/${requestId}`,
             });
             await this.emailService.sendEmail(request.clientEmail, emailData.subject, emailData.html);
             this.logger.log(`✅ Mobile SPA acceptance email sent to ${request.clientEmail}`);
@@ -241,7 +243,8 @@ MobileSpaService = MobileSpaService_1 = __decorate([
     __metadata("design:paramtypes", [mongoose_2.Model,
         email_service_1.EmailService,
         email_templates_service_1.EmailTemplatesService,
-        service_service_1.ServiceService])
+        service_service_1.ServiceService,
+        config_1.ConfigService])
 ], MobileSpaService);
 exports.MobileSpaService = MobileSpaService;
 //# sourceMappingURL=mobile-spa.service.js.map
