@@ -11,9 +11,11 @@ export declare class GoogleCalendarService {
         location?: string;
         calendarId?: string;
         refreshToken: string;
+        createMeetLink?: boolean;
     }): Promise<{
         eventId: string | null;
         htmlLink: string | null;
+        meetLink: string | null;
     }>;
     updateCalendarEvent(eventId: string, data: {
         summary?: string;

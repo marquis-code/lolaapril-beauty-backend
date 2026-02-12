@@ -27,36 +27,51 @@ let GoogleCalendarService = GoogleCalendarService_1 = class GoogleCalendarServic
     async createCalendarEvent(data) {
         if (!this.isConfigured) {
             this.logger.warn('Google Calendar not configured. Skipping event creation.');
-            return { eventId: null, htmlLink: null };
+            return { eventId: null, htmlLink: null, meetLink: null };
         }
         try {
             const client = this.oauth2Client;
             client.setCredentials({ refresh_token: data.refreshToken });
             const calendar = googleapis_1.google.calendar({ version: 'v3', auth: client });
+            const requestBody = {
+                summary: data.summary,
+                description: data.description,
+                start: { dateTime: data.startDateTime.toISOString() },
+                end: { dateTime: data.endDateTime.toISOString() },
+                attendees: data.attendeeEmail ? [{ email: data.attendeeEmail }] : [],
+                location: data.location,
+                reminders: {
+                    useDefault: false,
+                    overrides: [
+                        { method: 'email', minutes: 60 },
+                        { method: 'popup', minutes: 30 },
+                    ],
+                },
+            };
+            if (data.createMeetLink) {
+                requestBody.conferenceData = {
+                    createRequest: {
+                        requestId: Math.random().toString(36).substring(7),
+                        conferenceSolutionKey: { type: 'hangoutsMeet' },
+                    },
+                };
+            }
             const event = await calendar.events.insert({
                 calendarId: data.calendarId || 'primary',
-                requestBody: {
-                    summary: data.summary,
-                    description: data.description,
-                    start: { dateTime: data.startDateTime.toISOString() },
-                    end: { dateTime: data.endDateTime.toISOString() },
-                    attendees: data.attendeeEmail ? [{ email: data.attendeeEmail }] : [],
-                    location: data.location,
-                    reminders: {
-                        useDefault: false,
-                        overrides: [
-                            { method: 'email', minutes: 60 },
-                            { method: 'popup', minutes: 30 },
-                        ],
-                    },
-                },
+                requestBody,
+                conferenceDataVersion: data.createMeetLink ? 1 : 0,
             });
-            this.logger.log(`📅 Created calendar event: ${event.data.id}`);
-            return { eventId: event.data.id || null, htmlLink: event.data.htmlLink || null };
+            const meetLink = event.data.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === 'video')?.uri || null;
+            this.logger.log(`📅 Created calendar event: ${event.data.id} ${meetLink ? `with Meet: ${meetLink}` : ''}`);
+            return {
+                eventId: event.data.id || null,
+                htmlLink: event.data.htmlLink || null,
+                meetLink
+            };
         }
         catch (error) {
             this.logger.error(`Failed to create calendar event: ${error.message}`);
-            return { eventId: null, htmlLink: null };
+            return { eventId: null, htmlLink: null, meetLink: null };
         }
     }
     async updateCalendarEvent(eventId, data) {

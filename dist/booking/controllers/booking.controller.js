@@ -111,6 +111,18 @@ let BookingController = class BookingController {
         }
         return this.bookingService.updateBookingStatus(bookingId, statusDto.status, context.userId, statusDto.reason);
     }
+    async completeBooking(bookingId, context) {
+        const booking = await this.bookingService.getBookingById(bookingId);
+        if (booking.businessId.toString() !== context.businessId) {
+            return { success: false, message: 'Access denied' };
+        }
+        const completedBooking = await this.bookingService.completeBooking(bookingId, context.userId);
+        return {
+            success: true,
+            message: 'Booking completed successfully',
+            data: completedBooking
+        };
+    }
     async rejectBooking(bookingId, context, body) {
         const booking = await this.bookingService.getBookingById(bookingId);
         if (booking.businessId.toString() !== context.businessId) {
@@ -315,6 +327,21 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, update_booking_dto_1.UpdateBookingStatusDto]),
     __metadata("design:returntype", Promise)
 ], BookingController.prototype, "updateBookingStatus", null);
+__decorate([
+    (0, auth_1.ValidateBusiness)(),
+    (0, common_1.Post)(':id/complete'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Mark booking as completed',
+        description: 'Marks a confirmed booking as completed and triggers sale creation'
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Booking completed successfully' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, auth_1.BusinessContext)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], BookingController.prototype, "completeBooking", null);
 __decorate([
     (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)(':id/reject'),

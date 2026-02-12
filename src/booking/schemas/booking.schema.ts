@@ -94,6 +94,27 @@ export class BookingMetadata {
   platform: string
 }
 
+@Schema()
+export class BookingLocation {
+  @Prop({ required: true })
+  address: string
+
+  @Prop()
+  city?: string
+
+  @Prop()
+  state?: string
+
+  @Prop()
+  zipCode?: string
+
+  @Prop()
+  latitude?: number
+
+  @Prop()
+  longitude?: number
+}
+
 @Schema({ timestamps: true })
 export class Booking {
   @Prop({ default: false })
@@ -141,6 +162,19 @@ export class Booking {
   @Prop({ required: true, unique: true })
   bookingNumber: string
 
+  @Prop({
+    required: true,
+    enum: ['standard', 'mobile_spa'],
+    default: 'standard'
+  })
+  bookingType: string
+
+  @Prop({ type: BookingLocation })
+  location?: BookingLocation
+
+  @Prop({ default: 1 })
+  numberOfPeople: number
+
   @Prop({ type: [BookedService], required: true })
   services: BookedService[]
 
@@ -185,6 +219,7 @@ export class Booking {
     enum: [
       'pending',
       'confirmed',
+      'completed',
       'cancelled',
       'expired',
       'payment_failed',
@@ -225,6 +260,9 @@ export class Booking {
 
   @Prop({ type: [String], default: [] })
   reminderTiersSent: string[]
+
+  @Prop({ default: false })
+  rebookReminderSent: boolean
 
   @Prop({ default: Date.now })
   createdAt: Date

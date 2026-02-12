@@ -478,6 +478,97 @@ let EmailTemplatesService = class EmailTemplatesService {
             html: this.wrapInLayout('Request Received', body, data.logoUrl),
         };
     }
+    consultationConfirmation(data) {
+        const body = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <p style="font-size:48px;margin:0;">📅💻</p>
+        <h2 style="margin:8px 0;font-size:24px;color:${this.brandDark};">Consultation Confirmed!</h2>
+        <p style="margin:0;font-size:15px;color:#3a5a60;line-height:1.6;">Your virtual session is all set.</p>
+      </div>
+
+      <p style="font-size:15px;color:#3a5a60;line-height:1.6;">Hi <strong>${data.clientName}</strong>,</p>
+      <p style="font-size:15px;color:#3a5a60;line-height:1.6;">Your virtual consultation for <strong>${data.packageName}</strong> with <strong>${data.businessName}</strong> has been confirmed.</p>
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="8" style="margin:24px 0;">
+        <tr>
+          ${this.infoBox('Date', data.date, '📅')}
+          ${this.infoBox('Time', data.time, '🕐')}
+          ${this.infoBox('Type', 'Virtual', '🌐')}
+        </tr>
+      </table>
+
+      <div style="padding:24px;background:${this.brandLight};border-radius:16px;text-align:center;margin-bottom:24px;border:1px dashed ${this.brandColor};">
+        <h3 style="margin:0 0 8px;font-size:16px;color:${this.brandDark};">Meeting Link</h3>
+        <p style="margin:0 0 16px;font-size:14px;color:#5a7a80;">Click the button below to join the call at the scheduled time.</p>
+        ${this.ctaButton('Join Google Meet', data.meetLink)}
+      </div>
+
+      <p style="margin:24px 0 0;font-size:13px;color:#5a7a80;text-align:center;line-height:1.5;">
+        Please ensure you have a stable internet connection and are in a quiet place for your session.
+      </p>`;
+        return {
+            subject: `✨ Virtual Consultation Confirmed — ${data.packageName} | Lola April`,
+            html: this.wrapInLayout('Consultation Confirmed', body, data.logoUrl),
+        };
+    }
+    consultationReminder(data) {
+        const body = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <p style="font-size:48px;margin:0;">🔔💻</p>
+        <h2 style="margin:8px 0;font-size:24px;color:${this.brandDark};">Reminder: Virtual Consultation</h2>
+        <p style="margin:0;font-size:15px;color:#3a5a60;line-height:1.6;">Your session starts soon!</p>
+      </div>
+
+      <p style="font-size:15px;color:#3a5a60;line-height:1.6;">Hi <strong>${data.clientName}</strong>,</p>
+      <p style="font-size:15px;color:#3a5a60;line-height:1.6;">This is a friendly reminder for your upcoming virtual consultation.</p>
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="8" style="margin:24px 0;">
+        <tr>
+          ${this.infoBox('Date', data.date, '📅')}
+          ${this.infoBox('Time', data.time, '🕐')}
+          ${this.infoBox('Mode', 'Virtual', '🌐')}
+        </tr>
+      </table>
+
+      <div style="padding:20px;background:#f0f9ff;border-radius:12px;border-left:4px solid ${this.brandColor};margin-bottom:24px;">
+        <p style="margin:0 0 4px;font-size:12px;color:${this.brandDark};text-transform:uppercase;">Quick Tip</p>
+        <p style="margin:0;font-size:14px;color:#3a5a60;">Logging in 5 minutes early helps ensure your audio and video are working perfectly.</p>
+      </div>
+
+      ${this.ctaButton('Join Google Meet Now', data.meetLink)}`;
+        return {
+            subject: `🔔 Reminder: Your Virtual Consultation is Coming Up!`,
+            html: this.wrapInLayout('Consultation Reminder', body, data.logoUrl),
+        };
+    }
+    consultationThankYou(data) {
+        const body = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <p style="font-size:56px;margin:0;">💖</p>
+        <h2 style="margin:8px 0;font-size:26px;color:${this.brandDark};">Thank You, ${data.clientName}!</h2>
+      </div>
+
+      <p style="font-size:15px;color:#3a5a60;line-height:1.8;text-align:center;">
+        It was a pleasure speaking with you today during your <strong>${data.packageName}</strong>.
+        We hope the session provided the clarity and guidance you were looking for! ✨
+      </p>
+
+      <div style="margin:32px 0;padding:24px;background:linear-gradient(135deg,${this.brandLight} 0%,#d4eef1 100%);border-radius:16px;text-align:center;">
+        <h3 style="margin:0 0 8px;font-size:18px;color:${this.brandDark};">Ready for the next step?</h3>
+        <p style="margin:0 0 16px;font-size:14px;color:#3a5a60;line-height:1.5;">
+          You can now book your recommended services directly through our platform.
+        </p>
+        ${this.ctaButton('Book a Service', `${this.frontendUrl}/services`)}
+      </div>
+
+      <p style="font-size:14px;color:#5a7a80;text-align:center;line-height:1.6;">
+        We look forward to seeing you in person soon! 💆‍♀️
+      </p>`;
+        return {
+            subject: `💖 Thank You for Your Consultation with ${data.businessName}`,
+            html: this.wrapInLayout('Thank You', body, data.logoUrl),
+        };
+    }
 };
 EmailTemplatesService = __decorate([
     (0, common_1.Injectable)()

@@ -74,6 +74,39 @@ let SalesService = class SalesService {
         });
         return sale.save();
     }
+    async createFromBooking(booking, businessId) {
+        const saleNumber = `SALE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const items = booking.services.map((service) => ({
+            itemType: 'service',
+            itemId: service.serviceId?.toString(),
+            itemName: service.serviceName || 'Service',
+            quantity: service.quantity || 1,
+            unitPrice: service.price || 0,
+            totalPrice: (service.price || 0) * (service.quantity || 1),
+            discount: 0,
+            tax: 0,
+        }));
+        const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
+        const sale = new this.saleModel({
+            saleNumber,
+            businessId,
+            clientId: booking.clientId,
+            bookingId: booking._id,
+            appointmentId: booking.appointmentId,
+            items,
+            subtotal: totalAmount,
+            totalAmount,
+            amountPaid: totalAmount,
+            amountDue: 0,
+            paymentStatus: 'paid',
+            status: 'completed',
+            createdBy: booking.processedBy || booking.clientId,
+            completedBy: booking.processedBy || booking.clientId,
+            completedAt: new Date(),
+            notes: `Auto-generated from completed booking ${booking.bookingNumber}`,
+        });
+        return sale.save();
+    }
     async findAll(businessId) {
         try {
             const sales = await this.saleModel

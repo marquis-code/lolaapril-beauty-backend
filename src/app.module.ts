@@ -54,6 +54,7 @@ import { MigrationsModule } from './migrations/migrations.module';
 import { ReviewModule } from './review/review.module';
 import { MobileSpaModule } from './mobile-spa/mobile-spa.module';
 import { CampaignModule } from './campaign/campaign.module';
+import { ConsultationModule } from './consultation/consultation.module';
 
 @Module({
   imports: [
@@ -319,6 +320,7 @@ import { CampaignModule } from './campaign/campaign.module';
     ReviewModule,
     MobileSpaModule,
     CampaignModule,
+    ConsultationModule,
   ],
 
   providers: [

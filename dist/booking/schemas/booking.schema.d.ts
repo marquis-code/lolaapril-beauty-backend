@@ -57,6 +57,14 @@ export declare class BookingMetadata {
     referrer: string;
     platform: string;
 }
+export declare class BookingLocation {
+    address: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    latitude?: number;
+    longitude?: number;
+}
 export declare class Booking {
     requiresDeposit: boolean;
     depositAmount: number;
@@ -73,6 +81,9 @@ export declare class Booking {
     businessId: Types.ObjectId;
     totalBufferTime: number;
     bookingNumber: string;
+    bookingType: string;
+    location?: BookingLocation;
+    numberOfPeople: number;
     services: BookedService[];
     preferredDate: Date;
     preferredStartTime: string;
@@ -97,6 +108,7 @@ export declare class Booking {
     remindersSent: number;
     lastReminderAt: Date;
     reminderTiersSent: string[];
+    rebookReminderSent: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

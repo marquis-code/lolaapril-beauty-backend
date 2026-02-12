@@ -1,12 +1,43 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { RealtimeGateway } from '../gateways/realtime.gateway'
+import { SalesService } from '../../sales/sales.service'
 
 @Injectable()
 export class NotificationEventListener {
   private readonly logger = new Logger(NotificationEventListener.name)
 
-  constructor(private realtimeGateway: RealtimeGateway) {}
+  constructor(
+    private realtimeGateway: RealtimeGateway,
+    private salesService: SalesService
+  ) { }
+
+  /**
+   * Listen for booking completion to trigger sales creation
+   */
+  @OnEvent('booking.completed')
+  async handleBookingCompleted(payload: { booking: any; completedBy?: string }) {
+    this.logger.log(`✅ Booking completed event received for ${payload.booking.bookingNumber}`)
+
+    // 1. Send notification to business
+    const notification = {
+      type: 'booking',
+      subType: 'completed',
+      title: 'Booking Completed',
+      message: `Booking ${payload.booking.bookingNumber} marked as completed`,
+      data: payload.booking,
+      timestamp: new Date(),
+    }
+    this.realtimeGateway.emitNotificationToBusiness(payload.booking.businessId.toString(), notification)
+
+    // 2. Auto-generate sale record
+    try {
+      await this.salesService.createFromBooking(payload.booking, payload.booking.businessId.toString())
+      this.logger.log(`💰 Sale auto-generated for booking ${payload.booking.bookingNumber}`)
+    } catch (error) {
+      this.logger.error(`❌ Failed to auto-generate sale for booking ${payload.booking.bookingNumber}: ${error.message}`)
+    }
+  }
 
   /**
    * Listen for audit log creation and emit as notification
@@ -14,7 +45,7 @@ export class NotificationEventListener {
   @OnEvent('audit.created')
   handleAuditCreated(payload: { businessId: string; auditLog: any }) {
     this.logger.log(`📢 Audit event received for business ${payload.businessId}`)
-    
+
     // Emit audit notification to business via WebSocket
     this.realtimeGateway.emitAuditNotification(payload.businessId, payload.auditLog)
   }
@@ -25,7 +56,7 @@ export class NotificationEventListener {
   @OnEvent('booking.created')
   handleBookingCreated(payload: { businessId: string; booking: any }) {
     this.logger.log(`📅 New booking created for business ${payload.businessId}`)
-    
+
     const notification = {
       type: 'booking',
       subType: 'created',
@@ -44,7 +75,7 @@ export class NotificationEventListener {
   @OnEvent('booking.status-changed')
   handleBookingStatusChanged(payload: { businessId: string; booking: any; oldStatus: string; newStatus: string }) {
     this.logger.log(`📝 Booking status changed for business ${payload.businessId}`)
-    
+
     const notification = {
       type: 'booking',
       subType: 'status-changed',
@@ -63,7 +94,7 @@ export class NotificationEventListener {
   @OnEvent('payment.received')
   handlePaymentReceived(payload: { businessId: string; payment: any }) {
     this.logger.log(`💰 Payment received for business ${payload.businessId}`)
-    
+
     const notification = {
       type: 'payment',
       subType: 'received',
@@ -82,7 +113,7 @@ export class NotificationEventListener {
   @OnEvent('client.created')
   handleClientCreated(payload: { businessId: string; client: any }) {
     this.logger.log(`👤 New client created for business ${payload.businessId}`)
-    
+
     const notification = {
       type: 'client',
       subType: 'created',
@@ -101,7 +132,7 @@ export class NotificationEventListener {
   @OnEvent('appointment.reminder')
   handleAppointmentReminder(payload: { businessId: string; appointment: any }) {
     this.logger.log(`⏰ Appointment reminder for business ${payload.businessId}`)
-    
+
     const notification = {
       type: 'appointment',
       subType: 'reminder',
@@ -120,7 +151,7 @@ export class NotificationEventListener {
   @OnEvent('staff.availability-changed')
   handleStaffAvailabilityChanged(payload: { businessId: string; staff: any; isAvailable: boolean }) {
     this.logger.log(`👨‍💼 Staff availability changed for business ${payload.businessId}`)
-    
+
     const notification = {
       type: 'staff',
       subType: 'availability-changed',
@@ -139,7 +170,7 @@ export class NotificationEventListener {
   @OnEvent('inventory.low-stock')
   handleLowStockAlert(payload: { businessId: string; product: any }) {
     this.logger.log(`📦 Low stock alert for business ${payload.businessId}`)
-    
+
     const notification = {
       type: 'inventory',
       subType: 'low-stock',
@@ -159,7 +190,7 @@ export class NotificationEventListener {
   @OnEvent('system.alert')
   handleSystemAlert(payload: { businessId: string; alert: any }) {
     this.logger.log(`⚠️ System alert for business ${payload.businessId}`)
-    
+
     const notification = {
       type: 'system',
       subType: 'alert',

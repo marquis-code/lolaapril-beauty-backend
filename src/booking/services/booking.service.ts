@@ -49,6 +49,9 @@ export class BookingService {
               new Types.ObjectId(service.preferredStaffId) : undefined
           }
         }),
+        bookingType: createBookingData.bookingType || 'standard',
+        location: createBookingData.location,
+        numberOfPeople: createBookingData.numberOfPeople || 1,
         preferredDate: createBookingData.preferredDate,
         preferredStartTime: createBookingData.preferredStartTime,
         estimatedEndTime: createBookingData.estimatedEndTime,
@@ -356,7 +359,7 @@ export class BookingService {
   ): Promise<BookingDocument> {
     const updateData: any = {
       status,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }
 
     if (updatedBy) {
@@ -386,10 +389,50 @@ export class BookingService {
       booking,
       previousStatus: booking.status,
       newStatus: status,
-      updatedBy
+      updatedBy,
     })
 
     this.logger.log(`Booking ${booking.bookingNumber} status changed to ${status}`)
+
+    return booking
+  }
+
+  async completeBooking(bookingId: string, completedBy?: string): Promise<BookingDocument> {
+    const bookingDoc = await this.bookingModel.findById(bookingId).exec()
+
+    if (!bookingDoc) {
+      throw new NotFoundException('Booking not found')
+    }
+
+    if (bookingDoc.status !== 'confirmed') {
+      throw new BadRequestException('Can only complete confirmed bookings')
+    }
+
+    bookingDoc.status = 'completed'
+    bookingDoc.updatedAt = new Date()
+
+    if (completedBy) {
+      bookingDoc.processedBy = new Types.ObjectId(completedBy)
+    }
+
+    await bookingDoc.save()
+
+    const booking = await this.bookingModel
+      .findById(bookingId)
+      .lean<BookingDocument>()
+      .exec()
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found after save')
+    }
+
+    // Emit completed event
+    this.eventEmitter.emit('booking.completed', {
+      booking,
+      completedBy,
+    })
+
+    this.logger.log(`Booking ${booking.bookingNumber} marked as completed`)
 
     return booking
   }
@@ -426,7 +469,7 @@ export class BookingService {
     this.eventEmitter.emit('booking.confirmed', {
       booking,
       staffId,
-      confirmedBy
+      confirmedBy,
     })
 
     this.logger.log(`Booking ${booking.bookingNumber} confirmed by staff ${confirmedBy}`)
@@ -462,7 +505,7 @@ export class BookingService {
     this.eventEmitter.emit('booking.rejected', {
       booking,
       reason,
-      rejectedBy
+      rejectedBy,
     })
 
     this.logger.log(`Booking ${booking?.bookingNumber} rejected: ${reason}`)
@@ -497,7 +540,7 @@ export class BookingService {
     this.eventEmitter.emit('booking.cancelled', {
       booking,
       reason,
-      cancelledBy
+      cancelledBy,
     })
 
     this.logger.log(`Booking ${booking?.bookingNumber} cancelled: ${reason}`)

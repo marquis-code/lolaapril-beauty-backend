@@ -168,4 +168,37 @@ export declare class EmailTemplatesService {
         subject: string;
         html: string;
     };
+    consultationConfirmation(data: {
+        clientName: string;
+        packageName: string;
+        date: string;
+        time: string;
+        meetLink: string;
+        businessName: string;
+        logoUrl?: string;
+    }): {
+        subject: string;
+        html: string;
+    };
+    consultationReminder(data: {
+        clientName: string;
+        packageName: string;
+        date: string;
+        time: string;
+        meetLink: string;
+        businessName: string;
+        logoUrl?: string;
+    }): {
+        subject: string;
+        html: string;
+    };
+    consultationThankYou(data: {
+        clientName: string;
+        packageName: string;
+        businessName: string;
+        logoUrl?: string;
+    }): {
+        subject: string;
+        html: string;
+    };
 }

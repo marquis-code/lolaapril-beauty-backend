@@ -1,8 +1,14 @@
 import { RealtimeGateway } from '../gateways/realtime.gateway';
+import { SalesService } from '../../sales/sales.service';
 export declare class NotificationEventListener {
     private realtimeGateway;
+    private salesService;
     private readonly logger;
-    constructor(realtimeGateway: RealtimeGateway);
+    constructor(realtimeGateway: RealtimeGateway, salesService: SalesService);
+    handleBookingCompleted(payload: {
+        booking: any;
+        completedBy?: string;
+    }): Promise<void>;
     handleAuditCreated(payload: {
         businessId: string;
         auditLog: any;

@@ -19,6 +19,7 @@ const booking_schema_1 = require("./schemas/booking.schema");
 const booking_events_1 = require("./events/booking.events");
 const source_tracking_service_1 = require("./services/source-tracking.service");
 const client_reliability_service_1 = require("./services/client-reliability.service");
+const booking_cron_service_1 = require("./services/booking-cron.service");
 const client_reliability_schema_1 = require("./schemas/client-reliability.schema");
 const availability_module_1 = require("../availability/availability.module");
 const business_module_1 = require("../business/business.module");
@@ -63,7 +64,8 @@ BookingModule = __decorate([
             booking_orchestrator_service_1.BookingOrchestrator,
             booking_events_1.BookingEventHandler,
             source_tracking_service_1.SourceTrackingService,
-            client_reliability_service_1.ClientReliabilityService
+            client_reliability_service_1.ClientReliabilityService,
+            booking_cron_service_1.BookingCronService
         ],
         exports: [
             booking_service_1.BookingService,

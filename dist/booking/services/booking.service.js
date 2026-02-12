@@ -48,6 +48,9 @@ let BookingService = BookingService_1 = class BookingService {
                             new mongoose_2.Types.ObjectId(service.preferredStaffId) : undefined
                     };
                 }),
+                bookingType: createBookingData.bookingType || 'standard',
+                location: createBookingData.location,
+                numberOfPeople: createBookingData.numberOfPeople || 1,
                 preferredDate: createBookingData.preferredDate,
                 preferredStartTime: createBookingData.preferredStartTime,
                 estimatedEndTime: createBookingData.estimatedEndTime,
@@ -219,7 +222,7 @@ let BookingService = BookingService_1 = class BookingService {
     async updateBookingStatus(bookingId, status, updatedBy, reason) {
         const updateData = {
             status,
-            updatedAt: new Date()
+            updatedAt: new Date(),
         };
         if (updatedBy) {
             updateData.processedBy = new mongoose_2.Types.ObjectId(updatedBy);
@@ -244,9 +247,37 @@ let BookingService = BookingService_1 = class BookingService {
             booking,
             previousStatus: booking.status,
             newStatus: status,
-            updatedBy
+            updatedBy,
         });
         this.logger.log(`Booking ${booking.bookingNumber} status changed to ${status}`);
+        return booking;
+    }
+    async completeBooking(bookingId, completedBy) {
+        const bookingDoc = await this.bookingModel.findById(bookingId).exec();
+        if (!bookingDoc) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        if (bookingDoc.status !== 'confirmed') {
+            throw new common_1.BadRequestException('Can only complete confirmed bookings');
+        }
+        bookingDoc.status = 'completed';
+        bookingDoc.updatedAt = new Date();
+        if (completedBy) {
+            bookingDoc.processedBy = new mongoose_2.Types.ObjectId(completedBy);
+        }
+        await bookingDoc.save();
+        const booking = await this.bookingModel
+            .findById(bookingId)
+            .lean()
+            .exec();
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found after save');
+        }
+        this.eventEmitter.emit('booking.completed', {
+            booking,
+            completedBy,
+        });
+        this.logger.log(`Booking ${booking.bookingNumber} marked as completed`);
         return booking;
     }
     async confirmBooking(bookingId, staffId, confirmedBy) {
@@ -271,7 +302,7 @@ let BookingService = BookingService_1 = class BookingService {
         this.eventEmitter.emit('booking.confirmed', {
             booking,
             staffId,
-            confirmedBy
+            confirmedBy,
         });
         this.logger.log(`Booking ${booking.bookingNumber} confirmed by staff ${confirmedBy}`);
         return booking;
@@ -296,7 +327,7 @@ let BookingService = BookingService_1 = class BookingService {
         this.eventEmitter.emit('booking.rejected', {
             booking,
             reason,
-            rejectedBy
+            rejectedBy,
         });
         this.logger.log(`Booking ${booking?.bookingNumber} rejected: ${reason}`);
     }
@@ -321,7 +352,7 @@ let BookingService = BookingService_1 = class BookingService {
         this.eventEmitter.emit('booking.cancelled', {
             booking,
             reason,
-            cancelledBy
+            cancelledBy,
         });
         this.logger.log(`Booking ${booking?.bookingNumber} cancelled: ${reason}`);
     }

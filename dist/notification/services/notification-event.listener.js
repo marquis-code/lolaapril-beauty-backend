@@ -14,10 +14,31 @@ exports.NotificationEventListener = void 0;
 const common_1 = require("@nestjs/common");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const realtime_gateway_1 = require("../gateways/realtime.gateway");
+const sales_service_1 = require("../../sales/sales.service");
 let NotificationEventListener = NotificationEventListener_1 = class NotificationEventListener {
-    constructor(realtimeGateway) {
+    constructor(realtimeGateway, salesService) {
         this.realtimeGateway = realtimeGateway;
+        this.salesService = salesService;
         this.logger = new common_1.Logger(NotificationEventListener_1.name);
+    }
+    async handleBookingCompleted(payload) {
+        this.logger.log(`✅ Booking completed event received for ${payload.booking.bookingNumber}`);
+        const notification = {
+            type: 'booking',
+            subType: 'completed',
+            title: 'Booking Completed',
+            message: `Booking ${payload.booking.bookingNumber} marked as completed`,
+            data: payload.booking,
+            timestamp: new Date(),
+        };
+        this.realtimeGateway.emitNotificationToBusiness(payload.booking.businessId.toString(), notification);
+        try {
+            await this.salesService.createFromBooking(payload.booking, payload.booking.businessId.toString());
+            this.logger.log(`💰 Sale auto-generated for booking ${payload.booking.bookingNumber}`);
+        }
+        catch (error) {
+            this.logger.error(`❌ Failed to auto-generate sale for booking ${payload.booking.bookingNumber}: ${error.message}`);
+        }
     }
     handleAuditCreated(payload) {
         this.logger.log(`📢 Audit event received for business ${payload.businessId}`);
@@ -123,6 +144,12 @@ let NotificationEventListener = NotificationEventListener_1 = class Notification
     }
 };
 __decorate([
+    (0, event_emitter_1.OnEvent)('booking.completed'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], NotificationEventListener.prototype, "handleBookingCompleted", null);
+__decorate([
     (0, event_emitter_1.OnEvent)('audit.created'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -178,7 +205,8 @@ __decorate([
 ], NotificationEventListener.prototype, "handleSystemAlert", null);
 NotificationEventListener = NotificationEventListener_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [realtime_gateway_1.RealtimeGateway])
+    __metadata("design:paramtypes", [realtime_gateway_1.RealtimeGateway,
+        sales_service_1.SalesService])
 ], NotificationEventListener);
 exports.NotificationEventListener = NotificationEventListener;
 //# sourceMappingURL=notification-event.listener.js.map

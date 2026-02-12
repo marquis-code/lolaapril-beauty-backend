@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import { Cron, CronExpression } from '@nestjs/schedule'
-import { 
-  NotificationTemplate, 
+import {
+  NotificationTemplate,
   NotificationTemplateDocument,
   NotificationLog,
   NotificationLogDocument,
@@ -12,6 +12,7 @@ import {
 } from '../notification/schemas/notification.schema'
 import { EmailService } from './email.service'
 import { SMSService } from './sms.service'
+import { EmailTemplatesService } from './templates/email-templates.service'
 
 @Injectable()
 export class NotificationService {
@@ -24,7 +25,8 @@ export class NotificationService {
     private notificationPreferenceModel: Model<NotificationPreferenceDocument>,
     private emailService: EmailService,
     private smsService: SMSService,
-  ) {}
+    private emailTemplatesService: EmailTemplatesService,
+  ) { }
 
   // ================== BOOKING NOTIFICATIONS ==================
   async notifyBookingConfirmation(
@@ -35,7 +37,7 @@ export class NotificationService {
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'booking_confirmation')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: bookingDetails.clientName,
       serviceName: bookingDetails.serviceName,
@@ -74,7 +76,7 @@ export class NotificationService {
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'booking_rejection')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: bookingDetails.clientName,
       serviceName: bookingDetails.serviceName,
@@ -113,7 +115,7 @@ export class NotificationService {
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'appointment_reminder')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: appointmentDetails.clientName,
       serviceName: appointmentDetails.serviceName,
@@ -147,7 +149,7 @@ export class NotificationService {
 
   // async notifyStaffNewBooking(booking: any): Promise<void> {
   //   const template = await this.getTemplate(booking.businessId, 'staff_assignment')
-    
+
   //   const variables = {
   //     staffName: booking.staffName || 'Team',
   //     clientName: booking.clientName,
@@ -182,83 +184,83 @@ export class NotificationService {
   // }
 
   async notifyStaffNewBooking(booking: any): Promise<void> {
-  try {
-    // Validate booking object
-    if (!booking) {
-      console.error('notifyStaffNewBooking: booking is undefined or null')
-      return
+    try {
+      // Validate booking object
+      if (!booking) {
+        console.error('notifyStaffNewBooking: booking is undefined or null')
+        return
+      }
+
+      if (!booking.businessId) {
+        console.error('notifyStaffNewBooking: booking.businessId is undefined', booking)
+        return
+      }
+
+      const businessId = booking.businessId.toString ? booking.businessId.toString() : String(booking.businessId)
+      const template = await this.getTemplate(businessId, 'new_booking')
+
+      // Safely handle services array
+      const services = Array.isArray(booking.services) ? booking.services : []
+      const serviceName = services.length > 0
+        ? services.map(s => s.serviceName || 'Service').join(', ')
+        : 'N/A'
+
+      const variables = {
+        staffName: 'Team', // Generic since we don't know who will handle it yet
+        clientName: booking.clientName || 'Customer',
+        serviceName,
+        appointmentDate: booking.preferredDate
+          ? new Date(booking.preferredDate).toLocaleDateString()
+          : 'N/A',
+        appointmentTime: booking.preferredStartTime || 'N/A',
+        businessName: booking.businessName || 'Your Business',
+        bookingNumber: booking.bookingNumber || 'N/A',
+        specialRequests: booking.specialRequests || 'None',
+        estimatedTotal: booking.estimatedTotal || 0,
+        estimatedDuration: booking.totalDuration || 0,
+      }
+
+      const content = this.replaceTemplateVariables(template.content, variables)
+      const subject = this.replaceTemplateVariables(template.subject, variables)
+
+      // For now, send to a generic staff notification email
+      // You can modify this to send to all staff members or specific staff
+      const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL || 'staff@business.com'
+      const staffPhone = process.env.STAFF_NOTIFICATION_PHONE || ''
+
+      const bookingId = booking._id ? (booking._id.toString ? booking._id.toString() : String(booking._id)) : 'unknown'
+      const templateId = template._id ? (template._id.toString ? template._id.toString() : String(template._id)) : 'unknown'
+
+      await this.sendNotification({
+        businessId,
+        recipientId: businessId, // Use business ID as recipient for now
+        recipientType: 'staff',
+        recipient: staffEmail,
+        recipientPhone: staffPhone,
+        subject,
+        content,
+        channel: template.channel,
+        preferences: { email: true, sms: false },
+        templateId,
+        relatedEntityId: bookingId,
+        relatedEntityType: 'booking'
+      })
+    } catch (error) {
+      console.error(`Failed to send new booking notification: ${error.message}`)
+      console.error('Booking object:', JSON.stringify(booking, null, 2))
+      // Don't throw - notification failure shouldn't break booking
     }
-
-    if (!booking.businessId) {
-      console.error('notifyStaffNewBooking: booking.businessId is undefined', booking)
-      return
-    }
-
-    const businessId = booking.businessId.toString ? booking.businessId.toString() : String(booking.businessId)
-    const template = await this.getTemplate(businessId, 'new_booking')
-    
-    // Safely handle services array
-    const services = Array.isArray(booking.services) ? booking.services : []
-    const serviceName = services.length > 0 
-      ? services.map(s => s.serviceName || 'Service').join(', ')
-      : 'N/A'
-    
-    const variables = {
-      staffName: 'Team', // Generic since we don't know who will handle it yet
-      clientName: booking.clientName || 'Customer',
-      serviceName,
-      appointmentDate: booking.preferredDate 
-        ? new Date(booking.preferredDate).toLocaleDateString()
-        : 'N/A',
-      appointmentTime: booking.preferredStartTime || 'N/A',
-      businessName: booking.businessName || 'Your Business',
-      bookingNumber: booking.bookingNumber || 'N/A',
-      specialRequests: booking.specialRequests || 'None',
-      estimatedTotal: booking.estimatedTotal || 0,
-      estimatedDuration: booking.totalDuration || 0,
-    }
-
-    const content = this.replaceTemplateVariables(template.content, variables)
-    const subject = this.replaceTemplateVariables(template.subject, variables)
-
-    // For now, send to a generic staff notification email
-    // You can modify this to send to all staff members or specific staff
-    const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL || 'staff@business.com'
-    const staffPhone = process.env.STAFF_NOTIFICATION_PHONE || ''
-
-    const bookingId = booking._id ? (booking._id.toString ? booking._id.toString() : String(booking._id)) : 'unknown'
-    const templateId = template._id ? (template._id.toString ? template._id.toString() : String(template._id)) : 'unknown'
-
-    await this.sendNotification({
-      businessId,
-      recipientId: businessId, // Use business ID as recipient for now
-      recipientType: 'staff',
-      recipient: staffEmail,
-      recipientPhone: staffPhone,
-      subject,
-      content,
-      channel: template.channel,
-      preferences: { email: true, sms: false },
-      templateId,
-      relatedEntityId: bookingId,
-      relatedEntityType: 'booking'
-    })
-  } catch (error) {
-    console.error(`Failed to send new booking notification: ${error.message}`)
-    console.error('Booking object:', JSON.stringify(booking, null, 2))
-    // Don't throw - notification failure shouldn't break booking
   }
-}
 
   async notifySlotUnavailableRefund(
-    bookingId: string, 
-    clientId: string, 
-    businessId: string, 
+    bookingId: string,
+    clientId: string,
+    businessId: string,
     details: any
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'booking_rejection')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: details.clientName,
       serviceName: details.serviceName,
@@ -289,14 +291,14 @@ export class NotificationService {
   }
 
   async notifyPaymentReminder(
-    bookingId: string, 
-    clientId: string, 
-    businessId: string, 
+    bookingId: string,
+    clientId: string,
+    businessId: string,
     details: any
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'payment_failed')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: details.clientName,
       paymentAmount: details.amount,
@@ -336,7 +338,7 @@ export class NotificationService {
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'appointment_cancelled')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: appointmentDetails.clientName,
       serviceName: appointmentDetails.serviceName,
@@ -376,7 +378,7 @@ export class NotificationService {
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'payment_confirmation')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: paymentDetails.clientName,
       paymentAmount: paymentDetails.amount,
@@ -415,7 +417,7 @@ export class NotificationService {
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'payment_failed')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: paymentDetails.clientName,
       paymentAmount: paymentDetails.amount,
@@ -454,7 +456,7 @@ export class NotificationService {
     appointmentDetails: any
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'staff_assignment')
-    
+
     const variables = {
       staffName: appointmentDetails.staffName,
       clientName: appointmentDetails.clientName,
@@ -554,7 +556,7 @@ export class NotificationService {
     if ((channel === 'sms' || channel === 'both') && preferences.sms && notificationData.recipientPhone) {
       // Strip HTML for SMS
       const smsContent = this.stripHtml(notificationData.content)
-      
+
       const smsResult = await this.smsService.sendSMS(
         notificationData.recipientPhone,
         smsContent
@@ -595,27 +597,27 @@ export class NotificationService {
 
 
   private async getTemplate(businessId: string, templateType: string): Promise<NotificationTemplateDocument> {
-  let template = await this.notificationTemplateModel.findOne({
-    businessId: new Types.ObjectId(businessId),
-    templateType,
-    isActive: true,
-  }) as NotificationTemplateDocument | null
-
-  // If no business-specific template, get default
-  if (!template) {
-    template = await this.notificationTemplateModel.findOne({
+    let template = await this.notificationTemplateModel.findOne({
+      businessId: new Types.ObjectId(businessId),
       templateType,
-      isDefault: true,
       isActive: true,
     }) as NotificationTemplateDocument | null
-  }
 
-  if (!template) {
-    throw new Error(`No template found for type: ${templateType}`)
-  }
+    // If no business-specific template, get default
+    if (!template) {
+      template = await this.notificationTemplateModel.findOne({
+        templateType,
+        isDefault: true,
+        isActive: true,
+      }) as NotificationTemplateDocument | null
+    }
 
-  return template
-}
+    if (!template) {
+      throw new Error(`No template found for type: ${templateType}`)
+    }
+
+    return template
+  }
 
   private async getUserPreferences(userId: string, businessId: string): Promise<any> {
     const preferences = await this.notificationPreferenceModel.findOne({
@@ -672,7 +674,7 @@ export class NotificationService {
   ): Promise<void> {
     const template = await this.getTemplate(businessId, 'appointment_completed')
     const preferences = await this.getUserPreferences(clientId, businessId)
-    
+
     const variables = {
       clientName: appointmentDetails.clientName,
       serviceName: appointmentDetails.serviceName,
@@ -706,46 +708,79 @@ export class NotificationService {
 
   // Add this method to your NotificationService class to fix the notifyAppointmentConfirmation error
 
-/**
- * Notify appointment confirmation (when booking is confirmed and appointment created)
- */
-async notifyAppointmentConfirmation(
-  appointmentId: string,
-  clientId: string,
-  businessId: string,
-  appointmentDetails: any
-): Promise<void> {
-  const template = await this.getTemplate(businessId, 'booking_confirmation')
-  const preferences = await this.getUserPreferences(clientId, businessId)
-  
-  const variables = {
-    clientName: appointmentDetails.clientName,
-    serviceName: appointmentDetails.serviceName,
-    appointmentDate: appointmentDetails.appointmentDate,
-    appointmentTime: appointmentDetails.appointmentTime,
-    businessName: appointmentDetails.businessName,
-    businessAddress: appointmentDetails.businessAddress,
-    appointmentNumber: appointmentDetails.appointmentNumber,
-    confirmationDate: new Date().toLocaleDateString(),
-    confirmationTime: new Date().toLocaleTimeString(),
+  /**
+   * Notify appointment confirmation (when booking is confirmed and appointment created)
+   */
+  async notifyAppointmentConfirmation(
+    appointmentId: string,
+    clientId: string,
+    businessId: string,
+    appointmentDetails: any
+  ): Promise<void> {
+    const template = await this.getTemplate(businessId, 'booking_confirmation')
+    const preferences = await this.getUserPreferences(clientId, businessId)
+
+    const variables = {
+      clientName: appointmentDetails.clientName,
+      serviceName: appointmentDetails.serviceName,
+      appointmentDate: appointmentDetails.appointmentDate,
+      appointmentTime: appointmentDetails.appointmentTime,
+      businessName: appointmentDetails.businessName,
+      businessAddress: appointmentDetails.businessAddress,
+      appointmentNumber: appointmentDetails.appointmentNumber,
+      confirmationDate: new Date().toLocaleDateString(),
+      confirmationTime: new Date().toLocaleTimeString(),
+    }
+
+    const content = this.replaceTemplateVariables(template.content, variables)
+    const subject = this.replaceTemplateVariables(template.subject, variables)
+
+    await this.sendNotification({
+      businessId,
+      recipientId: clientId,
+      recipientType: 'client',
+      recipient: appointmentDetails.clientEmail,
+      recipientPhone: appointmentDetails.clientPhone,
+      subject,
+      content,
+      channel: template.channel,
+      preferences: preferences.booking_confirmation,
+      templateId: template._id.toString(),
+      relatedEntityId: appointmentId,
+      relatedEntityType: 'appointment'
+    })
   }
 
-  const content = this.replaceTemplateVariables(template.content, variables)
-  const subject = this.replaceTemplateVariables(template.subject, variables)
+  // ================== CONSULTATION NOTIFICATIONS ==================
 
-  await this.sendNotification({
-    businessId,
-    recipientId: clientId,
-    recipientType: 'client',
-    recipient: appointmentDetails.clientEmail,
-    recipientPhone: appointmentDetails.clientPhone,
-    subject,
-    content,
-    channel: template.channel,
-    preferences: preferences.booking_confirmation,
-    templateId: template._id.toString(),
-    relatedEntityId: appointmentId,
-    relatedEntityType: 'appointment'
-  })
-}
+  async sendConsultationConfirmation(clientId: string, businessId: string, data: any): Promise<void> {
+    const preferences = await this.getUserPreferences(clientId, businessId);
+    if (!preferences.booking_confirmation.email) return;
+
+    const { subject, html } = this.emailTemplatesService.consultationConfirmation(data);
+
+    await this.emailService.sendEmail(data.clientEmail, subject, html);
+
+    // Minimal log - we're skipping full notification log for now for simplicity, 
+    // but in production, we should log it.
+  }
+
+  async sendConsultationReminder(clientId: string, businessId: string, data: any): Promise<void> {
+    const preferences = await this.getUserPreferences(clientId, businessId);
+    if (!preferences.appointment_reminder.email) return;
+
+    const { subject, html } = this.emailTemplatesService.consultationReminder(data);
+
+    await this.emailService.sendEmail(data.clientEmail, subject, html);
+  }
+
+  async sendConsultationThankYou(clientId: string, businessId: string, data: any): Promise<void> {
+    const preferences = await this.getUserPreferences(clientId, businessId);
+    // Use appointment_reminder pref for simplified logic or add a new one
+    if (!preferences.appointment_reminder.email) return;
+
+    const { subject, html } = this.emailTemplatesService.consultationThankYou(data);
+
+    await this.emailService.sendEmail(data.clientEmail, subject, html);
+  }
 }

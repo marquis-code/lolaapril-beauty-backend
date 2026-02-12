@@ -12,6 +12,7 @@ import { BookingEventHandler } from './events/booking.events'
 import { TenantMiddleware } from '../business/middleware/tenant.middleware'
 import { SourceTrackingService } from './services/source-tracking.service'
 import { ClientReliabilityService } from './services/client-reliability.service'
+import { BookingCronService } from './services/booking-cron.service'
 import { ClientReliability, ClientReliabilitySchema } from './schemas/client-reliability.schema'
 import { AvailabilityModule } from '../availability/availability.module'
 import { BusinessModule } from '../business/business.module'
@@ -24,13 +25,13 @@ import { CommissionModule } from '../commission/commission.module'
 import { CancellationModule } from '../cancellation/cancellation.module'
 import { AnalyticsModule } from '../analytics/analytics.module'
 import { SubscriptionModule } from '../subscription/subscription.module'
-import { BusinessModule } from '../business/business.module' 
+import { BusinessModule } from '../business/business.module'
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Booking.name, schema: BookingSchema },
-      { name: ClientReliability.name, schema: ClientReliabilitySchema } 
+      { name: ClientReliability.name, schema: ClientReliabilitySchema }
     ]),
     SubscriptionModule,
     BusinessModule,
@@ -45,21 +46,22 @@ import { BusinessModule } from '../business/business.module'
     forwardRef(() => CancellationModule),
     forwardRef(() => AnalyticsModule)
   ],
-  
+
   controllers: [
-    BookingController, 
+    BookingController,
     BookingFlowController
   ],
-  
+
   providers: [
     BookingService,
     BookingAutomationService,
     BookingOrchestrator,
     BookingEventHandler,
     SourceTrackingService,
-    ClientReliabilityService
+    ClientReliabilityService,
+    BookingCronService
   ],
-  
+
   exports: [
     BookingService,
     BookingAutomationService,
@@ -68,4 +70,4 @@ import { BusinessModule } from '../business/business.module'
     ClientReliabilityService
   ],
 })
-export class BookingModule {}
+export class BookingModule { }

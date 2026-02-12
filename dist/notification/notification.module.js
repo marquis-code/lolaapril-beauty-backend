@@ -26,6 +26,7 @@ const notification_schema_1 = require("../notification/schemas/notification.sche
 const chat_schema_1 = require("./schemas/chat.schema");
 const business_module_1 = require("../business/business.module");
 const user_schema_1 = require("../auth/schemas/user.schema");
+const sales_module_1 = require("../sales/sales.module");
 let NotificationModule = class NotificationModule {
 };
 NotificationModule = __decorate([
@@ -79,6 +80,7 @@ NotificationModule = __decorate([
             }),
             schedule_1.ScheduleModule.forRoot(),
             business_module_1.BusinessModule,
+            sales_module_1.SalesModule,
         ],
         controllers: [notification_controller_1.NotificationController, chat_controller_1.ChatController],
         providers: [

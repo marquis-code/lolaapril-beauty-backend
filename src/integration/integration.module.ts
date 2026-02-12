@@ -8,8 +8,14 @@ import { StripeService } from './payment-gateways/stripe/stripe.service';
 import { SquareService } from './payment-gateways/square/square.service';
 import { GoogleCalendarService } from './google-calendar.service';
 
+import { MongooseModule } from '@nestjs/mongoose';
+import { Integration, IntegrationSchema } from './schemas/integration.schema';
+
 @Module({
-  imports: [ConfigModule],
+  imports: [
+    ConfigModule,
+    MongooseModule.forFeature([{ name: Integration.name, schema: IntegrationSchema }])
+  ],
   providers: [
     GatewayManagerService,
     PaystackService,
@@ -17,6 +23,11 @@ import { GoogleCalendarService } from './google-calendar.service';
     SquareService,
     GoogleCalendarService,
   ],
-  exports: [GatewayManagerService, PaystackService, GoogleCalendarService],
+  exports: [
+    GatewayManagerService,
+    PaystackService,
+    GoogleCalendarService,
+    MongooseModule
+  ],
 })
 export class IntegrationModule { }

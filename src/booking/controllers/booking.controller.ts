@@ -22,21 +22,21 @@ import { UpdateBookingStatusDto } from '../dto/update-booking.dto'
 import { RescheduleBookingDto } from '../dto/reschedule-booking.dto'
 
 // 🔥 NEW: Import decorators (no more guards!)
-import { 
-  Public, 
-  ValidateBusiness, 
-  BusinessContext, 
-  BusinessId, 
-  CurrentUser 
+import {
+  Public,
+  ValidateBusiness,
+  BusinessContext,
+  BusinessId,
+  CurrentUser
 } from '../../auth'
-import type { 
+import type {
   BusinessContext as BusinessCtx,
-  RequestWithUser 
+  RequestWithUser
 } from '../../auth'
-import type { 
-  BookingResult, 
-  PaymentResult, 
-  AppointmentResult 
+import type {
+  BookingResult,
+  PaymentResult,
+  AppointmentResult
 } from '../types/booking.types'
 
 @ApiTags('Bookings')
@@ -45,7 +45,7 @@ export class BookingController {
   constructor(
     private readonly bookingService: BookingService,
     private readonly bookingOrchestrator: BookingOrchestrator
-  ) {}
+  ) { }
 
   // ==========================================================================
   // CREATE BOOKING - Public (Anyone can create a booking)
@@ -53,7 +53,7 @@ export class BookingController {
 
   @Public() // ✅ Mark as public
   @Post()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Create a new booking (Public)',
     description: 'Creates a booking for any business. businessId must be provided in the request body.'
   })
@@ -71,7 +71,7 @@ export class BookingController {
 
   @Get() // ✅ Authenticated by default, no decorator needed
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get all bookings for authenticated business',
     description: 'Returns bookings filtered by the business in the JWT token'
   })
@@ -92,7 +92,7 @@ export class BookingController {
 
   @Get(':id') // ✅ Authenticated by default
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get booking by ID',
     description: 'Returns booking details. Clients can only view their own bookings.'
   })
@@ -124,7 +124,7 @@ export class BookingController {
 
   @Get('my/bookings') // ✅ Authenticated by default
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get my bookings as a client',
     description: 'Returns all bookings for the authenticated client'
   })
@@ -140,10 +140,10 @@ export class BookingController {
     console.log('🔍 [CONTROLLER] User email:', user.email)
     console.log('🔍 [CONTROLLER] User role:', user.role)
     console.log('🔍 [CONTROLLER] Status filter:', status)
-    
+
     // Use EITHER user.sub OR user.userId, whichever exists
     const userId = user.sub || user.userId
-    
+
     if (!userId) {
       console.error('❌ [CONTROLLER] NO USER ID FOUND IN TOKEN!')
       return {
@@ -152,12 +152,12 @@ export class BookingController {
         message: 'User ID not found in authentication token'
       }
     }
-    
+
     console.log('🔍 [CONTROLLER] Using userId for query:', userId)
     console.log('==================================================')
-    
+
     const bookings = await this.bookingService.getClientBookings(userId, status)
-    
+
     return {
       success: true,
       data: bookings,
@@ -171,7 +171,7 @@ export class BookingController {
 
   @Get('today/bookings') // ✅ Authenticated by default
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: "Get today's bookings for authenticated business"
   })
   @ApiResponse({ status: 200, description: "Today's bookings retrieved successfully" })
@@ -185,7 +185,7 @@ export class BookingController {
 
   @Get('pending/bookings') // ✅ Authenticated by default
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get pending bookings for authenticated business'
   })
   @ApiResponse({ status: 200, description: 'Pending bookings retrieved successfully' })
@@ -199,7 +199,7 @@ export class BookingController {
 
   @Get('upcoming/bookings') // ✅ Authenticated by default
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get upcoming bookings for authenticated business'
   })
   @ApiResponse({ status: 200, description: 'Upcoming bookings retrieved successfully' })
@@ -220,7 +220,7 @@ export class BookingController {
   @ValidateBusiness() // ✅ Validate business access
   @Post(':id/confirm')
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Confirm booking and create appointment',
     description: 'Confirms a pending booking and creates an appointment with staff assignment'
   })
@@ -250,7 +250,7 @@ export class BookingController {
 
   @Public() // ✅ Public for payment webhooks
   @Post(':id/payment')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Process payment for booking',
     description: 'Processes payment and completes the booking flow'
   })
@@ -281,7 +281,7 @@ export class BookingController {
   @ValidateBusiness() // ✅ Validate business access
   @Patch(':id/status')
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Update booking status',
     description: 'Updates the status of a booking (confirm, reject, cancel)'
   })
@@ -306,13 +306,47 @@ export class BookingController {
   }
 
   // ==========================================================================
+  // COMPLETE BOOKING - Business Only (WRITE OPERATION - VALIDATE)
+  // ==========================================================================
+
+  @ValidateBusiness() // ✅ Validate business access
+  @Post(':id/complete')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Mark booking as completed',
+    description: 'Marks a confirmed booking as completed and triggers sale creation'
+  })
+  @ApiResponse({ status: 200, description: 'Booking completed successfully' })
+  async completeBooking(
+    @Param('id') bookingId: string,
+    @BusinessContext() context: BusinessCtx
+  ) {
+    // Verify booking belongs to this business
+    const booking = await this.bookingService.getBookingById(bookingId)
+    if (booking.businessId.toString() !== context.businessId) {
+      return { success: false, message: 'Access denied' }
+    }
+
+    const completedBooking = await this.bookingService.completeBooking(
+      bookingId,
+      context.userId
+    )
+
+    return {
+      success: true,
+      message: 'Booking completed successfully',
+      data: completedBooking
+    }
+  }
+
+  // ==========================================================================
   // REJECT BOOKING - Business Only (WRITE OPERATION - VALIDATE)
   // ==========================================================================
 
   @ValidateBusiness() // ✅ Validate business access
   @Post(':id/reject')
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Reject booking',
     description: 'Rejects a pending booking with reason'
   })
@@ -342,7 +376,7 @@ export class BookingController {
 
   @Post(':id/cancel') // ✅ No @ValidateBusiness - clients need access too
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Cancel booking',
     description: 'Cancels a booking. Clients can cancel their own bookings, business users can cancel any booking in their business.'
   })
@@ -353,7 +387,7 @@ export class BookingController {
     @Body() body: { reason: string }
   ) {
     const booking = await this.bookingService.getBookingById(bookingId)
-    
+
     if (user.role === 'client') {
       if (booking.clientId.toString() !== user.sub) {
         return { success: false, message: 'Access denied' }
@@ -379,7 +413,7 @@ export class BookingController {
 
   @Post(':id/reschedule') // ✅ No @ValidateBusiness - clients need access too
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Reschedule booking',
     description: 'Reschedules a booking to a new date/time. Clients can reschedule their own bookings, business users can reschedule any booking in their business.'
   })
@@ -392,7 +426,7 @@ export class BookingController {
     @Body() rescheduleDto: RescheduleBookingDto
   ) {
     const booking = await this.bookingService.getBookingById(bookingId)
-    
+
     // Access control - check if user can reschedule this booking
     if (user.role === 'client') {
       if (booking.clientId.toString() !== user.sub) {
@@ -416,8 +450,8 @@ export class BookingController {
       user.sub
     )
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: 'Booking rescheduled successfully',
       data: rescheduledBooking
     }
@@ -430,7 +464,7 @@ export class BookingController {
   @ValidateBusiness() // ✅ Validate business access
   @Post(':id/extend')
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Extend booking expiry time',
     description: 'Extends the expiry time for pending bookings'
   })
@@ -457,7 +491,7 @@ export class BookingController {
 
   @Get('stats/overview') // ✅ Authenticated by default
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get booking statistics',
     description: 'Returns booking statistics for the authenticated business'
   })
@@ -481,7 +515,7 @@ export class BookingController {
   @ValidateBusiness() // ✅ Validate business access
   @Post(':id/reset-for-retry')
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Reset failed booking for payment retry',
     description: 'Resets a payment_failed booking to pending status'
   })

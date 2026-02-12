@@ -9,6 +9,7 @@ export declare class SalesService {
     constructor(saleModel: Model<SaleDocument>);
     create(businessId: string, createSaleDto: CreateSaleDto): Promise<ApiResponse<Sale>>;
     createFromAppointment(appointment: any, businessId: string): Promise<Sale>;
+    createFromBooking(booking: any, businessId: string): Promise<Sale>;
     findAll(businessId: string): Promise<ApiResponse<Sale[]>>;
     findOne(businessId: string, id: string): Promise<ApiResponse<Sale>>;
     completeSale(businessId: string, id: string, completedBy: string): Promise<ApiResponse<Sale>>;

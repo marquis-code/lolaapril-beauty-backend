@@ -14,11 +14,16 @@ const paystack_service_1 = require("./payment-gateways/paystack/paystack.service
 const stripe_service_1 = require("./payment-gateways/stripe/stripe.service");
 const square_service_1 = require("./payment-gateways/square/square.service");
 const google_calendar_service_1 = require("./google-calendar.service");
+const mongoose_1 = require("@nestjs/mongoose");
+const integration_schema_1 = require("./schemas/integration.schema");
 let IntegrationModule = class IntegrationModule {
 };
 IntegrationModule = __decorate([
     (0, common_1.Module)({
-        imports: [config_1.ConfigModule],
+        imports: [
+            config_1.ConfigModule,
+            mongoose_1.MongooseModule.forFeature([{ name: integration_schema_1.Integration.name, schema: integration_schema_1.IntegrationSchema }])
+        ],
         providers: [
             gateway_manager_service_1.GatewayManagerService,
             paystack_service_1.PaystackService,
@@ -26,7 +31,12 @@ IntegrationModule = __decorate([
             square_service_1.SquareService,
             google_calendar_service_1.GoogleCalendarService,
         ],
-        exports: [gateway_manager_service_1.GatewayManagerService, paystack_service_1.PaystackService, google_calendar_service_1.GoogleCalendarService],
+        exports: [
+            gateway_manager_service_1.GatewayManagerService,
+            paystack_service_1.PaystackService,
+            google_calendar_service_1.GoogleCalendarService,
+            mongoose_1.MongooseModule
+        ],
     })
 ], IntegrationModule);
 exports.IntegrationModule = IntegrationModule;

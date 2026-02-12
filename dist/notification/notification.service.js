@@ -20,13 +20,15 @@ const schedule_1 = require("@nestjs/schedule");
 const notification_schema_1 = require("../notification/schemas/notification.schema");
 const email_service_1 = require("./email.service");
 const sms_service_1 = require("./sms.service");
+const email_templates_service_1 = require("./templates/email-templates.service");
 let NotificationService = class NotificationService {
-    constructor(notificationTemplateModel, notificationLogModel, notificationPreferenceModel, emailService, smsService) {
+    constructor(notificationTemplateModel, notificationLogModel, notificationPreferenceModel, emailService, smsService, emailTemplatesService) {
         this.notificationTemplateModel = notificationTemplateModel;
         this.notificationLogModel = notificationLogModel;
         this.notificationPreferenceModel = notificationPreferenceModel;
         this.emailService = emailService;
         this.smsService = smsService;
+        this.emailTemplatesService = emailTemplatesService;
     }
     async notifyBookingConfirmation(bookingId, clientId, businessId, bookingDetails) {
         const template = await this.getTemplate(businessId, 'booking_confirmation');
@@ -525,6 +527,27 @@ let NotificationService = class NotificationService {
             relatedEntityType: 'appointment'
         });
     }
+    async sendConsultationConfirmation(clientId, businessId, data) {
+        const preferences = await this.getUserPreferences(clientId, businessId);
+        if (!preferences.booking_confirmation.email)
+            return;
+        const { subject, html } = this.emailTemplatesService.consultationConfirmation(data);
+        await this.emailService.sendEmail(data.clientEmail, subject, html);
+    }
+    async sendConsultationReminder(clientId, businessId, data) {
+        const preferences = await this.getUserPreferences(clientId, businessId);
+        if (!preferences.appointment_reminder.email)
+            return;
+        const { subject, html } = this.emailTemplatesService.consultationReminder(data);
+        await this.emailService.sendEmail(data.clientEmail, subject, html);
+    }
+    async sendConsultationThankYou(clientId, businessId, data) {
+        const preferences = await this.getUserPreferences(clientId, businessId);
+        if (!preferences.appointment_reminder.email)
+            return;
+        const { subject, html } = this.emailTemplatesService.consultationThankYou(data);
+        await this.emailService.sendEmail(data.clientEmail, subject, html);
+    }
 };
 __decorate([
     (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_HOUR),
@@ -541,7 +564,8 @@ NotificationService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         email_service_1.EmailService,
-        sms_service_1.SMSService])
+        sms_service_1.SMSService,
+        email_templates_service_1.EmailTemplatesService])
 ], NotificationService);
 exports.NotificationService = NotificationService;
 //# sourceMappingURL=notification.service.js.map

@@ -2,13 +2,15 @@ import { Model } from 'mongoose';
 import { NotificationTemplateDocument, NotificationLogDocument, NotificationPreferenceDocument } from '../notification/schemas/notification.schema';
 import { EmailService } from './email.service';
 import { SMSService } from './sms.service';
+import { EmailTemplatesService } from './templates/email-templates.service';
 export declare class NotificationService {
     private notificationTemplateModel;
     private notificationLogModel;
     private notificationPreferenceModel;
     private emailService;
     private smsService;
-    constructor(notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>, emailService: EmailService, smsService: SMSService);
+    private emailTemplatesService;
+    constructor(notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>, emailService: EmailService, smsService: SMSService, emailTemplatesService: EmailTemplatesService);
     notifyBookingConfirmation(bookingId: string, clientId: string, businessId: string, bookingDetails: any): Promise<void>;
     notifyBookingRejection(bookingId: string, clientId: string, businessId: string, bookingDetails: any, rejectionReason: string): Promise<void>;
     notifyAppointmentReminder(appointmentId: string, clientId: string, businessId: string, appointmentDetails: any): Promise<void>;
@@ -30,4 +32,7 @@ export declare class NotificationService {
     private markAppointmentReminded;
     notifyAppointmentCompletion(appointmentId: string, clientId: string, businessId: string, appointmentDetails: any): Promise<void>;
     notifyAppointmentConfirmation(appointmentId: string, clientId: string, businessId: string, appointmentDetails: any): Promise<void>;
+    sendConsultationConfirmation(clientId: string, businessId: string, data: any): Promise<void>;
+    sendConsultationReminder(clientId: string, businessId: string, data: any): Promise<void>;
+    sendConsultationThankYou(clientId: string, businessId: string, data: any): Promise<void>;
 }

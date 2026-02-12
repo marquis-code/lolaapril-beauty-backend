@@ -35,6 +35,7 @@ import {
 } from './schemas/chat.schema'
 import { BusinessModule } from '../business/business.module'
 import { User, UserSchema } from '../auth/schemas/user.schema'
+import { SalesModule } from '../sales/sales.module'
 
 @Global()
 @Module({
@@ -86,6 +87,7 @@ import { User, UserSchema } from '../auth/schemas/user.schema'
     }),
     ScheduleModule.forRoot(),
     BusinessModule,
+    SalesModule,
   ],
   controllers: [NotificationController, ChatController],
   // @ts-ignore - TS2590: Complex union type fix

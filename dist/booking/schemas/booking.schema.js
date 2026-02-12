@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BookingSchema = exports.Booking = exports.BookingMetadata = exports.BookedService = exports.CommissionInfo = exports.BookingSource = void 0;
+exports.BookingSchema = exports.Booking = exports.BookingLocation = exports.BookingMetadata = exports.BookedService = exports.CommissionInfo = exports.BookingSource = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let BookingSource = class BookingSource {
@@ -136,6 +136,36 @@ BookingMetadata = __decorate([
     (0, mongoose_1.Schema)()
 ], BookingMetadata);
 exports.BookingMetadata = BookingMetadata;
+let BookingLocation = class BookingLocation {
+};
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], BookingLocation.prototype, "address", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], BookingLocation.prototype, "city", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], BookingLocation.prototype, "state", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], BookingLocation.prototype, "zipCode", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], BookingLocation.prototype, "latitude", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], BookingLocation.prototype, "longitude", void 0);
+BookingLocation = __decorate([
+    (0, mongoose_1.Schema)()
+], BookingLocation);
+exports.BookingLocation = BookingLocation;
 let Booking = class Booking {
 };
 __decorate([
@@ -199,6 +229,22 @@ __decorate([
     __metadata("design:type", String)
 ], Booking.prototype, "bookingNumber", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({
+        required: true,
+        enum: ['standard', 'mobile_spa'],
+        default: 'standard'
+    }),
+    __metadata("design:type", String)
+], Booking.prototype, "bookingType", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: BookingLocation }),
+    __metadata("design:type", BookingLocation)
+], Booking.prototype, "location", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 1 }),
+    __metadata("design:type", Number)
+], Booking.prototype, "numberOfPeople", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: [BookedService], required: true }),
     __metadata("design:type", Array)
 ], Booking.prototype, "services", void 0);
@@ -256,6 +302,7 @@ __decorate([
         enum: [
             'pending',
             'confirmed',
+            'completed',
             'cancelled',
             'expired',
             'payment_failed',
@@ -307,6 +354,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: [String], default: [] }),
     __metadata("design:type", Array)
 ], Booking.prototype, "reminderTiersSent", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], Booking.prototype, "rebookReminderSent", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)

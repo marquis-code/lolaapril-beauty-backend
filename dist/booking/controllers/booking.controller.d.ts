@@ -42,6 +42,15 @@ export declare class BookingController {
         success: boolean;
         message: string;
     }>;
+    completeBooking(bookingId: string, context: BusinessCtx): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        data: import("../schemas/booking.schema").BookingDocument;
+    }>;
     rejectBooking(bookingId: string, context: BusinessCtx, body: {
         reason: string;
     }): Promise<{
