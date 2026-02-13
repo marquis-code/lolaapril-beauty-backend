@@ -1,6 +1,7 @@
 import { Model } from 'mongoose';
 import { ChatRoom, ChatRoomDocument, ChatMessage, ChatMessageDocument, ChatParticipantDocument, FAQ, FAQDocument, AutoResponse, AutoResponseDocument } from '../schemas/chat.schema';
 import { RealtimeGateway } from '../gateways/realtime.gateway';
+import { CacheService } from '../../cache/cache.service';
 import { UserDocument } from '../../auth/schemas/user.schema';
 export declare class ChatService {
     private chatRoomModel;
@@ -10,8 +11,11 @@ export declare class ChatService {
     private autoResponseModel;
     private userModel;
     private realtimeGateway;
+    private cacheService;
     private readonly logger;
-    constructor(chatRoomModel: Model<ChatRoomDocument>, chatMessageModel: Model<ChatMessageDocument>, chatParticipantModel: Model<ChatParticipantDocument>, faqModel: Model<FAQDocument>, autoResponseModel: Model<AutoResponseDocument>, userModel: Model<UserDocument>, realtimeGateway: RealtimeGateway);
+    constructor(chatRoomModel: Model<ChatRoomDocument>, chatMessageModel: Model<ChatMessageDocument>, chatParticipantModel: Model<ChatParticipantDocument>, faqModel: Model<FAQDocument>, autoResponseModel: Model<AutoResponseDocument>, userModel: Model<UserDocument>, realtimeGateway: RealtimeGateway, cacheService: CacheService);
+    private getUnreadCountsKey;
+    private invalidateUnreadCache;
     private serializeMessage;
     createOrGetCustomerChatRoom(businessId: string, userId: string, userInfo: {
         name: string;

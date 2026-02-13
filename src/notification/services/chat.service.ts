@@ -14,6 +14,7 @@ import {
   AutoResponseDocument,
 } from '../schemas/chat.schema'
 import { RealtimeGateway } from '../gateways/realtime.gateway'
+import { CacheService } from '../../cache/cache.service'
 import { User, UserDocument, UserRole } from '../../auth/schemas/user.schema'
 
 @Injectable()
@@ -28,7 +29,17 @@ export class ChatService {
     @InjectModel(AutoResponse.name) private autoResponseModel: Model<AutoResponseDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private realtimeGateway: RealtimeGateway,
-  ) {}
+    private cacheService: CacheService,
+  ) { }
+
+  // ================== CACHE KEYS ==================
+  private getUnreadCountsKey(businessId: string): string {
+    return `chat:unread-counts:${businessId}`
+  }
+
+  private async invalidateUnreadCache(businessId: string): Promise<void> {
+    await this.cacheService.delete(this.getUnreadCountsKey(businessId))
+  }
 
   // ================== HELPER METHODS ==================
 
@@ -73,7 +84,7 @@ export class ChatService {
     userInfo: { name: string; email?: string; phone?: string; isGuest?: boolean; guestInfo?: any }
   ): Promise<any> {
     const isGuest = userInfo.isGuest || false
-    
+
     // ✅ VALIDATE: Email is REQUIRED for anonymous users
     if (isGuest && !userInfo.email) {
       throw new Error('Email address is required for anonymous users')
@@ -83,7 +94,7 @@ export class ChatService {
     if (userInfo.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
       throw new Error('Please provide a valid email address')
     }
-    
+
     // Try multiple queries to find existing room
     let room: any = null
     const businessObjectId = new Types.ObjectId(businessId)
@@ -321,7 +332,7 @@ export class ChatService {
       .skip(skip)
       .limit(limit)
       .exec()
-    
+
     const totalPromise: Promise<any> = this.chatRoomModel.countDocuments(query).exec()
 
     const [rooms, total] = await Promise.all([roomsPromise, totalPromise])
@@ -343,6 +354,10 @@ export class ChatService {
     roomsWithUnread: number
     rooms: Array<{ roomId: string; unreadCount: number; lastMessageAt: Date; customerName: string }>
   }> {
+    const cacheKey = this.getUnreadCountsKey(businessId)
+    const cached = await this.cacheService.get<any>(cacheKey)
+    if (cached) return cached
+
     const rooms = await this.chatRoomModel.find({
       businessId: new Types.ObjectId(businessId),
       isActive: true,
@@ -356,7 +371,7 @@ export class ChatService {
 
     const totalUnread = rooms.reduce((sum: number, room: any) => sum + (room.unreadCount || 0), 0)
 
-    return {
+    const result = {
       totalUnread,
       roomsWithUnread: rooms.length,
       rooms: rooms.map((room: any) => ({
@@ -366,6 +381,9 @@ export class ChatService {
         customerName: room.metadata?.userName || room.metadata?.name || 'Unknown',
       })),
     }
+
+    await this.cacheService.set(cacheKey, result, 300) // 5 mins
+    return result
   }
 
   /**
@@ -385,150 +403,83 @@ export class ChatService {
   /**
    * Send a chat message
    */
-  // async sendMessage(
-  //   roomId: string,
-  //   senderId: string,
-  //   senderType: 'customer' | 'staff' | 'system' | 'bot',
-  //   content: string,
-  //   options?: {
-  //     senderName?: string
-  //     messageType?: string
-  //     attachments?: string[]
-  //     isAutomated?: boolean
-  //     isFAQ?: boolean
-  //     faqId?: string
-  //     replyToMessageId?: string
-  //   }
-  // ): Promise<ChatMessage> {
-  //   const room = await this.chatRoomModel.findById(roomId).exec()
-  //   if (!room) {
-  //     throw new NotFoundException('Chat room not found')
-  //   }
+  async sendMessage(
+    roomId: string,
+    senderId: string,
+    senderType: 'customer' | 'staff' | 'system' | 'bot',
+    content: string,
+    options?: {
+      senderName?: string
+      messageType?: string
+      attachments?: string[]
+      isAutomated?: boolean
+      isFAQ?: boolean
+      faqId?: string
+      replyToMessageId?: string
+    }
+  ): Promise<ChatMessage> {
+    const room = await this.chatRoomModel.findById(roomId).exec()
+    if (!room) {
+      throw new NotFoundException('Chat room not found')
+    }
 
-  //   // Create message
-  //   const message = new this.chatMessageModel({
-  //     roomId: new Types.ObjectId(roomId),
-  //     businessId: room.businessId,
-  //     senderId: senderId ? new Types.ObjectId(senderId) : null,
-  //     senderType,
-  //     senderName: options?.senderName || 'User',
-  //     messageType: options?.messageType || 'text',
-  //     content,
-  //     attachments: options?.attachments || [],
-  //     isAutomated: options?.isAutomated || false,
-  //     isFAQ: options?.isFAQ || false,
-  //     faqId: options?.faqId ? new Types.ObjectId(options.faqId) : null,
-  //     replyToMessageId: options?.replyToMessageId ? new Types.ObjectId(options.replyToMessageId) : null,
-  //     metadata: {
-  //       deliveryStatus: 'sent',
-  //       language: 'en',
-  //     },
-  //   })
+    // ✅ FIX: Handle guest users - don't convert guest IDs to ObjectId
+    const isGuestUser = senderId?.startsWith('guest_') || senderType === 'customer'
 
-  //   await message.save()
+    // Create message
+    const message = new this.chatMessageModel({
+      roomId: new Types.ObjectId(roomId),
+      businessId: room.businessId,
+      // ✅ Only convert to ObjectId if it's a valid MongoDB ID (not guest ID)
+      senderId: senderId && !isGuestUser && Types.ObjectId.isValid(senderId)
+        ? new Types.ObjectId(senderId)
+        : null,
+      senderType,
+      senderName: options?.senderName || 'User',
+      messageType: options?.messageType || 'text',
+      content,
+      attachments: options?.attachments || [],
+      isAutomated: options?.isAutomated || false,
+      isFAQ: options?.isFAQ || false,
+      faqId: options?.faqId ? new Types.ObjectId(options.faqId) : null,
+      replyToMessageId: options?.replyToMessageId ? new Types.ObjectId(options.replyToMessageId) : null,
+      metadata: {
+        deliveryStatus: 'sent',
+        language: 'en',
+        // ✅ Store guest ID in metadata if it's a guest
+        ...(isGuestUser && senderId ? { guestId: senderId } : {}),
+      },
+    })
 
-  //   // Update room's last message
-  //   await this.chatRoomModel.findByIdAndUpdate(roomId, {
-  //     lastMessageId: message._id,
-  //     lastMessageAt: new Date(),
-  //     $inc: { unreadCount: senderType === 'customer' ? 1 : 0 },
-  //   }).exec()
+    await message.save()
 
-  //   // Serialize message for WebSocket
-  //   const serializedMessage = this.serializeMessage(message)
+    // Update room's last message
+    await this.chatRoomModel.findByIdAndUpdate(roomId, {
+      lastMessageId: message._id,
+      lastMessageAt: new Date(),
+      $inc: { unreadCount: senderType === 'customer' ? 1 : 0 },
+    }).exec()
 
-  //   // Emit message via WebSocket
-  //   this.realtimeGateway.emitChatMessage(roomId, serializedMessage)
+    // Serialize message for WebSocket
+    const serializedMessage = this.serializeMessage(message)
 
-  //   // Check if this is a customer message and needs automated response
-  //   if (senderType === 'customer' && !options?.isAutomated) {
-  //     // Run automation in background (don't await)
-  //     this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
-  //       .catch(error => this.logger.error('Automation error:', error))
-  //   }
+    // Emit message via WebSocket
+    this.realtimeGateway.emitChatMessage(roomId, serializedMessage)
 
-  //   this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}`)
+    // Check if this is a customer message and needs automated response
+    if (senderType === 'customer' && !options?.isAutomated) {
+      // Run automation in background (don't await)
+      this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
+        .catch(error => this.logger.error('Automation error:', error))
+    }
 
-  //   return message
-  // }
+    // Invalidate unread counts cache
+    await this.invalidateUnreadCache(room.businessId.toString())
 
-  /**
- * Send a chat message
- */
-async sendMessage(
-  roomId: string,
-  senderId: string,
-  senderType: 'customer' | 'staff' | 'system' | 'bot',
-  content: string,
-  options?: {
-    senderName?: string
-    messageType?: string
-    attachments?: string[]
-    isAutomated?: boolean
-    isFAQ?: boolean
-    faqId?: string
-    replyToMessageId?: string
+    this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}${isGuestUser ? ' (guest)' : ''}`)
+
+    return message
   }
-): Promise<ChatMessage> {
-  const room = await this.chatRoomModel.findById(roomId).exec()
-  if (!room) {
-    throw new NotFoundException('Chat room not found')
-  }
-
-  // ✅ FIX: Handle guest users - don't convert guest IDs to ObjectId
-  const isGuestUser = senderId?.startsWith('guest_') || senderType === 'customer'
-  
-  // Create message
-  const message = new this.chatMessageModel({
-    roomId: new Types.ObjectId(roomId),
-    businessId: room.businessId,
-    // ✅ Only convert to ObjectId if it's a valid MongoDB ID (not guest ID)
-    senderId: senderId && !isGuestUser && Types.ObjectId.isValid(senderId) 
-      ? new Types.ObjectId(senderId) 
-      : null,
-    senderType,
-    senderName: options?.senderName || 'User',
-    messageType: options?.messageType || 'text',
-    content,
-    attachments: options?.attachments || [],
-    isAutomated: options?.isAutomated || false,
-    isFAQ: options?.isFAQ || false,
-    faqId: options?.faqId ? new Types.ObjectId(options.faqId) : null,
-    replyToMessageId: options?.replyToMessageId ? new Types.ObjectId(options.replyToMessageId) : null,
-    metadata: {
-      deliveryStatus: 'sent',
-      language: 'en',
-      // ✅ Store guest ID in metadata if it's a guest
-      ...(isGuestUser && senderId ? { guestId: senderId } : {}),
-    },
-  })
-
-  await message.save()
-
-  // Update room's last message
-  await this.chatRoomModel.findByIdAndUpdate(roomId, {
-    lastMessageId: message._id,
-    lastMessageAt: new Date(),
-    $inc: { unreadCount: senderType === 'customer' ? 1 : 0 },
-  }).exec()
-
-  // Serialize message for WebSocket
-  const serializedMessage = this.serializeMessage(message)
-
-  // Emit message via WebSocket
-  this.realtimeGateway.emitChatMessage(roomId, serializedMessage)
-
-  // Check if this is a customer message and needs automated response
-  if (senderType === 'customer' && !options?.isAutomated) {
-    // Run automation in background (don't await)
-    this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
-      .catch(error => this.logger.error('Automation error:', error))
-  }
-
-  this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}${isGuestUser ? ' (guest)' : ''}`)
-
-  return message
-}
 
   /**
    * Get messages for a room
@@ -576,9 +527,13 @@ async sendMessage(
     ).exec()
 
     // Reset unread count for room
-    await this.chatRoomModel.findByIdAndUpdate(roomId, {
+    const room = await this.chatRoomModel.findByIdAndUpdate(roomId, {
       unreadCount: 0,
     }).exec()
+
+    if (room) {
+      await this.invalidateUnreadCache(room.businessId.toString())
+    }
 
     this.logger.log(`✅ Messages marked as read in room ${roomId}`)
   }
@@ -762,10 +717,10 @@ async sendMessage(
   private calculateSimilarity(str1: string, str2: string): number {
     const words1 = str1.split(/\s+/)
     const words2 = str2.split(/\s+/)
-    
+
     const commonWords = words1.filter(word => words2.includes(word))
     const similarity = (2 * commonWords.length) / (words1.length + words2.length)
-    
+
     return similarity
   }
 
@@ -779,7 +734,7 @@ async sendMessage(
       isActive: true,
     }).exec()
 
-    const message = welcomeResponse?.message || 
+    const message = welcomeResponse?.message ||
       'Hello! 👋 Welcome to our chat support. How can I help you today?'
 
     await this.sendMessage(roomId, null, 'bot', message, {
@@ -798,7 +753,7 @@ async sendMessage(
       isActive: true,
     }).exec()
 
-    const message = offlineResponse?.message || 
+    const message = offlineResponse?.message ||
       "Thank you for reaching out! We're currently offline but will respond as soon as we're back online. ⏰"
 
     await this.sendMessage(roomId, null, 'bot', message, {
@@ -819,12 +774,12 @@ async sendMessage(
   private async isBusinessAvailable(businessId: string): Promise<boolean> {
     // Check if any staff members are online
     const onlineStaffCount = this.realtimeGateway.getBusinessConnections(businessId)
-    
+
     // You can add more sophisticated logic here like:
     // - Check business hours
     // - Check if staff are in "available" status
     // - Check workload/queue size
-    
+
     return onlineStaffCount > 0
   }
 
@@ -860,17 +815,17 @@ async sendMessage(
   /**
    * Get all FAQs for a business
    */
-async getBusinessFAQs(businessId: string, options?: {
-  category?: string
-  isActive?: boolean
-}): Promise<FAQ[]> {
-  const query: any = { businessId: new Types.ObjectId(businessId) }
-  
-  if (options?.category) query.category = options.category
-  if (options?.isActive !== undefined) query.isActive = options.isActive
+  async getBusinessFAQs(businessId: string, options?: {
+    category?: string
+    isActive?: boolean
+  }): Promise<FAQ[]> {
+    const query: any = { businessId: new Types.ObjectId(businessId) }
 
-  return this.faqModel.find(query).sort({ priority: -1, usageCount: -1 }).exec()
-}
+    if (options?.category) query.category = options.category
+    if (options?.isActive !== undefined) query.isActive = options.isActive
+
+    return this.faqModel.find(query).sort({ priority: -1, usageCount: -1 }).exec()
+  }
 
   /**
    * Update FAQ

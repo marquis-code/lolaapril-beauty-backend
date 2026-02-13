@@ -111,16 +111,16 @@ let SettingsService = class SettingsService {
             const defaultSettings = {
                 businessId: new mongoose_1.Types.ObjectId(businessId),
                 businessName: business.businessName || 'My Business',
-                businessEmail: business.contact?.email || 'business@example.com',
+                businessEmail: business.contact?.email || 'no-email@example.com',
                 businessPhone: {
-                    countryCode: '+234',
+                    countryCode: business.contact?.primaryPhone ? '+234' : 'N/A',
                     number: business.contact?.primaryPhone || '0000000000'
                 },
                 businessAddress: {
-                    street: business.address?.street || '',
-                    city: business.address?.city || '',
-                    region: business.address?.state || '',
-                    postcode: business.address?.postalCode || '',
+                    street: business.address?.street || 'N/A',
+                    city: business.address?.city || 'N/A',
+                    region: business.address?.state || 'N/A',
+                    postcode: business.address?.postalCode || '000000',
                     country: business.address?.country || 'Nigeria'
                 },
                 businessHours: this.getDefaultBusinessHours(),

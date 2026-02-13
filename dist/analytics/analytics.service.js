@@ -20,12 +20,14 @@ const mongoose_2 = require("mongoose");
 const financial_report_schema_1 = require("./schemas/financial-report.schema");
 const booking_schema_1 = require("../booking/schemas/booking.schema");
 const payment_schema_1 = require("../payment/schemas/payment.schema");
+const traffic_analytics_schema_1 = require("./schemas/traffic-analytics.schema");
 let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
-    constructor(reportModel, bookingModel, paymentModel, commissionModel) {
+    constructor(reportModel, bookingModel, paymentModel, commissionModel, trafficModel) {
         this.reportModel = reportModel;
         this.bookingModel = bookingModel;
         this.paymentModel = paymentModel;
         this.commissionModel = commissionModel;
+        this.trafficModel = trafficModel;
         this.logger = new common_1.Logger(AnalyticsService_1.name);
     }
     async generateFinancialReport(businessId, startDate, endDate, reportPeriod = 'custom') {
@@ -281,19 +283,23 @@ let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
             status: 'confirmed',
             preferredDate: { $gte: today, $lte: nextWeek }
         }).exec();
+        const todayTraffic = await this.getTrafficOverview(businessId, today, tomorrow);
+        const monthTraffic = await this.getTrafficOverview(businessId, monthStart, new Date());
         return {
             today: {
                 revenue: todayMetrics.revenue.grossRevenue,
                 bookings: todayMetrics.totalBookings,
                 commissions: todayMetrics.commissions.marketplaceCommissions,
-                netRevenue: todayMetrics.revenue.netRevenue
+                netRevenue: todayMetrics.revenue.netRevenue,
+                traffic: todayTraffic,
             },
             monthToDate: {
                 revenue: monthMetrics.revenue.grossRevenue,
                 bookings: monthMetrics.totalBookings,
                 commissions: monthMetrics.commissions.marketplaceCommissions,
                 netRevenue: monthMetrics.revenue.netRevenue,
-                commissionSavings: monthMetrics.commissions.commissionSavings
+                commissionSavings: monthMetrics.commissions.commissionSavings,
+                traffic: monthTraffic,
             },
             pending: {
                 bookings: pendingBookings,
@@ -303,7 +309,8 @@ let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
                 commissionRate: monthMetrics.commissions.averageCommissionRate,
                 directBookingPercentage: monthMetrics.totalBookings > 0
                     ? (monthMetrics.commissions.directBookings / monthMetrics.totalBookings) * 100
-                    : 0
+                    : 0,
+                avgPageViewsPerSession: monthTraffic.avgPageViewsPerSession,
             }
         };
     }
@@ -405,6 +412,66 @@ let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
         ];
         return csv.map(row => row.join(',')).join('\n');
     }
+    async trackTraffic(data) {
+        try {
+            await this.trafficModel.create({
+                ...data,
+                businessId: new mongoose_2.Types.ObjectId(data.businessId),
+            });
+        }
+        catch (error) {
+            this.logger.error(`Error tracking traffic: ${error.message}`);
+        }
+    }
+    async getTrafficOverview(businessId, startDate, endDate) {
+        const [pageViews, uniqueVisitors, totalSessions] = await Promise.all([
+            this.trafficModel.countDocuments({
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                timestamp: { $gte: startDate, $lte: endDate },
+                eventType: 'page_view',
+            }),
+            this.trafficModel.distinct('visitorId', {
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                timestamp: { $gte: startDate, $lte: endDate },
+            }),
+            this.trafficModel.distinct('sessionId', {
+                businessId: new mongoose_2.Types.ObjectId(businessId),
+                timestamp: { $gte: startDate, $lte: endDate },
+            }),
+        ]);
+        return {
+            pageViews,
+            uniqueVisitors: uniqueVisitors.length,
+            totalSessions: totalSessions.length,
+            avgPageViewsPerSession: totalSessions.length > 0 ? pageViews / totalSessions.length : 0,
+        };
+    }
+    async getTrafficBreakdown(businessId, startDate, endDate, groupBy = 'page') {
+        const groupField = groupBy === 'page' ? '$pagePath' : `$userAgent.${groupBy}`;
+        return await this.trafficModel.aggregate([
+            {
+                $match: {
+                    businessId: new mongoose_2.Types.ObjectId(businessId),
+                    timestamp: { $gte: startDate, $lte: endDate },
+                },
+            },
+            {
+                $group: {
+                    _id: groupField,
+                    count: { $sum: 1 },
+                    uniqueVisitors: { $addToSet: '$visitorId' },
+                },
+            },
+            {
+                $project: {
+                    label: '$_id',
+                    count: 1,
+                    uniqueVisitors: { $size: '$uniqueVisitors' },
+                },
+            },
+            { $sort: { count: -1 } },
+        ]).exec();
+    }
 };
 AnalyticsService = AnalyticsService_1 = __decorate([
     (0, common_1.Injectable)(),
@@ -412,7 +479,9 @@ AnalyticsService = AnalyticsService_1 = __decorate([
     __param(1, (0, mongoose_1.InjectModel)(booking_schema_1.Booking.name)),
     __param(2, (0, mongoose_1.InjectModel)(payment_schema_1.Payment.name)),
     __param(3, (0, mongoose_1.InjectModel)('Commission')),
+    __param(4, (0, mongoose_1.InjectModel)(traffic_analytics_schema_1.TrafficAnalytics.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model])

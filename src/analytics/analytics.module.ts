@@ -46,6 +46,10 @@ import {
   Commission,
   CommissionSchema,
 } from '../commission/schemas/commission.schema';
+import {
+  TrafficAnalytics,
+  TrafficAnalyticsSchema,
+} from './schemas/traffic-analytics.schema';
 import { AuditModule } from '../audit/audit.module'; // Import AuditModule
 
 @Module({
@@ -55,6 +59,7 @@ import { AuditModule } from '../audit/audit.module'; // Import AuditModule
       { name: Booking.name, schema: BookingSchema },
       { name: Payment.name, schema: PaymentSchema },
       { name: Commission.name, schema: CommissionSchema },
+      { name: TrafficAnalytics.name, schema: TrafficAnalyticsSchema },
     ]),
     AuditModule, // Add AuditModule to imports
   ],
@@ -62,4 +67,4 @@ import { AuditModule } from '../audit/audit.module'; // Import AuditModule
   providers: [AnalyticsService],
   exports: [AnalyticsService],
 })
-export class AnalyticsModule {}
+export class AnalyticsModule { }

@@ -256,6 +256,31 @@ let AnalyticsController = class AnalyticsController {
         }
         return recommendations;
     }
+    async trackTraffic(data, businessId) {
+        await this.analyticsService.trackTraffic({
+            ...data,
+            businessId,
+        });
+        return { success: true };
+    }
+    async getTrafficOverview(startDate, endDate, businessId) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            throw new common_1.BadRequestException('Invalid date format');
+        }
+        const data = await this.analyticsService.getTrafficOverview(businessId, start, end);
+        return { success: true, data };
+    }
+    async getTrafficBreakdown(startDate, endDate, groupBy = 'page', businessId) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            throw new common_1.BadRequestException('Invalid date format');
+        }
+        const data = await this.analyticsService.getTrafficBreakdown(businessId, start, end, groupBy);
+        return { success: true, data };
+    }
 };
 __decorate([
     (0, common_1.Post)('reports/generate'),
@@ -483,6 +508,53 @@ __decorate([
     __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getCommissionInsights", null);
+__decorate([
+    (0, common_1.Post)('track'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Track a traffic event',
+        description: 'Endpoint for client-side tracking (page views, clicks, etc.)',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "trackTraffic", null);
+__decorate([
+    (0, common_1.Get)('traffic/overview'),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get traffic overview',
+        description: 'Returns page views, unique visitors, and session metrics',
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String }),
+    (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String }),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getTrafficOverview", null);
+__decorate([
+    (0, common_1.Get)('traffic/breakdown'),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get traffic breakdown',
+        description: 'Returns traffic breakdown by device, OS, browser, or page',
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String }),
+    (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String }),
+    (0, swagger_1.ApiQuery)({ name: 'groupBy', required: false, enum: ['device', 'os', 'browser', 'page'] }),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, common_1.Query)('groupBy')),
+    __param(3, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getTrafficBreakdown", null);
 AnalyticsController = __decorate([
     (0, swagger_1.ApiTags)('Analytics'),
     (0, swagger_1.ApiBearerAuth)(),

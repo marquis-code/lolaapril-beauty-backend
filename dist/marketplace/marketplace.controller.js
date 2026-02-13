@@ -60,9 +60,6 @@ let MarketplaceController = class MarketplaceController {
     updateQualityMetrics(businessId) {
         return this.marketplaceService.updateQualityMetrics(businessId);
     }
-    getQualityScore(businessId) {
-        return this.marketplaceService.getBusinessQualityScore(businessId);
-    }
     searchBusinesses(filters) {
         return this.marketplaceService.searchBusinesses(filters);
     }
@@ -169,13 +166,6 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], MarketplaceController.prototype, "updateQualityMetrics", null);
-__decorate([
-    (0, common_1.Get)('quality'),
-    __param(0, (0, business_context_decorator_1.BusinessId)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], MarketplaceController.prototype, "getQualityScore", null);
 __decorate([
     (0, common_1.Get)('search'),
     __param(0, (0, common_1.Query)()),

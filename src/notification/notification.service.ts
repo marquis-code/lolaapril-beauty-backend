@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
+import { CacheService } from '../cache/cache.service'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import {
   NotificationTemplate,
@@ -25,8 +26,80 @@ export class NotificationService {
     private notificationPreferenceModel: Model<NotificationPreferenceDocument>,
     private emailService: EmailService,
     private smsService: SMSService,
-    private emailTemplatesService: EmailTemplatesService,
+    protected emailTemplatesService: EmailTemplatesService,
+    private cacheService: CacheService,
   ) { }
+
+  // ================== CACHE KEYS ==================
+  private getUnreadCountKey(businessId: string): string {
+    return `notifications:unread-count:${businessId}`
+  }
+
+  private getLogsKey(businessId: string, limit: number, offset: number): string {
+    return `notifications:logs:${businessId}:${limit}:${offset}`
+  }
+
+  private async invalidateCache(businessId: string): Promise<void> {
+    await this.cacheService.delete(this.getUnreadCountKey(businessId))
+    // We might have multiple log pages, so we delete by pattern
+    await this.cacheService.deletePattern(`notifications:logs:${businessId}:*`)
+  }
+
+  // ================== DATA RETRIEVAL ==================
+
+  async getUnreadCount(businessId: string): Promise<number> {
+    const cacheKey = this.getUnreadCountKey(businessId)
+    const cached = await this.cacheService.get<number>(cacheKey)
+    if (cached !== null) return cached
+
+    const count = await this.notificationLogModel.countDocuments({
+      businessId: new Types.ObjectId(businessId),
+      isRead: false,
+    })
+
+    await this.cacheService.set(cacheKey, count, 300) // Cache for 5 mins
+    return count
+  }
+
+  async getLogs(businessId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
+    const cacheKey = this.getLogsKey(businessId, limit, offset)
+    const cached = await this.cacheService.get<any[]>(cacheKey)
+    if (cached) return cached
+
+    const logs = await this.notificationLogModel
+      .find({ businessId: new Types.ObjectId(businessId) })
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .skip(Number(offset))
+      .populate('templateId')
+      .exec()
+
+    await this.cacheService.set(cacheKey, logs, 300) // Cache for 5 mins
+    return logs
+  }
+
+  async markAsRead(notificationId: string): Promise<any> {
+    const notification = await this.notificationLogModel.findByIdAndUpdate(
+      notificationId,
+      { isRead: true, readAt: new Date() },
+      { new: true }
+    )
+
+    if (notification) {
+      await this.invalidateCache(notification.businessId.toString())
+    }
+    return notification
+  }
+
+  async markAllAsRead(businessId: string): Promise<any> {
+    const result = await this.notificationLogModel.updateMany(
+      { businessId: new Types.ObjectId(businessId), isRead: false },
+      { isRead: true, readAt: new Date() }
+    )
+
+    await this.invalidateCache(businessId)
+    return result
+  }
 
   // ================== BOOKING NOTIFICATIONS ==================
   async notifyBookingConfirmation(
@@ -593,6 +666,7 @@ export class NotificationService {
     })
 
     await log.save()
+    await this.invalidateCache(logData.businessId.toString())
   }
 
 

@@ -25,7 +25,7 @@
 /// <reference types="mongoose/types/inferrawdoctype" />
 import { Model, Types } from 'mongoose';
 import { NotificationService } from './notification.service';
-import { NotificationTemplate, NotificationTemplateDocument, NotificationLog, NotificationLogDocument, NotificationPreference, NotificationPreferenceDocument } from './schemas/notification.schema';
+import { NotificationTemplate, NotificationTemplateDocument, NotificationLogDocument, NotificationPreference, NotificationPreferenceDocument } from './schemas/notification.schema';
 export declare class NotificationController {
     private readonly notificationService;
     private notificationTemplateModel;
@@ -39,16 +39,12 @@ export declare class NotificationController {
     } | {
         success: boolean;
         message: string;
-        notification: import("mongoose").Document<unknown, {}, NotificationLogDocument, {}, {}> & NotificationLog & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-            _id: Types.ObjectId;
-        }> & {
-            __v: number;
-        };
+        notification: any;
     }>;
     markAllAsRead(businessId: string): Promise<{
         success: boolean;
         message: string;
-        count: number;
+        count: any;
     }>;
     getUnreadCount(businessId: string): Promise<{
         unreadCount: number;
@@ -58,11 +54,7 @@ export declare class NotificationController {
     }> & {
         __v: number;
     })[]>;
-    getNotificationLogs(businessId: string, limit?: number, offset?: number): Promise<(import("mongoose").Document<unknown, {}, NotificationLogDocument, {}, {}> & NotificationLog & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-        _id: Types.ObjectId;
-    }> & {
-        __v: number;
-    })[]>;
+    getNotificationLogs(businessId: string, limit?: number, offset?: number): Promise<any[]>;
     updateNotificationPreferences(updateDto: {
         userId: string;
         businessId: string;

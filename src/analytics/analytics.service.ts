@@ -1,4 +1,3 @@
-
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
@@ -6,6 +5,7 @@ import { FinancialReport, FinancialReportDocument } from './schemas/financial-re
 import { Booking, BookingDocument } from '../booking/schemas/booking.schema'
 import { Payment, PaymentDocument } from '../payment/schemas/payment.schema'
 import { Commission, CommissionDocument } from '../commission/schemas/commission.schema'
+import { TrafficAnalytics, TrafficAnalyticsDocument } from './schemas/traffic-analytics.schema'
 
 @Injectable()
 export class AnalyticsService {
@@ -19,8 +19,10 @@ export class AnalyticsService {
     @InjectModel(Payment.name)
     private paymentModel: Model<PaymentDocument>,
     @InjectModel('Commission')
-    private commissionModel: Model<CommissionDocument>
-  ) {}
+    private commissionModel: Model<CommissionDocument>,
+    @InjectModel(TrafficAnalytics.name)
+    private trafficModel: Model<TrafficAnalyticsDocument>
+  ) { }
 
   async generateFinancialReport(
     businessId: string,
@@ -61,7 +63,7 @@ export class AnalyticsService {
     })
 
     this.logger.log(`Financial report generated: ${report._id}`)
-    
+
     return report as any
   }
 
@@ -70,11 +72,11 @@ export class AnalyticsService {
    */
   async getReport(reportId: string): Promise<FinancialReportDocument> {
     const report = await this.reportModel.findById(reportId).exec()
-    
+
     if (!report) {
       throw new Error('Report not found')
     }
-    
+
     return report as any
   }
 
@@ -368,26 +370,34 @@ export class AnalyticsService {
     // Upcoming appointments (next 7 days)
     const nextWeek = new Date()
     nextWeek.setDate(nextWeek.getDate() + 7)
-    
+
     const upcomingAppointments = await this.bookingModel.countDocuments({
       businessId: new Types.ObjectId(businessId),
       status: 'confirmed',
       preferredDate: { $gte: today, $lte: nextWeek }
     }).exec()
 
+    // Today's traffic
+    const todayTraffic = await this.getTrafficOverview(businessId, today, tomorrow)
+
+    // Month-to-date traffic
+    const monthTraffic = await this.getTrafficOverview(businessId, monthStart, new Date())
+
     return {
       today: {
         revenue: todayMetrics.revenue.grossRevenue,
         bookings: todayMetrics.totalBookings,
         commissions: todayMetrics.commissions.marketplaceCommissions,
-        netRevenue: todayMetrics.revenue.netRevenue
+        netRevenue: todayMetrics.revenue.netRevenue,
+        traffic: todayTraffic,
       },
       monthToDate: {
         revenue: monthMetrics.revenue.grossRevenue,
         bookings: monthMetrics.totalBookings,
         commissions: monthMetrics.commissions.marketplaceCommissions,
         netRevenue: monthMetrics.revenue.netRevenue,
-        commissionSavings: monthMetrics.commissions.commissionSavings
+        commissionSavings: monthMetrics.commissions.commissionSavings,
+        traffic: monthTraffic,
       },
       pending: {
         bookings: pendingBookings,
@@ -397,7 +407,8 @@ export class AnalyticsService {
         commissionRate: monthMetrics.commissions.averageCommissionRate,
         directBookingPercentage: monthMetrics.totalBookings > 0
           ? (monthMetrics.commissions.directBookings / monthMetrics.totalBookings) * 100
-          : 0
+          : 0,
+        avgPageViewsPerSession: monthTraffic.avgPageViewsPerSession,
       }
     }
   }
@@ -408,7 +419,7 @@ export class AnalyticsService {
   async getFeeComparison(businessId: string): Promise<any> {
     const monthStart = new Date()
     monthStart.setMonth(monthStart.getMonth() - 1)
-    
+
     const report = await this.generateFinancialReport(
       businessId,
       monthStart,
@@ -463,7 +474,7 @@ export class AnalyticsService {
    */
   async exportReportToCSV(reportId: string): Promise<string> {
     const report = await this.reportModel.findById(reportId).exec()
-    
+
     if (!report) {
       throw new Error('Report not found')
     }
@@ -521,5 +532,100 @@ export class AnalyticsService {
     ]
 
     return csv.map(row => row.join(',')).join('\n')
+  }
+
+  // ================== TRAFFIC ANALYTICS ==================
+
+  /**
+   * Track a traffic event (page view, click, etc.)
+   */
+  async trackTraffic(data: {
+    businessId: string
+    visitorId: string
+    sessionId: string
+    pagePath: string
+    pageTitle?: string
+    referrer?: string
+    eventType?: string
+    userAgent: {
+      browser: string
+      os: string
+      device: string
+      source: string
+    }
+    metadata?: Record<string, any>
+  }): Promise<void> {
+    try {
+      await this.trafficModel.create({
+        ...data,
+        businessId: new Types.ObjectId(data.businessId),
+      })
+    } catch (error) {
+      this.logger.error(`Error tracking traffic: ${error.message}`)
+    }
+  }
+
+  /**
+   * Get traffic overview (visits, sessions, bounce rate)
+   */
+  async getTrafficOverview(businessId: string, startDate: Date, endDate: Date): Promise<any> {
+    const [pageViews, uniqueVisitors, totalSessions] = await Promise.all([
+      this.trafficModel.countDocuments({
+        businessId: new Types.ObjectId(businessId),
+        timestamp: { $gte: startDate, $lte: endDate },
+        eventType: 'page_view',
+      }),
+      this.trafficModel.distinct('visitorId', {
+        businessId: new Types.ObjectId(businessId),
+        timestamp: { $gte: startDate, $lte: endDate },
+      }),
+      this.trafficModel.distinct('sessionId', {
+        businessId: new Types.ObjectId(businessId),
+        timestamp: { $gte: startDate, $lte: endDate },
+      }),
+    ])
+
+    return {
+      pageViews,
+      uniqueVisitors: uniqueVisitors.length,
+      totalSessions: totalSessions.length,
+      avgPageViewsPerSession: totalSessions.length > 0 ? pageViews / totalSessions.length : 0,
+    }
+  }
+
+  /**
+   * Get traffic breakdown by device, OS, browser, or page
+   */
+  async getTrafficBreakdown(
+    businessId: string,
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'device' | 'os' | 'browser' | 'page' = 'page'
+  ): Promise<any[]> {
+    const groupField = groupBy === 'page' ? '$pagePath' : `$userAgent.${groupBy}`
+
+    return await this.trafficModel.aggregate([
+      {
+        $match: {
+          businessId: new Types.ObjectId(businessId),
+          timestamp: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: groupField,
+          count: { $sum: 1 },
+          uniqueVisitors: { $addToSet: '$visitorId' },
+        },
+      },
+      {
+        $project: {
+          label: '$_id',
+          count: 1,
+          uniqueVisitors: { $size: '$uniqueVisitors' },
+        },
+      },
+      { $sort: { count: -1 } },
+    ]).exec()
   }
 }

@@ -5,6 +5,7 @@ import {
   Post,
   Query,
   Param,
+  Body,
   UseGuards,
   HttpStatus,
   HttpCode,
@@ -36,7 +37,7 @@ import { AuditAction, AuditEntity } from '../audit/schemas/audit-log.schema';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @UseInterceptors(AuditInterceptor)
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(private readonly analyticsService: AnalyticsService) { }
 
   /**
    * Generate Financial Report
@@ -549,5 +550,86 @@ export class AnalyticsController {
     }
 
     return recommendations;
+  }
+
+  // ================== TRAFFIC ANALYTICS ==================
+
+  /**
+   * Track Client-side Traffic
+   * POST /analytics/track
+   */
+  @Post('track')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Track a traffic event',
+    description: 'Endpoint for client-side tracking (page views, clicks, etc.)',
+  })
+  async trackTraffic(
+    @Body() data: any,
+    @BusinessId() businessId: string,
+  ) {
+    await this.analyticsService.trackTraffic({
+      ...data,
+      businessId,
+    });
+    return { success: true };
+  }
+
+  /**
+   * Get Traffic Overview
+   * GET /analytics/traffic/overview
+   */
+  @Get('traffic/overview')
+  @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Get traffic overview',
+    description: 'Returns page views, unique visitors, and session metrics',
+  })
+  @ApiQuery({ name: 'startDate', required: true, type: String })
+  @ApiQuery({ name: 'endDate', required: true, type: String })
+  async getTrafficOverview(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @BusinessId() businessId: string,
+  ) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const data = await this.analyticsService.getTrafficOverview(businessId, start, end);
+    return { success: true, data };
+  }
+
+  /**
+   * Get Traffic Breakdown
+   * GET /analytics/traffic/breakdown
+   */
+  @Get('traffic/breakdown')
+  @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Get traffic breakdown',
+    description: 'Returns traffic breakdown by device, OS, browser, or page',
+  })
+  @ApiQuery({ name: 'startDate', required: true, type: String })
+  @ApiQuery({ name: 'endDate', required: true, type: String })
+  @ApiQuery({ name: 'groupBy', required: false, enum: ['device', 'os', 'browser', 'page'] })
+  async getTrafficBreakdown(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('groupBy') groupBy: 'device' | 'os' | 'browser' | 'page' = 'page',
+    @BusinessId() businessId: string,
+  ) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const data = await this.analyticsService.getTrafficBreakdown(businessId, start, end, groupBy);
+    return { success: true, data };
   }
 }

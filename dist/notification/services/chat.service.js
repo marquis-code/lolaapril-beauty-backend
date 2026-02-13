@@ -19,9 +19,10 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const chat_schema_1 = require("../schemas/chat.schema");
 const realtime_gateway_1 = require("../gateways/realtime.gateway");
+const cache_service_1 = require("../../cache/cache.service");
 const user_schema_1 = require("../../auth/schemas/user.schema");
 let ChatService = ChatService_1 = class ChatService {
-    constructor(chatRoomModel, chatMessageModel, chatParticipantModel, faqModel, autoResponseModel, userModel, realtimeGateway) {
+    constructor(chatRoomModel, chatMessageModel, chatParticipantModel, faqModel, autoResponseModel, userModel, realtimeGateway, cacheService) {
         this.chatRoomModel = chatRoomModel;
         this.chatMessageModel = chatMessageModel;
         this.chatParticipantModel = chatParticipantModel;
@@ -29,7 +30,14 @@ let ChatService = ChatService_1 = class ChatService {
         this.autoResponseModel = autoResponseModel;
         this.userModel = userModel;
         this.realtimeGateway = realtimeGateway;
+        this.cacheService = cacheService;
         this.logger = new common_1.Logger(ChatService_1.name);
+    }
+    getUnreadCountsKey(businessId) {
+        return `chat:unread-counts:${businessId}`;
+    }
+    async invalidateUnreadCache(businessId) {
+        await this.cacheService.delete(this.getUnreadCountsKey(businessId));
     }
     serializeMessage(message) {
         const obj = message.toObject ? message.toObject() : message;
@@ -246,6 +254,10 @@ let ChatService = ChatService_1 = class ChatService {
         };
     }
     async getBusinessUnreadCounts(businessId) {
+        const cacheKey = this.getUnreadCountsKey(businessId);
+        const cached = await this.cacheService.get(cacheKey);
+        if (cached)
+            return cached;
         const rooms = await this.chatRoomModel.find({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             isActive: true,
@@ -257,7 +269,7 @@ let ChatService = ChatService_1 = class ChatService {
             .lean()
             .exec();
         const totalUnread = rooms.reduce((sum, room) => sum + (room.unreadCount || 0), 0);
-        return {
+        const result = {
             totalUnread,
             roomsWithUnread: rooms.length,
             rooms: rooms.map((room) => ({
@@ -267,6 +279,8 @@ let ChatService = ChatService_1 = class ChatService {
                 customerName: room.metadata?.userName || room.metadata?.name || 'Unknown',
             })),
         };
+        await this.cacheService.set(cacheKey, result, 300);
+        return result;
     }
     async archiveChatRoom(roomId) {
         await this.chatRoomModel.findByIdAndUpdate(roomId, {
@@ -314,6 +328,7 @@ let ChatService = ChatService_1 = class ChatService {
             this.handleIncomingCustomerMessage(roomId, content, room.businessId.toString())
                 .catch(error => this.logger.error('Automation error:', error));
         }
+        await this.invalidateUnreadCache(room.businessId.toString());
         this.logger.log(`💬 Message sent in room ${roomId} by ${senderType}${isGuestUser ? ' (guest)' : ''}`);
         return message;
     }
@@ -344,9 +359,12 @@ let ChatService = ChatService_1 = class ChatService {
             isRead: true,
             readAt: new Date(),
         }).exec();
-        await this.chatRoomModel.findByIdAndUpdate(roomId, {
+        const room = await this.chatRoomModel.findByIdAndUpdate(roomId, {
             unreadCount: 0,
         }).exec();
+        if (room) {
+            await this.invalidateUnreadCache(room.businessId.toString());
+        }
         this.logger.log(`✅ Messages marked as read in room ${roomId}`);
     }
     async handleIncomingCustomerMessage(roomId, message, businessId) {
@@ -594,7 +612,8 @@ ChatService = ChatService_1 = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        realtime_gateway_1.RealtimeGateway])
+        realtime_gateway_1.RealtimeGateway,
+        cache_service_1.CacheService])
 ], ChatService);
 exports.ChatService = ChatService;
 //# sourceMappingURL=chat.service.js.map

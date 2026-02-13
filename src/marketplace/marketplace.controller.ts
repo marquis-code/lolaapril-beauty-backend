@@ -91,12 +91,6 @@ export class MarketplaceController {
     return this.marketplaceService.updateQualityMetrics(businessId);
   }
 
-
-  @Get('quality')
-  getQualityScore(@BusinessId() businessId: string) {
-    return this.marketplaceService.getBusinessQualityScore(businessId);
-  }
-
   @Get('search')
   searchBusinesses(@Query() filters: any) {
     return this.marketplaceService.searchBusinesses(filters);

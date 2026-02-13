@@ -61,6 +61,11 @@ let ValidateBusinessAccessGuard = class ValidateBusinessAccessGuard {
         if (business.status === 'expired') {
             throw new common_1.ForbiddenException('Business subscription has expired. Please renew your subscription to continue.');
         }
+        if (user.role === 'super_admin') {
+            console.log(`👑 Super Admin access granted for business: ${business.businessName}`);
+            request.validatedBusiness = business;
+            return true;
+        }
         const userQuery = this.userModel
             .findById(user.sub)
             .select('_id ownedBusinesses adminBusinesses staffBusinessId')
@@ -69,9 +74,9 @@ let ValidateBusinessAccessGuard = class ValidateBusinessAccessGuard {
         if (!dbUser) {
             throw new common_1.UnauthorizedException('User not found');
         }
-        const hasAccess = dbUser.ownedBusinesses?.some(id => id.toString() === user.businessId) ||
-            dbUser.adminBusinesses?.some(id => id.toString() === user.businessId) ||
-            dbUser.staffBusinessId?.toString() === user.businessId;
+        const hasAccess = dbUser.ownedBusinesses?.some(id => id.toString() === user.businessId.toString()) ||
+            dbUser.adminBusinesses?.some(id => id.toString() === user.businessId.toString()) ||
+            dbUser.staffBusinessId?.toString() === user.businessId.toString();
         if (!hasAccess) {
             console.error(`❌ Access Denied details:
         User ID: ${user.sub}

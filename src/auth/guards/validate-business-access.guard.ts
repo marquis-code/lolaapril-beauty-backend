@@ -115,6 +115,14 @@ export class ValidateBusinessAccessGuard implements CanActivate {
     }
 
     // ===== STEP 5: Validate user still has access to this business =====
+    // SUPER_ADMIN skip business access validation
+    if (user.role === 'super_admin') {
+      console.log(`👑 Super Admin access granted for business: ${business.businessName}`)
+        // Attach validated business to request for controllers
+        ; (request as any).validatedBusiness = business
+      return true
+    }
+
     // AGGRESSIVE FIX: Store query in variable first, then execute
     const userQuery = this.userModel
       .findById(user.sub)
@@ -129,9 +137,9 @@ export class ValidateBusinessAccessGuard implements CanActivate {
 
     // Check if user has access (owner, admin, or staff)
     const hasAccess =
-      dbUser.ownedBusinesses?.some(id => id.toString() === user.businessId) ||
-      dbUser.adminBusinesses?.some(id => id.toString() === user.businessId) ||
-      dbUser.staffBusinessId?.toString() === user.businessId
+      dbUser.ownedBusinesses?.some(id => id.toString() === user.businessId.toString()) ||
+      dbUser.adminBusinesses?.some(id => id.toString() === user.businessId.toString()) ||
+      dbUser.staffBusinessId?.toString() === user.businessId.toString()
 
     if (!hasAccess) {
       console.error(`❌ Access Denied details:

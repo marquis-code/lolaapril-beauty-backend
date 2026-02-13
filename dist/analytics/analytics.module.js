@@ -15,6 +15,7 @@ const financial_report_schema_1 = require("./schemas/financial-report.schema");
 const booking_schema_1 = require("../booking/schemas/booking.schema");
 const payment_schema_1 = require("../payment/schemas/payment.schema");
 const commission_schema_1 = require("../commission/schemas/commission.schema");
+const traffic_analytics_schema_1 = require("./schemas/traffic-analytics.schema");
 const audit_module_1 = require("../audit/audit.module");
 let AnalyticsModule = class AnalyticsModule {
 };
@@ -26,6 +27,7 @@ AnalyticsModule = __decorate([
                 { name: booking_schema_1.Booking.name, schema: booking_schema_1.BookingSchema },
                 { name: payment_schema_1.Payment.name, schema: payment_schema_1.PaymentSchema },
                 { name: commission_schema_1.Commission.name, schema: commission_schema_1.CommissionSchema },
+                { name: traffic_analytics_schema_1.TrafficAnalytics.name, schema: traffic_analytics_schema_1.TrafficAnalyticsSchema },
             ]),
             audit_module_1.AuditModule,
         ],

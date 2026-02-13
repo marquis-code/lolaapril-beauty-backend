@@ -1,4 +1,5 @@
 import { Model } from 'mongoose';
+import { CacheService } from '../cache/cache.service';
 import { NotificationTemplateDocument, NotificationLogDocument, NotificationPreferenceDocument } from '../notification/schemas/notification.schema';
 import { EmailService } from './email.service';
 import { SMSService } from './sms.service';
@@ -9,8 +10,16 @@ export declare class NotificationService {
     private notificationPreferenceModel;
     private emailService;
     private smsService;
-    private emailTemplatesService;
-    constructor(notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>, emailService: EmailService, smsService: SMSService, emailTemplatesService: EmailTemplatesService);
+    protected emailTemplatesService: EmailTemplatesService;
+    private cacheService;
+    constructor(notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>, emailService: EmailService, smsService: SMSService, emailTemplatesService: EmailTemplatesService, cacheService: CacheService);
+    private getUnreadCountKey;
+    private getLogsKey;
+    private invalidateCache;
+    getUnreadCount(businessId: string): Promise<number>;
+    getLogs(businessId: string, limit?: number, offset?: number): Promise<any[]>;
+    markAsRead(notificationId: string): Promise<any>;
+    markAllAsRead(businessId: string): Promise<any>;
     notifyBookingConfirmation(bookingId: string, clientId: string, businessId: string, bookingDetails: any): Promise<void>;
     notifyBookingRejection(bookingId: string, clientId: string, businessId: string, bookingDetails: any, rejectionReason: string): Promise<void>;
     notifyAppointmentReminder(appointmentId: string, clientId: string, businessId: string, appointmentDetails: any): Promise<void>;

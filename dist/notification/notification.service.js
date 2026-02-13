@@ -16,19 +16,70 @@ exports.NotificationService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const cache_service_1 = require("../cache/cache.service");
 const schedule_1 = require("@nestjs/schedule");
 const notification_schema_1 = require("../notification/schemas/notification.schema");
 const email_service_1 = require("./email.service");
 const sms_service_1 = require("./sms.service");
 const email_templates_service_1 = require("./templates/email-templates.service");
 let NotificationService = class NotificationService {
-    constructor(notificationTemplateModel, notificationLogModel, notificationPreferenceModel, emailService, smsService, emailTemplatesService) {
+    constructor(notificationTemplateModel, notificationLogModel, notificationPreferenceModel, emailService, smsService, emailTemplatesService, cacheService) {
         this.notificationTemplateModel = notificationTemplateModel;
         this.notificationLogModel = notificationLogModel;
         this.notificationPreferenceModel = notificationPreferenceModel;
         this.emailService = emailService;
         this.smsService = smsService;
         this.emailTemplatesService = emailTemplatesService;
+        this.cacheService = cacheService;
+    }
+    getUnreadCountKey(businessId) {
+        return `notifications:unread-count:${businessId}`;
+    }
+    getLogsKey(businessId, limit, offset) {
+        return `notifications:logs:${businessId}:${limit}:${offset}`;
+    }
+    async invalidateCache(businessId) {
+        await this.cacheService.delete(this.getUnreadCountKey(businessId));
+        await this.cacheService.deletePattern(`notifications:logs:${businessId}:*`);
+    }
+    async getUnreadCount(businessId) {
+        const cacheKey = this.getUnreadCountKey(businessId);
+        const cached = await this.cacheService.get(cacheKey);
+        if (cached !== null)
+            return cached;
+        const count = await this.notificationLogModel.countDocuments({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            isRead: false,
+        });
+        await this.cacheService.set(cacheKey, count, 300);
+        return count;
+    }
+    async getLogs(businessId, limit = 50, offset = 0) {
+        const cacheKey = this.getLogsKey(businessId, limit, offset);
+        const cached = await this.cacheService.get(cacheKey);
+        if (cached)
+            return cached;
+        const logs = await this.notificationLogModel
+            .find({ businessId: new mongoose_2.Types.ObjectId(businessId) })
+            .sort({ createdAt: -1 })
+            .limit(Number(limit))
+            .skip(Number(offset))
+            .populate('templateId')
+            .exec();
+        await this.cacheService.set(cacheKey, logs, 300);
+        return logs;
+    }
+    async markAsRead(notificationId) {
+        const notification = await this.notificationLogModel.findByIdAndUpdate(notificationId, { isRead: true, readAt: new Date() }, { new: true });
+        if (notification) {
+            await this.invalidateCache(notification.businessId.toString());
+        }
+        return notification;
+    }
+    async markAllAsRead(businessId) {
+        const result = await this.notificationLogModel.updateMany({ businessId: new mongoose_2.Types.ObjectId(businessId), isRead: false }, { isRead: true, readAt: new Date() });
+        await this.invalidateCache(businessId);
+        return result;
     }
     async notifyBookingConfirmation(bookingId, clientId, businessId, bookingDetails) {
         const template = await this.getTemplate(businessId, 'booking_confirmation');
@@ -415,6 +466,7 @@ let NotificationService = class NotificationService {
             templateId: new mongoose_2.Types.ObjectId(logData.templateId),
         });
         await log.save();
+        await this.invalidateCache(logData.businessId.toString());
     }
     async getTemplate(businessId, templateType) {
         let template = await this.notificationTemplateModel.findOne({
@@ -572,7 +624,8 @@ NotificationService = __decorate([
         mongoose_2.Model,
         email_service_1.EmailService,
         sms_service_1.SMSService,
-        email_templates_service_1.EmailTemplatesService])
+        email_templates_service_1.EmailTemplatesService,
+        cache_service_1.CacheService])
 ], NotificationService);
 exports.NotificationService = NotificationService;
 //# sourceMappingURL=notification.service.js.map

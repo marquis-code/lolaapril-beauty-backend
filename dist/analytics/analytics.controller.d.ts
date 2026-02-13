@@ -103,4 +103,15 @@ export declare class AnalyticsController {
         };
     }>;
     private generateCommissionRecommendations;
+    trackTraffic(data: any, businessId: string): Promise<{
+        success: boolean;
+    }>;
+    getTrafficOverview(startDate: string, endDate: string, businessId: string): Promise<{
+        success: boolean;
+        data: any;
+    }>;
+    getTrafficBreakdown(startDate: string, endDate: string, groupBy: 'device' | 'os' | 'browser' | 'page', businessId: string): Promise<{
+        success: boolean;
+        data: any[];
+    }>;
 }

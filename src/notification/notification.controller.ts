@@ -21,20 +21,13 @@ export class NotificationController {
     private notificationLogModel: Model<NotificationLogDocument>,
     @InjectModel(NotificationPreference.name)
     private notificationPreferenceModel: Model<NotificationPreferenceDocument>,
-  ) {}
+  ) { }
 
   // ================== NOTIFICATION LOGS ==================
 
   @Patch(':notificationId/read')
   async markAsRead(@Param('notificationId') notificationId: string) {
-    const notification = await this.notificationLogModel.findByIdAndUpdate(
-      notificationId,
-      { 
-        isRead: true, 
-        readAt: new Date() 
-      },
-      { new: true }
-    )
+    const notification = await this.notificationService.markAsRead(notificationId)
 
     if (!notification) {
       return { success: false, message: 'Notification not found' }
@@ -45,31 +38,18 @@ export class NotificationController {
 
   @Patch('read-all/:businessId')
   async markAllAsRead(@Param('businessId') businessId: string) {
-    const result = await this.notificationLogModel.updateMany(
-      { 
-        businessId: new Types.ObjectId(businessId),
-        isRead: false 
-      },
-      { 
-        isRead: true, 
-        readAt: new Date() 
-      }
-    )
+    const result = await this.notificationService.markAllAsRead(businessId)
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: 'All notifications marked as read',
-      count: result.modifiedCount 
+      count: result.modifiedCount
     }
   }
 
   @Get('unread-count/:businessId')
   async getUnreadCount(@Param('businessId') businessId: string) {
-    const count = await this.notificationLogModel.countDocuments({
-      businessId: new Types.ObjectId(businessId),
-      isRead: false,
-    })
-
+    const count = await this.notificationService.getUnreadCount(businessId)
     return { unreadCount: count }
   }
 
@@ -87,12 +67,7 @@ export class NotificationController {
     @Query('limit') limit = 50,
     @Query('offset') offset = 0
   ) {
-    return await this.notificationLogModel
-      .find({ businessId: new Types.ObjectId(businessId) })
-      .sort({ createdAt: -1 })
-      .limit(Number(limit))
-      .skip(Number(offset))
-      .populate('templateId')
+    return await this.notificationService.getLogs(businessId, limit, offset)
   }
 
   @Post('preferences')
@@ -198,29 +173,29 @@ export class NotificationController {
   }
 
   @Post('seed-templates')
-async seedTemplates() {
-  // Use the seeder code directly here
-  const templates = [
-    {
-      templateType: 'new_booking',
-      name: 'New Booking Notification (Staff)',
-      subject: 'New Booking Received - {{bookingNumber}}',
-      content: '<h2>New Booking</h2><p>Client: {{clientName}}</p><p>Service: {{serviceName}}</p>',
-      channel: 'email',
-      isDefault: true,
-      isActive: true,
-    },
-    // ... add other templates
-  ]
+  async seedTemplates() {
+    // Use the seeder code directly here
+    const templates = [
+      {
+        templateType: 'new_booking',
+        name: 'New Booking Notification (Staff)',
+        subject: 'New Booking Received - {{bookingNumber}}',
+        content: '<h2>New Booking</h2><p>Client: {{clientName}}</p><p>Service: {{serviceName}}</p>',
+        channel: 'email',
+        isDefault: true,
+        isActive: true,
+      },
+      // ... add other templates
+    ]
 
-  for (const template of templates) {
-    await this.notificationTemplateModel.findOneAndUpdate(
-      { templateType: template.templateType, isDefault: true },
-      template,
-      { upsert: true, new: true }
-    )
+    for (const template of templates) {
+      await this.notificationTemplateModel.findOneAndUpdate(
+        { templateType: template.templateType, isDefault: true },
+        template,
+        { upsert: true, new: true }
+      )
+    }
+
+    return { success: true, message: 'Templates seeded successfully' }
   }
-
-  return { success: true, message: 'Templates seeded successfully' }
-}
 }

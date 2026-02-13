@@ -65,6 +65,18 @@ export declare class MarketplaceController {
         verificationLevel: string;
         isVerified: boolean;
     }>;
+    getQualityScore(businessId: string): Promise<{
+        score: number;
+        metrics: {
+            responseRate: number;
+            avgResponseTime: number;
+            completionRate: number;
+            cancellationRate: number;
+            onTimeRate: number;
+        };
+        verificationLevel: string;
+        isVerified: boolean;
+    }>;
     getPendingVerifications(page: number, limit: number): Promise<{
         verifications: (import("mongoose").Document<unknown, {}, import("./schemas/business-verification.schema").BusinessVerificationDocument, {}, {}> & import("./schemas/business-verification.schema").BusinessVerification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
             _id: import("mongoose").Types.ObjectId;

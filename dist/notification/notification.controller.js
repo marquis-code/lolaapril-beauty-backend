@@ -26,23 +26,14 @@ let NotificationController = class NotificationController {
         this.notificationPreferenceModel = notificationPreferenceModel;
     }
     async markAsRead(notificationId) {
-        const notification = await this.notificationLogModel.findByIdAndUpdate(notificationId, {
-            isRead: true,
-            readAt: new Date()
-        }, { new: true });
+        const notification = await this.notificationService.markAsRead(notificationId);
         if (!notification) {
             return { success: false, message: 'Notification not found' };
         }
         return { success: true, message: 'Notification marked as read', notification };
     }
     async markAllAsRead(businessId) {
-        const result = await this.notificationLogModel.updateMany({
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            isRead: false
-        }, {
-            isRead: true,
-            readAt: new Date()
-        });
+        const result = await this.notificationService.markAllAsRead(businessId);
         return {
             success: true,
             message: 'All notifications marked as read',
@@ -50,10 +41,7 @@ let NotificationController = class NotificationController {
         };
     }
     async getUnreadCount(businessId) {
-        const count = await this.notificationLogModel.countDocuments({
-            businessId: new mongoose_2.Types.ObjectId(businessId),
-            isRead: false,
-        });
+        const count = await this.notificationService.getUnreadCount(businessId);
         return { unreadCount: count };
     }
     async getTemplates(businessId) {
@@ -63,12 +51,7 @@ let NotificationController = class NotificationController {
         });
     }
     async getNotificationLogs(businessId, limit = 50, offset = 0) {
-        return await this.notificationLogModel
-            .find({ businessId: new mongoose_2.Types.ObjectId(businessId) })
-            .sort({ createdAt: -1 })
-            .limit(Number(limit))
-            .skip(Number(offset))
-            .populate('templateId');
+        return await this.notificationService.getLogs(businessId, limit, offset);
     }
     async updateNotificationPreferences(updateDto) {
         return await this.notificationPreferenceModel.findOneAndUpdate({

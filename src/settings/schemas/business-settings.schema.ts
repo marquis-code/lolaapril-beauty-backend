@@ -16,7 +16,7 @@ const BusinessHoursSchema = {
 }
 
 const AppointmentStatusSchema = {
-  statusName: { type: String, required: true, unique: true },
+  statusName: { type: String, required: true },
   statusIcon: { type: String, required: true },
   statusColor: { type: String, required: true },
   characterLimit: { type: Number },
