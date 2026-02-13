@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var AppointmentService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppointmentService = void 0;
 const common_1 = require("@nestjs/common");
@@ -26,7 +27,7 @@ const email_templates_service_1 = require("../notification/templates/email-templ
 const google_calendar_service_1 = require("../integration/google-calendar.service");
 const scheduled_reminder_schema_1 = require("../jobs/schemas/scheduled-reminder.schema");
 const config_1 = require("@nestjs/config");
-let AppointmentService = class AppointmentService {
+let AppointmentService = AppointmentService_1 = class AppointmentService {
     constructor(appointmentModel, scheduledReminderModel, paymentService, notificationService, staffService, salesService, emailService, emailTemplatesService, googleCalendarService, configService) {
         this.appointmentModel = appointmentModel;
         this.scheduledReminderModel = scheduledReminderModel;
@@ -38,6 +39,7 @@ let AppointmentService = class AppointmentService {
         this.emailTemplatesService = emailTemplatesService;
         this.googleCalendarService = googleCalendarService;
         this.configService = configService;
+        this.logger = new common_1.Logger(AppointmentService_1.name);
     }
     async create(createAppointmentDto) {
         const conflictingAppointment = await this.appointmentModel.findOne({
@@ -258,6 +260,13 @@ let AppointmentService = class AppointmentService {
     }
     async createFromBooking(booking) {
         try {
+            const existingAppointment = await this.appointmentModel.findOne({
+                bookingId: booking._id
+            }).exec();
+            if (existingAppointment) {
+                this.logger.log(`⚠️ Appointment already exists for booking ${booking._id}, returning existing one.`);
+                return this.mapToPlainObject(existingAppointment);
+            }
             const bookingDate = booking.preferredDate instanceof Date
                 ? booking.preferredDate
                 : new Date(booking.preferredDate);
@@ -353,6 +362,8 @@ let AppointmentService = class AppointmentService {
                 },
                 customerNotes: booking.specialRequests || '',
                 status: 'confirmed',
+                bookingId: booking._id,
+                bookingNumber: booking.bookingNumber,
                 appointmentNumber: '',
                 reminderSent: false
             };
@@ -375,6 +386,8 @@ let AppointmentService = class AppointmentService {
                 serviceDetails: appointment.serviceDetails,
                 paymentDetails: appointment.paymentDetails,
                 status: appointment.status,
+                bookingId: appointment.bookingId,
+                bookingNumber: appointment.bookingNumber,
                 customerNotes: appointment.customerNotes,
                 createdAt: appointment.createdAt
             };
@@ -382,6 +395,26 @@ let AppointmentService = class AppointmentService {
         catch (error) {
             throw error;
         }
+    }
+    mapToPlainObject(appointment) {
+        return {
+            _id: appointment._id,
+            appointmentNumber: appointment.appointmentNumber,
+            clientId: appointment.clientId,
+            businessInfo: appointment.businessInfo,
+            selectedServices: appointment.selectedServices,
+            totalDuration: appointment.totalDuration,
+            selectedDate: appointment.selectedDate,
+            selectedTime: appointment.selectedTime,
+            appointmentDetails: appointment.appointmentDetails,
+            serviceDetails: appointment.serviceDetails,
+            paymentDetails: appointment.paymentDetails,
+            status: appointment.status,
+            bookingId: appointment.bookingId,
+            bookingNumber: appointment.bookingNumber,
+            customerNotes: appointment.customerNotes,
+            createdAt: appointment.createdAt
+        };
     }
     async generateAppointmentNumber(businessId) {
         const today = new Date();
@@ -521,7 +554,7 @@ let AppointmentService = class AppointmentService {
         };
     }
 };
-AppointmentService = __decorate([
+AppointmentService = AppointmentService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(appointment_schema_1.Appointment.name)),
     __param(1, (0, mongoose_2.InjectModel)(scheduled_reminder_schema_1.ScheduledReminder.name)),

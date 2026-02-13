@@ -1,6 +1,7 @@
 import { Model } from 'mongoose';
 import { CacheService } from '../cache/cache.service';
 import { NotificationTemplateDocument, NotificationLogDocument, NotificationPreferenceDocument } from '../notification/schemas/notification.schema';
+import { BusinessDocument } from '../business/schemas/business.schema';
 import { EmailService } from './email.service';
 import { SMSService } from './sms.service';
 import { EmailTemplatesService } from './templates/email-templates.service';
@@ -8,11 +9,12 @@ export declare class NotificationService {
     private notificationTemplateModel;
     private notificationLogModel;
     private notificationPreferenceModel;
+    private businessModel;
     private emailService;
     private smsService;
     protected emailTemplatesService: EmailTemplatesService;
     private cacheService;
-    constructor(notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>, emailService: EmailService, smsService: SMSService, emailTemplatesService: EmailTemplatesService, cacheService: CacheService);
+    constructor(notificationTemplateModel: Model<NotificationTemplateDocument>, notificationLogModel: Model<NotificationLogDocument>, notificationPreferenceModel: Model<NotificationPreferenceDocument>, businessModel: Model<BusinessDocument>, emailService: EmailService, smsService: SMSService, emailTemplatesService: EmailTemplatesService, cacheService: CacheService);
     private getUnreadCountKey;
     private getLogsKey;
     private invalidateCache;

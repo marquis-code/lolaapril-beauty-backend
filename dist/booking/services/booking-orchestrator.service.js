@@ -638,10 +638,10 @@ let BookingOrchestrator = class BookingOrchestrator {
             const booking = await this.bookingService.getBookingById(bookingId);
             console.log('✅ Booking found:', booking.bookingNumber);
             console.log('Current status:', booking.status);
-            const allowedStatuses = ['pending', 'payment_failed'];
+            const allowedStatuses = ['pending', 'payment_failed', 'confirmed'];
             if (!allowedStatuses.includes(booking.status)) {
-                throw new common_1.BadRequestException(`Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' or 'payment_failed' bookings can be confirmed. ` +
-                    `This booking may have already been confirmed or expired.`);
+                throw new common_1.BadRequestException(`Cannot confirm booking. Current status is '${booking.status}'. Only 'pending', 'payment_failed' or 'confirmed' bookings can be confirmed. ` +
+                    `This booking may have already been expired.`);
             }
             console.log('📝 Updating booking status to confirmed...');
             await this.bookingService.updateBookingStatus(bookingId, 'confirmed');
@@ -652,6 +652,8 @@ let BookingOrchestrator = class BookingOrchestrator {
                 throw new Error('Failed to create appointment');
             }
             console.log('✅ Appointment created:', appointment.appointmentNumber);
+            await this.bookingService.linkAppointment(bookingId, appointment._id.toString());
+            console.log('✅ Appointment linked to booking');
             console.log('Appointment details:', {
                 id: appointment._id,
                 number: appointment.appointmentNumber,
@@ -727,9 +729,10 @@ let BookingOrchestrator = class BookingOrchestrator {
             const booking = await this.bookingService.getBookingById(bookingId);
             console.log('✅ Booking found:', booking.bookingNumber);
             console.log('Current status:', booking.status);
-            if (booking.status !== 'pending') {
-                throw new common_1.BadRequestException(`Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' bookings can be confirmed. ` +
-                    `This booking may have already been confirmed or expired.`);
+            const allowedStatuses = ['pending', 'payment_failed', 'confirmed'];
+            if (!allowedStatuses.includes(booking.status)) {
+                throw new common_1.BadRequestException(`Cannot confirm booking. Current status is '${booking.status}'. Only 'pending', 'payment_failed' or 'confirmed' bookings can be confirmed. ` +
+                    `This booking may have already been expired.`);
             }
             const bookingDate = this.parseDate(booking.preferredDate);
             const dateString = this.formatDateForAvailability(bookingDate);
@@ -787,6 +790,8 @@ let BookingOrchestrator = class BookingOrchestrator {
             console.log('📅 Creating appointment from booking...');
             const appointment = await this.appointmentService.createFromBooking(booking);
             console.log('✅ Appointment created:', appointment.appointmentNumber);
+            await this.bookingService.linkAppointment(bookingId, appointment._id.toString());
+            console.log('✅ Appointment linked to booking');
             let staffAssignmentResults = [];
             if (staffAssignments && staffAssignments.length > 0) {
                 console.log(`📋 Creating ${staffAssignments.length} staff assignments`);

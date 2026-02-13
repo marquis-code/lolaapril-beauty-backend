@@ -15,6 +15,7 @@ const consultation_schema_1 = require("./schemas/consultation.schema");
 const integration_module_1 = require("../integration/integration.module");
 const notification_module_1 = require("../notification/notification.module");
 const business_module_1 = require("../business/business.module");
+const appointment_module_1 = require("../appointment/appointment.module");
 const consultation_cron_service_1 = require("./consultation-cron.service");
 let ConsultationModule = class ConsultationModule {
 };
@@ -29,6 +30,7 @@ ConsultationModule = __decorate([
             integration_module_1.IntegrationModule,
             notification_module_1.NotificationModule,
             business_module_1.BusinessModule,
+            appointment_module_1.AppointmentModule,
         ],
         controllers: [consultation_controller_1.ConsultationController],
         providers: [consultation_service_1.ConsultationService, consultation_cron_service_1.ConsultationCronService],

@@ -25,6 +25,7 @@
 /// <reference types="mongoose/types/inferrawdoctype" />
 import { Model, Types } from "mongoose";
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Payment, PaymentDocument } from "./schemas/payment.schema";
 import { BookingDocument } from "../booking/schemas/booking.schema";
 import { BusinessDocument } from "../business/schemas/business.schema";
@@ -51,9 +52,10 @@ export declare class PaymentService {
     private jobsService;
     private cacheService;
     private businessService;
+    private eventEmitter;
     private readonly paystackSecretKey;
     private readonly paystackBaseUrl;
-    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, businessModel: Model<BusinessDocument>, notificationService: NotificationService, configService: ConfigService, pricingService: PricingService, commissionService: CommissionService, gatewayManager: GatewayManagerService, jobsService: JobsService, cacheService: CacheService, businessService: BusinessService);
+    constructor(paymentModel: Model<PaymentDocument>, bookingModel: Model<BookingDocument>, businessModel: Model<BusinessDocument>, notificationService: NotificationService, configService: ConfigService, pricingService: PricingService, commissionService: CommissionService, gatewayManager: GatewayManagerService, jobsService: JobsService, cacheService: CacheService, businessService: BusinessService, eventEmitter: EventEmitter2);
     getUserTransactions(userId: string): Promise<ApiResponse<any>>;
     private resolveBusinessId;
     initializePayment(data: {

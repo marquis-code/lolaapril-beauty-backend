@@ -22,6 +22,7 @@ export declare class AnalyticsService {
     getDashboardMetrics(businessId: string): Promise<any>;
     getFeeComparison(businessId: string): Promise<any>;
     exportReportToCSV(reportId: string): Promise<string>;
+    private resolveLocationFromIp;
     trackTraffic(data: {
         businessId: string;
         visitorId: string;
@@ -50,5 +51,6 @@ export declare class AnalyticsService {
     getTrafficBreakdown(businessId: string, startDate: Date, endDate: Date, groupBy?: 'device' | 'os' | 'browser' | 'page'): Promise<any[]>;
     getTrafficLocationBreakdown(businessId: string, startDate: Date, endDate: Date, groupBy?: 'country' | 'region' | 'city'): Promise<any[]>;
     getPageAnalytics(businessId: string, startDate: Date, endDate: Date): Promise<any[]>;
+    getDetailedTraffic(businessId: string, startDate: Date, endDate: Date): Promise<any[]>;
     getInteractionAnalytics(businessId: string, startDate: Date, endDate: Date): Promise<any[]>;
 }

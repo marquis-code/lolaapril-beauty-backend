@@ -27,6 +27,7 @@ export declare class BookingAutomationService {
     private readonly eventEmitter;
     private readonly logger;
     constructor(bookingService: BookingService, appointmentService: AppointmentService, paymentService: PaymentService, notificationService: NotificationService, staffService: StaffService, availabilityService: AvailabilityService, businessService: BusinessService, subscriptionService: SubscriptionService, eventEmitter: EventEmitter2);
+    handlePaymentCompleted(payload: any): Promise<void>;
     createAutomatedBooking(bookingData: {
         businessId: string;
         clientId: string;

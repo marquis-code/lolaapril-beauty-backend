@@ -36,6 +36,7 @@ export class NotificationTemplate {
       'appointment_completed',
       'payment_confirmation',
       'payment_failed',
+      'payment_reminder',
       'staff_assignment',
       'custom'
     ]
@@ -157,7 +158,7 @@ export class NotificationPreference {
       booking_rejection: { email: true, sms: true },
       appointment_reminder: { email: true, sms: true },
       appointment_cancelled: { email: true, sms: true },
-       appointment_completed: { email: true, sms: false },
+      appointment_completed: { email: true, sms: false },
       payment_confirmation: { email: true, sms: false },
       payment_failed: { email: true, sms: true },
       promotional: { email: false, sms: false },

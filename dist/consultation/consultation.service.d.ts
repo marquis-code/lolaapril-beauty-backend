@@ -28,6 +28,8 @@ import { ConsultationPackage, ConsultationPackageDocument, ConsultationBooking, 
 import { CreateConsultationPackageDto, UpdateConsultationPackageDto, UpdateConsultationAvailabilityDto, BookConsultationDto } from './dto/consultation.dto';
 import { GoogleCalendarService } from '../integration/google-calendar.service';
 import { NotificationService } from '../notification/notification.service';
+import { AppointmentService } from '../appointment/appointment.service';
+import { BusinessService } from '../business/business.service';
 import { IntegrationDocument } from '../integration/schemas/integration.schema';
 import { GatewayManagerService } from '../integration/gateway-manager.service';
 import { ConfigService } from '@nestjs/config';
@@ -40,8 +42,10 @@ export declare class ConsultationService {
     private readonly notificationService;
     private readonly gatewayManager;
     private readonly configService;
+    private readonly appointmentService;
+    private readonly businessService;
     private readonly logger;
-    constructor(packageModel: Model<ConsultationPackageDocument>, bookingModel: Model<ConsultationBookingDocument>, availabilityModel: Model<ConsultationAvailabilityDocument>, integrationModel: Model<IntegrationDocument>, googleCalendarService: GoogleCalendarService, notificationService: NotificationService, gatewayManager: GatewayManagerService, configService: ConfigService);
+    constructor(packageModel: Model<ConsultationPackageDocument>, bookingModel: Model<ConsultationBookingDocument>, availabilityModel: Model<ConsultationAvailabilityDocument>, integrationModel: Model<IntegrationDocument>, googleCalendarService: GoogleCalendarService, notificationService: NotificationService, gatewayManager: GatewayManagerService, configService: ConfigService, appointmentService: AppointmentService, businessService: BusinessService);
     createPackage(businessId: string, dto: CreateConsultationPackageDto): Promise<import("mongoose").Document<unknown, {}, ConsultationPackageDocument, {}, {}> & ConsultationPackage & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: Types.ObjectId;
     }> & {

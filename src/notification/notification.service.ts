@@ -11,6 +11,7 @@ import {
   NotificationPreference,
   NotificationPreferenceDocument
 } from '../notification/schemas/notification.schema'
+import { Business, BusinessDocument } from '../business/schemas/business.schema'
 import { EmailService } from './email.service'
 import { SMSService } from './sms.service'
 import { EmailTemplatesService } from './templates/email-templates.service'
@@ -24,6 +25,8 @@ export class NotificationService {
     private notificationLogModel: Model<NotificationLogDocument>,
     @InjectModel(NotificationPreference.name)
     private notificationPreferenceModel: Model<NotificationPreferenceDocument>,
+    @InjectModel(Business.name)
+    private businessModel: Model<BusinessDocument>,
     private emailService: EmailService,
     private smsService: SMSService,
     protected emailTemplatesService: EmailTemplatesService,
@@ -298,8 +301,25 @@ export class NotificationService {
 
       // For now, send to a generic staff notification email
       // You can modify this to send to all staff members or specific staff
-      const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL || 'staff@business.com'
-      const staffPhone = process.env.STAFF_NOTIFICATION_PHONE || ''
+      let staffEmail = process.env.STAFF_NOTIFICATION_EMAIL
+      let staffPhone = process.env.STAFF_NOTIFICATION_PHONE
+
+      // Fallback to business contact if no environment override
+      if (!staffEmail || !staffPhone) {
+        try {
+          const business = await this.businessModel.findById(businessId).exec()
+          if (business && business.contact) {
+            staffEmail = staffEmail || business.contact.email
+            staffPhone = staffPhone || business.contact.primaryPhone
+          }
+        } catch (businessError) {
+          console.error('Failed to fetch business contact for staff notification:', businessError)
+        }
+      }
+
+      // Final fallbacks if still missing
+      staffEmail = staffEmail || 'staff@business.com'
+      staffPhone = staffPhone || ''
 
       const bookingId = booking._id ? (booking._id.toString ? booking._id.toString() : String(booking._id)) : 'unknown'
       const templateId = template._id ? (template._id.toString ? template._id.toString() : String(template._id)) : 'unknown'
@@ -369,7 +389,7 @@ export class NotificationService {
     businessId: string,
     details: any
   ): Promise<void> {
-    const template = await this.getTemplate(businessId, 'payment_failed')
+    const template = await this.getTemplate(businessId, 'payment_reminder')
     const preferences = await this.getUserPreferences(clientId, businessId)
 
     const variables = {
@@ -395,7 +415,7 @@ export class NotificationService {
       subject,
       content,
       channel: template.channel,
-      preferences: preferences.payment_failed,
+      preferences: preferences.payment_reminder || preferences.payment_failed,
       templateId: template._id.toString(),
       relatedEntityId: bookingId,
       relatedEntityType: 'booking'
@@ -706,6 +726,7 @@ export class NotificationService {
       appointment_cancelled: { email: true, sms: true },
       payment_confirmation: { email: true, sms: false },
       payment_failed: { email: true, sms: true },
+      payment_reminder: { email: true, sms: true },
       promotional: { email: false, sms: false },
     }
   }

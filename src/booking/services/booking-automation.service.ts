@@ -238,8 +238,11 @@ export class BookingAutomationService {
         throw new BadRequestException('Booking not found')
       }
 
-      if (booking.status !== 'pending') {
-        throw new BadRequestException('Booking is not in pending status')
+      // ✅ FIX: Accept both 'pending' and 'confirmed' bookings
+      // verifyPayment already sets booking to 'confirmed' before emitting payment.completed,
+      // so we must accept confirmed bookings here to avoid rejecting valid payments.
+      if (!['pending', 'confirmed'].includes(booking.status)) {
+        throw new BadRequestException(`Booking is in '${booking.status}' status, expected 'pending' or 'confirmed'`)
       }
 
       if (paymentData.amount !== booking.estimatedTotal) {

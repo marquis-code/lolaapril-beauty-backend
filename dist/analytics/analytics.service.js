@@ -21,6 +21,7 @@ const financial_report_schema_1 = require("./schemas/financial-report.schema");
 const booking_schema_1 = require("../booking/schemas/booking.schema");
 const payment_schema_1 = require("../payment/schemas/payment.schema");
 const traffic_analytics_schema_1 = require("./schemas/traffic-analytics.schema");
+const axios = require('axios/dist/node/axios.cjs');
 let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
     constructor(reportModel, bookingModel, paymentModel, commissionModel, trafficModel) {
         this.reportModel = reportModel;
@@ -412,10 +413,36 @@ let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
         ];
         return csv.map(row => row.join(',')).join('\n');
     }
+    async resolveLocationFromIp(ip) {
+        if (!ip || ip === '::1' || ip === '127.0.0.1') {
+            return null;
+        }
+        try {
+            const response = await axios.get(`https://ipapi.co/${ip}/json/`);
+            if (response.data && !response.data.error) {
+                return {
+                    country: response.data.country_name,
+                    region: response.data.region,
+                    city: response.data.city,
+                    latitude: response.data.latitude,
+                    longitude: response.data.longitude,
+                };
+            }
+        }
+        catch (error) {
+            this.logger.warn(`Failed to resolve location for IP ${ip}: ${error.message}`);
+        }
+        return null;
+    }
     async trackTraffic(data) {
         try {
+            let location = data.location;
+            if (!location && data.ip) {
+                location = await this.resolveLocationFromIp(data.ip);
+            }
             await this.trafficModel.create({
                 ...data,
+                location,
                 businessId: new mongoose_2.Types.ObjectId(data.businessId),
             });
         }
@@ -517,6 +544,12 @@ let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
                     uniqueVisitors: { $addToSet: '$visitorId' },
                     interactions: {
                         $sum: { $cond: [{ $ne: ['$eventType', 'page_view'] }, 1, 0] }
+                    },
+                    locations: {
+                        $push: {
+                            country: '$location.country',
+                            city: '$location.city'
+                        }
                     }
                 },
             },
@@ -527,10 +560,31 @@ let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
                     views: 1,
                     uniqueVisitors: { $size: '$uniqueVisitors' },
                     interactions: 1,
+                    topLocations: {
+                        $slice: [
+                            {
+                                $filter: {
+                                    input: '$locations',
+                                    as: 'loc',
+                                    cond: { $ne: ['$$loc.country', null] }
+                                }
+                            },
+                            10
+                        ]
+                    }
                 },
             },
             { $sort: { views: -1 } },
         ]).exec();
+    }
+    async getDetailedTraffic(businessId, startDate, endDate) {
+        return await this.trafficModel.find({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            timestamp: { $gte: startDate, $lte: endDate }
+        })
+            .sort({ timestamp: -1 })
+            .limit(100)
+            .exec();
     }
     async getInteractionAnalytics(businessId, startDate, endDate) {
         return await this.trafficModel.aggregate([

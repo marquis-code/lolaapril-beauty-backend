@@ -12,6 +12,7 @@ var BookingAutomationService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingAutomationService = void 0;
 const common_1 = require("@nestjs/common");
+const event_emitter_1 = require("@nestjs/event-emitter");
 const booking_service_1 = require("./booking.service");
 const appointment_service_1 = require("../../appointment/appointment.service");
 const payment_service_1 = require("../../payment/payment.service");
@@ -20,7 +21,7 @@ const staff_service_1 = require("../../staff/staff.service");
 const availability_service_1 = require("../../availability/availability.service");
 const business_service_1 = require("../../business/business.service");
 const subscription_service_1 = require("../../subscription/subscription.service");
-const event_emitter_1 = require("@nestjs/event-emitter");
+const event_emitter_2 = require("@nestjs/event-emitter");
 let BookingAutomationService = BookingAutomationService_1 = class BookingAutomationService {
     constructor(bookingService, appointmentService, paymentService, notificationService, staffService, availabilityService, businessService, subscriptionService, eventEmitter) {
         this.bookingService = bookingService;
@@ -33,6 +34,29 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
         this.subscriptionService = subscriptionService;
         this.eventEmitter = eventEmitter;
         this.logger = new common_1.Logger(BookingAutomationService_1.name);
+    }
+    async handlePaymentCompleted(payload) {
+        this.logger.log(`📡 Received payment.completed event for booking: ${payload.booking?._id || payload.booking}`);
+        try {
+            const bookingId = payload.booking?._id?.toString() || payload.booking?.toString();
+            if (!bookingId) {
+                this.logger.error('❌ No booking ID found in payment.completed payload');
+                return;
+            }
+            const paymentData = {
+                transactionReference: payload.payment?.transactionId || payload.payment?.paymentReference || payload.gatewayResponse?.reference,
+                amount: payload.payment?.totalAmount || payload.gatewayResponse?.amount,
+                paymentMethod: payload.payment?.paymentMethod || payload.gatewayResponse?.channel,
+                gateway: payload.payment?.gateway || 'paystack',
+                status: 'successful'
+            };
+            this.logger.log(`📅 Triggering appointment creation for booking ${bookingId}`);
+            await this.processPaymentAndCreateAppointment(bookingId, paymentData);
+            this.logger.log(`✅ Automated appointment creation completed for booking ${bookingId}`);
+        }
+        catch (error) {
+            this.logger.error(`❌ Failed to process automated appointment creation: ${error.message}`);
+        }
     }
     async createAutomatedBooking(bookingData) {
         try {
@@ -86,8 +110,8 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
             if (!booking) {
                 throw new common_1.BadRequestException('Booking not found');
             }
-            if (booking.status !== 'pending') {
-                throw new common_1.BadRequestException('Booking is not in pending status');
+            if (!['pending', 'confirmed'].includes(booking.status)) {
+                throw new common_1.BadRequestException(`Booking is in '${booking.status}' status, expected 'pending' or 'confirmed'`);
             }
             if (paymentData.amount !== booking.estimatedTotal) {
                 throw new common_1.BadRequestException('Payment amount does not match booking total');
@@ -110,6 +134,7 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
                 paymentType: 'full'
             });
             const appointment = await this.appointmentService.createFromBooking(booking);
+            await this.bookingService.linkAppointment(booking._id.toString(), appointment._id.toString());
             const staffAssignment = await this.autoAssignStaffToAppointment(appointment, booking.services);
             await this.sendAppointmentConfirmationNotifications(appointment, payment, staffAssignment);
             this.eventEmitter.emit('appointment.created', {
@@ -295,6 +320,12 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
         return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;
     }
 };
+__decorate([
+    (0, event_emitter_1.OnEvent)('payment.completed'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], BookingAutomationService.prototype, "handlePaymentCompleted", null);
 BookingAutomationService = BookingAutomationService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [booking_service_1.BookingService,
@@ -305,7 +336,7 @@ BookingAutomationService = BookingAutomationService_1 = __decorate([
         availability_service_1.AvailabilityService,
         business_service_1.BusinessService,
         subscription_service_1.SubscriptionService,
-        event_emitter_1.EventEmitter2])
+        event_emitter_2.EventEmitter2])
 ], BookingAutomationService);
 exports.BookingAutomationService = BookingAutomationService;
 //# sourceMappingURL=booking-automation.service.js.map

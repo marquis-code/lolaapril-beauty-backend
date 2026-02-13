@@ -159,6 +159,28 @@ let NotificationTemplateSeeder = class NotificationTemplateSeeder {
                 isActive: true,
             },
             {
+                templateType: 'payment_reminder',
+                name: 'Payment Reminder',
+                subject: 'Payment Reminder: Please Complete Your Booking',
+                content: `
+          <h2>Complete Your Payment</h2>
+          <p>Hello {{clientName}},</p>
+          <p>This is a friendly reminder to complete the payment for your booking:</p>
+          <ul>
+            <li><strong>Amount:</strong> ₦{{paymentAmount}}</li>
+            <li><strong>Service:</strong> {{serviceName}}</li>
+            <li><strong>Appointment Date:</strong> {{appointmentDate}}</li>
+          </ul>
+          <p>To secure your appointment, please complete the payment using the link below:</p>
+          <p><a href="{{retryPaymentUrl}}">Complete Payment</a></p>
+          <p>If you have already paid or need assistance, please contact us at {{businessPhone}}.</p>
+          <p>Best regards,<br/>{{businessName}}</p>
+        `,
+                channel: 'both',
+                isDefault: true,
+                isActive: true,
+            },
+            {
                 templateType: 'appointment_reminder',
                 name: 'Appointment Reminder',
                 subject: 'Reminder: Appointment Tomorrow - {{appointmentNumber}}',

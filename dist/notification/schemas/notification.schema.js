@@ -51,6 +51,7 @@ __decorate([
             'appointment_completed',
             'payment_confirmation',
             'payment_failed',
+            'payment_reminder',
             'staff_assignment',
             'custom'
         ]

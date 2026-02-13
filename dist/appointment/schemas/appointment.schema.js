@@ -364,6 +364,14 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Appointment.prototype, "reminderSent", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "Booking" }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Appointment.prototype, "bookingId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Appointment.prototype, "bookingNumber", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)
 ], Appointment.prototype, "createdAt", void 0);

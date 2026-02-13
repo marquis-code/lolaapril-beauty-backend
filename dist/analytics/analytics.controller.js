@@ -327,6 +327,15 @@ let AnalyticsController = class AnalyticsController {
         const data = await this.analyticsService.getInteractionAnalytics(businessId, start, end);
         return { success: true, data };
     }
+    async getTrafficDetails(startDate, endDate, businessId) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            throw new common_1.BadRequestException('Invalid date format');
+        }
+        const data = await this.analyticsService.getDetailedTraffic(businessId, start, end);
+        return { success: true, data };
+    }
 };
 __decorate([
     (0, common_1.Post)('reports/generate'),
@@ -653,6 +662,22 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getTrafficInteractionStats", null);
+__decorate([
+    (0, common_1.Get)('traffic/details'),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get granular traffic details',
+        description: 'Returns detailed logs for traffic events including IP and location',
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String }),
+    (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String }),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getTrafficDetails", null);
 AnalyticsController = __decorate([
     (0, swagger_1.ApiTags)('Analytics'),
     (0, swagger_1.ApiBearerAuth)(),

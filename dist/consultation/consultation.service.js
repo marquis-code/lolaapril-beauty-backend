@@ -20,13 +20,15 @@ const mongoose_2 = require("mongoose");
 const consultation_schema_1 = require("./schemas/consultation.schema");
 const google_calendar_service_1 = require("../integration/google-calendar.service");
 const notification_service_1 = require("../notification/notification.service");
+const appointment_service_1 = require("../appointment/appointment.service");
+const business_service_1 = require("../business/business.service");
 const integration_schema_1 = require("../integration/schemas/integration.schema");
 const gateway_manager_service_1 = require("../integration/gateway-manager.service");
 const config_1 = require("@nestjs/config");
 const moment = require("moment");
 const uuid_1 = require("uuid");
 let ConsultationService = ConsultationService_1 = class ConsultationService {
-    constructor(packageModel, bookingModel, availabilityModel, integrationModel, googleCalendarService, notificationService, gatewayManager, configService) {
+    constructor(packageModel, bookingModel, availabilityModel, integrationModel, googleCalendarService, notificationService, gatewayManager, configService, appointmentService, businessService) {
         this.packageModel = packageModel;
         this.bookingModel = bookingModel;
         this.availabilityModel = availabilityModel;
@@ -35,6 +37,8 @@ let ConsultationService = ConsultationService_1 = class ConsultationService {
         this.notificationService = notificationService;
         this.gatewayManager = gatewayManager;
         this.configService = configService;
+        this.appointmentService = appointmentService;
+        this.businessService = businessService;
         this.logger = new common_1.Logger(ConsultationService_1.name);
     }
     async createPackage(businessId, dto) {
@@ -237,6 +241,35 @@ let ConsultationService = ConsultationService_1 = class ConsultationService {
             }
         }
         await booking.save();
+        try {
+            const business = await this.businessService.getById(businessId);
+            const compatibleBooking = {
+                _id: booking._id,
+                bookingNumber: booking.paymentReference || `CONS-${booking._id}`,
+                clientId: booking.clientId,
+                businessId: booking.businessId,
+                businessName: business?.businessName || 'Lola April Beauty',
+                businessAddress: business?.address || 'Address not provided',
+                preferredDate: booking.startTime,
+                preferredStartTime: moment(booking.startTime).format('HH:mm'),
+                services: [{
+                        serviceId: booking.packageId._id,
+                        serviceName: booking.packageId.name,
+                        duration: booking.packageId.duration,
+                        price: booking.packageId.price
+                    }],
+                estimatedTotal: booking.packageId.price,
+                specialRequests: booking.notes
+            };
+            this.logger.log(`📅 Creating appointment for consultation ${booking._id}`);
+            const appointment = await this.appointmentService.createFromBooking(compatibleBooking);
+            booking.appointmentId = appointment._id;
+            await booking.save();
+            this.logger.log(`✅ Appointment created and linked for consultation ${booking._id}`);
+        }
+        catch (appointmentError) {
+            this.logger.error(`❌ Failed to create appointment for consultation: ${appointmentError.message}`);
+        }
         await this.sendConfirmationEmail(booking);
         return booking;
     }
@@ -379,7 +412,9 @@ ConsultationService = ConsultationService_1 = __decorate([
         google_calendar_service_1.GoogleCalendarService,
         notification_service_1.NotificationService,
         gateway_manager_service_1.GatewayManagerService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        appointment_service_1.AppointmentService,
+        business_service_1.BusinessService])
 ], ConsultationService);
 exports.ConsultationService = ConsultationService;
 //# sourceMappingURL=consultation.service.js.map

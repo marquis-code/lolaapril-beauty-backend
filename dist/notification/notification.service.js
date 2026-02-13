@@ -19,14 +19,16 @@ const mongoose_2 = require("mongoose");
 const cache_service_1 = require("../cache/cache.service");
 const schedule_1 = require("@nestjs/schedule");
 const notification_schema_1 = require("../notification/schemas/notification.schema");
+const business_schema_1 = require("../business/schemas/business.schema");
 const email_service_1 = require("./email.service");
 const sms_service_1 = require("./sms.service");
 const email_templates_service_1 = require("./templates/email-templates.service");
 let NotificationService = class NotificationService {
-    constructor(notificationTemplateModel, notificationLogModel, notificationPreferenceModel, emailService, smsService, emailTemplatesService, cacheService) {
+    constructor(notificationTemplateModel, notificationLogModel, notificationPreferenceModel, businessModel, emailService, smsService, emailTemplatesService, cacheService) {
         this.notificationTemplateModel = notificationTemplateModel;
         this.notificationLogModel = notificationLogModel;
         this.notificationPreferenceModel = notificationPreferenceModel;
+        this.businessModel = businessModel;
         this.emailService = emailService;
         this.smsService = smsService;
         this.emailTemplatesService = emailTemplatesService;
@@ -202,8 +204,22 @@ let NotificationService = class NotificationService {
             };
             const content = this.replaceTemplateVariables(template.content, variables);
             const subject = this.replaceTemplateVariables(template.subject, variables);
-            const staffEmail = process.env.STAFF_NOTIFICATION_EMAIL || 'staff@business.com';
-            const staffPhone = process.env.STAFF_NOTIFICATION_PHONE || '';
+            let staffEmail = process.env.STAFF_NOTIFICATION_EMAIL;
+            let staffPhone = process.env.STAFF_NOTIFICATION_PHONE;
+            if (!staffEmail || !staffPhone) {
+                try {
+                    const business = await this.businessModel.findById(businessId).exec();
+                    if (business && business.contact) {
+                        staffEmail = staffEmail || business.contact.email;
+                        staffPhone = staffPhone || business.contact.primaryPhone;
+                    }
+                }
+                catch (businessError) {
+                    console.error('Failed to fetch business contact for staff notification:', businessError);
+                }
+            }
+            staffEmail = staffEmail || 'staff@business.com';
+            staffPhone = staffPhone || '';
             const bookingId = booking._id ? (booking._id.toString ? booking._id.toString() : String(booking._id)) : 'unknown';
             const templateId = template._id ? (template._id.toString ? template._id.toString() : String(template._id)) : 'unknown';
             await this.sendNotification({
@@ -256,7 +272,7 @@ let NotificationService = class NotificationService {
         });
     }
     async notifyPaymentReminder(bookingId, clientId, businessId, details) {
-        const template = await this.getTemplate(businessId, 'payment_failed');
+        const template = await this.getTemplate(businessId, 'payment_reminder');
         const preferences = await this.getUserPreferences(clientId, businessId);
         const variables = {
             clientName: details.clientName,
@@ -279,7 +295,7 @@ let NotificationService = class NotificationService {
             subject,
             content,
             channel: template.channel,
-            preferences: preferences.payment_failed,
+            preferences: preferences.payment_reminder || preferences.payment_failed,
             templateId: template._id.toString(),
             relatedEntityId: bookingId,
             relatedEntityType: 'booking'
@@ -498,6 +514,7 @@ let NotificationService = class NotificationService {
             appointment_cancelled: { email: true, sms: true },
             payment_confirmation: { email: true, sms: false },
             payment_failed: { email: true, sms: true },
+            payment_reminder: { email: true, sms: true },
             promotional: { email: false, sms: false },
         };
     }
@@ -619,7 +636,9 @@ NotificationService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(notification_schema_1.NotificationTemplate.name)),
     __param(1, (0, mongoose_1.InjectModel)(notification_schema_1.NotificationLog.name)),
     __param(2, (0, mongoose_1.InjectModel)(notification_schema_1.NotificationPreference.name)),
+    __param(3, (0, mongoose_1.InjectModel)(business_schema_1.Business.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         email_service_1.EmailService,

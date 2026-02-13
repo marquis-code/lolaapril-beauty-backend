@@ -18,6 +18,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const config_1 = require("@nestjs/config");
 const axios_1 = require("axios");
+const event_emitter_1 = require("@nestjs/event-emitter");
 const payment_schema_1 = require("./schemas/payment.schema");
 const booking_schema_1 = require("../booking/schemas/booking.schema");
 const business_schema_1 = require("../business/schemas/business.schema");
@@ -29,7 +30,7 @@ const jobs_service_1 = require("../jobs/jobs.service");
 const cache_service_1 = require("../cache/cache.service");
 const business_service_1 = require("../business/business.service");
 let PaymentService = class PaymentService {
-    constructor(paymentModel, bookingModel, businessModel, notificationService, configService, pricingService, commissionService, gatewayManager, jobsService, cacheService, businessService) {
+    constructor(paymentModel, bookingModel, businessModel, notificationService, configService, pricingService, commissionService, gatewayManager, jobsService, cacheService, businessService, eventEmitter) {
         this.paymentModel = paymentModel;
         this.bookingModel = bookingModel;
         this.businessModel = businessModel;
@@ -41,6 +42,7 @@ let PaymentService = class PaymentService {
         this.jobsService = jobsService;
         this.cacheService = cacheService;
         this.businessService = businessService;
+        this.eventEmitter = eventEmitter;
         this.paystackBaseUrl = 'https://api.paystack.co';
         this.paystackSecretKey = this.configService.get('PAYSTACK_SECRET_KEY');
     }
@@ -282,20 +284,28 @@ let PaymentService = class PaymentService {
             else {
                 updateData.status = 'processing';
             }
-            const updatedPayment = await this.paymentModel.findByIdAndUpdate(payment._id, updateData, { new: true, runValidators: true })
+            const finalUpdatedPayment = await this.paymentModel.findByIdAndUpdate(payment._id, updateData, { new: true, runValidators: true })
                 .populate('clientId', 'firstName lastName email')
                 .populate('bookingId')
                 .exec();
             console.log('✅ Payment updated:', {
-                paymentId: updatedPayment._id,
-                status: updatedPayment.status,
+                paymentId: finalUpdatedPayment._id,
+                status: finalUpdatedPayment.status,
             });
+            if (finalUpdatedPayment.status === 'completed') {
+                this.eventEmitter.emit('payment.completed', {
+                    payment: finalUpdatedPayment,
+                    booking: payment.bookingId,
+                    gatewayResponse
+                });
+                console.log('📡 Emitted payment.completed event');
+            }
             const result = {
                 success: true,
-                data: updatedPayment,
+                data: finalUpdatedPayment,
                 message: `Payment ${gatewayResponse.status}`,
             };
-            if (updatedPayment.status === 'completed') {
+            if (finalUpdatedPayment.status === 'completed') {
                 await this.cacheService.set(cacheKey, result, 3600);
             }
             return result;
@@ -305,7 +315,7 @@ let PaymentService = class PaymentService {
             if (error instanceof common_1.NotFoundException) {
                 throw error;
             }
-            if (axios_1.default.isAxiosError(error)) {
+            if (axios_1.default && axios_1.default.isAxiosError && axios_1.default.isAxiosError(error)) {
                 throw new common_1.BadRequestException(error.response?.data?.message || 'Failed to verify payment');
             }
             throw new common_1.BadRequestException(`Failed to verify payment: ${error.message}`);
@@ -1000,7 +1010,8 @@ PaymentService = __decorate([
         gateway_manager_service_1.GatewayManagerService,
         jobs_service_1.JobsService,
         cache_service_1.CacheService,
-        business_service_1.BusinessService])
+        business_service_1.BusinessService,
+        event_emitter_1.EventEmitter2])
 ], PaymentService);
 exports.PaymentService = PaymentService;
 //# sourceMappingURL=payment.service.js.map

@@ -128,4 +128,8 @@ export declare class AnalyticsController {
         success: boolean;
         data: any[];
     }>;
+    getTrafficDetails(startDate: string, endDate: string, businessId: string): Promise<{
+        success: boolean;
+        data: any[];
+    }>;
 }

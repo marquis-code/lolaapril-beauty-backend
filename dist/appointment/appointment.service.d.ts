@@ -48,6 +48,7 @@ export declare class AppointmentService {
     private emailTemplatesService;
     private googleCalendarService;
     private configService;
+    private readonly logger;
     constructor(appointmentModel: Model<AppointmentDocument>, scheduledReminderModel: Model<ScheduledReminderDocument>, paymentService: PaymentService, notificationService: NotificationService, staffService: StaffService, salesService: SalesService, emailService: EmailService, emailTemplatesService: EmailTemplatesService, googleCalendarService: GoogleCalendarService, configService: ConfigService);
     create(createAppointmentDto: CreateAppointmentDto & {
         businessId: string;
@@ -80,6 +81,7 @@ export declare class AppointmentService {
     }>;
     getAvailableTimeSlots(date: string, staffId?: string): Promise<string[]>;
     createFromBooking(booking: any): Promise<any>;
+    private mapToPlainObject;
     private generateAppointmentNumber;
     completeAppointment(appointmentId: string): Promise<any>;
 }

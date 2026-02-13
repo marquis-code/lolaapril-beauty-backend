@@ -135,6 +135,8 @@ export declare class Appointment {
     actualEndTime: Date;
     appointmentNumber: string;
     reminderSent: boolean;
+    bookingId: Types.ObjectId;
+    bookingNumber: string;
     createdAt: Date;
     updatedAt: Date;
 }

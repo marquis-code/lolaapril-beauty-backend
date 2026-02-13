@@ -308,6 +308,7 @@ export class PaymentService {
         updatedAt: new Date(),
       };
 
+      // ✅ Determine payment status BEFORE any DB update
       if (gatewayResponse.status === 'success') {
         updateData.status = 'completed';
         updateData.paidAt = new Date();
@@ -394,14 +395,6 @@ export class PaymentService {
           console.error('❌ Failed to send notification:', notificationError);
         }
 
-        // ✅ Emit payment.completed event for booking automation
-        this.eventEmitter.emit('payment.completed', {
-          payment: updatedPayment || payment,
-          booking: payment.bookingId, // Note: populated bookingId is available in updatedPayment
-          gatewayResponse
-        });
-        console.log('📡 Emitted payment.completed event');
-
       } else if (gatewayResponse.status === 'failed') {
         updateData.status = 'failed';
 
@@ -424,8 +417,8 @@ export class PaymentService {
         updateData.status = 'processing';
       }
 
-      // Update payment record
-      const updatedPayment = await this.paymentModel.findByIdAndUpdate(
+      // ✅ Single DB update with the fully determined status
+      const finalUpdatedPayment = await this.paymentModel.findByIdAndUpdate(
         payment._id,
         updateData,
         { new: true, runValidators: true }
@@ -435,18 +428,28 @@ export class PaymentService {
         .exec();
 
       console.log('✅ Payment updated:', {
-        paymentId: updatedPayment._id,
-        status: updatedPayment.status,
+        paymentId: finalUpdatedPayment._id,
+        status: finalUpdatedPayment.status,
       });
+
+      // ✅ Emit payment.completed event AFTER final DB update so the payment has correct status
+      if (finalUpdatedPayment.status === 'completed') {
+        this.eventEmitter.emit('payment.completed', {
+          payment: finalUpdatedPayment,
+          booking: payment.bookingId,
+          gatewayResponse
+        });
+        console.log('📡 Emitted payment.completed event');
+      }
 
       const result = {
         success: true,
-        data: updatedPayment,
+        data: finalUpdatedPayment,
         message: `Payment ${gatewayResponse.status}`,
       };
 
       // Cache successful verification
-      if (updatedPayment.status === 'completed') {
+      if (finalUpdatedPayment.status === 'completed') {
         await this.cacheService.set(cacheKey, result, 3600);
       }
 
@@ -459,7 +462,7 @@ export class PaymentService {
         throw error;
       }
 
-      if (axios.isAxiosError(error)) {
+      if (axios && (axios as any).isAxiosError && (axios as any).isAxiosError(error)) {
         throw new BadRequestException(
           error.response?.data?.message || 'Failed to verify payment'
         );
