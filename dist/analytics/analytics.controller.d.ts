@@ -124,4 +124,8 @@ export declare class AnalyticsController {
         success: boolean;
         data: any[];
     }>;
+    getTrafficInteractionStats(startDate: string, endDate: string, businessId: string): Promise<{
+        success: boolean;
+        data: any[];
+    }>;
 }

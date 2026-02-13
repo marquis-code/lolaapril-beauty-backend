@@ -710,4 +710,45 @@ export class AnalyticsService {
       { $sort: { views: -1 } },
     ]).exec()
   }
+
+  /**
+   * Get interaction analytics (clicks, form submissions, modal opens)
+   */
+  async getInteractionAnalytics(businessId: string, startDate: Date, endDate: Date): Promise<any[]> {
+    return await this.trafficModel.aggregate([
+      {
+        $match: {
+          businessId: new Types.ObjectId(businessId),
+          timestamp: { $gte: startDate, $lte: endDate },
+          eventType: { $ne: 'page_view' }
+        },
+      },
+      {
+        $group: {
+          _id: {
+            eventType: '$eventType',
+            pagePath: '$pagePath',
+            label: '$metadata.label',
+            action: '$metadata.action'
+          },
+          count: { $sum: 1 },
+          uniqueVisitors: { $addToSet: '$visitorId' },
+          lastEvent: { $max: '$timestamp' }
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          eventType: '$_id.eventType',
+          pagePath: '$_id.pagePath',
+          label: '$_id.label',
+          action: '$_id.action',
+          count: 1,
+          uniqueVisitors: { $size: '$uniqueVisitors' },
+          lastEvent: 1
+        },
+      },
+      { $sort: { count: -1 } },
+    ]).exec()
+  }
 }

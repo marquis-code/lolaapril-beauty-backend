@@ -20,6 +20,7 @@ const business_service_1 = require("../business/business.service");
 const consultation_dto_1 = require("./dto/consultation.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const business_context_decorator_1 = require("../auth/decorators/business-context.decorator");
+const auth_1 = require("../auth");
 let ConsultationController = class ConsultationController {
     constructor(consultationService, businessService) {
         this.consultationService = consultationService;
@@ -155,6 +156,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ConsultationController.prototype, "completeBooking", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)('subdomain/:subdomain/packages'),
     (0, swagger_1.ApiOperation)({ summary: 'Get active consultation packages for a business (Client)' }),
     __param(0, (0, common_1.Param)('subdomain')),
@@ -163,6 +165,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ConsultationController.prototype, "getActivePackages", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)('subdomain/:subdomain/slots'),
     (0, swagger_1.ApiOperation)({ summary: 'Get available slots for a package on a date (Client)' }),
     __param(0, (0, common_1.Param)('subdomain')),
@@ -195,6 +198,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ConsultationController.prototype, "getMyBookings", null);
 __decorate([
+    (0, auth_1.Public)(),
     (0, common_1.Get)('verify-payment/:reference'),
     (0, swagger_1.ApiOperation)({ summary: 'Verify Paystack payment for a consultation (Client)' }),
     __param(0, (0, common_1.Param)('reference')),

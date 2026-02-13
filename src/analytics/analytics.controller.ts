@@ -718,4 +718,32 @@ export class AnalyticsController {
     const data = await this.analyticsService.getPageAnalytics(businessId, start, end);
     return { success: true, data };
   }
+
+  /**
+   * Get Traffic Interaction Stats
+   * GET /analytics/traffic/interactions
+   */
+  @Get('traffic/interactions')
+  @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Get traffic interaction stats',
+    description: 'Returns metrics for clicks, form submissions, and modal interactions',
+  })
+  @ApiQuery({ name: 'startDate', required: true, type: String })
+  @ApiQuery({ name: 'endDate', required: true, type: String })
+  async getTrafficInteractionStats(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @BusinessId() businessId: string,
+  ) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const data = await this.analyticsService.getInteractionAnalytics(businessId, start, end);
+    return { success: true, data };
+  }
 }

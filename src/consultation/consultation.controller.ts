@@ -8,6 +8,7 @@ import {
 } from './dto/consultation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BusinessId, CurrentUser } from '../auth/decorators/business-context.decorator';
+import { Public } from '../auth';
 
 @ApiTags('Consultation')
 @Controller('consultations')
@@ -89,6 +90,7 @@ export class ConsultationController {
 
     // ================== CLIENT ENDPOINTS ==================
 
+    @Public()
     @Get('subdomain/:subdomain/packages')
     @ApiOperation({ summary: 'Get active consultation packages for a business (Client)' })
     async getActivePackages(@Param('subdomain') subdomain: string) {
@@ -96,6 +98,7 @@ export class ConsultationController {
         return this.consultationService.getPackages(business._id.toString(), true);
     }
 
+    @Public()
     @Get('subdomain/:subdomain/slots')
     @ApiOperation({ summary: 'Get available slots for a package on a date (Client)' })
     async getSlots(
@@ -128,6 +131,7 @@ export class ConsultationController {
         return this.consultationService.getClientBookings(user.sub);
     }
 
+    @Public()
     @Get('verify-payment/:reference')
     @ApiOperation({ summary: 'Verify Paystack payment for a consultation (Client)' })
     async verifyPayment(@Param('reference') reference: string) {

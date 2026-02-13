@@ -50,4 +50,5 @@ export declare class AnalyticsService {
     getTrafficBreakdown(businessId: string, startDate: Date, endDate: Date, groupBy?: 'device' | 'os' | 'browser' | 'page'): Promise<any[]>;
     getTrafficLocationBreakdown(businessId: string, startDate: Date, endDate: Date, groupBy?: 'country' | 'region' | 'city'): Promise<any[]>;
     getPageAnalytics(businessId: string, startDate: Date, endDate: Date): Promise<any[]>;
+    getInteractionAnalytics(businessId: string, startDate: Date, endDate: Date): Promise<any[]>;
 }

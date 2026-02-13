@@ -532,6 +532,43 @@ let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
             { $sort: { views: -1 } },
         ]).exec();
     }
+    async getInteractionAnalytics(businessId, startDate, endDate) {
+        return await this.trafficModel.aggregate([
+            {
+                $match: {
+                    businessId: new mongoose_2.Types.ObjectId(businessId),
+                    timestamp: { $gte: startDate, $lte: endDate },
+                    eventType: { $ne: 'page_view' }
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        eventType: '$eventType',
+                        pagePath: '$pagePath',
+                        label: '$metadata.label',
+                        action: '$metadata.action'
+                    },
+                    count: { $sum: 1 },
+                    uniqueVisitors: { $addToSet: '$visitorId' },
+                    lastEvent: { $max: '$timestamp' }
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    eventType: '$_id.eventType',
+                    pagePath: '$_id.pagePath',
+                    label: '$_id.label',
+                    action: '$_id.action',
+                    count: 1,
+                    uniqueVisitors: { $size: '$uniqueVisitors' },
+                    lastEvent: 1
+                },
+            },
+            { $sort: { count: -1 } },
+        ]).exec();
+    }
 };
 AnalyticsService = AnalyticsService_1 = __decorate([
     (0, common_1.Injectable)(),
