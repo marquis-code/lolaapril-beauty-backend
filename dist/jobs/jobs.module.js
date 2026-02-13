@@ -34,23 +34,50 @@ JobsModule = __decorate([
             config_1.ConfigModule,
             bull_1.BullModule.forRootAsync({
                 imports: [config_1.ConfigModule],
-                useFactory: async (configService) => ({
-                    redis: {
+                inject: [config_1.ConfigService],
+                useFactory: async (configService) => {
+                    const redisOptions = {
                         host: configService.get('REDIS_HOST', 'localhost'),
                         port: configService.get('REDIS_PORT', 6379),
                         password: configService.get('REDIS_PASSWORD'),
-                    },
-                    defaultJobOptions: {
-                        attempts: 3,
-                        backoff: {
-                            type: 'exponential',
-                            delay: 1000,
+                        maxRetriesPerRequest: null,
+                        enableReadyCheck: false,
+                    };
+                    const sharedConnections = new Map();
+                    return {
+                        createClient: (type) => {
+                            switch (type) {
+                                case 'client':
+                                    if (!sharedConnections.has('client')) {
+                                        const Redis = require('ioredis');
+                                        sharedConnections.set('client', new Redis(redisOptions));
+                                    }
+                                    return sharedConnections.get('client');
+                                case 'subscriber':
+                                    if (!sharedConnections.has('subscriber')) {
+                                        const Redis = require('ioredis');
+                                        sharedConnections.set('subscriber', new Redis(redisOptions));
+                                    }
+                                    return sharedConnections.get('subscriber');
+                                case 'bclient':
+                                    const Redis = require('ioredis');
+                                    return new Redis(redisOptions);
+                                default:
+                                    const DefaultRedis = require('ioredis');
+                                    return new DefaultRedis(redisOptions);
+                            }
                         },
-                        removeOnComplete: 100,
-                        removeOnFail: 200,
-                    },
-                }),
-                inject: [config_1.ConfigService],
+                        defaultJobOptions: {
+                            attempts: 3,
+                            backoff: {
+                                type: 'exponential',
+                                delay: 1000,
+                            },
+                            removeOnComplete: 100,
+                            removeOnFail: 200,
+                        },
+                    };
+                },
             }),
             bull_1.BullModule.registerQueue({ name: 'payouts' }, { name: 'reports' }, { name: 'notifications' }, { name: 'analytics' }),
             mongoose_1.MongooseModule.forFeature([

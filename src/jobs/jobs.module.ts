@@ -26,26 +26,61 @@ import { IntegrationModule } from '../integration/integration.module';
   imports: [
     ConfigModule,
 
-    // Register Bull queues
+    // Register Bull queues with Shared connection logic
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        redis: {
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const redisOptions = {
           host: configService.get('REDIS_HOST', 'localhost'),
           port: configService.get('REDIS_PORT', 6379),
           password: configService.get('REDIS_PASSWORD'),
-        },
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 1000,
+          maxRetriesPerRequest: null,
+          enableReadyCheck: false,
+        };
+
+        // Shared connections map to prevent duplicate initializations within this module
+        const sharedConnections = new Map<string, any>();
+
+        return {
+          // Bull (v4) uses ioredis internally. We provide a custom createClient
+          createClient: (type: string) => {
+            switch (type) {
+              case 'client':
+                if (!sharedConnections.has('client')) {
+                  const Redis = require('ioredis');
+                  sharedConnections.set('client', new Redis(redisOptions));
+                }
+                return sharedConnections.get('client');
+              case 'subscriber':
+                if (!sharedConnections.has('subscriber')) {
+                  const Redis = require('ioredis');
+                  sharedConnections.set('subscriber', new Redis(redisOptions));
+                }
+                return sharedConnections.get('subscriber');
+              case 'bclient':
+                // bclient (blocking client) should NOT be shared if multiple queues 
+                // perform blocking operations simultaneously, but Bull usually 
+                // manages this. For maximum connection savings, we return a new one 
+                // or a managed one. 
+                const Redis = require('ioredis');
+                return new Redis(redisOptions);
+              default:
+                const DefaultRedis = require('ioredis');
+                return new DefaultRedis(redisOptions);
+            }
           },
-          removeOnComplete: 100,
-          removeOnFail: 200,
-        },
-      }),
-      inject: [ConfigService],
+          defaultJobOptions: {
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 1000,
+            },
+            removeOnComplete: 100,
+            removeOnFail: 200,
+          },
+        };
+      },
     }),
 
     // Register individual queues

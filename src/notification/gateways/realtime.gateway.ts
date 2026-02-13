@@ -36,7 +36,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     private jwtService: JwtService,
     private configService: ConfigService,
     private moduleRef: ModuleRef,
-  ) {}
+  ) { }
 
   async afterInit(server: Server) {
     this.logger.log('🚀 WebSocket Gateway Initialized')
@@ -46,21 +46,33 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       const redisHost = this.configService.get<string>('REDIS_HOST')
       const redisPort = this.configService.get<number>('REDIS_PORT')
       const redisPassword = this.configService.get<string>('REDIS_PASSWORD')
+      const redisTls = this.configService.get<string>('REDIS_TLS') === 'true';
 
       if (redisHost && redisPort) {
-        const pubClient = createClient({
-          url: `redis://${redisHost}:${redisPort}`,
+        const Redis = require('ioredis');
+        const redisOptions: any = {
+          host: redisHost,
+          port: redisPort,
           password: redisPassword,
-        })
-        const subClient = pubClient.duplicate()
+          retryStrategy: (times: number) => {
+            if (times > 3) return null;
+            return Math.min(times * 50, 2000);
+          },
+          maxRetriesPerRequest: null,
+        };
 
-        await Promise.all([pubClient.connect(), subClient.connect()])
+        if (redisTls) {
+          redisOptions.tls = { rejectUnauthorized: false };
+        }
+
+        const pubClient = new Redis(redisOptions);
+        const subClient = new Redis(redisOptions);
 
         server.adapter(createAdapter(pubClient, subClient))
-        this.logger.log('✅ Redis adapter configured for WebSocket scaling')
+        this.logger.log('✅ Redis adapter configured for WebSocket scaling using ioredis')
       }
     } catch (error) {
-      this.logger.warn('⚠️ Redis adapter not configured, running in single-instance mode:', error.message)
+      this.logger.warn('⚠️ Redis adapter not configured:', error.message)
     }
   }
 
@@ -128,7 +140,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     // Generate unique guest ID
     const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     const sessionId = client.handshake.auth?.sessionId || client.id
-    
+
     // Store guest connection info
     this.connectedClients.set(client.id, {
       socket: client,
@@ -220,9 +232,9 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         // Serialize messages
         const serializedMessages = messages.map(msg => this.serializeMessage(msg))
 
-        return { 
-          success: true, 
-          message: 'Joined room successfully', 
+        return {
+          success: true,
+          message: 'Joined room successfully',
           roomId: data.roomId,
           messages: serializedMessages,
         }
@@ -232,19 +244,19 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       if (data.businessId && data.userName) {
         // ✅ REQUIRE EMAIL FOR ANONYMOUS USERS
         if (clientInfo.isGuest && !data.email) {
-          return { 
-            success: false, 
+          return {
+            success: false,
             error: 'Email is required for anonymous users',
-            requireEmail: true 
+            requireEmail: true
           }
         }
 
         // Validate email format if provided
         if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-          return { 
-            success: false, 
+          return {
+            success: false,
             error: 'Please provide a valid email address',
-            requireEmail: true 
+            requireEmail: true
           }
         }
 
@@ -274,7 +286,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
         const roomId = room._id.toString()
         client.join(`room:${roomId}`)
-        
+
         // Also join business room
         client.join(`business:${data.businessId}`)
 
@@ -284,9 +296,9 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         const { messages } = await chatService.getRoomMessages(roomId, { limit: 50 })
         const serializedMessages = messages.map(msg => this.serializeMessage(msg))
 
-        return { 
-          success: true, 
-          message: 'Room created/joined successfully', 
+        return {
+          success: true,
+          message: 'Room created/joined successfully',
           roomId,
           messages: serializedMessages,
           isGuest: clientInfo.isGuest,
@@ -370,101 +382,101 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   //     return { success: false, error: error.message }
   //   }
   // }
-  
+
   @SubscribeMessage('chat:send-message')
-async handleSendMessage(
-  @MessageBody() data: { roomId: string; content: string; attachments?: any[]; senderType?: 'customer' | 'staff' | 'system' | 'bot'; senderId?: string; senderName?: string },
-  @ConnectedSocket() client: Socket
-) {
-  const clientInfo = this.connectedClients.get(client.id)
-  if (!clientInfo) {
-    return { success: false, error: 'Not connected' }
-  }
-
-  try {
-    this.logger.log(`📤 Send message request:`, { 
-      clientId: client.id, 
-      roomId: data.roomId,
-      content: data.content.substring(0, 50) + '...',
-      isGuest: clientInfo.isGuest,
-      userId: clientInfo.userId
-    })
-
-    // Import chat service
-    const { ChatService } = await import('../services/chat.service')
-    const chatService = this.moduleRef.get(ChatService, { strict: false })
-
-
-    // Enforce and validate senderType
-    const staffRoles = ['BUSINESS_OWNER', 'BUSINESS_ADMIN', 'STAFF', 'SUPER_ADMIN']
-    const normalizedRole = typeof clientInfo.role === 'string' ? clientInfo.role.toUpperCase() : clientInfo.role;
-    let senderType = data.senderType;
-    let senderId = data.senderId || clientInfo.userId;
-    let senderName = data.senderName;
-
-    // Validate senderType
-    if (clientInfo.isGuest && senderType !== 'customer') {
-      return { success: false, error: 'Guests can only send as customer' };
-    }
-    if (!clientInfo.isGuest && staffRoles.includes(normalizedRole) && senderType !== 'staff') {
-      return { success: false, error: 'Staff can only send as staff' };
-    }
-    if (!clientInfo.isGuest && !staffRoles.includes(normalizedRole) && senderType !== 'customer') {
-      return { success: false, error: 'Customers can only send as customer' };
+  async handleSendMessage(
+    @MessageBody() data: { roomId: string; content: string; attachments?: any[]; senderType?: 'customer' | 'staff' | 'system' | 'bot'; senderId?: string; senderName?: string },
+    @ConnectedSocket() client: Socket
+  ) {
+    const clientInfo = this.connectedClients.get(client.id)
+    if (!clientInfo) {
+      return { success: false, error: 'Not connected' }
     }
 
+    try {
+      this.logger.log(`📤 Send message request:`, {
+        clientId: client.id,
+        roomId: data.roomId,
+        content: data.content.substring(0, 50) + '...',
+        isGuest: clientInfo.isGuest,
+        userId: clientInfo.userId
+      })
 
-    // Enforce senderName matches senderType
-    if (senderType === 'customer') {
-      // Always use guest name, customer name, or fallback
-      if (!senderName) {
-        if (clientInfo.isGuest) {
-          senderName = clientInfo.guestInfo?.userName || 'Guest';
-        } else if (clientInfo.role === 'CUSTOMER' && clientInfo.userName) {
-          senderName = clientInfo.userName;
-        } else {
+      // Import chat service
+      const { ChatService } = await import('../services/chat.service')
+      const chatService = this.moduleRef.get(ChatService, { strict: false })
+
+
+      // Enforce and validate senderType
+      const staffRoles = ['BUSINESS_OWNER', 'BUSINESS_ADMIN', 'STAFF', 'SUPER_ADMIN']
+      const normalizedRole = typeof clientInfo.role === 'string' ? clientInfo.role.toUpperCase() : clientInfo.role;
+      let senderType = data.senderType;
+      let senderId = data.senderId || clientInfo.userId;
+      let senderName = data.senderName;
+
+      // Validate senderType
+      if (clientInfo.isGuest && senderType !== 'customer') {
+        return { success: false, error: 'Guests can only send as customer' };
+      }
+      if (!clientInfo.isGuest && staffRoles.includes(normalizedRole) && senderType !== 'staff') {
+        return { success: false, error: 'Staff can only send as staff' };
+      }
+      if (!clientInfo.isGuest && !staffRoles.includes(normalizedRole) && senderType !== 'customer') {
+        return { success: false, error: 'Customers can only send as customer' };
+      }
+
+
+      // Enforce senderName matches senderType
+      if (senderType === 'customer') {
+        // Always use guest name, customer name, or fallback
+        if (!senderName) {
+          if (clientInfo.isGuest) {
+            senderName = clientInfo.guestInfo?.userName || 'Guest';
+          } else if (clientInfo.role === 'CUSTOMER' && clientInfo.userName) {
+            senderName = clientInfo.userName;
+          } else {
+            senderName = 'Customer';
+          }
+        }
+        // Prevent staff name for customer
+        if (senderName === 'Staff Member') {
           senderName = 'Customer';
         }
+      } else if (senderType === 'staff') {
+        // Always use staff name or fallback
+        if (!senderName) {
+          senderName = clientInfo.userName || 'Staff Member';
+        }
+        // Prevent customer/guest name for staff
+        if (senderName === 'Customer' || senderName === 'Guest') {
+          senderName = 'Staff Member';
+        }
       }
-      // Prevent staff name for customer
-      if (senderName === 'Staff Member') {
-        senderName = 'Customer';
+
+      // Send message via service (this will also emit via WebSocket)
+      const message = await chatService.sendMessage(
+        data.roomId,
+        senderId,
+        senderType,
+        data.content,
+        {
+          senderName,
+          attachments: data.attachments,
+        }
+      ) as any
+
+      this.logger.log(`✅ Message sent successfully to room ${data.roomId}`)
+
+      return {
+        success: true,
+        messageId: message._id.toString(),
+        timestamp: new Date()
       }
-    } else if (senderType === 'staff') {
-      // Always use staff name or fallback
-      if (!senderName) {
-        senderName = clientInfo.userName || 'Staff Member';
-      }
-      // Prevent customer/guest name for staff
-      if (senderName === 'Customer' || senderName === 'Guest') {
-        senderName = 'Staff Member';
-      }
+    } catch (error) {
+      this.logger.error(`❌ Error sending message:`, error.message)
+      return { success: false, error: error.message }
     }
-
-    // Send message via service (this will also emit via WebSocket)
-    const message = await chatService.sendMessage(
-      data.roomId,
-      senderId,
-      senderType,
-      data.content,
-      {
-        senderName,
-        attachments: data.attachments,
-      }
-    ) as any
-
-    this.logger.log(`✅ Message sent successfully to room ${data.roomId}`)
-
-    return { 
-      success: true, 
-      messageId: message._id.toString(),
-      timestamp: new Date() 
-    }
-  } catch (error) {
-    this.logger.error(`❌ Error sending message:`, error.message)
-    return { success: false, error: error.message }
   }
-}
 
   @SubscribeMessage('chat:typing')
   async handleTyping(
@@ -592,7 +604,7 @@ async handleSendMessage(
   }
 
   // ================== NOTIFICATION EVENTS ==================
-  
+
   /**
    * Emit notification to specific business
    */

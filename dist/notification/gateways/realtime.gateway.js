@@ -21,7 +21,6 @@ const config_1 = require("@nestjs/config");
 const jwt_1 = require("@nestjs/jwt");
 const core_1 = require("@nestjs/core");
 const redis_adapter_1 = require("@socket.io/redis-adapter");
-const redis_1 = require("redis");
 let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
     constructor(jwtService, configService, moduleRef) {
         this.jwtService = jwtService;
@@ -36,19 +35,31 @@ let RealtimeGateway = RealtimeGateway_1 = class RealtimeGateway {
             const redisHost = this.configService.get('REDIS_HOST');
             const redisPort = this.configService.get('REDIS_PORT');
             const redisPassword = this.configService.get('REDIS_PASSWORD');
+            const redisTls = this.configService.get('REDIS_TLS') === 'true';
             if (redisHost && redisPort) {
-                const pubClient = (0, redis_1.createClient)({
-                    url: `redis://${redisHost}:${redisPort}`,
+                const Redis = require('ioredis');
+                const redisOptions = {
+                    host: redisHost,
+                    port: redisPort,
                     password: redisPassword,
-                });
-                const subClient = pubClient.duplicate();
-                await Promise.all([pubClient.connect(), subClient.connect()]);
+                    retryStrategy: (times) => {
+                        if (times > 3)
+                            return null;
+                        return Math.min(times * 50, 2000);
+                    },
+                    maxRetriesPerRequest: null,
+                };
+                if (redisTls) {
+                    redisOptions.tls = { rejectUnauthorized: false };
+                }
+                const pubClient = new Redis(redisOptions);
+                const subClient = new Redis(redisOptions);
                 server.adapter((0, redis_adapter_1.createAdapter)(pubClient, subClient));
-                this.logger.log('✅ Redis adapter configured for WebSocket scaling');
+                this.logger.log('✅ Redis adapter configured for WebSocket scaling using ioredis');
             }
         }
         catch (error) {
-            this.logger.warn('⚠️ Redis adapter not configured, running in single-instance mode:', error.message);
+            this.logger.warn('⚠️ Redis adapter not configured:', error.message);
         }
     }
     async handleConnection(client) {

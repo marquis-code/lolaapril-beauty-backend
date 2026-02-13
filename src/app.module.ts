@@ -75,13 +75,6 @@ import { ConsultationModule } from './consultation/consultation.module';
         const redisUsername = configService.get<string>('REDIS_USERNAME');
         const redisTls = configService.get<string>('REDIS_TLS');
 
-        console.log('🔴 Redis Configuration:');
-        console.log(`   Host: ${redisHost}`);
-        console.log(`   Port: ${redisPort}`);
-        console.log(`   Username: ${redisUsername}`);
-        console.log(`   Password: ${redisPassword ? '***' : 'not set'}`);
-        console.log(`   TLS: ${redisTls === 'true' ? 'enabled' : 'disabled'}`);
-
         const config: any = {
           type: 'single',
           options: {
@@ -90,35 +83,25 @@ import { ConsultationModule } from './consultation/consultation.module';
             password: redisPassword,
             username: redisUsername,
             retryStrategy: (times: number) => {
-              // Limit retries to prevent connection buildup
-              if (times > 3) {
-                console.log(`⚠️  Redis retry limit reached after ${times} attempts`);
-                return null; // Stop retrying
-              }
-              const delay = Math.min(times * 50, 2000);
-              console.log(`🔄 Redis retry attempt ${times}, waiting ${delay}ms`);
-              return delay;
+              if (times > 3) return null;
+              return Math.min(times * 50, 2000);
             },
             maxRetriesPerRequest: 3,
-            enableReadyCheck: true,
-            lazyConnect: false,
-            enableOfflineQueue: false, // Prevent queueing commands when disconnected
-            connectTimeout: 10000, // 10 second timeout
-            maxLoadingRetryTime: 5000, // 5 second max retry time
+            enableReadyCheck: false,
+            lazyConnect: true, // Save connection until needed
+            connectTimeout: 10000,
           },
         };
 
         if (redisTls === 'true') {
-          config.options.tls = {
-            rejectUnauthorized: false
-          };
+          config.options.tls = { rejectUnauthorized: false };
         }
 
         return config;
       },
     }),
 
-    // Winston Logger - Enhanced Configuration
+    // Winston Logger ... (omitted for brevity)
     WinstonModule.forRoot({
       transports: [
         // Console Transport - Detailed colored output
@@ -163,54 +146,6 @@ import { ConsultationModule } from './consultation/consultation.module';
           maxsize: 5242880, // 5MB
           maxFiles: 10,
         }),
-
-        // Combined Log File - All logs
-        new winston.transports.File({
-          filename: 'logs/combined.log',
-          level: 'debug',
-          format: winston.format.combine(
-            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.json(),
-          ),
-          maxsize: 5242880, // 5MB
-          maxFiles: 10,
-        }),
-
-        // HTTP Requests Log File
-        new winston.transports.File({
-          filename: 'logs/http.log',
-          level: 'http',
-          format: winston.format.combine(
-            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.json(),
-          ),
-          maxsize: 5242880, // 5MB
-          maxFiles: 5,
-        }),
-
-        // Database Operations Log File
-        new winston.transports.File({
-          filename: 'logs/database.log',
-          level: 'debug',
-          format: winston.format.combine(
-            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.json(),
-          ),
-          maxsize: 5242880, // 5MB
-          maxFiles: 5,
-        }),
-
-        // Authentication Log File
-        new winston.transports.File({
-          filename: 'logs/auth.log',
-          level: 'info',
-          format: winston.format.combine(
-            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.json(),
-          ),
-          maxsize: 5242880, // 5MB
-          maxFiles: 5,
-        }),
       ],
       // Set default metadata
       defaultMeta: {
@@ -227,41 +162,12 @@ import { ConsultationModule } from './consultation/consultation.module';
         uri: configService.get<string>('MONGO_URL'),
         // Enable Mongoose debugging
         connectionFactory: (connection) => {
-          // Set mongoose debug mode
-          connection.set('debug', (collectionName: string, method: string, query: any, doc: any) => {
-            console.log(`📊 MongoDB Query: ${collectionName}.${method}`, {
-              query: JSON.stringify(query),
-              doc: doc ? JSON.stringify(doc) : undefined,
-              timestamp: new Date().toISOString()
-            });
-          });
-
           connection.on('connected', () => {
             console.log('✅ MongoDB connected successfully');
-            console.log(`📍 Database: ${connection.name}`);
-            console.log(`🔗 Host: ${connection.host}:${connection.port}`);
-            console.log(`⏰ Connected at: ${new Date().toISOString()}`);
           });
 
           connection.on('error', (error: any) => {
-            console.error('❌ MongoDB connection error:', {
-              message: error.message,
-              code: error.code,
-              name: error.name,
-              timestamp: new Date().toISOString()
-            });
-          });
-
-          connection.on('disconnected', () => {
-            console.log('⚠️  MongoDB disconnected at:', new Date().toISOString());
-          });
-
-          connection.on('reconnected', () => {
-            console.log('🔄 MongoDB reconnected at:', new Date().toISOString());
-          });
-
-          connection.on('close', () => {
-            console.log('🔴 MongoDB connection closed at:', new Date().toISOString());
+            console.error('❌ MongoDB connection error:', error.message);
           });
 
           return connection;
@@ -281,7 +187,6 @@ import { ConsultationModule } from './consultation/consultation.module';
     CacheModule,
     RateLimiterModule,
 
-    ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
 
     // ⚠️ IMPORTANT: AuthModule MUST be imported before using guards

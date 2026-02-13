@@ -89,12 +89,6 @@ AppModule = __decorate([
                     const redisPassword = configService.get('REDIS_PASSWORD');
                     const redisUsername = configService.get('REDIS_USERNAME');
                     const redisTls = configService.get('REDIS_TLS');
-                    console.log('🔴 Redis Configuration:');
-                    console.log(`   Host: ${redisHost}`);
-                    console.log(`   Port: ${redisPort}`);
-                    console.log(`   Username: ${redisUsername}`);
-                    console.log(`   Password: ${redisPassword ? '***' : 'not set'}`);
-                    console.log(`   TLS: ${redisTls === 'true' ? 'enabled' : 'disabled'}`);
                     const config = {
                         type: 'single',
                         options: {
@@ -103,26 +97,18 @@ AppModule = __decorate([
                             password: redisPassword,
                             username: redisUsername,
                             retryStrategy: (times) => {
-                                if (times > 3) {
-                                    console.log(`⚠️  Redis retry limit reached after ${times} attempts`);
+                                if (times > 3)
                                     return null;
-                                }
-                                const delay = Math.min(times * 50, 2000);
-                                console.log(`🔄 Redis retry attempt ${times}, waiting ${delay}ms`);
-                                return delay;
+                                return Math.min(times * 50, 2000);
                             },
                             maxRetriesPerRequest: 3,
-                            enableReadyCheck: true,
-                            lazyConnect: false,
-                            enableOfflineQueue: false,
+                            enableReadyCheck: false,
+                            lazyConnect: true,
                             connectTimeout: 10000,
-                            maxLoadingRetryTime: 5000,
                         },
                     };
                     if (redisTls === 'true') {
-                        config.options.tls = {
-                            rejectUnauthorized: false
-                        };
+                        config.options.tls = { rejectUnauthorized: false };
                     }
                     return config;
                 },
@@ -151,34 +137,6 @@ AppModule = __decorate([
                         maxsize: 5242880,
                         maxFiles: 10,
                     }),
-                    new winston.transports.File({
-                        filename: 'logs/combined.log',
-                        level: 'debug',
-                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.json()),
-                        maxsize: 5242880,
-                        maxFiles: 10,
-                    }),
-                    new winston.transports.File({
-                        filename: 'logs/http.log',
-                        level: 'http',
-                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.json()),
-                        maxsize: 5242880,
-                        maxFiles: 5,
-                    }),
-                    new winston.transports.File({
-                        filename: 'logs/database.log',
-                        level: 'debug',
-                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.json()),
-                        maxsize: 5242880,
-                        maxFiles: 5,
-                    }),
-                    new winston.transports.File({
-                        filename: 'logs/auth.log',
-                        level: 'info',
-                        format: winston.format.combine(winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston.format.json()),
-                        maxsize: 5242880,
-                        maxFiles: 5,
-                    }),
                 ],
                 defaultMeta: {
                     service: 'lola-beauty-backend',
@@ -191,35 +149,11 @@ AppModule = __decorate([
                 useFactory: async (configService) => ({
                     uri: configService.get('MONGO_URL'),
                     connectionFactory: (connection) => {
-                        connection.set('debug', (collectionName, method, query, doc) => {
-                            console.log(`📊 MongoDB Query: ${collectionName}.${method}`, {
-                                query: JSON.stringify(query),
-                                doc: doc ? JSON.stringify(doc) : undefined,
-                                timestamp: new Date().toISOString()
-                            });
-                        });
                         connection.on('connected', () => {
                             console.log('✅ MongoDB connected successfully');
-                            console.log(`📍 Database: ${connection.name}`);
-                            console.log(`🔗 Host: ${connection.host}:${connection.port}`);
-                            console.log(`⏰ Connected at: ${new Date().toISOString()}`);
                         });
                         connection.on('error', (error) => {
-                            console.error('❌ MongoDB connection error:', {
-                                message: error.message,
-                                code: error.code,
-                                name: error.name,
-                                timestamp: new Date().toISOString()
-                            });
-                        });
-                        connection.on('disconnected', () => {
-                            console.log('⚠️  MongoDB disconnected at:', new Date().toISOString());
-                        });
-                        connection.on('reconnected', () => {
-                            console.log('🔄 MongoDB reconnected at:', new Date().toISOString());
-                        });
-                        connection.on('close', () => {
-                            console.log('🔴 MongoDB connection closed at:', new Date().toISOString());
+                            console.error('❌ MongoDB connection error:', error.message);
                         });
                         return connection;
                     },
@@ -234,7 +168,6 @@ AppModule = __decorate([
             monitoring_module_1.MonitoringModule,
             cache_module_1.CacheModule,
             rate_limiter_module_1.RateLimiterModule,
-            schedule_1.ScheduleModule.forRoot(),
             event_emitter_1.EventEmitterModule.forRoot(),
             auth_module_1.AuthModule,
             business_module_1.BusinessModule,
