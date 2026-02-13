@@ -21,6 +21,9 @@ type LeanBusiness = {
   businessName: string
   subdomain: string
   status: string
+  ownerId?: any
+  adminIds?: any[]
+  staffIds?: any[]
 }
 
 // Type for lean user query result
@@ -41,7 +44,7 @@ type LeanUser = {
  * 1. Skips if route is marked @Public()
  * 2. Only validates if @ValidateBusiness() is present
  * 3. Checks business exists and is active
- * 4. Verifies user still has access to the business
+ * 4. Verifies user still has access to the business (dual check: User doc + Business doc)
  */
 @Injectable()
 export class ValidateBusinessAccessGuard implements CanActivate {
@@ -88,10 +91,10 @@ export class ValidateBusinessAccessGuard implements CanActivate {
     }
 
     // ===== STEP 4: Validate business exists and is active =====
-    // AGGRESSIVE FIX: Store query in variable first, then execute
+    // DUAL CHECK: Select owner and admin fields from business to verify access even if User doc is out of sync
     const businessQuery = this.businessModel
       .findById(user.businessId)
-      .select('_id businessName subdomain status')
+      .select('_id businessName subdomain status ownerId adminIds staffIds')
       .lean<LeanBusiness>()
 
     const business = await businessQuery.exec()
@@ -123,7 +126,7 @@ export class ValidateBusinessAccessGuard implements CanActivate {
       return true
     }
 
-    // AGGRESSIVE FIX: Store query in variable first, then execute
+    // Double check against User document
     const userQuery = this.userModel
       .findById(user.sub)
       .select('_id ownedBusinesses adminBusinesses staffBusinessId')
@@ -135,19 +138,32 @@ export class ValidateBusinessAccessGuard implements CanActivate {
       throw new UnauthorizedException('User not found')
     }
 
-    // Check if user has access (owner, admin, or staff)
-    const hasAccess =
-      dbUser.ownedBusinesses?.some(id => id.toString() === user.businessId.toString()) ||
-      dbUser.adminBusinesses?.some(id => id.toString() === user.businessId.toString()) ||
-      dbUser.staffBusinessId?.toString() === user.businessId.toString()
+    // Check if user has access (EITHER listed in User doc OR listed in Business doc)
+    const userIdStr = user.sub.toString()
+    const targetBusinessIdStr = user.businessId.toString()
 
-    if (!hasAccess) {
+    const hasAccessInUserDoc =
+      dbUser.ownedBusinesses?.some(id => id.toString() === targetBusinessIdStr) ||
+      dbUser.adminBusinesses?.some(id => id.toString() === targetBusinessIdStr) ||
+      dbUser.staffBusinessId?.toString() === targetBusinessIdStr
+
+    const hasAccessInBusinessDoc =
+      business.ownerId?.toString() === userIdStr ||
+      business.adminIds?.some(id => id.toString() === userIdStr) ||
+      business.staffIds?.some(id => id.toString() === userIdStr)
+
+    if (!hasAccessInUserDoc && !hasAccessInBusinessDoc) {
       console.error(`❌ Access Denied details:
         User ID: ${user.sub}
         Target Business ID: ${user.businessId}
+        --- User Doc Check ---
         Owned Businesses: ${dbUser.ownedBusinesses?.map(id => id.toString()).join(', ') || 'None'}
         Admin Businesses: ${dbUser.adminBusinesses?.map(id => id.toString()).join(', ') || 'None'}
         Staff Business ID: ${dbUser.staffBusinessId?.toString() || 'None'}
+        --- Business Doc Check ---
+        Owner ID: ${business.ownerId?.toString() || 'None'}
+        Admin IDs: ${business.adminIds?.map(id => id.toString()).join(', ') || 'None'}
+        Staff IDs: ${business.staffIds?.map(id => id.toString()).join(', ') || 'None'}
       `)
 
       throw new ForbiddenException(
@@ -158,7 +174,7 @@ export class ValidateBusinessAccessGuard implements CanActivate {
     // ===== STEP 6: Attach validated business to request for controllers =====
     (request as any).validatedBusiness = business
 
-    console.log(`✅ Business validated: ${business.businessName} (${business.subdomain})`)
+    console.log(`✅ Business validated (Dual-Check): ${business.businessName} (${business.subdomain})`)
 
     return true
   }

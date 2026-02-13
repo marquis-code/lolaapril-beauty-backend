@@ -26,7 +26,7 @@ async function bootstrap() {
   });
 
   app.use(compression());
-  
+
   // ⚠️ IMPORTANT: Configure helmet to not block CORS
   app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -47,9 +47,29 @@ async function bootstrap() {
     next();
   });
 
-  // 🚨 AGGRESSIVE CORS FIX - Allow ALL origins
+  // 🚨 ROBUST CORS CONFIGURATION
+  const allowedOrigins = configService.get<string>('ALLOWED_ORIGINS')?.split(',') || [];
+
   app.enableCors({
-    origin: true, // This allows ALL origins
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      // Check if origin is allowed
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (allowed === '*') return true;
+        // Clean up allowed origin (remove trailing slashes)
+        const cleanAllowed = allowed.replace(/\/$/, '');
+        return cleanAllowed === origin;
+      });
+
+      if (isAllowed || process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        console.warn(`🔒 CORS blocked for origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
     allowedHeaders: [
@@ -58,17 +78,16 @@ async function bootstrap() {
       'Accept',
       'Origin',
       'X-Requested-With',
-      'X-Business-Id', // Added your custom header
+      'X-Business-Id',
+      'X-Forwarded-For',
       'Sec-Ch-Ua',
       'Sec-Ch-Ua-Mobile',
       'Sec-Ch-Ua-Platform',
-      'User-Agent',
-      'Referer',
     ],
     exposedHeaders: ['Content-Disposition'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
-    maxAge: 86400, // Cache preflight for 24 hours
+    maxAge: 86400,
   });
 
   // Global validation pipe
@@ -98,7 +117,7 @@ async function bootstrap() {
       uptime: process.uptime(),
     });
   });
-  
+
   const port = configService.get<number>('PORT') || 3001;
   await app.listen(port);
   console.log(`Application is running on: ${await app.getUrl()}`);
