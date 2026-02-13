@@ -746,4 +746,32 @@ export class AnalyticsController {
     const data = await this.analyticsService.getInteractionAnalytics(businessId, start, end);
     return { success: true, data };
   }
+
+  /**
+   * Get Traffic Details (Granular Logs)
+   * GET /analytics/traffic/details
+   */
+  @Get('traffic/details')
+  @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Get granular traffic details',
+    description: 'Returns detailed logs for traffic events including IP and location',
+  })
+  @ApiQuery({ name: 'startDate', required: true, type: String })
+  @ApiQuery({ name: 'endDate', required: true, type: String })
+  async getTrafficDetails(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @BusinessId() businessId: string,
+  ) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const data = await this.analyticsService.getDetailedTraffic(businessId, start, end);
+    return { success: true, data };
+  }
 }
