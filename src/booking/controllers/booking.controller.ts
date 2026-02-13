@@ -87,38 +87,6 @@ export class BookingController {
   }
 
   // ==========================================================================
-  // GET SINGLE BOOKING - Authenticated
-  // ==========================================================================
-
-  @Get(':id') // ✅ Authenticated by default
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Get booking by ID',
-    description: 'Returns booking details. Clients can only view their own bookings.'
-  })
-  @ApiResponse({ status: 200, description: 'Booking retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Booking not found' })
-  async getBookingById(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestWithUser['user']
-  ) {
-    const booking = await this.bookingService.getBookingById(id)
-
-    // Access control
-    if (user.role === 'client') {
-      if (booking.clientId.toString() !== user.sub) {
-        return { success: false, message: 'Access denied' }
-      }
-    } else if (user.businessId) {
-      if (booking.businessId.toString() !== user.businessId) {
-        return { success: false, message: 'Access denied' }
-      }
-    }
-
-    return { success: true, data: booking }
-  }
-
-  // ==========================================================================
   // GET MY BOOKINGS - For Clients
   // ==========================================================================
 
@@ -211,6 +179,10 @@ export class BookingController {
     )
   }
 
+  // ==========================================================================
+  // GET CANCELLATIONS - Business Filtered
+  // ==========================================================================
+
   @Get('cancellations')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get cancelled bookings for a business' })
@@ -222,6 +194,62 @@ export class BookingController {
       data: cancellations
     };
   }
+
+  // ==========================================================================
+  // GET BOOKING STATS - Business Filtered
+  // ==========================================================================
+
+  @Get('stats/overview') // ✅ Authenticated by default
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get booking statistics',
+    description: 'Returns booking statistics for the authenticated business'
+  })
+  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  async getBookingStats(
+    @BusinessId() businessId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string
+  ) {
+    return this.bookingService.getBookingStats(
+      businessId,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined
+    )
+  }
+
+  // ==========================================================================
+  // GET SINGLE BOOKING - Authenticated
+  // ==========================================================================
+
+  @Get(':id') // ✅ Authenticated by default
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get booking by ID',
+    description: 'Returns booking details. Clients can only view their own bookings.'
+  })
+  @ApiResponse({ status: 200, description: 'Booking retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  async getBookingById(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestWithUser['user']
+  ) {
+    const booking = await this.bookingService.getBookingById(id)
+
+    // Access control
+    if (user.role === 'client') {
+      if (booking.clientId.toString() !== user.sub) {
+        return { success: false, message: 'Access denied' }
+      }
+    } else if (user.businessId) {
+      if (booking.businessId.toString() !== user.businessId) {
+        return { success: false, message: 'Access denied' }
+      }
+    }
+
+    return { success: true, data: booking }
+  }
+
 
   // ==========================================================================
   // CONFIRM BOOKING - Business Only (WRITE OPERATION - VALIDATE)
@@ -495,28 +523,6 @@ export class BookingController {
     )
   }
 
-  // ==========================================================================
-  // GET BOOKING STATS - Business Only (READ - No validation needed)
-  // ==========================================================================
-
-  @Get('stats/overview') // ✅ Authenticated by default
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Get booking statistics',
-    description: 'Returns booking statistics for the authenticated business'
-  })
-  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
-  async getBookingStats(
-    @BusinessId() businessId: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string
-  ) {
-    return this.bookingService.getBookingStats(
-      businessId,
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined
-    )
-  }
 
   // ==========================================================================
   // RESET BOOKING FOR RETRY - Business Only (WRITE OPERATION - VALIDATE)
