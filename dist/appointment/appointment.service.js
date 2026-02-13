@@ -27,8 +27,9 @@ const email_templates_service_1 = require("../notification/templates/email-templ
 const google_calendar_service_1 = require("../integration/google-calendar.service");
 const scheduled_reminder_schema_1 = require("../jobs/schemas/scheduled-reminder.schema");
 const config_1 = require("@nestjs/config");
+const client_schema_1 = require("../client/schemas/client.schema");
 let AppointmentService = AppointmentService_1 = class AppointmentService {
-    constructor(appointmentModel, scheduledReminderModel, paymentService, notificationService, staffService, salesService, emailService, emailTemplatesService, googleCalendarService, configService) {
+    constructor(appointmentModel, scheduledReminderModel, paymentService, notificationService, staffService, salesService, emailService, emailTemplatesService, googleCalendarService, configService, clientModel) {
         this.appointmentModel = appointmentModel;
         this.scheduledReminderModel = scheduledReminderModel;
         this.paymentService = paymentService;
@@ -39,6 +40,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
         this.emailTemplatesService = emailTemplatesService;
         this.googleCalendarService = googleCalendarService;
         this.configService = configService;
+        this.clientModel = clientModel;
         this.logger = new common_1.Logger(AppointmentService_1.name);
     }
     async create(createAppointmentDto) {
@@ -281,8 +283,41 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
             const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const dayOfWeek = daysOfWeek[bookingDate.getDay()];
             const dateString = bookingDate.toISOString().split('T')[0];
+            let clientId = booking.clientId;
+            try {
+                let client = await this.clientModel.findOne({
+                    'profile.email': booking.clientEmail.toLowerCase(),
+                    businessId: new mongoose_1.Types.ObjectId(booking.businessId)
+                }).exec();
+                if (!client) {
+                    this.logger.log(`Creating new client record for ${booking.clientEmail}`);
+                    const newClientData = {
+                        businessId: new mongoose_1.Types.ObjectId(booking.businessId),
+                        profile: {
+                            firstName: booking.clientName.split(' ')[0] || 'Unknown',
+                            lastName: booking.clientName.split(' ').slice(1).join(' ') || 'Client',
+                            email: booking.clientEmail,
+                            phone: {
+                                countryCode: '+234',
+                                number: booking.clientPhone || ''
+                            }
+                        },
+                        additionalInfo: {
+                            clientSource: 'booking_automation',
+                            preferredLanguage: 'en'
+                        },
+                        isActive: true
+                    };
+                    client = await this.clientModel.create(newClientData);
+                }
+                clientId = client._id;
+                this.logger.log(`✅ Using Client ID: ${clientId} for appointment`);
+            }
+            catch (error) {
+                this.logger.error(`Error finding/creating client: ${error.message}`);
+            }
             const appointmentData = {
-                clientId: booking.clientId,
+                clientId: clientId,
                 businessInfo: {
                     businessId: booking.businessId.toString(),
                     businessName: booking.businessName || 'Business',
@@ -290,6 +325,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
                     reviewCount: 0,
                     address: booking.businessAddress || 'Address not provided'
                 },
+                bookingSource: booking.bookingSource,
                 selectedServices: booking.services.map(service => ({
                     serviceId: service.serviceId.toString(),
                     serviceName: service.serviceName,
@@ -558,6 +594,7 @@ AppointmentService = AppointmentService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(appointment_schema_1.Appointment.name)),
     __param(1, (0, mongoose_2.InjectModel)(scheduled_reminder_schema_1.ScheduledReminder.name)),
+    __param(10, (0, mongoose_2.InjectModel)(client_schema_1.Client.name)),
     __metadata("design:paramtypes", [mongoose_1.Model,
         mongoose_1.Model,
         payment_service_1.PaymentService,
@@ -567,7 +604,8 @@ AppointmentService = AppointmentService_1 = __decorate([
         email_service_1.EmailService,
         email_templates_service_1.EmailTemplatesService,
         google_calendar_service_1.GoogleCalendarService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        mongoose_1.Model])
 ], AppointmentService);
 exports.AppointmentService = AppointmentService;
 //# sourceMappingURL=appointment.service.js.map

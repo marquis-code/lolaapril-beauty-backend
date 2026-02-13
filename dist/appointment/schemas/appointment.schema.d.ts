@@ -24,6 +24,7 @@
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
 import { type Document, Types } from "mongoose";
+import { BookingSource } from "../../booking/schemas/booking.schema";
 export type AppointmentDocument = Appointment & Document;
 export declare class BusinessInfo {
     businessId: string;
@@ -137,6 +138,7 @@ export declare class Appointment {
     reminderSent: boolean;
     bookingId: Types.ObjectId;
     bookingNumber: string;
+    bookingSource: BookingSource;
     createdAt: Date;
     updatedAt: Date;
 }

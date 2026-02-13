@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ConflictException, Inject, Logger } from "@nestjs/common"
-import { Model } from "mongoose"
+import { Model, Types } from "mongoose"
 import { Appointment, AppointmentDocument } from "./schemas/appointment.schema"
 import { CreateAppointmentDto } from "./dto/create-appointment.dto"
 import { UpdateAppointmentDto } from "./dto/update-appointment.dto"
@@ -14,6 +14,7 @@ import { EmailTemplatesService } from '../notification/templates/email-templates
 import { GoogleCalendarService } from '../integration/google-calendar.service'
 import { ScheduledReminder, ScheduledReminderDocument } from '../jobs/schemas/scheduled-reminder.schema'
 import { ConfigService } from '@nestjs/config'
+import { Client, ClientDocument } from '../client/schemas/client.schema' // ✅ Added Client model import
 
 @Injectable()
 export class AppointmentService {
@@ -33,6 +34,8 @@ export class AppointmentService {
     private emailTemplatesService: EmailTemplatesService,
     private googleCalendarService: GoogleCalendarService,
     private configService: ConfigService,
+    @InjectModel(Client.name)
+    private clientModel: Model<ClientDocument>, // fixed space typo
   ) { }
 
   async create(createAppointmentDto: CreateAppointmentDto & { businessId: string }): Promise<Appointment> {
@@ -431,9 +434,53 @@ export class AppointmentService {
       // Format date as YYYY-MM-DD
       const dateString = bookingDate.toISOString().split('T')[0]
 
+      // ✅ FIND OR CREATE CLIENT
+      // The booking has a User ID (from users collection), but Appointment needs a Client ID (from clients collection)
+      let clientId = booking.clientId;
+
+      try {
+        // Try to find a client record by email in this business
+        let client = await this.clientModel.findOne({
+          'profile.email': booking.clientEmail.toLowerCase(),
+          businessId: new Types.ObjectId(booking.businessId)
+        }).exec();
+
+        if (!client) {
+          this.logger.log(`Creating new client record for ${booking.clientEmail}`);
+
+          // Create new client if not found
+          const newClientData: any = {
+            businessId: new Types.ObjectId(booking.businessId),
+            profile: {
+              firstName: booking.clientName.split(' ')[0] || 'Unknown',
+              lastName: booking.clientName.split(' ').slice(1).join(' ') || 'Client',
+              email: booking.clientEmail,
+              phone: {
+                countryCode: '+234', // Default or parse from input
+                number: booking.clientPhone || ''
+              }
+            },
+            additionalInfo: {
+              clientSource: 'booking_automation',
+              preferredLanguage: 'en'
+            },
+            isActive: true
+          };
+
+          client = await (this.clientModel as any).create(newClientData);
+          // await client.save(); // create() saves automatically
+        }
+
+        clientId = client._id;
+        this.logger.log(`✅ Using Client ID: ${clientId} for appointment`);
+      } catch (error) {
+        this.logger.error(`Error finding/creating client: ${error.message}`);
+        // Fallback to booking.clientId (even if it might be a User ID, better than nothing)
+      }
+
       // Build appointment data matching YOUR schema
       const appointmentData = {
-        clientId: booking.clientId,
+        clientId: clientId, // ✅ Now points to a valid Client document
 
         businessInfo: {
           businessId: booking.businessId.toString(),
@@ -442,6 +489,8 @@ export class AppointmentService {
           reviewCount: 0,
           address: booking.businessAddress || 'Address not provided'
         },
+
+        bookingSource: booking.bookingSource, // ✅ Populated bookingSource
 
         selectedServices: booking.services.map(service => ({
           serviceId: service.serviceId.toString(),

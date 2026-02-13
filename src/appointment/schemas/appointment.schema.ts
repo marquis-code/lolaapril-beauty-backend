@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
 import { type Document, Types } from "mongoose"
+import { BookingSource } from "../../booking/schemas/booking.schema"
 
 export type AppointmentDocument = Appointment & Document
 
@@ -317,6 +318,9 @@ export class Appointment {
 
   @Prop()
   bookingNumber: string
+
+  @Prop({ type: BookingSource })
+  bookingSource: BookingSource
 
   @Prop({ default: Date.now })
   createdAt: Date

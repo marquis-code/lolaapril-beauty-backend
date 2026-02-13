@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppointmentSchema = exports.Appointment = exports.PaymentInstructions = exports.PaymentDetails = exports.ServiceDetails = exports.AppointmentDetails = exports.SelectedService = exports.AdditionalService = exports.SelectedOption = exports.BusinessInfo = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const booking_schema_1 = require("../../booking/schemas/booking.schema");
 let BusinessInfo = class BusinessInfo {
 };
 __decorate([
@@ -371,6 +372,10 @@ __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
 ], Appointment.prototype, "bookingNumber", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: booking_schema_1.BookingSource }),
+    __metadata("design:type", booking_schema_1.BookingSource)
+], Appointment.prototype, "bookingSource", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)

@@ -10,6 +10,7 @@ import { NotificationModule } from '../notification/notification.module'
 import { SalesModule } from '../sales/sales.module'
 import { IntegrationModule } from '../integration/integration.module'
 import { ScheduledReminder, ScheduledReminderSchema } from '../jobs/schemas/scheduled-reminder.schema'
+import { ClientModule } from '../client/client.module'
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ScheduledReminder, ScheduledReminderSchema } from '../jobs/schemas/sche
     forwardRef(() => StaffModule),
     forwardRef(() => SalesModule),
     IntegrationModule,
+    ClientModule,
   ],
   controllers: [AppointmentController],
   providers: [AppointmentService],

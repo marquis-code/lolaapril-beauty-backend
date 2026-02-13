@@ -19,6 +19,7 @@ const notification_module_1 = require("../notification/notification.module");
 const sales_module_1 = require("../sales/sales.module");
 const integration_module_1 = require("../integration/integration.module");
 const scheduled_reminder_schema_1 = require("../jobs/schemas/scheduled-reminder.schema");
+const client_module_1 = require("../client/client.module");
 let AppointmentModule = class AppointmentModule {
 };
 AppointmentModule = __decorate([
@@ -34,6 +35,7 @@ AppointmentModule = __decorate([
             (0, common_1.forwardRef)(() => staff_module_1.StaffModule),
             (0, common_1.forwardRef)(() => sales_module_1.SalesModule),
             integration_module_1.IntegrationModule,
+            client_module_1.ClientModule,
         ],
         controllers: [appointment_controller_1.AppointmentController],
         providers: [appointment_service_1.AppointmentService],

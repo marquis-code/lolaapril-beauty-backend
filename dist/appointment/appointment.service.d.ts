@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/schematypes" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { Appointment, AppointmentDocument } from "./schemas/appointment.schema";
 import { CreateAppointmentDto } from "./dto/create-appointment.dto";
 import { UpdateAppointmentDto } from "./dto/update-appointment.dto";
@@ -37,6 +37,7 @@ import { EmailTemplatesService } from '../notification/templates/email-templates
 import { GoogleCalendarService } from '../integration/google-calendar.service';
 import { ScheduledReminderDocument } from '../jobs/schemas/scheduled-reminder.schema';
 import { ConfigService } from '@nestjs/config';
+import { ClientDocument } from '../client/schemas/client.schema';
 export declare class AppointmentService {
     private appointmentModel;
     private scheduledReminderModel;
@@ -48,16 +49,17 @@ export declare class AppointmentService {
     private emailTemplatesService;
     private googleCalendarService;
     private configService;
+    private clientModel;
     private readonly logger;
-    constructor(appointmentModel: Model<AppointmentDocument>, scheduledReminderModel: Model<ScheduledReminderDocument>, paymentService: PaymentService, notificationService: NotificationService, staffService: StaffService, salesService: SalesService, emailService: EmailService, emailTemplatesService: EmailTemplatesService, googleCalendarService: GoogleCalendarService, configService: ConfigService);
+    constructor(appointmentModel: Model<AppointmentDocument>, scheduledReminderModel: Model<ScheduledReminderDocument>, paymentService: PaymentService, notificationService: NotificationService, staffService: StaffService, salesService: SalesService, emailService: EmailService, emailTemplatesService: EmailTemplatesService, googleCalendarService: GoogleCalendarService, configService: ConfigService, clientModel: Model<ClientDocument>);
     create(createAppointmentDto: CreateAppointmentDto & {
         businessId: string;
     }): Promise<Appointment>;
     findAll(query: AppointmentQueryDto & {
         businessId: string;
     }): Promise<{
-        appointments: (import("mongoose").Document<unknown, {}, AppointmentDocument, {}, {}> & Appointment & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
-            _id: import("mongoose").Types.ObjectId;
+        appointments: (import("mongoose").Document<unknown, {}, AppointmentDocument, {}, {}> & Appointment & import("mongoose").Document<Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+            _id: Types.ObjectId;
         }> & {
             __v: number;
         })[];
