@@ -87,6 +87,13 @@ let BookingController = class BookingController {
     async getUpcomingBookings(businessId, days) {
         return this.bookingService.getUpcomingBookings(businessId, days ? parseInt(days.toString()) : 7);
     }
+    async getCancellations(businessId) {
+        const cancellations = await this.bookingService.getCancellations(businessId);
+        return {
+            success: true,
+            data: cancellations
+        };
+    }
     async confirmBooking(bookingId, context, confirmDto) {
         const booking = await this.bookingService.getBookingById(bookingId);
         if (booking.businessId.toString() !== context.businessId) {
@@ -269,9 +276,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('upcoming/bookings'),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({
-        summary: 'Get upcoming bookings for authenticated business'
-    }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get upcoming bookings for authenticated business' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Upcoming bookings retrieved successfully' }),
     __param(0, (0, auth_1.BusinessId)()),
     __param(1, (0, common_1.Query)('days')),
@@ -279,6 +284,16 @@ __decorate([
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", Promise)
 ], BookingController.prototype, "getUpcomingBookings", null);
+__decorate([
+    (0, common_1.Get)('cancellations'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get cancelled bookings for a business' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successful' }),
+    __param(0, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BookingController.prototype, "getCancellations", null);
 __decorate([
     (0, auth_1.ValidateBusiness)(),
     (0, common_1.Post)(':id/confirm'),

@@ -199,9 +199,7 @@ export class BookingController {
 
   @Get('upcoming/bookings') // ✅ Authenticated by default
   @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Get upcoming bookings for authenticated business'
-  })
+  @ApiOperation({ summary: 'Get upcoming bookings for authenticated business' })
   @ApiResponse({ status: 200, description: 'Upcoming bookings retrieved successfully' })
   async getUpcomingBookings(
     @BusinessId() businessId: string,
@@ -211,6 +209,18 @@ export class BookingController {
       businessId,
       days ? parseInt(days.toString()) : 7
     )
+  }
+
+  @Get('cancellations')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get cancelled bookings for a business' })
+  @ApiResponse({ status: 200, description: 'Successful' })
+  async getCancellations(@BusinessId() businessId: string) {
+    const cancellations = await this.bookingService.getCancellations(businessId);
+    return {
+      success: true,
+      data: cancellations
+    };
   }
 
   // ==========================================================================

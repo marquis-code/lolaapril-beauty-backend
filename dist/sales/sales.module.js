@@ -13,13 +13,14 @@ const sales_service_1 = require("./sales.service");
 const sales_controller_1 = require("./sales.controller");
 const sale_schema_1 = require("./schemas/sale.schema");
 const audit_module_1 = require("../audit/audit.module");
+const sales_event_listener_1 = require("./services/sales-event.listener");
 let SalesModule = class SalesModule {
 };
 SalesModule = __decorate([
     (0, common_1.Module)({
         imports: [mongoose_1.MongooseModule.forFeature([{ name: sale_schema_1.Sale.name, schema: sale_schema_1.SaleSchema }]), audit_module_1.AuditModule],
         controllers: [sales_controller_1.SalesController],
-        providers: [sales_service_1.SalesService],
+        providers: [sales_service_1.SalesService, sales_event_listener_1.SalesEventListener],
         exports: [sales_service_1.SalesService],
     })
 ], SalesModule);

@@ -44,13 +44,16 @@ let SalesService = class SalesService {
     }
     async createFromAppointment(appointment, businessId) {
         const saleNumber = `SALE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const price = typeof appointment.serviceDetails?.price === 'object'
+            ? appointment.serviceDetails.price.amount
+            : (appointment.serviceDetails?.price || 0);
         const items = [{
                 itemType: 'service',
                 itemId: appointment.serviceDetails?.serviceId?.toString() || appointment._id.toString(),
                 itemName: appointment.serviceDetails?.serviceName || 'Service',
                 quantity: 1,
-                unitPrice: appointment.serviceDetails?.price || 0,
-                totalPrice: appointment.serviceDetails?.price || 0,
+                unitPrice: price,
+                totalPrice: price,
                 discount: 0,
                 tax: 0,
             }];
@@ -76,16 +79,20 @@ let SalesService = class SalesService {
     }
     async createFromBooking(booking, businessId) {
         const saleNumber = `SALE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-        const items = booking.services.map((service) => ({
-            itemType: 'service',
-            itemId: service.serviceId?.toString(),
-            itemName: service.serviceName || 'Service',
-            quantity: service.quantity || 1,
-            unitPrice: service.price || 0,
-            totalPrice: (service.price || 0) * (service.quantity || 1),
-            discount: 0,
-            tax: 0,
-        }));
+        const items = booking.services.map((service) => {
+            const unitPrice = typeof service.price === 'object' ? service.price.amount : (service.price || 0);
+            const quantity = service.quantity || 1;
+            return {
+                itemType: 'service',
+                itemId: service.serviceId?.toString(),
+                itemName: service.serviceName || 'Service',
+                quantity,
+                unitPrice,
+                totalPrice: unitPrice * quantity,
+                discount: 0,
+                tax: 0,
+            };
+        });
         const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
         const sale = new this.saleModel({
             saleNumber,

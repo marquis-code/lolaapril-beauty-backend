@@ -36,6 +36,10 @@ export declare class BookingController {
     getTodayBookings(businessId: string): Promise<import("../schemas/booking.schema").BookingDocument[]>;
     getPendingBookings(businessId: string): Promise<import("../schemas/booking.schema").BookingDocument[]>;
     getUpcomingBookings(businessId: string, days?: number): Promise<import("../schemas/booking.schema").BookingDocument[]>;
+    getCancellations(businessId: string): Promise<{
+        success: boolean;
+        data: import("../schemas/booking.schema").BookingDocument[];
+    }>;
     confirmBooking(bookingId: string, context: BusinessCtx, confirmDto: ConfirmBookingDto): Promise<AppointmentResult>;
     processPayment(bookingId: string, paymentDto: ProcessPaymentDto): Promise<PaymentResult>;
     updateBookingStatus(bookingId: string, context: BusinessCtx, statusDto: UpdateBookingStatusDto): Promise<import("../schemas/booking.schema").BookingDocument | {

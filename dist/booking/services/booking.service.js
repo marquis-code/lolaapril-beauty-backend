@@ -455,17 +455,23 @@ let BookingService = BookingService_1 = class BookingService {
         return bookings;
     }
     async getPendingBookings(businessId) {
-        const bookings = await this.bookingModel
+        return this.bookingModel
             .find({
             businessId: new mongoose_2.Types.ObjectId(businessId),
             status: 'pending',
-            expiresAt: { $gt: new Date() }
+        })
+            .sort({ createdAt: -1 })
+            .exec();
+    }
+    async getCancellations(businessId) {
+        return this.bookingModel
+            .find({
+            businessId: new mongoose_2.Types.ObjectId(businessId),
+            status: 'cancelled',
         })
             .populate('services.serviceId', 'basicDetails pricingAndDuration')
-            .sort({ createdAt: 1 })
-            .lean()
+            .sort({ cancellationDate: -1 })
             .exec();
-        return bookings;
     }
     async linkAppointment(bookingId, appointmentId) {
         await this.bookingModel.findByIdAndUpdate(bookingId, {

@@ -708,18 +708,24 @@ export class BookingService {
   // }
 
   async getPendingBookings(businessId: string): Promise<BookingDocument[]> {
-    const bookings = await this.bookingModel
+    return this.bookingModel
       .find({
         businessId: new Types.ObjectId(businessId),
         status: 'pending',
-        expiresAt: { $gt: new Date() }
+      })
+      .sort({ createdAt: -1 })
+      .exec()
+  }
+
+  async getCancellations(businessId: string): Promise<BookingDocument[]> {
+    return this.bookingModel
+      .find({
+        businessId: new Types.ObjectId(businessId),
+        status: 'cancelled',
       })
       .populate('services.serviceId', 'basicDetails pricingAndDuration')
-      .sort({ createdAt: 1 })
-      .lean<BookingDocument[]>()
+      .sort({ cancellationDate: -1 })
       .exec()
-
-    return bookings
   }
 
   // async getUpcomingBookings(

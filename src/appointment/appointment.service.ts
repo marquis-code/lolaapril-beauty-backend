@@ -268,6 +268,12 @@ export class AppointmentService {
     if (!appointment) {
       throw new NotFoundException("Appointment not found")
     }
+
+    // Trigger full completion logic if status is set to completed
+    if (status === 'completed') {
+      return this.completeAppointment(id);
+    }
+
     return appointment
   }
 

@@ -172,6 +172,9 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
         if (!appointment) {
             throw new common_1.NotFoundException("Appointment not found");
         }
+        if (status === 'completed') {
+            return this.completeAppointment(id);
+        }
         return appointment;
     }
     async assignStaff(id, staffId) {
