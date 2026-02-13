@@ -174,7 +174,7 @@ export class AppointmentService {
     // Execute queries separately to avoid complex union type inference issues
     const appointments = await this.appointmentModel
       .find(filter)
-      .populate("clientId", "firstName lastName email phone")
+      .populate("clientId", "profile")
       .populate("assignedStaff", "firstName lastName email")
       .sort(sortOptions)
       .skip(skip)
@@ -197,7 +197,7 @@ export class AppointmentService {
   async findOne(id: string): Promise<Appointment> {
     const appointment = await this.appointmentModel
       .findById(id)
-      .populate("clientId", "firstName lastName email phone")
+      .populate("clientId", "profile")
       .populate("assignedStaff", "firstName lastName email")
       .exec()
 
@@ -234,7 +234,7 @@ export class AppointmentService {
 
     const appointment = await this.appointmentModel
       .findByIdAndUpdate(id, updateAppointmentDto, { new: true })
-      .populate("clientId", "firstName lastName email phone")
+      .populate("clientId", "profile")
       .populate("assignedStaff", "firstName lastName email")
       .exec()
 
@@ -261,7 +261,7 @@ export class AppointmentService {
 
     const appointment = await this.appointmentModel
       .findByIdAndUpdate(id, updateData, { new: true })
-      .populate("clientId", "firstName lastName email phone")
+      .populate("clientId", "profile")
       .populate("assignedStaff", "firstName lastName email")
       .exec()
 
@@ -274,7 +274,7 @@ export class AppointmentService {
   async assignStaff(id: string, staffId: string): Promise<Appointment> {
     const appointment = await this.appointmentModel
       .findByIdAndUpdate(id, { assignedStaff: staffId }, { new: true })
-      .populate("clientId", "firstName lastName email phone")
+      .populate("clientId", "profile")
       .populate("assignedStaff", "firstName lastName email")
       .exec()
 
@@ -291,7 +291,7 @@ export class AppointmentService {
         status: { $nin: ["cancelled", "no_show"] },
         "businessInfo.businessId": businessId,
       })
-      .populate("clientId", "firstName lastName email phone")
+      .populate("clientId", "profile")
       .populate("assignedStaff", "firstName lastName email")
       .sort({ selectedTime: 1 })
       .exec()
@@ -307,7 +307,7 @@ export class AppointmentService {
 
     return this.appointmentModel
       .find(filter)
-      .populate("clientId", "firstName lastName email phone")
+      .populate("clientId", "profile")
       .sort({ selectedDate: 1, selectedTime: 1 })
       .exec()
   }

@@ -15,7 +15,7 @@ class UpdateBookingStatusDto {
 }
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsIn)(['pending', 'confirmed', 'cancelled', 'expired', 'payment_failed', 'slot_unavailable']),
+    (0, class_validator_1.IsIn)(['pending', 'confirmed', 'completed', 'cancelled', 'expired', 'payment_failed', 'slot_unavailable', 'rejected', 'deposit_paid']),
     __metadata("design:type", String)
 ], UpdateBookingStatusDto.prototype, "status", void 0);
 __decorate([

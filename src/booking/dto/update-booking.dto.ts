@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString, IsIn, IsOptional } from 'class-validator'
 
 export class UpdateBookingStatusDto {
   @IsNotEmpty()
-  @IsIn(['pending', 'confirmed', 'cancelled', 'expired', 'payment_failed', 'slot_unavailable'])
+  @IsIn(['pending', 'confirmed', 'completed', 'cancelled', 'expired', 'payment_failed', 'slot_unavailable', 'rejected', 'deposit_paid'])
   status: string
 
   @IsOptional()

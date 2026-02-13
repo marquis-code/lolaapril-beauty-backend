@@ -94,7 +94,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
         sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
         const appointments = await this.appointmentModel
             .find(filter)
-            .populate("clientId", "firstName lastName email phone")
+            .populate("clientId", "profile")
             .populate("assignedStaff", "firstName lastName email")
             .sort(sortOptions)
             .skip(skip)
@@ -114,7 +114,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
     async findOne(id) {
         const appointment = await this.appointmentModel
             .findById(id)
-            .populate("clientId", "firstName lastName email phone")
+            .populate("clientId", "profile")
             .populate("assignedStaff", "firstName lastName email")
             .exec();
         if (!appointment) {
@@ -144,7 +144,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
         }
         const appointment = await this.appointmentModel
             .findByIdAndUpdate(id, updateAppointmentDto, { new: true })
-            .populate("clientId", "firstName lastName email phone")
+            .populate("clientId", "profile")
             .populate("assignedStaff", "firstName lastName email")
             .exec();
         if (!appointment) {
@@ -166,7 +166,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
         }
         const appointment = await this.appointmentModel
             .findByIdAndUpdate(id, updateData, { new: true })
-            .populate("clientId", "firstName lastName email phone")
+            .populate("clientId", "profile")
             .populate("assignedStaff", "firstName lastName email")
             .exec();
         if (!appointment) {
@@ -177,7 +177,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
     async assignStaff(id, staffId) {
         const appointment = await this.appointmentModel
             .findByIdAndUpdate(id, { assignedStaff: staffId }, { new: true })
-            .populate("clientId", "firstName lastName email phone")
+            .populate("clientId", "profile")
             .populate("assignedStaff", "firstName lastName email")
             .exec();
         if (!appointment) {
@@ -192,7 +192,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
             status: { $nin: ["cancelled", "no_show"] },
             "businessInfo.businessId": businessId,
         })
-            .populate("clientId", "firstName lastName email phone")
+            .populate("clientId", "profile")
             .populate("assignedStaff", "firstName lastName email")
             .sort({ selectedTime: 1 })
             .exec();
@@ -207,7 +207,7 @@ let AppointmentService = AppointmentService_1 = class AppointmentService {
             filter.selectedDate = date;
         return this.appointmentModel
             .find(filter)
-            .populate("clientId", "firstName lastName email phone")
+            .populate("clientId", "profile")
             .sort({ selectedDate: 1, selectedTime: 1 })
             .exec();
     }
