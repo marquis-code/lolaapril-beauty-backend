@@ -47,43 +47,12 @@ async function bootstrap() {
     next();
   });
 
-  // 🚨 ROBUST CORS CONFIGURATION
-  const allowedOrigins = configService.get<string>('ALLOWED_ORIGINS')?.split(',') || [];
-
+  // 🚨 AGGRESSIVE CORS FIX
   app.enableCors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
-
-      // Check if origin is allowed
-      const isAllowed = allowedOrigins.some(allowed => {
-        if (allowed === '*') return true;
-        // Clean up allowed origin (remove trailing slashes)
-        const cleanAllowed = allowed.replace(/\/$/, '');
-        return cleanAllowed === origin;
-      });
-
-      if (isAllowed || process.env.NODE_ENV === 'development') {
-        callback(null, true);
-      } else {
-        console.warn(`🔒 CORS blocked for origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: true, // Reflect request origin (Allows all origins while supporting credentials)
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Accept',
-      'Origin',
-      'X-Requested-With',
-      'X-Business-Id',
-      'X-Forwarded-For',
-      'Sec-Ch-Ua',
-      'Sec-Ch-Ua-Mobile',
-      'Sec-Ch-Ua-Platform',
-    ],
+    allowedHeaders: '*', // Allow ALL headers
     exposedHeaders: ['Content-Disposition'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
