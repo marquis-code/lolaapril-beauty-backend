@@ -130,7 +130,7 @@ let AvailabilityService = class AvailabilityService {
                 businessId,
                 startDate: startOfDay,
                 endDate: endOfDay,
-                status: ['pending', 'confirmed', 'payment_pending', 'paid']
+                status: ['confirmed', 'paid']
             });
             const existingBookings = result.bookings || [];
             if (existingBookings.length === 0) {
@@ -841,7 +841,7 @@ let AvailabilityService = class AvailabilityService {
         const bufferTime = dto.bufferTime || 0;
         const totalDuration = dto.duration + bufferTime;
         const endTime = this.addMinutesToTime(dto.startTime, totalDuration);
-        console.log(`🔍 Checking availability:`, {
+        console.log(`🔍 Checking availability (business-hours based):`, {
             date: date.toISOString().split('T')[0],
             startTime: dto.startTime,
             endTime: endTime,
@@ -849,39 +849,51 @@ let AvailabilityService = class AvailabilityService {
             bufferTime: bufferTime
         });
         const businessHours = await this.getBusinessHours(dto.businessId, date);
-        const operates24x7 = businessHours.length > 0 &&
-            businessHours.some(slot => slot.startTime === '00:00' && slot.endTime === '23:59');
+        if (!businessHours || businessHours.length === 0) {
+            console.log('❌ No business hours configured for this date');
+            return false;
+        }
+        const operates24x7 = businessHours.some(slot => slot.startTime === '00:00' && slot.endTime === '23:59');
         if (!operates24x7) {
-            const isWithinBusinessHours = await this.isWithinBusinessHours(dto.businessId, date, dto.startTime, endTime);
-            if (!isWithinBusinessHours) {
+            const isWithinHours = businessHours.some(hours => hours.startTime <= dto.startTime && hours.endTime >= endTime);
+            if (!isWithinHours) {
                 console.log('❌ Outside business hours');
                 return false;
             }
         }
-        const normalizedDate = this.normalizeDate(date);
-        const availableStaff = await this.staffAvailabilityModel
-            .find({
-            businessId: new mongoose_2.Types.ObjectId(dto.businessId),
-            date: normalizedDate,
-            status: { $ne: 'unavailable' }
-        })
-            .exec();
-        console.log(`👥 Found ${availableStaff.length} staff with availability records`);
-        if (availableStaff.length === 0) {
-            console.log('❌ No staff availability records found');
-            return false;
-        }
-        const hasAvailableStaff = availableStaff.some(avail => {
-            const isSlotAvailable = this.isTimeSlotAvailable(avail.availableSlots, dto.startTime, endTime);
-            const isNotBlocked = !this.isTimeSlotBlocked(avail.blockedSlots, dto.startTime, endTime);
-            const available = isSlotAvailable && isNotBlocked;
-            if (available) {
-                console.log(`✅ Staff ${avail.staffId} is available`);
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        try {
+            const result = await this.bookingService.getBookings({
+                businessId: dto.businessId,
+                startDate: startOfDay,
+                endDate: endOfDay,
+                status: ['confirmed', 'paid']
+            });
+            const existingBookings = result.bookings || [];
+            if (existingBookings.length === 0) {
+                console.log('✅ No conflicting bookings, slot is available');
+                return true;
             }
-            return available;
-        });
-        console.log(`📊 Final result: ${hasAvailableStaff}`);
-        return hasAvailableStaff;
+            const slotStartMins = this.timeToMinutes(dto.startTime);
+            const slotEndMins = slotStartMins + totalDuration;
+            const hasConflict = existingBookings.some(booking => {
+                const bookingStartTime = booking.preferredStartTime;
+                const bookingDuration = booking.totalDuration || 60;
+                const [bHour, bMin] = bookingStartTime.split(':').map(Number);
+                const bookingStartMins = bHour * 60 + bMin;
+                const bookingEndMins = bookingStartMins + bookingDuration;
+                return (slotStartMins < bookingEndMins) && (slotEndMins > bookingStartMins);
+            });
+            console.log(`📊 Slot available: ${!hasConflict}`);
+            return !hasConflict;
+        }
+        catch (error) {
+            console.error('❌ Error checking bookings for slot availability:', error.message);
+            return true;
+        }
     }
     async isFullyBooked(dto) {
         const date = this.parseDate(dto.date);

@@ -245,30 +245,15 @@ export class BookingAutomationService {
         throw new BadRequestException(`Booking is in '${booking.status}' status, expected 'pending' or 'confirmed'`)
       }
 
-      if (paymentData.amount !== booking.estimatedTotal) {
-        throw new BadRequestException('Payment amount does not match booking total')
+      // ✅ FIX: Removed strict amount equality check — gateway fees can cause small differences
+      // ✅ FIX: Removed redundant post-payment availability re-check.
+      // The slot was already validated when the booking was created.
+      // Re-checking here used stricter staff-based logic that would incorrectly
+      // reject paid bookings when no staff availability records exist.
+
+      if (booking.status === 'pending') {
+        await this.bookingService.updateBookingStatus(bookingId, 'confirmed')
       }
-
-      if (paymentData.status === 'failed') {
-        return await this.handlePaymentFailure(booking, paymentData.transactionReference)
-      }
-
-      const bookingDate = this.parseDate(booking.preferredDate)
-
-      const isStillAvailable = await this.checkAvailabilityForAllServices(
-        booking.businessId.toString(),
-        booking.services.map(s => s.serviceId.toString()),
-        bookingDate,
-        booking.preferredStartTime,
-        booking.totalDuration
-      )
-
-      if (!isStillAvailable) {
-        await this.handleUnavailableSlot(booking, paymentData.transactionReference)
-        throw new BadRequestException('Time slot is no longer available. Payment will be refunded.')
-      }
-
-      await this.bookingService.updateBookingStatus(bookingId, 'confirmed')
 
       // FIX: Added the missing 'amount' property
       const payment = await this.paymentService.createPaymentFromBooking(

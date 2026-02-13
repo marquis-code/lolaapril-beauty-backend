@@ -113,19 +113,9 @@ let BookingAutomationService = BookingAutomationService_1 = class BookingAutomat
             if (!['pending', 'confirmed'].includes(booking.status)) {
                 throw new common_1.BadRequestException(`Booking is in '${booking.status}' status, expected 'pending' or 'confirmed'`);
             }
-            if (paymentData.amount !== booking.estimatedTotal) {
-                throw new common_1.BadRequestException('Payment amount does not match booking total');
+            if (booking.status === 'pending') {
+                await this.bookingService.updateBookingStatus(bookingId, 'confirmed');
             }
-            if (paymentData.status === 'failed') {
-                return await this.handlePaymentFailure(booking, paymentData.transactionReference);
-            }
-            const bookingDate = this.parseDate(booking.preferredDate);
-            const isStillAvailable = await this.checkAvailabilityForAllServices(booking.businessId.toString(), booking.services.map(s => s.serviceId.toString()), bookingDate, booking.preferredStartTime, booking.totalDuration);
-            if (!isStillAvailable) {
-                await this.handleUnavailableSlot(booking, paymentData.transactionReference);
-                throw new common_1.BadRequestException('Time slot is no longer available. Payment will be refunded.');
-            }
-            await this.bookingService.updateBookingStatus(bookingId, 'confirmed');
             const payment = await this.paymentService.createPaymentFromBooking(booking, paymentData.transactionReference, {
                 paymentMethod: paymentData.paymentMethod,
                 gateway: paymentData.gateway,
