@@ -293,7 +293,7 @@ export class Appointment {
   @Prop()
   cancellationDate: Date
 
-   // Added missing fields for appointment tracking
+  // Added missing fields for appointment tracking
   @Prop()
   checkInTime: Date
 
@@ -311,6 +311,12 @@ export class Appointment {
 
   @Prop()
   reminderSent: boolean
+
+  @Prop({ type: Types.ObjectId, ref: "Booking" })
+  bookingId: Types.ObjectId
+
+  @Prop()
+  bookingNumber: string
 
   @Prop({ default: Date.now })
   createdAt: Date

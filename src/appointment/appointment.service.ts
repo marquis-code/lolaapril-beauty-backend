@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, Inject } from "@nestjs/common"
+import { Injectable, NotFoundException, ConflictException, Inject, Logger } from "@nestjs/common"
 import { Model } from "mongoose"
 import { Appointment, AppointmentDocument } from "./schemas/appointment.schema"
 import { CreateAppointmentDto } from "./dto/create-appointment.dto"
@@ -17,6 +17,7 @@ import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class AppointmentService {
+  private readonly logger = new Logger(AppointmentService.name)
   // constructor(
   // @InjectModel(Appointment.name) private appointmentModel: Model<AppointmentDocument>) {}
   constructor(
@@ -397,6 +398,15 @@ export class AppointmentService {
 
   async createFromBooking(booking: any): Promise<any> {
     try {
+      // ✅ IDEMPOTENCY CHECK: Check if an appointment already exists for this booking
+      const existingAppointment = await this.appointmentModel.findOne({
+        bookingId: booking._id
+      }).exec();
+
+      if (existingAppointment) {
+        this.logger.log(`⚠️ Appointment already exists for booking ${booking._id}, returning existing one.`)
+        return this.mapToPlainObject(existingAppointment);
+      }
       // Parse the booking date
       const bookingDate = booking.preferredDate instanceof Date
         ? booking.preferredDate
@@ -514,6 +524,9 @@ export class AppointmentService {
 
         status: 'confirmed',
 
+        bookingId: booking._id,
+        bookingNumber: booking.bookingNumber,
+
         appointmentNumber: '',
         reminderSent: false
       }
@@ -544,12 +557,35 @@ export class AppointmentService {
         serviceDetails: appointment.serviceDetails,
         paymentDetails: appointment.paymentDetails,
         status: appointment.status,
+        bookingId: appointment.bookingId,
+        bookingNumber: appointment.bookingNumber,
         customerNotes: appointment.customerNotes,
         createdAt: appointment.createdAt
       }
 
     } catch (error) {
       throw error
+    }
+  }
+
+  private mapToPlainObject(appointment: any): any {
+    return {
+      _id: appointment._id,
+      appointmentNumber: appointment.appointmentNumber,
+      clientId: appointment.clientId,
+      businessInfo: appointment.businessInfo,
+      selectedServices: appointment.selectedServices,
+      totalDuration: appointment.totalDuration,
+      selectedDate: appointment.selectedDate,
+      selectedTime: appointment.selectedTime,
+      appointmentDetails: appointment.appointmentDetails,
+      serviceDetails: appointment.serviceDetails,
+      paymentDetails: appointment.paymentDetails,
+      status: appointment.status,
+      bookingId: appointment.bookingId,
+      bookingNumber: appointment.bookingNumber,
+      customerNotes: appointment.customerNotes,
+      createdAt: appointment.createdAt
     }
   }
 

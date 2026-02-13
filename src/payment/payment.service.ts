@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { Payment, PaymentDocument } from "./schemas/payment.schema";
 import { Booking, BookingDocument } from "../booking/schemas/booking.schema";
@@ -25,7 +26,7 @@ export class PaymentService {
   private readonly paystackBaseUrl = 'https://api.paystack.co';
 
   constructor(
-    @InjectModel(Payment.name) 
+    @InjectModel(Payment.name)
     private paymentModel: Model<PaymentDocument>,
     @InjectModel(Booking.name)
     private bookingModel: Model<BookingDocument>,
@@ -39,6 +40,7 @@ export class PaymentService {
     private jobsService: JobsService,
     private cacheService: CacheService,
     private businessService: BusinessService,
+    private eventEmitter: EventEmitter2,
   ) {
     this.paystackSecretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
   }
@@ -136,9 +138,9 @@ export class PaymentService {
       const gateway = data.gateway || 'paystack';
 
       // Get frontend URL
-      const frontendUrl = this.configService.get('FRONTEND_URL') 
-                       || this.configService.get('APP_URL') 
-                       || 'http://localhost:3001';
+      const frontendUrl = this.configService.get('FRONTEND_URL')
+        || this.configService.get('APP_URL')
+        || 'http://localhost:3001';
 
       // Prepare metadata with fee information AND subaccount for split
       const enrichedMetadata = {
@@ -329,7 +331,7 @@ export class PaymentService {
             if (booking && payment.businessId) {
               try {
                 const commissionCalc = await this.commissionService.calculateBookingCommission(booking);
-                
+
                 await this.commissionService.updateBookingCommission(
                   booking._id.toString(),
                   {
@@ -339,7 +341,7 @@ export class PaymentService {
                     processingFee: commissionCalc.processingFee,
                   }
                 );
-                
+
                 console.log('✅ Commission calculated and updated');
               } catch (commissionError) {
                 console.error('❌ Failed to calculate commission:', commissionError);
@@ -356,7 +358,7 @@ export class PaymentService {
             // Calculate business receives amount
             const platformFee = (payment as any).platformFee || payment.totalAmount * 0.05;
             const businessReceivesAmount = payment.totalAmount - platformFee;
-            
+
             await this.jobsService.schedulePayout(
               payment.businessId.toString(),
               businessReceivesAmount,
@@ -392,9 +394,17 @@ export class PaymentService {
           console.error('❌ Failed to send notification:', notificationError);
         }
 
+        // ✅ Emit payment.completed event for booking automation
+        this.eventEmitter.emit('payment.completed', {
+          payment: updatedPayment || payment,
+          booking: payment.bookingId, // Note: populated bookingId is available in updatedPayment
+          gatewayResponse
+        });
+        console.log('📡 Emitted payment.completed event');
+
       } else if (gatewayResponse.status === 'failed') {
         updateData.status = 'failed';
-        
+
         // Update booking status to payment_failed
         if (payment.bookingId) {
           try {
@@ -444,17 +454,17 @@ export class PaymentService {
 
     } catch (error) {
       console.error('❌ Payment verification error:', error.message);
-      
+
       if (error instanceof NotFoundException) {
         throw error;
       }
-      
+
       if (axios.isAxiosError(error)) {
         throw new BadRequestException(
           error.response?.data?.message || 'Failed to verify payment'
         );
       }
-      
+
       throw new BadRequestException(`Failed to verify payment: ${error.message}`);
     }
   }
@@ -501,23 +511,23 @@ export class PaymentService {
 
   private async handleSuccessfulCharge(data: any): Promise<void> {
     // Try to find payment by top-level reference first
-    let payment = await this.paymentModel.findOne({ 
-      paymentReference: data.reference 
+    let payment = await this.paymentModel.findOne({
+      paymentReference: data.reference
     });
 
     // If not found, try to find by backend reference in metadata (fallback)
     if (!payment && data.metadata?.reference) {
       console.log('⚠️ Webhook: Payment not found with Paystack reference, trying backend reference from metadata');
-      payment = await this.paymentModel.findOne({ 
-        paymentReference: data.metadata.reference 
+      payment = await this.paymentModel.findOne({
+        paymentReference: data.metadata.reference
       });
     }
 
     // If still not found, try nested metadata.metadata.paymentReference
     if (!payment && data.metadata?.metadata?.paymentReference) {
       console.log('⚠️ Webhook: Trying nested metadata.metadata.paymentReference');
-      payment = await this.paymentModel.findOne({ 
-        paymentReference: data.metadata.metadata.paymentReference 
+      payment = await this.paymentModel.findOne({
+        paymentReference: data.metadata.metadata.paymentReference
       });
     }
 
@@ -538,7 +548,7 @@ export class PaymentService {
       console.log('\n📋 Full webhook data:');
       console.log(JSON.stringify(data, null, 2));
       console.log('========================================\n');
-      
+
       return;
     }
 
@@ -562,7 +572,7 @@ export class PaymentService {
     // Check cache to prevent concurrent processing
     const cacheKey = `webhook:processing:${data.reference}`;
     const isProcessing = await this.cacheService.get(cacheKey);
-    
+
     if (isProcessing) {
       console.log('⏳ Webhook: Already processing this payment, skipping duplicate');
       return;
@@ -586,10 +596,10 @@ export class PaymentService {
 
       // Mark as processed in cache (24 hours)
       await this.cacheService.set(`webhook:completed:${data.reference}`, 'done', 86400);
-      
+
     } catch (verifyError) {
       console.error('❌ Webhook: Payment verification failed:', verifyError.message);
-      
+
       // Fallback: Update payment status manually
       await this.paymentModel.findByIdAndUpdate(payment._id, {
         status: 'completed',
@@ -615,8 +625,8 @@ export class PaymentService {
   }
 
   private async handleFailedCharge(data: any): Promise<void> {
-    const payment = await this.paymentModel.findOne({ 
-      paymentReference: data.reference 
+    const payment = await this.paymentModel.findOne({
+      paymentReference: data.reference
     });
 
     if (!payment) {
@@ -729,14 +739,14 @@ export class PaymentService {
 
   //     const paymentRecord = new this.paymentModel(paymentData);
   //     await paymentRecord.save();
-      
+
   //     console.log('✅ Payment record created:', paymentRecord._id.toString());
 
   //     // Calculate commission if payment completed
   //     if (paymentInfo.status === 'completed') {
   //       try {
   //         const commissionCalc = await this.commissionService.calculateBookingCommission(booking);
-          
+
   //         await this.commissionService.updateBookingCommission(
   //           booking._id.toString(),
   //           {
@@ -746,13 +756,13 @@ export class PaymentService {
   //             processingFee: commissionCalc.processingFee,
   //           }
   //         );
-          
+
   //         console.log('✅ Commission calculated and updated');
   //       } catch (error) {
   //         console.error('⚠️ Commission calculation failed:', error.message);
   //       }
   //     }
-      
+
   //     return JSON.parse(JSON.stringify(paymentRecord));
   //   } catch (error: any) {
   //     console.error('❌ Failed to create payment record:', error.message);
@@ -762,125 +772,125 @@ export class PaymentService {
 
   // Update the createPaymentFromBooking method signature in payment.service.ts
 
-async createPaymentFromBooking(
-  booking: any,
-  transactionReference: string,
-  paymentInfo: {
-    paymentMethod: string;
-    gateway: string;
-    status: string;
-    amount: number;  // ✅ ADDED: Include amount in the interface
-    paymentType?: 'full' | 'deposit' | 'remaining';  // ✅ ADDED: Include paymentType
-  }
-): Promise<any> {
-  try {
-    const paymentMethodMap: Record<string, string> = {
-      'card': 'card',
-      'bank_transfer': 'bank_transfer',
-      'mobile_money': 'mobile_money',
-      'crypto': 'crypto',
-      'cash': 'cash',
-      'online': 'online',
-    };
-
-    const mappedMethod = paymentMethodMap[paymentInfo.paymentMethod] || 'online';
-
-    // Calculate fees based on the actual payment amount (not booking total)
-    // This is important for deposit payments
-    let feeCalculation;
+  async createPaymentFromBooking(
+    booking: any,
+    transactionReference: string,
+    paymentInfo: {
+      paymentMethod: string;
+      gateway: string;
+      status: string;
+      amount: number;  // ✅ ADDED: Include amount in the interface
+      paymentType?: 'full' | 'deposit' | 'remaining';  // ✅ ADDED: Include paymentType
+    }
+  ): Promise<any> {
     try {
-      feeCalculation = await this.pricingService.calculateFees(
-        booking.businessId.toString(),
-        paymentInfo.amount,  // ✅ FIXED: Use paymentInfo.amount instead of booking.estimatedTotal
-      );
-    } catch (feeError) {
-      console.warn('⚠️ Fee calculation failed, using default:', feeError.message);
-      feeCalculation = {
-        bookingAmount: paymentInfo.amount,
-        totalPlatformFee: paymentInfo.amount * 0.05,
-        businessReceives: paymentInfo.amount * 0.95,
+      const paymentMethodMap: Record<string, string> = {
+        'card': 'card',
+        'bank_transfer': 'bank_transfer',
+        'mobile_money': 'mobile_money',
+        'crypto': 'crypto',
+        'cash': 'cash',
+        'online': 'online',
       };
-    }
 
-    const paymentData: any = {
-      clientId: new Types.ObjectId(booking.clientId.toString()),
-      bookingId: new Types.ObjectId(booking._id.toString()),
-      businessId: new Types.ObjectId(booking.businessId.toString()),
-      paymentReference: `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      transactionId: transactionReference,
-      items: booking.services.map((service: any) => ({
-        itemType: 'service',
-        itemId: new Types.ObjectId(service.serviceId.toString()),
-        itemName: service.serviceName,
-        quantity: 1,
-        unitPrice: service.price,
-        totalPrice: service.price,
-        discount: 0,
-        tax: 0,
-      })),
-      subtotal: paymentInfo.amount,  // ✅ FIXED: Use actual payment amount
-      totalTax: 0,
-      totalDiscount: 0,
-      totalAmount: paymentInfo.amount,  // ✅ FIXED: Use actual payment amount
-      paymentMethod: mappedMethod,
-      gateway: paymentInfo.gateway,
-      status: paymentInfo.status || 'completed',
-      paidAt: paymentInfo.status === 'completed' ? new Date() : undefined,
-      metadata: {
-        bookingNumber: booking.bookingNumber,
-        clientName: booking.clientName,
-        clientEmail: booking.clientEmail,
-        serviceName: booking.services.map((s: any) => s.serviceName).join(', '),
-        paymentType: paymentInfo.paymentType || 'full',  // ✅ ADDED: Track payment type
-        bookingTotal: booking.estimatedTotal,  // ✅ ADDED: Track original booking total
-      },
-    };
+      const mappedMethod = paymentMethodMap[paymentInfo.paymentMethod] || 'online';
 
-    // Add optional fields if they exist in schema
-    if (feeCalculation.totalPlatformFee !== undefined) {
-      paymentData.platformFee = feeCalculation.totalPlatformFee;
-    }
-    if (feeCalculation.businessReceives !== undefined) {
-      paymentData.businessReceives = feeCalculation.businessReceives;
-    }
-
-    const paymentRecord = new this.paymentModel(paymentData);
-    await paymentRecord.save();
-    
-    console.log('✅ Payment record created:', {
-      paymentId: paymentRecord._id.toString(),
-      amount: paymentInfo.amount,
-      type: paymentInfo.paymentType || 'full',
-      bookingTotal: booking.estimatedTotal,
-    });
-
-    // Calculate commission if payment completed
-    if (paymentInfo.status === 'completed') {
+      // Calculate fees based on the actual payment amount (not booking total)
+      // This is important for deposit payments
+      let feeCalculation;
       try {
-        const commissionCalc = await this.commissionService.calculateBookingCommission(booking);
-        
-        await this.commissionService.updateBookingCommission(
-          booking._id.toString(),
-          {
-            commissionRate: commissionCalc.commissionRate,
-            commissionAmount: commissionCalc.commissionAmount,
-            platformFee: commissionCalc.platformFee,
-            processingFee: commissionCalc.processingFee,
-          }
+        feeCalculation = await this.pricingService.calculateFees(
+          booking.businessId.toString(),
+          paymentInfo.amount,  // ✅ FIXED: Use paymentInfo.amount instead of booking.estimatedTotal
         );
-        
-        console.log('✅ Commission calculated and updated');
-      } catch (error) {
-        console.error('⚠️ Commission calculation failed:', error.message);
+      } catch (feeError) {
+        console.warn('⚠️ Fee calculation failed, using default:', feeError.message);
+        feeCalculation = {
+          bookingAmount: paymentInfo.amount,
+          totalPlatformFee: paymentInfo.amount * 0.05,
+          businessReceives: paymentInfo.amount * 0.95,
+        };
       }
+
+      const paymentData: any = {
+        clientId: new Types.ObjectId(booking.clientId.toString()),
+        bookingId: new Types.ObjectId(booking._id.toString()),
+        businessId: new Types.ObjectId(booking.businessId.toString()),
+        paymentReference: `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        transactionId: transactionReference,
+        items: booking.services.map((service: any) => ({
+          itemType: 'service',
+          itemId: new Types.ObjectId(service.serviceId.toString()),
+          itemName: service.serviceName,
+          quantity: 1,
+          unitPrice: service.price,
+          totalPrice: service.price,
+          discount: 0,
+          tax: 0,
+        })),
+        subtotal: paymentInfo.amount,  // ✅ FIXED: Use actual payment amount
+        totalTax: 0,
+        totalDiscount: 0,
+        totalAmount: paymentInfo.amount,  // ✅ FIXED: Use actual payment amount
+        paymentMethod: mappedMethod,
+        gateway: paymentInfo.gateway,
+        status: paymentInfo.status || 'completed',
+        paidAt: paymentInfo.status === 'completed' ? new Date() : undefined,
+        metadata: {
+          bookingNumber: booking.bookingNumber,
+          clientName: booking.clientName,
+          clientEmail: booking.clientEmail,
+          serviceName: booking.services.map((s: any) => s.serviceName).join(', '),
+          paymentType: paymentInfo.paymentType || 'full',  // ✅ ADDED: Track payment type
+          bookingTotal: booking.estimatedTotal,  // ✅ ADDED: Track original booking total
+        },
+      };
+
+      // Add optional fields if they exist in schema
+      if (feeCalculation.totalPlatformFee !== undefined) {
+        paymentData.platformFee = feeCalculation.totalPlatformFee;
+      }
+      if (feeCalculation.businessReceives !== undefined) {
+        paymentData.businessReceives = feeCalculation.businessReceives;
+      }
+
+      const paymentRecord = new this.paymentModel(paymentData);
+      await paymentRecord.save();
+
+      console.log('✅ Payment record created:', {
+        paymentId: paymentRecord._id.toString(),
+        amount: paymentInfo.amount,
+        type: paymentInfo.paymentType || 'full',
+        bookingTotal: booking.estimatedTotal,
+      });
+
+      // Calculate commission if payment completed
+      if (paymentInfo.status === 'completed') {
+        try {
+          const commissionCalc = await this.commissionService.calculateBookingCommission(booking);
+
+          await this.commissionService.updateBookingCommission(
+            booking._id.toString(),
+            {
+              commissionRate: commissionCalc.commissionRate,
+              commissionAmount: commissionCalc.commissionAmount,
+              platformFee: commissionCalc.platformFee,
+              processingFee: commissionCalc.processingFee,
+            }
+          );
+
+          console.log('✅ Commission calculated and updated');
+        } catch (error) {
+          console.error('⚠️ Commission calculation failed:', error.message);
+        }
+      }
+
+      return JSON.parse(JSON.stringify(paymentRecord));
+    } catch (error: any) {
+      console.error('❌ Failed to create payment record:', error.message);
+      throw new BadRequestException(`Failed to create payment record: ${error.message}`);
     }
-    
-    return JSON.parse(JSON.stringify(paymentRecord));
-  } catch (error: any) {
-    console.error('❌ Failed to create payment record:', error.message);
-    throw new BadRequestException(`Failed to create payment record: ${error.message}`);
   }
-}
 
   // ========================================
   // CREATE FAILED PAYMENT
@@ -912,9 +922,9 @@ async createPaymentFromBooking(
 
       const failedPayment = new this.paymentModel(failedPaymentData);
       await failedPayment.save();
-      
+
       console.log('✅ Failed payment record created');
-      
+
       return JSON.parse(JSON.stringify(failedPayment));
     } catch (error: any) {
       console.error('❌ Failed to create failed payment record:', error.message);
@@ -995,7 +1005,7 @@ async createPaymentFromBooking(
         transactionId: transactionReference,
         updatedAt: new Date(),
       };
-      
+
       if (status === 'completed') {
         updateData.paidAt = new Date();
       }
@@ -1287,7 +1297,7 @@ async createPaymentFromBooking(
   async remove(id: string): Promise<ApiResponse<void>> {
     try {
       const result = await this.paymentModel.findByIdAndDelete(id);
-      
+
       if (!result) {
         throw new NotFoundException('Payment not found');
       }
@@ -1325,11 +1335,11 @@ async createPaymentFromBooking(
       const payment = await this.paymentModel
         .findOne({ bookingId: new Types.ObjectId(bookingId) })
         .exec();
-      
+
       if (!payment) {
         return null;
       }
-      
+
       return JSON.parse(JSON.stringify(payment));
     } catch (error: any) {
       console.error('❌ Failed to get payment by booking ID:', error.message);
@@ -1345,7 +1355,7 @@ async createPaymentFromBooking(
       const totalPayments = await this.paymentModel.countDocuments().exec();
       const completedPayments = await this.paymentModel.countDocuments({ status: 'completed' }).exec();
       const pendingPayments = await this.paymentModel.countDocuments({ status: 'pending' }).exec();
-      
+
       const totalRevenueResult = await this.paymentModel.aggregate([
         { $match: { status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$totalAmount' } } },
@@ -1396,20 +1406,20 @@ async createPaymentFromBooking(
 
   private buildPaymentItems(metadata: any, amount: number): any[] {
     let paymentItems = [];
-    
+
     if (metadata?.services && Array.isArray(metadata.services)) {
       console.log(`📦 Processing ${metadata.services.length} services`);
-      
+
       paymentItems = metadata.services.map((service: any, index: number) => {
         const serviceId = service.serviceId || service._id || service.id;
-        
+
         let itemId: Types.ObjectId;
         if (serviceId && Types.ObjectId.isValid(serviceId)) {
           itemId = new Types.ObjectId(serviceId);
         } else {
           itemId = new Types.ObjectId();
         }
-        
+
         return {
           itemType: 'service',
           itemId,
@@ -1422,10 +1432,10 @@ async createPaymentFromBooking(
         };
       });
     }
-    
+
     if (paymentItems.length === 0) {
       console.log('📦 No services provided, creating default payment item');
-      
+
       paymentItems.push({
         itemType: 'service',
         itemId: new Types.ObjectId(),

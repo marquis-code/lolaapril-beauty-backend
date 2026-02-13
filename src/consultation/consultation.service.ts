@@ -12,6 +12,8 @@ import {
 } from './dto/consultation.dto';
 import { GoogleCalendarService } from '../integration/google-calendar.service';
 import { NotificationService } from '../notification/notification.service';
+import { AppointmentService } from '../appointment/appointment.service';
+import { BusinessService } from '../business/business.service';
 import { Integration, IntegrationDocument } from '../integration/schemas/integration.schema';
 import { GatewayManagerService } from '../integration/gateway-manager.service';
 import { ConfigService } from '@nestjs/config';
@@ -31,6 +33,8 @@ export class ConsultationService {
         private readonly notificationService: NotificationService,
         private readonly gatewayManager: GatewayManagerService,
         private readonly configService: ConfigService,
+        private readonly appointmentService: AppointmentService,
+        private readonly businessService: BusinessService,
     ) { }
 
     // ================== PACKAGE MANAGEMENT ==================
@@ -299,6 +303,41 @@ export class ConsultationService {
         }
 
         await booking.save();
+
+        // ✅ Create appointment from consultation booking
+        try {
+            const business = await this.businessService.getById(businessId);
+
+            const compatibleBooking = {
+                _id: booking._id,
+                bookingNumber: booking.paymentReference || `CONS-${booking._id}`,
+                clientId: booking.clientId,
+                businessId: booking.businessId,
+                businessName: business?.businessName || 'Lola April Beauty',
+                businessAddress: business?.address || 'Address not provided',
+                preferredDate: booking.startTime,
+                preferredStartTime: moment(booking.startTime).format('HH:mm'),
+                services: [{
+                    serviceId: (booking.packageId as any)._id,
+                    serviceName: (booking.packageId as any).name,
+                    duration: (booking.packageId as any).duration,
+                    price: (booking.packageId as any).price
+                }],
+                estimatedTotal: (booking.packageId as any).price,
+                specialRequests: booking.notes
+            };
+
+            this.logger.log(`📅 Creating appointment for consultation ${booking._id}`);
+            const appointment = await this.appointmentService.createFromBooking(compatibleBooking);
+
+            // ✅ Link appointment to consultation booking
+            (booking as any).appointmentId = appointment._id;
+            await (booking as any).save();
+
+            this.logger.log(`✅ Appointment created and linked for consultation ${booking._id}`);
+        } catch (appointmentError) {
+            this.logger.error(`❌ Failed to create appointment for consultation: ${appointmentError.message}`);
+        }
 
         // Send Notification
         await this.sendConfirmationEmail(booking);

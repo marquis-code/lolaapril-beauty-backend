@@ -398,62 +398,62 @@
 //     ): Promise<BookingResult> {
 //       try {
 //         const preferredDate = this.parseDate(createBookingDto.preferredDate);
-  
+
 //         // ✅ CHANGED: Use subscriptionService to check limits
 //         const limitsCheck = await this.subscriptionService.checkLimits(
 //           createBookingDto.businessId,
 //           'booking'
 //         );
-  
+
 //         if (!limitsCheck.isValid) {
 //           throw new BadRequestException(`Subscription limits exceeded`);
 //         }
-  
+
 //         const serviceIds = createBookingDto.services.map(s => s.serviceId);
 //         const services = await this.serviceService.getServicesByIds(serviceIds);
 //         const totalAmount = this.calculateTotalPrice(services);
-  
+
 //         // ✅ Normalize booking source to ensure sourceType is set
 //         const normalizedBookingSource = this.normalizeBookingSource(createBookingDto);
-  
+
 //         console.log('📊 Normalized booking source:', {
 //           sourceType: normalizedBookingSource.sourceType,
 //           trackingCode: normalizedBookingSource.trackingCode,
 //           hasLegacyFields: !!(createBookingDto.sourceType || createBookingDto.utmSource),
 //         });
-  
+
 //         // Validate the normalized source data
 //         const sourceValidation = this.sourceTrackingService.validateSourceData(
 //           normalizedBookingSource
 //         );
-  
+
 //         if (!sourceValidation.isValid) {
 //           throw new BadRequestException(
 //             `Invalid source tracking data: ${sourceValidation.errors.join(', ')}`
 //           );
 //         }
-  
+
 //         const clientReliability = await this.noShowManagementService
 //           .shouldRequireDeposit(
 //             createBookingDto.clientId,
 //             createBookingDto.businessId
 //           );
-  
+
 //         const depositPolicy = await this.cancellationPolicyService
 //           .calculateDepositAmount(
 //             createBookingDto.businessId,
 //             totalAmount,
 //             serviceIds
 //           );
-  
+
 //         const requiresDeposit = depositPolicy.requiresDeposit ||
 //           clientReliability.requiresDeposit;
-  
+
 //         const depositAmount = requiresDeposit ? depositPolicy.depositAmount : 0;
 //         const depositReason = clientReliability.requiresDeposit
 //           ? clientReliability.reason
 //           : depositPolicy.reason;
-  
+
 //         // Calculate commission with normalized source
 //         const commissionPreview = await this.commissionCalculatorService
 //           .calculateCommission(
@@ -465,7 +465,7 @@
 //               sourceTracking: normalizedBookingSource  // ✅ Use normalized source
 //             }
 //           );
-  
+
 //         const totalDuration = this.calculateTotalDuration(services);
 //         const isAvailable = await this.checkAvailabilityForAllServices(
 //           createBookingDto.businessId,
@@ -474,11 +474,11 @@
 //           createBookingDto.preferredStartTime,
 //           totalDuration
 //         );
-  
+
 //         if (!isAvailable) {
 //           throw new BadRequestException('Selected time slot is not available');
 //         }
-  
+
 //         const bookingData = {
 //           clientId: createBookingDto.clientId,
 //           businessId: createBookingDto.businessId,
@@ -514,19 +514,19 @@
 //           } : null,
 //           clientReliabilityScore: clientReliability.score
 //         };
-  
+
 //         const booking = await this.bookingService.createBooking(bookingData);
-  
+
 //         // Track conversion if tracking code exists
 //         if (normalizedBookingSource.trackingCode) {
 //           await this.sourceTrackingService.recordConversion(
 //             normalizedBookingSource.trackingCode
 //           );
 //         }
-  
+
 //         await this.notificationService.notifyStaffNewBooking(booking);
 //         this.eventEmitter.emit('booking.created', booking);
-  
+
 //         return {
 //           bookingId: booking._id.toString(),
 //           bookingNumber: booking.bookingNumber,
@@ -560,7 +560,7 @@
 //             ? `Booking created. Deposit of ₦${depositAmount} required to confirm.`
 //             : 'Booking created successfully. Awaiting confirmation.'
 //         };
-  
+
 //       } catch (error) {
 //         this.logger.error(`Booking creation failed: ${error.message}`);
 //         throw error;
@@ -1658,7 +1658,7 @@ import { PaymentService } from '../../payment/payment.service'
 import { AvailabilityService } from '../../availability/availability.service'
 import { NotificationService } from '../../notification/notification.service'
 import { StaffService } from '../../staff/staff.service'
-import { BusinessService } from '../../business/business.service' 
+import { BusinessService } from '../../business/business.service'
 import { ServiceService } from '../../service/service.service'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ServiceBookingDto } from "../dto/create-booking.dto"
@@ -1779,35 +1779,35 @@ export class BookingOrchestrator {
   }
 
   private transformBookingSourceToDto(bookingSource: any): BookingSourceDto {
-  if (!bookingSource) {
+    if (!bookingSource) {
+      return {
+        sourceType: BookingSourceType.DIRECT_LINK,
+      };
+    }
+
+    // Convert string sourceType to enum
+    const sourceType = bookingSource.sourceType
+      ? (BookingSourceType[bookingSource.sourceType.toUpperCase()] || BookingSourceType.DIRECT_LINK)
+      : BookingSourceType.DIRECT_LINK;
+
     return {
-      sourceType: BookingSourceType.DIRECT_LINK,
+      sourceType,
+      channel: bookingSource.channel,
+      referrer: bookingSource.referrer,
+      referrerUrl: bookingSource.referrerUrl,
+      trackingCode: bookingSource.trackingCode,
+      campaignId: bookingSource.campaignId,
+      affiliateId: bookingSource.affiliateId,
+      sourceIdentifier: bookingSource.sourceIdentifier,
+      referralCode: bookingSource.referralCode,
+      utmSource: bookingSource.utmSource,
+      utmMedium: bookingSource.utmMedium,
+      utmCampaign: bookingSource.utmCampaign,
+      ipAddress: bookingSource.ipAddress,
+      userAgent: bookingSource.userAgent,
+      metadata: bookingSource.metadata,
     };
   }
-
-  // Convert string sourceType to enum
-  const sourceType = bookingSource.sourceType 
-    ? (BookingSourceType[bookingSource.sourceType.toUpperCase()] || BookingSourceType.DIRECT_LINK)
-    : BookingSourceType.DIRECT_LINK;
-
-  return {
-    sourceType,
-    channel: bookingSource.channel,
-    referrer: bookingSource.referrer,
-    referrerUrl: bookingSource.referrerUrl,
-    trackingCode: bookingSource.trackingCode,
-    campaignId: bookingSource.campaignId,
-    affiliateId: bookingSource.affiliateId,
-    sourceIdentifier: bookingSource.sourceIdentifier,
-    referralCode: bookingSource.referralCode,
-    utmSource: bookingSource.utmSource,
-    utmMedium: bookingSource.utmMedium,
-    utmCampaign: bookingSource.utmCampaign,
-    ipAddress: bookingSource.ipAddress,
-    userAgent: bookingSource.userAgent,
-    metadata: bookingSource.metadata,
-  };
-}
 
 
   private async sendConfirmationNotifications(
@@ -2043,189 +2043,189 @@ export class BookingOrchestrator {
   //   }
   // }
 
-    async createBookingWithValidation(
-      createBookingDto: CreateBookingWithSourceDto
-    ): Promise<BookingResult> {
-      try {
-        const preferredDate = this.parseDate(createBookingDto.preferredDate);
-  
-        // ✅ CHANGED: Use subscriptionService to check limits
-        const limitsCheck = await this.subscriptionService.checkLimits(
+  async createBookingWithValidation(
+    createBookingDto: CreateBookingWithSourceDto
+  ): Promise<BookingResult> {
+    try {
+      const preferredDate = this.parseDate(createBookingDto.preferredDate);
+
+      // ✅ CHANGED: Use subscriptionService to check limits
+      const limitsCheck = await this.subscriptionService.checkLimits(
+        createBookingDto.businessId,
+        'booking'
+      );
+
+      if (!limitsCheck.isValid) {
+        throw new BadRequestException(`Subscription limits exceeded`);
+      }
+
+      const serviceIds = createBookingDto.services.map(s => s.serviceId);
+      const services = await this.serviceService.getServicesByIds(serviceIds);
+      const totalAmount = this.calculateTotalPrice(services);
+
+      // ✅ Normalize booking source to ensure sourceType is set
+      const normalizedBookingSource = this.normalizeBookingSource(createBookingDto);
+
+      console.log('📊 Normalized booking source:', {
+        sourceType: normalizedBookingSource.sourceType,
+        trackingCode: normalizedBookingSource.trackingCode,
+        hasLegacyFields: !!(createBookingDto.sourceType || createBookingDto.utmSource),
+      });
+
+      // Validate the normalized source data
+      const sourceValidation = this.sourceTrackingService.validateSourceData(
+        normalizedBookingSource
+      );
+
+      if (!sourceValidation.isValid) {
+        throw new BadRequestException(
+          `Invalid source tracking data: ${sourceValidation.errors.join(', ')}`
+        );
+      }
+
+      const clientReliability = await this.noShowManagementService
+        .shouldRequireDeposit(
+          createBookingDto.clientId,
+          createBookingDto.businessId
+        );
+
+      const depositPolicy = await this.cancellationPolicyService
+        .calculateDepositAmount(
           createBookingDto.businessId,
-          'booking'
+          totalAmount,
+          serviceIds
         );
-  
-        if (!limitsCheck.isValid) {
-          throw new BadRequestException(`Subscription limits exceeded`);
-        }
-  
-        const serviceIds = createBookingDto.services.map(s => s.serviceId);
-        const services = await this.serviceService.getServicesByIds(serviceIds);
-        const totalAmount = this.calculateTotalPrice(services);
-  
-        // ✅ Normalize booking source to ensure sourceType is set
-        const normalizedBookingSource = this.normalizeBookingSource(createBookingDto);
-  
-        console.log('📊 Normalized booking source:', {
-          sourceType: normalizedBookingSource.sourceType,
-          trackingCode: normalizedBookingSource.trackingCode,
-          hasLegacyFields: !!(createBookingDto.sourceType || createBookingDto.utmSource),
-        });
-  
-        // Validate the normalized source data
-        const sourceValidation = this.sourceTrackingService.validateSourceData(
-          normalizedBookingSource
-        );
-  
-        if (!sourceValidation.isValid) {
-          throw new BadRequestException(
-            `Invalid source tracking data: ${sourceValidation.errors.join(', ')}`
-          );
-        }
-  
-        const clientReliability = await this.noShowManagementService
-          .shouldRequireDeposit(
-            createBookingDto.clientId,
-            createBookingDto.businessId
-          );
-  
-        const depositPolicy = await this.cancellationPolicyService
-          .calculateDepositAmount(
-            createBookingDto.businessId,
+
+      const requiresDeposit = depositPolicy.requiresDeposit ||
+        clientReliability.requiresDeposit;
+
+      const depositAmount = requiresDeposit ? depositPolicy.depositAmount : 0;
+      const depositReason = clientReliability.requiresDeposit
+        ? clientReliability.reason
+        : depositPolicy.reason;
+
+      // Calculate commission with normalized source
+      const commissionPreview = await this.commissionCalculatorService
+        .calculateCommission(
+          'preview',
+          {
+            businessId: createBookingDto.businessId,
+            clientId: createBookingDto.clientId,
             totalAmount,
-            serviceIds
-          );
-  
-        const requiresDeposit = depositPolicy.requiresDeposit ||
-          clientReliability.requiresDeposit;
-  
-        const depositAmount = requiresDeposit ? depositPolicy.depositAmount : 0;
-        const depositReason = clientReliability.requiresDeposit
-          ? clientReliability.reason
-          : depositPolicy.reason;
-  
-        // Calculate commission with normalized source
-        const commissionPreview = await this.commissionCalculatorService
-          .calculateCommission(
-            'preview',
-            {
-              businessId: createBookingDto.businessId,
-              clientId: createBookingDto.clientId,
-              totalAmount,
-              sourceTracking: normalizedBookingSource  // ✅ Use normalized source
-            }
-          );
-  
-        const totalDuration = this.calculateTotalDuration(services);
-        
-        console.log(`[v0] Checking availability for business ${createBookingDto.businessId}`)
-        console.log(`[v0] Date: ${preferredDate.toISOString()}, Time: ${createBookingDto.preferredStartTime}, Duration: ${totalDuration}min`)
-        
-        const isAvailable = await this.checkAvailabilityForAllServices(
-          createBookingDto.businessId,
-          serviceIds,
-          preferredDate,
+            sourceTracking: normalizedBookingSource  // ✅ Use normalized source
+          }
+        );
+
+      const totalDuration = this.calculateTotalDuration(services);
+
+      console.log(`[v0] Checking availability for business ${createBookingDto.businessId}`)
+      console.log(`[v0] Date: ${preferredDate.toISOString()}, Time: ${createBookingDto.preferredStartTime}, Duration: ${totalDuration}min`)
+
+      const isAvailable = await this.checkAvailabilityForAllServices(
+        createBookingDto.businessId,
+        serviceIds,
+        preferredDate,
+        createBookingDto.preferredStartTime,
+        totalDuration
+      );
+
+      if (!isAvailable) {
+        console.error(`[v0] Availability check failed for business ${createBookingDto.businessId}`)
+        throw new BadRequestException('Selected time slot is not available');
+      }
+
+      console.log(`[v0] ✅ Time slot is available, proceeding with booking`)
+
+      const bookingData = {
+        clientId: createBookingDto.clientId,
+        businessId: createBookingDto.businessId,
+        preferredDate,
+        preferredStartTime: createBookingDto.preferredStartTime,
+        clientName: createBookingDto.clientName,
+        clientEmail: createBookingDto.clientEmail,
+        clientPhone: createBookingDto.clientPhone,
+        specialRequests: createBookingDto.specialRequests,
+        services: services.map((service, index) => ({
+          serviceId: service._id,
+          serviceName: service.basicDetails.serviceName,
+          duration: this.getServiceDurationInMinutes(service),
+          bufferTime: createBookingDto.services[index].bufferTime || 0,
+          price: service.pricingAndDuration.price.amount
+        })),
+        estimatedEndTime: this.addMinutesToTime(
           createBookingDto.preferredStartTime,
           totalDuration
+        ),
+        totalDuration,
+        estimatedTotal: totalAmount,
+        status: 'pending',
+        bookingSource: normalizedBookingSource,  // ✅ Use normalized source
+        requiresDeposit,
+        depositAmount,
+        depositReason,
+        remainingAmount: requiresDeposit ? totalAmount - depositAmount : totalAmount,
+        commissionPreview: commissionPreview.isCommissionable ? {
+          rate: commissionPreview.commissionRate,
+          amount: commissionPreview.commissionAmount,
+          reason: commissionPreview.reason
+        } : null,
+        clientReliabilityScore: clientReliability.score
+      };
+
+      const booking = await this.bookingService.createBooking(bookingData);
+
+      // Track conversion if tracking code exists
+      if (normalizedBookingSource.trackingCode) {
+        await this.sourceTrackingService.recordConversion(
+          normalizedBookingSource.trackingCode
         );
-  
-        if (!isAvailable) {
-          console.error(`[v0] Availability check failed for business ${createBookingDto.businessId}`)
-          throw new BadRequestException('Selected time slot is not available');
-        }
-        
-        console.log(`[v0] ✅ Time slot is available, proceeding with booking`)
-  
-        const bookingData = {
-          clientId: createBookingDto.clientId,
-          businessId: createBookingDto.businessId,
-          preferredDate,
-          preferredStartTime: createBookingDto.preferredStartTime,
-          clientName: createBookingDto.clientName,
-          clientEmail: createBookingDto.clientEmail,
-          clientPhone: createBookingDto.clientPhone,
-          specialRequests: createBookingDto.specialRequests,
-          services: services.map((service, index) => ({
-            serviceId: service._id,
-            serviceName: service.basicDetails.serviceName,
-            duration: this.getServiceDurationInMinutes(service),
-            bufferTime: createBookingDto.services[index].bufferTime || 0,
-            price: service.pricingAndDuration.price.amount
-          })),
-          estimatedEndTime: this.addMinutesToTime(
-            createBookingDto.preferredStartTime,
-            totalDuration
-          ),
-          totalDuration,
-          estimatedTotal: totalAmount,
-          status: 'pending',
-          bookingSource: normalizedBookingSource,  // ✅ Use normalized source
-          requiresDeposit,
-          depositAmount,
-          depositReason,
-          remainingAmount: requiresDeposit ? totalAmount - depositAmount : totalAmount,
-          commissionPreview: commissionPreview.isCommissionable ? {
-            rate: commissionPreview.commissionRate,
-            amount: commissionPreview.commissionAmount,
-            reason: commissionPreview.reason
-          } : null,
-          clientReliabilityScore: clientReliability.score
-        };
-  
-        const booking = await this.bookingService.createBooking(bookingData);
-  
-        // Track conversion if tracking code exists
-        if (normalizedBookingSource.trackingCode) {
-          await this.sourceTrackingService.recordConversion(
-            normalizedBookingSource.trackingCode
-          );
-        }
-  
-        await this.notificationService.notifyStaffNewBooking(booking);
-        this.eventEmitter.emit('booking.created', {
-          businessId: booking.businessId.toString(),
-          booking
-        });
-  
-        return {
-          bookingId: booking._id.toString(),
-          bookingNumber: booking.bookingNumber,
-          estimatedTotal: booking.estimatedTotal,
-          expiresAt: booking.expiresAt,
-          status: booking.status,
-          clientId: booking.clientId.toString(),
-          businessId: booking.businessId.toString(),
-          booking,
-          requiresDeposit,
-          depositAmount,
-          depositReason,
-          remainingAmount: bookingData.remainingAmount,
-          commissionInfo: commissionPreview.isCommissionable ? {
-            willBeCharged: true,
-            rate: commissionPreview.commissionRate,
-            amount: commissionPreview.commissionAmount,
-            reason: commissionPreview.reason,
-            businessPayout: commissionPreview.businessPayout
-          } : {
-            willBeCharged: false,
-            reason: commissionPreview.reason,
-            businessPayout: totalAmount
-          },
-          clientReliability: {
-            score: clientReliability.score,
-            requiresDeposit: clientReliability.requiresDeposit,
-            reason: clientReliability.reason
-          },
-          message: requiresDeposit
-            ? `Booking created. Deposit of ₦${depositAmount} required to confirm.`
-            : 'Booking created successfully. Awaiting confirmation.'
-        };
-  
-      } catch (error) {
-        this.logger.error(`Booking creation failed: ${error.message}`);
-        throw error;
       }
+
+      await this.notificationService.notifyStaffNewBooking(booking);
+      this.eventEmitter.emit('booking.created', {
+        businessId: booking.businessId.toString(),
+        booking
+      });
+
+      return {
+        bookingId: booking._id.toString(),
+        bookingNumber: booking.bookingNumber,
+        estimatedTotal: booking.estimatedTotal,
+        expiresAt: booking.expiresAt,
+        status: booking.status,
+        clientId: booking.clientId.toString(),
+        businessId: booking.businessId.toString(),
+        booking,
+        requiresDeposit,
+        depositAmount,
+        depositReason,
+        remainingAmount: bookingData.remainingAmount,
+        commissionInfo: commissionPreview.isCommissionable ? {
+          willBeCharged: true,
+          rate: commissionPreview.commissionRate,
+          amount: commissionPreview.commissionAmount,
+          reason: commissionPreview.reason,
+          businessPayout: commissionPreview.businessPayout
+        } : {
+          willBeCharged: false,
+          reason: commissionPreview.reason,
+          businessPayout: totalAmount
+        },
+        clientReliability: {
+          score: clientReliability.score,
+          requiresDeposit: clientReliability.requiresDeposit,
+          reason: clientReliability.reason
+        },
+        message: requiresDeposit
+          ? `Booking created. Deposit of ₦${depositAmount} required to confirm.`
+          : 'Booking created successfully. Awaiting confirmation.'
+      };
+
+    } catch (error) {
+      this.logger.error(`Booking creation failed: ${error.message}`);
+      throw error;
     }
+  }
 
 
   private parseDate(date: Date | string): Date {
@@ -2285,243 +2285,243 @@ export class BookingOrchestrator {
     return true
   }
 
-//   private async checkBusinessWorkingHours(
-//     businessId: string,
-//     date: Date,
-//     startTime: string,
-//     totalDuration: number
-//   ): Promise<boolean> {
-//     try {
-//       // Get business details to check operating hours
-//       const business = await this.businessService.getById(businessId)
-      
-//       if (!business) {
-//         throw new BadRequestException('Business not found')
-//       }
+  //   private async checkBusinessWorkingHours(
+  //     businessId: string,
+  //     date: Date,
+  //     startTime: string,
+  //     totalDuration: number
+  //   ): Promise<boolean> {
+  //     try {
+  //       // Get business details to check operating hours
+  //       const business = await this.businessService.getById(businessId)
 
-//       // Get the day of week (0 = Sunday, 1 = Monday, etc.)
-//       const dayOfWeek = date.getDay()
-//       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-//       const currentDay = dayNames[dayOfWeek]
+  //       if (!business) {
+  //         throw new BadRequestException('Business not found')
+  //       }
 
-//       // Check if business is open on this day
-//       const businessHours = business.businessHours
+  //       // Get the day of week (0 = Sunday, 1 = Monday, etc.)
+  //       const dayOfWeek = date.getDay()
+  //       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  //       const currentDay = dayNames[dayOfWeek]
 
-// if (!businessHours || businessHours.length === 0) {
-//   console.log(`❌ No business hours configured`)
-//   return false
-// }
+  //       // Check if business is open on this day
+  //       const businessHours = business.businessHours
 
-// // Find the schedule for the current day
-// const daySchedule = businessHours.find(
-//   schedule => schedule.day.toLowerCase() === currentDay.toLowerCase()
-// )
+  // if (!businessHours || businessHours.length === 0) {
+  //   console.log(`❌ No business hours configured`)
+  //   return false
+  // }
 
-// if (!daySchedule) {
-//   console.log(`❌ No schedule found for ${currentDay}`)
-//   return false
-// }
-//       // const businessHours = business.operatingHours || business.workingHours
-      
-//       // if (!businessHours || !businessHours[currentDay]) {
-//       //   console.log(`❌ Business closed on ${currentDay}`)
-//       //   return false
-//       // }
+  // // Find the schedule for the current day
+  // const daySchedule = businessHours.find(
+  //   schedule => schedule.day.toLowerCase() === currentDay.toLowerCase()
+  // )
 
-//       // const daySchedule = businessHours[currentDay]
-      
-//       // // If explicitly closed
-//       // if (daySchedule.isClosed || !daySchedule.isOpen) {
-//       //   console.log(`❌ Business marked as closed on ${currentDay}`)
-//       //   return false
-//       // }
+  // if (!daySchedule) {
+  //   console.log(`❌ No schedule found for ${currentDay}`)
+  //   return false
+  // }
+  //       // const businessHours = business.operatingHours || business.workingHours
 
-//       // Parse opening and closing times
-//       const [openHour, openMin] = (daySchedule.openTime || '09:00').split(':').map(Number)
-// const [closeHour, closeMin] = (daySchedule.closeTime || '17:00').split(':').map(Number)
-//       // const [openHour, openMin] = (daySchedule.openingTime || daySchedule.startTime || '09:00').split(':').map(Number)
-//       // const [closeHour, closeMin] = (daySchedule.closingTime || daySchedule.endTime || '17:00').split(':').map(Number)
-      
-//       // Parse requested start time
-//       const [reqHour, reqMin] = startTime.split(':').map(Number)
-      
-//       // Convert times to minutes for easier comparison
-//       const openingMins = openHour * 60 + openMin
-//       const closingMins = closeHour * 60 + closeMin
-//       const requestStartMins = reqHour * 60 + reqMin
-//       const requestEndMins = requestStartMins + totalDuration
+  //       // if (!businessHours || !businessHours[currentDay]) {
+  //       //   console.log(`❌ Business closed on ${currentDay}`)
+  //       //   return false
+  //       // }
 
-//       console.log(`⏰ Business hours: ${openHour}:${openMin.toString().padStart(2, '0')} - ${closeHour}:${closeMin.toString().padStart(2, '0')}`)
-//       console.log(`📅 Requested slot: ${reqHour}:${reqMin.toString().padStart(2, '0')} - ${Math.floor(requestEndMins / 60)}:${(requestEndMins % 60).toString().padStart(2, '0')}`)
+  //       // const daySchedule = businessHours[currentDay]
 
-//       // Check if requested time is within business hours
-//       const isWithinHours = requestStartMins >= openingMins && requestEndMins <= closingMins
-      
-//       if (!isWithinHours) {
-//         console.log(`❌ Requested time slot is outside business hours`)
-//         return false
-//       }
+  //       // // If explicitly closed
+  //       // if (daySchedule.isClosed || !daySchedule.isOpen) {
+  //       //   console.log(`❌ Business marked as closed on ${currentDay}`)
+  //       //   return false
+  //       // }
 
-//       console.log(`✅ Time slot is available within business hours`)
-//       return true
+  //       // Parse opening and closing times
+  //       const [openHour, openMin] = (daySchedule.openTime || '09:00').split(':').map(Number)
+  // const [closeHour, closeMin] = (daySchedule.closeTime || '17:00').split(':').map(Number)
+  //       // const [openHour, openMin] = (daySchedule.openingTime || daySchedule.startTime || '09:00').split(':').map(Number)
+  //       // const [closeHour, closeMin] = (daySchedule.closingTime || daySchedule.endTime || '17:00').split(':').map(Number)
 
-//     } catch (error) {
-//       console.error(`❌ Error checking business hours: ${error.message}`)
-//       // Default to false if we can't verify business hours
-//       return false
-//     }
-//   }
+  //       // Parse requested start time
+  //       const [reqHour, reqMin] = startTime.split(':').map(Number)
 
-private async checkBusinessWorkingHours(
-  businessId: string,
-  date: Date,
-  startTime: string,
-  totalDuration: number
-): Promise<boolean> {
-  try {
-    // Get business details to check operating hours
-    const business = await this.businessService.getById(businessId)
-    
-    if (!business) {
-      throw new BadRequestException('Business not found')
-    }
+  //       // Convert times to minutes for easier comparison
+  //       const openingMins = openHour * 60 + openMin
+  //       const closingMins = closeHour * 60 + closeMin
+  //       const requestStartMins = reqHour * 60 + reqMin
+  //       const requestEndMins = requestStartMins + totalDuration
 
-    // Get the day of week (0 = Sunday, 1 = Monday, etc.)
-    const dayOfWeek = date.getDay()
-    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-    const currentDay = dayNames[dayOfWeek]
+  //       console.log(`⏰ Business hours: ${openHour}:${openMin.toString().padStart(2, '0')} - ${closeHour}:${closeMin.toString().padStart(2, '0')}`)
+  //       console.log(`📅 Requested slot: ${reqHour}:${reqMin.toString().padStart(2, '0')} - ${Math.floor(requestEndMins / 60)}:${(requestEndMins % 60).toString().padStart(2, '0')}`)
 
-    // ✅ FIX: Use the correct field name and array structure
-    const businessHours = business.businessHours
+  //       // Check if requested time is within business hours
+  //       const isWithinHours = requestStartMins >= openingMins && requestEndMins <= closingMins
 
-    if (!businessHours || businessHours.length === 0) {
-      console.log(`⚠️  No business hours configured - allowing booking (assuming 24/7 operation)`)
-      return true // Allow bookings when no hours configured
-    }
+  //       if (!isWithinHours) {
+  //         console.log(`❌ Requested time slot is outside business hours`)
+  //         return false
+  //       }
 
-    // ✅ FIX: Find the schedule for the current day
-    const daySchedule = businessHours.find(
-      schedule => schedule.day.toLowerCase() === currentDay
-    )
+  //       console.log(`✅ Time slot is available within business hours`)
+  //       return true
 
-    if (!daySchedule) {
-      console.log(`⚠️  No schedule found for ${currentDay} - allowing booking`)
-      return true // Allow if specific day not configured
-    }
+  //     } catch (error) {
+  //       console.error(`❌ Error checking business hours: ${error.message}`)
+  //       // Default to false if we can't verify business hours
+  //       return false
+  //     }
+  //   }
 
-    // ✅ FIX: Check if business is open on this day
-    if (!daySchedule.isOpen) {
-      console.log(`❌ Business marked as closed on ${currentDay}`)
-      return false
-    }
+  private async checkBusinessWorkingHours(
+    businessId: string,
+    date: Date,
+    startTime: string,
+    totalDuration: number
+  ): Promise<boolean> {
+    try {
+      // Get business details to check operating hours
+      const business = await this.businessService.getById(businessId)
 
-    // ✅ FIX: Use correct field names from schema
-    const [openHour, openMin] = (daySchedule.openTime || '09:00').split(':').map(Number)
-    const [closeHour, closeMin] = (daySchedule.closeTime || '17:00').split(':').map(Number)
-    
-    // Parse requested start time
-    const [reqHour, reqMin] = startTime.split(':').map(Number)
-    
-    // Convert times to minutes for easier comparison
-    const openingMins = openHour * 60 + openMin
-    const closingMins = closeHour * 60 + closeMin
-    const requestStartMins = reqHour * 60 + reqMin
-    const requestEndMins = requestStartMins + totalDuration
-
-    console.log(`⏰ Business hours: ${openHour}:${openMin.toString().padStart(2, '0')} - ${closeHour}:${closeMin.toString().padStart(2, '0')}`)
-    console.log(`📅 Requested slot: ${reqHour}:${reqMin.toString().padStart(2, '0')} - ${Math.floor(requestEndMins / 60)}:${(requestEndMins % 60).toString().padStart(2, '0')}`)
-
-    // Check if requested time is within business hours
-    const isWithinHours = requestStartMins >= openingMins && requestEndMins <= closingMins
-    
-    if (!isWithinHours) {
-      console.log(`❌ Requested time slot is outside business hours`)
-      return false
-    }
-
-    console.log(`✅ Time slot is available within business hours`)
-    return true
-
-  } catch (error) {
-    console.error(`❌ Error checking business hours: ${error.message}`)
-    return false
-  }
-}
-
-/**
- * Check for conflicting bookings at the same time slot
- * Prevents double-booking by checking existing confirmed/pending bookings
- */
-private async checkForConflictingBookings(
-  businessId: string,
-  date: Date,
-  startTime: string,
-  totalDuration: number
-): Promise<boolean> {
-  try {
-    // Parse requested time slot
-    const [reqHour, reqMin] = startTime.split(':').map(Number)
-    const requestStartMins = reqHour * 60 + reqMin
-    const requestEndMins = requestStartMins + totalDuration
-
-    // Create date range for the booking day
-    const startOfDay = new Date(date)
-    startOfDay.setHours(0, 0, 0, 0)
-    
-    const endOfDay = new Date(date)
-    endOfDay.setHours(23, 59, 59, 999)
-
-    console.log(`🔍 Checking for conflicts on ${date.toISOString().split('T')[0]} from ${startTime} (${totalDuration} mins)`)
-
-    // Find all bookings for this business on this date
-    // Only consider bookings that are not cancelled/expired
-    const result = await this.bookingService.getBookings({
-      businessId,
-      startDate: startOfDay,
-      endDate: endOfDay,
-      status: ['pending', 'confirmed', 'payment_pending', 'paid']
-    })
-
-    const existingBookings = result.bookings
-
-    if (!existingBookings || existingBookings.length === 0) {
-      console.log(`✅ No existing bookings found for this date`)
-      return false // No conflicts
-    }
-
-    console.log(`📋 Found ${existingBookings.length} existing booking(s) on this date`)
-
-    // Check each existing booking for time overlap
-    for (const booking of existingBookings) {
-      const existingStart = booking.preferredStartTime
-      const existingDuration = booking.totalDuration || 60
-      
-      const [existingHour, existingMin] = existingStart.split(':').map(Number)
-      const existingStartMins = existingHour * 60 + existingMin
-      const existingEndMins = existingStartMins + existingDuration
-
-      console.log(`  📌 Existing booking ${booking.bookingNumber}: ${existingStart} - ${Math.floor(existingEndMins / 60)}:${(existingEndMins % 60).toString().padStart(2, '0')}`)
-
-      // Check for overlap
-      // Two time slots overlap if:
-      // (StartA < EndB) AND (EndA > StartB)
-      const hasOverlap = (requestStartMins < existingEndMins) && (requestEndMins > existingStartMins)
-
-      if (hasOverlap) {
-        console.log(`  ❌ CONFLICT DETECTED with booking ${booking.bookingNumber}`)
-        return true // Conflict found
+      if (!business) {
+        throw new BadRequestException('Business not found')
       }
+
+      // Get the day of week (0 = Sunday, 1 = Monday, etc.)
+      const dayOfWeek = date.getDay()
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+      const currentDay = dayNames[dayOfWeek]
+
+      // ✅ FIX: Use the correct field name and array structure
+      const businessHours = business.businessHours
+
+      if (!businessHours || businessHours.length === 0) {
+        console.log(`⚠️  No business hours configured - allowing booking (assuming 24/7 operation)`)
+        return true // Allow bookings when no hours configured
+      }
+
+      // ✅ FIX: Find the schedule for the current day
+      const daySchedule = businessHours.find(
+        schedule => schedule.day.toLowerCase() === currentDay
+      )
+
+      if (!daySchedule) {
+        console.log(`⚠️  No schedule found for ${currentDay} - allowing booking`)
+        return true // Allow if specific day not configured
+      }
+
+      // ✅ FIX: Check if business is open on this day
+      if (!daySchedule.isOpen) {
+        console.log(`❌ Business marked as closed on ${currentDay}`)
+        return false
+      }
+
+      // ✅ FIX: Use correct field names from schema
+      const [openHour, openMin] = (daySchedule.openTime || '09:00').split(':').map(Number)
+      const [closeHour, closeMin] = (daySchedule.closeTime || '17:00').split(':').map(Number)
+
+      // Parse requested start time
+      const [reqHour, reqMin] = startTime.split(':').map(Number)
+
+      // Convert times to minutes for easier comparison
+      const openingMins = openHour * 60 + openMin
+      const closingMins = closeHour * 60 + closeMin
+      const requestStartMins = reqHour * 60 + reqMin
+      const requestEndMins = requestStartMins + totalDuration
+
+      console.log(`⏰ Business hours: ${openHour}:${openMin.toString().padStart(2, '0')} - ${closeHour}:${closeMin.toString().padStart(2, '0')}`)
+      console.log(`📅 Requested slot: ${reqHour}:${reqMin.toString().padStart(2, '0')} - ${Math.floor(requestEndMins / 60)}:${(requestEndMins % 60).toString().padStart(2, '0')}`)
+
+      // Check if requested time is within business hours
+      const isWithinHours = requestStartMins >= openingMins && requestEndMins <= closingMins
+
+      if (!isWithinHours) {
+        console.log(`❌ Requested time slot is outside business hours`)
+        return false
+      }
+
+      console.log(`✅ Time slot is available within business hours`)
+      return true
+
+    } catch (error) {
+      console.error(`❌ Error checking business hours: ${error.message}`)
+      return false
     }
-
-    console.log(`✅ No time conflicts found`)
-    return false // No conflicts
-
-  } catch (error) {
-    console.error(`❌ Error checking for conflicting bookings: ${error.message}`)
-    // Be conservative - if we can't check, assume there might be a conflict
-    return true
   }
-}
+
+  /**
+   * Check for conflicting bookings at the same time slot
+   * Prevents double-booking by checking existing confirmed/pending bookings
+   */
+  private async checkForConflictingBookings(
+    businessId: string,
+    date: Date,
+    startTime: string,
+    totalDuration: number
+  ): Promise<boolean> {
+    try {
+      // Parse requested time slot
+      const [reqHour, reqMin] = startTime.split(':').map(Number)
+      const requestStartMins = reqHour * 60 + reqMin
+      const requestEndMins = requestStartMins + totalDuration
+
+      // Create date range for the booking day
+      const startOfDay = new Date(date)
+      startOfDay.setHours(0, 0, 0, 0)
+
+      const endOfDay = new Date(date)
+      endOfDay.setHours(23, 59, 59, 999)
+
+      console.log(`🔍 Checking for conflicts on ${date.toISOString().split('T')[0]} from ${startTime} (${totalDuration} mins)`)
+
+      // Find all bookings for this business on this date
+      // Only consider bookings that are not cancelled/expired
+      const result = await this.bookingService.getBookings({
+        businessId,
+        startDate: startOfDay,
+        endDate: endOfDay,
+        status: ['pending', 'confirmed', 'payment_pending', 'paid']
+      })
+
+      const existingBookings = result.bookings
+
+      if (!existingBookings || existingBookings.length === 0) {
+        console.log(`✅ No existing bookings found for this date`)
+        return false // No conflicts
+      }
+
+      console.log(`📋 Found ${existingBookings.length} existing booking(s) on this date`)
+
+      // Check each existing booking for time overlap
+      for (const booking of existingBookings) {
+        const existingStart = booking.preferredStartTime
+        const existingDuration = booking.totalDuration || 60
+
+        const [existingHour, existingMin] = existingStart.split(':').map(Number)
+        const existingStartMins = existingHour * 60 + existingMin
+        const existingEndMins = existingStartMins + existingDuration
+
+        console.log(`  📌 Existing booking ${booking.bookingNumber}: ${existingStart} - ${Math.floor(existingEndMins / 60)}:${(existingEndMins % 60).toString().padStart(2, '0')}`)
+
+        // Check for overlap
+        // Two time slots overlap if:
+        // (StartA < EndB) AND (EndA > StartB)
+        const hasOverlap = (requestStartMins < existingEndMins) && (requestEndMins > existingStartMins)
+
+        if (hasOverlap) {
+          console.log(`  ❌ CONFLICT DETECTED with booking ${booking.bookingNumber}`)
+          return true // Conflict found
+        }
+      }
+
+      console.log(`✅ No time conflicts found`)
+      return false // No conflicts
+
+    } catch (error) {
+      console.error(`❌ Error checking for conflicting bookings: ${error.message}`)
+      // Be conservative - if we can't check, assume there might be a conflict
+      return true
+    }
+  }
 
   private async handlePaymentFailure(
     bookingId: string,
@@ -2632,48 +2632,140 @@ private async checkForConflictingBookings(
     return availableMembers.length > 0 ? availableMembers[0].id : undefined
   }
 
-async handlePaymentAndComplete(
-  bookingId: string,
-  transactionReference: string,
-  paymentData: {
-    amount: number
-    method: string
-    gateway: string
-    clientId: string
-    businessId: string,
-    paymentType?: 'full' | 'deposit' | 'remaining'
-  }
-): Promise<PaymentResult> {
-  try {
-    const booking = await this.bookingService.getBookingById(bookingId)
-
-    if (!booking) {
-      throw new NotFoundException('Booking not found')
+  async handlePaymentAndComplete(
+    bookingId: string,
+    transactionReference: string,
+    paymentData: {
+      amount: number
+      method: string
+      gateway: string
+      clientId: string
+      businessId: string,
+      paymentType?: 'full' | 'deposit' | 'remaining'
     }
+  ): Promise<PaymentResult> {
+    try {
+      const booking = await this.bookingService.getBookingById(bookingId)
 
-    const isDepositPayment = paymentData.paymentType === 'deposit'
-    const isRemainingPayment = paymentData.paymentType === 'remaining'
-
-    // ✅ Transform booking source early for use in commission calculations
-    const bookingSourceDto = this.transformBookingSourceToDto(booking.bookingSource);
-
-    if (isDepositPayment) {
-      if (!booking.requiresDeposit) {
-        throw new BadRequestException('This booking does not require a deposit')
+      if (!booking) {
+        throw new NotFoundException('Booking not found')
       }
 
-      if (paymentData.amount !== booking.depositAmount) {
+      const isDepositPayment = paymentData.paymentType === 'deposit'
+      const isRemainingPayment = paymentData.paymentType === 'remaining'
+
+      // ✅ Transform booking source early for use in commission calculations
+      const bookingSourceDto = this.transformBookingSourceToDto(booking.bookingSource);
+
+      if (isDepositPayment) {
+        if (!booking.requiresDeposit) {
+          throw new BadRequestException('This booking does not require a deposit')
+        }
+
+        if (paymentData.amount !== booking.depositAmount) {
+          throw new BadRequestException(
+            `Deposit amount must be ₦${booking.depositAmount}`
+          )
+        }
+
+        await this.bookingService.updateBooking(bookingId, {
+          depositPaid: true,
+          depositTransactionId: transactionReference,
+          remainingAmount: booking.estimatedTotal - booking.depositAmount,
+          status: 'deposit_paid'
+        })
+
+        const payment = await this.paymentService.createPaymentFromBooking(
+          booking,
+          transactionReference,
+          {
+            paymentMethod: paymentData.method,
+            gateway: paymentData.gateway,
+            status: 'completed',
+            amount: paymentData.amount,
+            paymentType: 'deposit'
+          }
+        )
+
+        return {
+          paymentId: payment._id.toString(),
+          success: true,
+          message: 'Deposit paid successfully. Please pay remaining amount before appointment.',
+          transactionReference,
+          amount: paymentData.amount,
+          method: paymentData.method,
+          gateway: paymentData.gateway,
+          status: 'deposit_completed',
+          payment,
+          appointment: null,
+          remainingAmount: booking.estimatedTotal - booking.depositAmount
+        }
+      }
+
+      if (isRemainingPayment) {
+        if (!booking.depositPaid) {
+          throw new BadRequestException('Deposit must be paid first')
+        }
+
+        if (paymentData.amount !== booking.remainingAmount) {
+          throw new BadRequestException(
+            `Remaining amount must be ₦${booking.remainingAmount}`
+          )
+        }
+      }
+
+      const allowedStatuses = ['pending', 'payment_failed', 'deposit_paid']
+      if (!allowedStatuses.includes(booking.status)) {
         throw new BadRequestException(
-          `Deposit amount must be ₦${booking.depositAmount}`
+          `Cannot process payment for booking with status '${booking.status}'. ` +
+          `Payment can only be processed for bookings with status 'pending', 'payment_failed', or 'deposit_paid'.`
         )
       }
 
-      await this.bookingService.updateBooking(bookingId, {
-        depositPaid: true,
-        depositTransactionId: transactionReference,
-        remainingAmount: booking.estimatedTotal - booking.depositAmount,
-        status: 'deposit_paid'
-      })
+      if (booking.status === 'payment_failed') {
+        console.log('🔄 This is a payment retry - resetting booking status to pending')
+        await this.bookingService.updateBookingStatus(bookingId, 'pending')
+      }
+
+      // ✅ Fix: For remaining payments, validate against remaining amount, not total
+      if (isRemainingPayment) {
+        if (paymentData.amount !== booking.remainingAmount) {
+          throw new BadRequestException(
+            `Payment amount (${paymentData.amount}) does not match remaining amount (${booking.remainingAmount})`
+          )
+        }
+      } else if (!isDepositPayment && paymentData.amount !== booking.estimatedTotal) {
+        throw new BadRequestException(
+          `Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`
+        )
+      }
+
+      const bookingDate = this.parseDate(booking.preferredDate)
+
+      const isStillAvailable = await this.checkAvailabilityForAllServices(
+        booking.businessId.toString(),
+        booking.services.map(s => s.serviceId.toString()),
+        bookingDate,
+        booking.preferredStartTime,
+        booking.totalDuration
+      )
+
+      if (!isStillAvailable) {
+        console.warn('⚠️ Time slot is no longer available')
+        await this.handleUnavailableSlot(booking, transactionReference)
+        throw new BadRequestException(
+          'Time slot is no longer available. Payment will be refunded.'
+        )
+      }
+
+      console.log('📅 Creating appointment from booking...')
+      const appointmentResult = await this.confirmBookingWithoutStaff(bookingId)
+
+      if (!appointmentResult || !appointmentResult.appointment) {
+        throw new Error('Failed to create appointment from booking')
+      }
+
+      console.log('✅ Appointment created:', appointmentResult.appointmentNumber)
 
       const payment = await this.paymentService.createPaymentFromBooking(
         booking,
@@ -2683,194 +2775,102 @@ async handlePaymentAndComplete(
           gateway: paymentData.gateway,
           status: 'completed',
           amount: paymentData.amount,
-          paymentType: 'deposit'
+          paymentType: paymentData.paymentType || 'full'
         }
       )
+
+      // ✅ Use transformed booking source DTO
+      const commissionCalculation = await this.commissionCalculatorService
+        .calculateCommission(
+          bookingId,
+          {
+            businessId: booking.businessId.toString(),
+            clientId: booking.clientId.toString(),
+            totalAmount: booking.estimatedTotal,
+            sourceTracking: bookingSourceDto  // ✅ Use transformed DTO
+          }
+        )
+
+      if (commissionCalculation.isCommissionable) {
+        await this.commissionCalculatorService.createCommissionRecord(
+          bookingId,
+          payment._id.toString(),
+          {
+            businessId: booking.businessId.toString(),
+            clientId: booking.clientId.toString(),
+            totalAmount: booking.estimatedTotal,
+            sourceTracking: bookingSourceDto  // ✅ Use transformed DTO
+          },
+          commissionCalculation
+        )
+      }
+
+      await this.paymentService.updatePaymentStatus(
+        payment._id.toString(),
+        'completed',
+        transactionReference
+      )
+
+      await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString())
+
+      const appointmentDate = this.parseDate(booking.preferredDate)
+
+      try {
+        await this.notificationService.notifyPaymentConfirmation(
+          payment._id.toString(),
+          paymentData.clientId,
+          paymentData.businessId,
+          {
+            clientName: booking.clientName,
+            amount: paymentData.amount,
+            method: paymentData.method,
+            gateway: paymentData.gateway,
+            transactionId: transactionReference,
+            serviceName: booking.services.map(s => s.serviceName).join(', '),
+            appointmentDate: appointmentDate.toDateString(),
+            businessName: booking.businessName,
+            receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
+            clientEmail: booking.clientEmail,
+            clientPhone: booking.clientPhone
+          }
+        )
+      } catch (notificationError) {
+        console.warn('⚠️ Notification failed (continuing):', notificationError.message)
+      }
+
+      this.eventEmitter.emit('payment.completed', {
+        payment,
+        booking,
+        appointment: appointmentResult.appointment
+      })
 
       return {
         paymentId: payment._id.toString(),
         success: true,
-        message: 'Deposit paid successfully. Please pay remaining amount before appointment.',
+        message: booking.status === 'payment_failed'
+          ? 'Payment retry successful! Your appointment has been confirmed.'
+          : 'Payment successful! Your appointment has been confirmed.',
         transactionReference,
         amount: paymentData.amount,
         method: paymentData.method,
         gateway: paymentData.gateway,
-        status: 'deposit_completed',
-        payment,
-        appointment: null,
-        remainingAmount: booking.estimatedTotal - booking.depositAmount
-      }
-    }
-
-    if (isRemainingPayment) {
-      if (!booking.depositPaid) {
-        throw new BadRequestException('Deposit must be paid first')
-      }
-
-      if (paymentData.amount !== booking.remainingAmount) {
-        throw new BadRequestException(
-          `Remaining amount must be ₦${booking.remainingAmount}`
-        )
-      }
-    }
-
-    const allowedStatuses = ['pending', 'payment_failed', 'deposit_paid']
-    if (!allowedStatuses.includes(booking.status)) {
-      throw new BadRequestException(
-        `Cannot process payment for booking with status '${booking.status}'. ` +
-        `Payment can only be processed for bookings with status 'pending', 'payment_failed', or 'deposit_paid'.`
-      )
-    }
-
-    if (booking.status === 'payment_failed') {
-      console.log('🔄 This is a payment retry - resetting booking status to pending')
-      await this.bookingService.updateBookingStatus(bookingId, 'pending')
-    }
-
-    // ✅ Fix: For remaining payments, validate against remaining amount, not total
-    if (isRemainingPayment) {
-      if (paymentData.amount !== booking.remainingAmount) {
-        throw new BadRequestException(
-          `Payment amount (${paymentData.amount}) does not match remaining amount (${booking.remainingAmount})`
-        )
-      }
-    } else if (!isDepositPayment && paymentData.amount !== booking.estimatedTotal) {
-      throw new BadRequestException(
-        `Payment amount (${paymentData.amount}) does not match booking total (${booking.estimatedTotal})`
-      )
-    }
-
-    const bookingDate = this.parseDate(booking.preferredDate)
-
-    const isStillAvailable = await this.checkAvailabilityForAllServices(
-      booking.businessId.toString(),
-      booking.services.map(s => s.serviceId.toString()),
-      bookingDate,
-      booking.preferredStartTime,
-      booking.totalDuration
-    )
-
-    if (!isStillAvailable) {
-      console.warn('⚠️ Time slot is no longer available')
-      await this.handleUnavailableSlot(booking, transactionReference)
-      throw new BadRequestException(
-        'Time slot is no longer available. Payment will be refunded.'
-      )
-    }
-
-    console.log('📅 Creating appointment from booking...')
-    const appointmentResult = await this.confirmBookingWithoutStaff(bookingId)
-
-    if (!appointmentResult || !appointmentResult.appointment) {
-      throw new Error('Failed to create appointment from booking')
-    }
-
-    console.log('✅ Appointment created:', appointmentResult.appointmentNumber)
-
-    const payment = await this.paymentService.createPaymentFromBooking(
-      booking,
-      transactionReference,
-      {
-        paymentMethod: paymentData.method,
-        gateway: paymentData.gateway,
         status: 'completed',
-        amount: paymentData.amount,
-        paymentType: paymentData.paymentType || 'full'
+        payment,
+        appointment: appointmentResult.appointment
       }
-    )
 
-    // ✅ Use transformed booking source DTO
-    const commissionCalculation = await this.commissionCalculatorService
-      .calculateCommission(
-        bookingId,
-        {
-          businessId: booking.businessId.toString(),
-          clientId: booking.clientId.toString(),
-          totalAmount: booking.estimatedTotal,
-          sourceTracking: bookingSourceDto  // ✅ Use transformed DTO
-        }
-      )
+    } catch (error) {
+      console.error('❌ Payment processing failed:', error.message)
 
-    if (commissionCalculation.isCommissionable) {
-      await this.commissionCalculatorService.createCommissionRecord(
-        bookingId,
-        payment._id.toString(),
-        {
-          businessId: booking.businessId.toString(),
-          clientId: booking.clientId.toString(),
-          totalAmount: booking.estimatedTotal,
-          sourceTracking: bookingSourceDto  // ✅ Use transformed DTO
-        },
-        commissionCalculation
-      )
+      try {
+        await this.handlePaymentFailure(bookingId, transactionReference, error.message)
+      } catch (failureError) {
+        console.error('❌ Failed to handle payment failure:', failureError.message)
+      }
+
+      throw error
     }
-
-    await this.paymentService.updatePaymentStatus(
-      payment._id.toString(),
-      'completed',
-      transactionReference
-    )
-
-    await this.bookingService.linkAppointment(bookingId, appointmentResult.appointment._id.toString())
-
-    const appointmentDate = this.parseDate(booking.preferredDate)
-
-    try {
-      await this.notificationService.notifyPaymentConfirmation(
-        payment._id.toString(),
-        paymentData.clientId,
-        paymentData.businessId,
-        {
-          clientName: booking.clientName,
-          amount: paymentData.amount,
-          method: paymentData.method,
-          gateway: paymentData.gateway,
-          transactionId: transactionReference,
-          serviceName: booking.services.map(s => s.serviceName).join(', '),
-          appointmentDate: appointmentDate.toDateString(),
-          businessName: booking.businessName,
-          receiptUrl: `${process.env.APP_URL}/receipts/${payment._id}`,
-          clientEmail: booking.clientEmail,
-          clientPhone: booking.clientPhone
-        }
-      )
-    } catch (notificationError) {
-      console.warn('⚠️ Notification failed (continuing):', notificationError.message)
-    }
-
-    this.eventEmitter.emit('payment.completed', {
-      payment,
-      booking,
-      appointment: appointmentResult.appointment
-    })
-
-    return {
-      paymentId: payment._id.toString(),
-      success: true,
-      message: booking.status === 'payment_failed'
-        ? 'Payment retry successful! Your appointment has been confirmed.'
-        : 'Payment successful! Your appointment has been confirmed.',
-      transactionReference,
-      amount: paymentData.amount,
-      method: paymentData.method,
-      gateway: paymentData.gateway,
-      status: 'completed',
-      payment,
-      appointment: appointmentResult.appointment
-    }
-
-  } catch (error) {
-    console.error('❌ Payment processing failed:', error.message)
-
-    try {
-      await this.handlePaymentFailure(bookingId, transactionReference, error.message)
-    } catch (failureError) {
-      console.error('❌ Failed to handle payment failure:', failureError.message)
-    }
-
-    throw error
   }
-}
 
   // async handlePaymentAndComplete(
   //   bookingId: string,
@@ -3138,12 +3138,12 @@ async handlePaymentAndComplete(
       console.log('✅ Booking found:', booking.bookingNumber)
       console.log('Current status:', booking.status)
 
-      // FIX: Accept both 'pending' and 'payment_failed' statuses
-      const allowedStatuses = ['pending', 'payment_failed']
+      // FIX: Accept 'pending', 'payment_failed', AND 'confirmed' statuses
+      const allowedStatuses = ['pending', 'payment_failed', 'confirmed']
       if (!allowedStatuses.includes(booking.status)) {
         throw new BadRequestException(
-          `Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' or 'payment_failed' bookings can be confirmed. ` +
-          `This booking may have already been confirmed or expired.`
+          `Cannot confirm booking. Current status is '${booking.status}'. Only 'pending', 'payment_failed' or 'confirmed' bookings can be confirmed. ` +
+          `This booking may have already been expired.`
         )
       }
 
@@ -3161,6 +3161,11 @@ async handlePaymentAndComplete(
       }
 
       console.log('✅ Appointment created:', appointment.appointmentNumber)
+
+      // STEP 3.5: Link appointment to booking
+      await this.bookingService.linkAppointment(bookingId, appointment._id.toString())
+      console.log('✅ Appointment linked to booking')
+
       console.log('Appointment details:', {
         id: appointment._id,
         number: appointment.appointmentNumber,
@@ -3263,10 +3268,11 @@ async handlePaymentAndComplete(
       console.log('Current status:', booking.status)
 
       // FIX: Better status validation with specific error message
-      if (booking.status !== 'pending') {
+      const allowedStatuses = ['pending', 'payment_failed', 'confirmed']
+      if (!allowedStatuses.includes(booking.status)) {
         throw new BadRequestException(
-          `Cannot confirm booking. Current status is '${booking.status}'. Only 'pending' bookings can be confirmed. ` +
-          `This booking may have already been confirmed or expired.`
+          `Cannot confirm booking. Current status is '${booking.status}'. Only 'pending', 'payment_failed' or 'confirmed' bookings can be confirmed. ` +
+          `This booking may have already been expired.`
         )
       }
 
@@ -3348,6 +3354,10 @@ async handlePaymentAndComplete(
       console.log('📅 Creating appointment from booking...')
       const appointment = await this.appointmentService.createFromBooking(booking)
       console.log('✅ Appointment created:', appointment.appointmentNumber)
+
+      // STEP 5.5: Link appointment to booking
+      await this.bookingService.linkAppointment(bookingId, appointment._id.toString())
+      console.log('✅ Appointment linked to booking')
 
       // STEP 6: Create staff assignments
       let staffAssignmentResults: any[] = []

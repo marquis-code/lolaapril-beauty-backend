@@ -10,6 +10,7 @@ import {
 import { IntegrationModule } from '../integration/integration.module';
 import { NotificationModule } from '../notification/notification.module';
 import { BusinessModule } from '../business/business.module';
+import { AppointmentModule } from '../appointment/appointment.module';
 
 import { ConsultationCronService } from './consultation-cron.service';
 
@@ -23,6 +24,7 @@ import { ConsultationCronService } from './consultation-cron.service';
         IntegrationModule,
         NotificationModule,
         BusinessModule,
+        AppointmentModule,
     ],
     controllers: [ConsultationController],
     providers: [ConsultationService, ConsultationCronService],

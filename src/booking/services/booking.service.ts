@@ -616,6 +616,7 @@ export class BookingService {
     return booking
   }
 
+
   async getClientBookings(clientId: string, status?: string): Promise<BookingDocument[]> {
     console.log('🔍 [GET CLIENT BOOKINGS] ==========================================')
     console.log('🔍 [GET CLIENT BOOKINGS] Input clientId:', clientId)

@@ -1,6 +1,7 @@
 
 // src/modules/booking/services/booking-automation.service.ts
 import { Injectable, BadRequestException, Logger } from '@nestjs/common'
+import { OnEvent } from '@nestjs/event-emitter'
 import { BookingService } from './booking.service'
 import { AppointmentService } from '../../appointment/appointment.service'
 import { PaymentService } from '../../payment/payment.service'
@@ -34,7 +35,34 @@ export class BookingAutomationService {
     private readonly businessService: BusinessService, // ✅ CHANGED: tenantService -> businessService
     private readonly subscriptionService: SubscriptionService, // ✅ ADDED
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
+
+  @OnEvent('payment.completed')
+  async handlePaymentCompleted(payload: any) {
+    this.logger.log(`📡 Received payment.completed event for booking: ${payload.booking?._id || payload.booking}`)
+
+    try {
+      const bookingId = payload.booking?._id?.toString() || payload.booking?.toString()
+      if (!bookingId) {
+        this.logger.error('❌ No booking ID found in payment.completed payload')
+        return
+      }
+
+      const paymentData = {
+        transactionReference: payload.payment?.transactionId || payload.payment?.paymentReference || payload.gatewayResponse?.reference,
+        amount: payload.payment?.totalAmount || payload.gatewayResponse?.amount,
+        paymentMethod: payload.payment?.paymentMethod || payload.gatewayResponse?.channel,
+        gateway: payload.payment?.gateway || 'paystack',
+        status: 'successful' as const
+      }
+
+      this.logger.log(`📅 Triggering appointment creation for booking ${bookingId}`)
+      await this.processPaymentAndCreateAppointment(bookingId, paymentData)
+      this.logger.log(`✅ Automated appointment creation completed for booking ${bookingId}`)
+    } catch (error) {
+      this.logger.error(`❌ Failed to process automated appointment creation: ${error.message}`)
+    }
+  }
 
   // async createAutomatedBooking(bookingData: {
   //   businessId: string
@@ -57,7 +85,7 @@ export class BookingAutomationService {
 
   //     const services = await this.getServicesDetails(bookingData.serviceIds)
   //     const { totalDuration, totalAmount } = this.calculateBookingTotals(services)
-      
+
   //     const estimatedEndTime = this.addMinutesToTime(
   //       bookingData.preferredStartTime,
   //       totalDuration
@@ -100,7 +128,7 @@ export class BookingAutomationService {
   //     }
 
   //     await this.notificationService.notifyStaffNewBooking(booking)
-      
+
   //     return {
   //       booking,
   //       message: 'Booking created successfully. Payment required to confirm appointment.',
@@ -113,7 +141,7 @@ export class BookingAutomationService {
   //   }
   // }
 
-    async createAutomatedBooking(bookingData: {
+  async createAutomatedBooking(bookingData: {
     businessId: string
     clientId: string
     serviceIds: string[]
@@ -135,7 +163,7 @@ export class BookingAutomationService {
 
       const services = await this.getServicesDetails(bookingData.serviceIds)
       const { totalDuration, totalAmount } = this.calculateBookingTotals(services)
-      
+
       const estimatedEndTime = this.addMinutesToTime(
         bookingData.preferredStartTime,
         totalDuration
@@ -178,7 +206,7 @@ export class BookingAutomationService {
       }
 
       await this.notificationService.notifyStaffNewBooking(booking)
-      
+
       return {
         booking,
         message: 'Booking created successfully. Payment required to confirm appointment.',
@@ -205,7 +233,7 @@ export class BookingAutomationService {
       this.logger.log(`Processing payment for booking: ${bookingId}`)
 
       const booking = await this.bookingService.getBookingById(bookingId)
-      
+
       if (!booking) {
         throw new BadRequestException('Booking not found')
       }
@@ -254,6 +282,9 @@ export class BookingAutomationService {
 
       const appointment = await this.appointmentService.createFromBooking(booking)
 
+      // ✅ Link appointment to booking
+      await this.bookingService.linkAppointment(booking._id.toString(), appointment._id.toString())
+
       const staffAssignment = await this.autoAssignStaffToAppointment(
         appointment,
         booking.services
@@ -293,22 +324,22 @@ export class BookingAutomationService {
     if (date instanceof Date) {
       return date
     }
-    
+
     const parsedDate = new Date(date)
     if (isNaN(parsedDate.getTime())) {
       throw new BadRequestException('Invalid date format')
     }
-    
+
     return parsedDate
   }
 
   private async processAutoConfirmedBooking(booking: any, services: any[]): Promise<AutomatedBookingResult> {
     const appointment = await this.appointmentService.createFromBooking(booking)
-    
+
     const staffAssignment = await this.autoAssignStaffToAppointment(appointment, services)
-    
+
     await this.sendAppointmentConfirmationNotifications(appointment, null, staffAssignment)
-    
+
     return {
       booking,
       appointment,
@@ -320,7 +351,7 @@ export class BookingAutomationService {
 
   private async validateBusinessLimits(businessId: string): Promise<void> {
     const limitsCheck = await this.subscriptionService.checkLimits(businessId, 'booking')
-    
+
     if (!limitsCheck.isValid) {
       throw new BadRequestException(`Subscription limits exceeded: ${limitsCheck.warnings.join(', ')}`)
     }
@@ -345,9 +376,9 @@ export class BookingAutomationService {
   private async autoAssignStaffToAppointment(appointment: any, services: any[]): Promise<any> {
     try {
       const primaryService = services[0]
-      
+
       const scheduledDate = this.parseDate(appointment.scheduledDate)
-      
+
       return await this.staffService.autoAssignStaff(
         appointment.businessId.toString(),
         appointment._id.toString(),
@@ -370,7 +401,7 @@ export class BookingAutomationService {
   ): Promise<void> {
     const appointmentDate = this.parseDate(appointment.scheduledDate)
     const dateString = appointmentDate.toDateString()
-    
+
     await this.notificationService.notifyBookingConfirmation(
       appointment.bookingId.toString(),
       appointment.clientId.toString(),
