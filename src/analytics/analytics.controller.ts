@@ -12,6 +12,7 @@ import {
   Res,
   BadRequestException,
   UseInterceptors,
+  Ip,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -30,6 +31,8 @@ import { UserRole } from '../auth/schemas/user.schema';
 import { AuditInterceptor } from '../audit/interceptors/audit.interceptor';
 import { Audit } from '../audit/decorators/audit.decorator';
 import { AuditAction, AuditEntity } from '../audit/schemas/audit-log.schema';
+import { Public, OptionalBusinessId } from '../auth';
+import { BusinessService } from '../business/business.service';
 
 @ApiTags('Analytics')
 @ApiBearerAuth()
@@ -37,7 +40,10 @@ import { AuditAction, AuditEntity } from '../audit/schemas/audit-log.schema';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @UseInterceptors(AuditInterceptor)
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) { }
+  constructor(
+    private readonly analyticsService: AnalyticsService,
+    private readonly businessService: BusinessService,
+  ) { }
 
   /**
    * Generate Financial Report
@@ -559,6 +565,7 @@ export class AnalyticsController {
    * POST /analytics/track
    */
   @Post('track')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Track a traffic event',
@@ -566,11 +573,32 @@ export class AnalyticsController {
   })
   async trackTraffic(
     @Body() data: any,
-    @BusinessId() businessId: string,
+    @OptionalBusinessId() authBusinessId?: string,
+    @Ip() ip?: string,
   ) {
+    let businessId = authBusinessId;
+
+    // If not authenticated, try to resolve from subdomain
+    if (!businessId && data.subdomain) {
+      const business = await this.businessService.getBySubdomain(data.subdomain);
+      if (business) {
+        businessId = business._id.toString();
+      }
+    }
+
+    // If still no businessId, check if it was passed directly (fallback) or throw error
+    if (!businessId) {
+      if (data.businessId) {
+        businessId = data.businessId;
+      } else {
+        throw new BadRequestException('Business context required (auth, subdomain, or businessId)');
+      }
+    }
+
     await this.analyticsService.trackTraffic({
       ...data,
       businessId,
+      ip,
     });
     return { success: true };
   }
@@ -630,6 +658,64 @@ export class AnalyticsController {
     }
 
     const data = await this.analyticsService.getTrafficBreakdown(businessId, start, end, groupBy);
+    return { success: true, data };
+  }
+
+  /**
+   * Get Traffic Location Breakdown
+   * GET /analytics/traffic/locations
+   */
+  @Get('traffic/locations')
+  @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Get traffic breakdown by location',
+    description: 'Returns traffic breakdown by country, region, or city',
+  })
+  @ApiQuery({ name: 'startDate', required: true, type: String })
+  @ApiQuery({ name: 'endDate', required: true, type: String })
+  @ApiQuery({ name: 'groupBy', required: false, enum: ['country', 'region', 'city'] })
+  async getTrafficLocationBreakdown(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('groupBy') groupBy: 'country' | 'region' | 'city' = 'country',
+    @BusinessId() businessId: string,
+  ) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const data = await this.analyticsService.getTrafficLocationBreakdown(businessId, start, end, groupBy);
+    return { success: true, data };
+  }
+
+  /**
+   * Get Traffic Page Stats
+   * GET /analytics/traffic/pages
+   */
+  @Get('traffic/pages')
+  @Roles(UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN, UserRole.SUPER_ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Get traffic stats by page',
+    description: 'Returns views, unique visitors, and interactions per page',
+  })
+  @ApiQuery({ name: 'startDate', required: true, type: String })
+  @ApiQuery({ name: 'endDate', required: true, type: String })
+  async getTrafficPageStats(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @BusinessId() businessId: string,
+  ) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
+    const data = await this.analyticsService.getPageAnalytics(businessId, start, end);
     return { success: true, data };
   }
 }

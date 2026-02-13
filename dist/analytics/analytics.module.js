@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const analytics_controller_1 = require("./analytics.controller");
 const analytics_service_1 = require("./analytics.service");
+const business_module_1 = require("../business/business.module");
 const financial_report_schema_1 = require("./schemas/financial-report.schema");
 const booking_schema_1 = require("../booking/schemas/booking.schema");
 const payment_schema_1 = require("../payment/schemas/payment.schema");
@@ -30,6 +31,7 @@ AnalyticsModule = __decorate([
                 { name: traffic_analytics_schema_1.TrafficAnalytics.name, schema: traffic_analytics_schema_1.TrafficAnalyticsSchema },
             ]),
             audit_module_1.AuditModule,
+            business_module_1.BusinessModule,
         ],
         controllers: [analytics_controller_1.AnalyticsController],
         providers: [analytics_service_1.AnalyticsService],

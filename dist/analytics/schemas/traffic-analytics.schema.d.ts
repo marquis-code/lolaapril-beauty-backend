@@ -39,6 +39,14 @@ export declare class TrafficAnalytics {
         device: string;
         source: string;
     };
+    ip: string;
+    location: {
+        country: string;
+        region: string;
+        city: string;
+        latitude?: number;
+        longitude?: number;
+    };
     metadata: Record<string, any>;
     timestamp: Date;
 }

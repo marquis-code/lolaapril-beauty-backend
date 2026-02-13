@@ -553,6 +553,14 @@ export class AnalyticsService {
       device: string
       source: string
     }
+    ip?: string
+    location?: {
+      country: string
+      region: string
+      city: string
+      latitude?: number
+      longitude?: number
+    }
     metadata?: Record<string, any>
   }): Promise<void> {
     try {
@@ -626,6 +634,80 @@ export class AnalyticsService {
         },
       },
       { $sort: { count: -1 } },
+    ]).exec()
+  }
+
+  /**
+   * Get traffic breakdown by location (country or region)
+   */
+  async getTrafficLocationBreakdown(
+    businessId: string,
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'country' | 'region' | 'city' = 'country'
+  ): Promise<any[]> {
+    const groupField = `$location.${groupBy}`
+
+    return await this.trafficModel.aggregate([
+      {
+        $match: {
+          businessId: new Types.ObjectId(businessId),
+          timestamp: { $gte: startDate, $lte: endDate },
+          'location.country': { $exists: true } // Only include records with location
+        },
+      },
+      {
+        $group: {
+          _id: groupField,
+          count: { $sum: 1 },
+          uniqueVisitors: { $addToSet: '$visitorId' },
+        },
+      },
+      {
+        $project: {
+          location: '$_id',
+          count: 1,
+          uniqueVisitors: { $size: '$uniqueVisitors' },
+        },
+      },
+      { $sort: { count: -1 } },
+    ]).exec()
+  }
+
+  /**
+   * Get page analytics (views, unique visitors, interactions)
+   */
+  async getPageAnalytics(businessId: string, startDate: Date, endDate: Date): Promise<any[]> {
+    return await this.trafficModel.aggregate([
+      {
+        $match: {
+          businessId: new Types.ObjectId(businessId),
+          timestamp: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: '$pagePath',
+          title: { $first: '$pageTitle' },
+          views: {
+            $sum: { $cond: [{ $eq: ['$eventType', 'page_view'] }, 1, 0] }
+          },
+          uniqueVisitors: { $addToSet: '$visitorId' },
+          interactions: {
+            $sum: { $cond: [{ $ne: ['$eventType', 'page_view'] }, 1, 0] }
+          }
+        },
+      },
+      {
+        $project: {
+          pagePath: '$_id',
+          title: 1,
+          views: 1,
+          uniqueVisitors: { $size: '$uniqueVisitors' },
+          interactions: 1,
+        },
+      },
+      { $sort: { views: -1 } },
     ]).exec()
   }
 }

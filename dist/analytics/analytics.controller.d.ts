@@ -1,8 +1,10 @@
 import { Response } from 'express';
 import { AnalyticsService } from './analytics.service';
+import { BusinessService } from '../business/business.service';
 export declare class AnalyticsController {
     private readonly analyticsService;
-    constructor(analyticsService: AnalyticsService);
+    private readonly businessService;
+    constructor(analyticsService: AnalyticsService, businessService: BusinessService);
     generateFinancialReport(startDate: string, endDate: string, reportPeriod: string, businessId: string): Promise<{
         success: boolean;
         message: string;
@@ -103,7 +105,7 @@ export declare class AnalyticsController {
         };
     }>;
     private generateCommissionRecommendations;
-    trackTraffic(data: any, businessId: string): Promise<{
+    trackTraffic(data: any, authBusinessId?: string, ip?: string): Promise<{
         success: boolean;
     }>;
     getTrafficOverview(startDate: string, endDate: string, businessId: string): Promise<{
@@ -111,6 +113,14 @@ export declare class AnalyticsController {
         data: any;
     }>;
     getTrafficBreakdown(startDate: string, endDate: string, groupBy: 'device' | 'os' | 'browser' | 'page', businessId: string): Promise<{
+        success: boolean;
+        data: any[];
+    }>;
+    getTrafficLocationBreakdown(startDate: string, endDate: string, groupBy: 'country' | 'region' | 'city', businessId: string): Promise<{
+        success: boolean;
+        data: any[];
+    }>;
+    getTrafficPageStats(startDate: string, endDate: string, businessId: string): Promise<{
         success: boolean;
         data: any[];
     }>;

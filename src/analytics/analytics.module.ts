@@ -36,6 +36,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
+import { BusinessModule } from '../business/business.module';
 import {
   FinancialReport,
   FinancialReportSchema,
@@ -62,6 +63,7 @@ import { AuditModule } from '../audit/audit.module'; // Import AuditModule
       { name: TrafficAnalytics.name, schema: TrafficAnalyticsSchema },
     ]),
     AuditModule, // Add AuditModule to imports
+    BusinessModule,
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],

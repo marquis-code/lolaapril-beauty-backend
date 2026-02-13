@@ -472,6 +472,66 @@ let AnalyticsService = AnalyticsService_1 = class AnalyticsService {
             { $sort: { count: -1 } },
         ]).exec();
     }
+    async getTrafficLocationBreakdown(businessId, startDate, endDate, groupBy = 'country') {
+        const groupField = `$location.${groupBy}`;
+        return await this.trafficModel.aggregate([
+            {
+                $match: {
+                    businessId: new mongoose_2.Types.ObjectId(businessId),
+                    timestamp: { $gte: startDate, $lte: endDate },
+                    'location.country': { $exists: true }
+                },
+            },
+            {
+                $group: {
+                    _id: groupField,
+                    count: { $sum: 1 },
+                    uniqueVisitors: { $addToSet: '$visitorId' },
+                },
+            },
+            {
+                $project: {
+                    location: '$_id',
+                    count: 1,
+                    uniqueVisitors: { $size: '$uniqueVisitors' },
+                },
+            },
+            { $sort: { count: -1 } },
+        ]).exec();
+    }
+    async getPageAnalytics(businessId, startDate, endDate) {
+        return await this.trafficModel.aggregate([
+            {
+                $match: {
+                    businessId: new mongoose_2.Types.ObjectId(businessId),
+                    timestamp: { $gte: startDate, $lte: endDate },
+                },
+            },
+            {
+                $group: {
+                    _id: '$pagePath',
+                    title: { $first: '$pageTitle' },
+                    views: {
+                        $sum: { $cond: [{ $eq: ['$eventType', 'page_view'] }, 1, 0] }
+                    },
+                    uniqueVisitors: { $addToSet: '$visitorId' },
+                    interactions: {
+                        $sum: { $cond: [{ $ne: ['$eventType', 'page_view'] }, 1, 0] }
+                    }
+                },
+            },
+            {
+                $project: {
+                    pagePath: '$_id',
+                    title: 1,
+                    views: 1,
+                    uniqueVisitors: { $size: '$uniqueVisitors' },
+                    interactions: 1,
+                },
+            },
+            { $sort: { views: -1 } },
+        ]).exec();
+    }
 };
 AnalyticsService = AnalyticsService_1 = __decorate([
     (0, common_1.Injectable)(),

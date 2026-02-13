@@ -38,6 +38,18 @@ export class TrafficAnalytics {
         source: string; // Original UA string
     };
 
+    @Prop()
+    ip: string;
+
+    @Prop({ type: Object })
+    location: {
+        country: string;
+        region: string;
+        city: string;
+        latitude?: number;
+        longitude?: number;
+    };
+
     @Prop({ type: Object })
     metadata: Record<string, any>; // For extra data like button clicks
 

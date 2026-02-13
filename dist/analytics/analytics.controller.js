@@ -23,9 +23,12 @@ const user_schema_1 = require("../auth/schemas/user.schema");
 const audit_interceptor_1 = require("../audit/interceptors/audit.interceptor");
 const audit_decorator_1 = require("../audit/decorators/audit.decorator");
 const audit_log_schema_1 = require("../audit/schemas/audit-log.schema");
+const auth_2 = require("../auth");
+const business_service_1 = require("../business/business.service");
 let AnalyticsController = class AnalyticsController {
-    constructor(analyticsService) {
+    constructor(analyticsService, businessService) {
         this.analyticsService = analyticsService;
+        this.businessService = businessService;
     }
     async generateFinancialReport(startDate, endDate, reportPeriod = 'custom', businessId) {
         try {
@@ -256,10 +259,26 @@ let AnalyticsController = class AnalyticsController {
         }
         return recommendations;
     }
-    async trackTraffic(data, businessId) {
+    async trackTraffic(data, authBusinessId, ip) {
+        let businessId = authBusinessId;
+        if (!businessId && data.subdomain) {
+            const business = await this.businessService.getBySubdomain(data.subdomain);
+            if (business) {
+                businessId = business._id.toString();
+            }
+        }
+        if (!businessId) {
+            if (data.businessId) {
+                businessId = data.businessId;
+            }
+            else {
+                throw new common_1.BadRequestException('Business context required (auth, subdomain, or businessId)');
+            }
+        }
         await this.analyticsService.trackTraffic({
             ...data,
             businessId,
+            ip,
         });
         return { success: true };
     }
@@ -279,6 +298,24 @@ let AnalyticsController = class AnalyticsController {
             throw new common_1.BadRequestException('Invalid date format');
         }
         const data = await this.analyticsService.getTrafficBreakdown(businessId, start, end, groupBy);
+        return { success: true, data };
+    }
+    async getTrafficLocationBreakdown(startDate, endDate, groupBy = 'country', businessId) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            throw new common_1.BadRequestException('Invalid date format');
+        }
+        const data = await this.analyticsService.getTrafficLocationBreakdown(businessId, start, end, groupBy);
+        return { success: true, data };
+    }
+    async getTrafficPageStats(startDate, endDate, businessId) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            throw new common_1.BadRequestException('Invalid date format');
+        }
+        const data = await this.analyticsService.getPageAnalytics(businessId, start, end);
         return { success: true, data };
     }
 };
@@ -510,15 +547,17 @@ __decorate([
 ], AnalyticsController.prototype, "getCommissionInsights", null);
 __decorate([
     (0, common_1.Post)('track'),
+    (0, auth_2.Public)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({
         summary: 'Track a traffic event',
         description: 'Endpoint for client-side tracking (page views, clicks, etc.)',
     }),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, auth_1.BusinessId)()),
+    __param(1, (0, auth_2.OptionalBusinessId)()),
+    __param(2, (0, common_1.Ip)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "trackTraffic", null);
 __decorate([
@@ -555,13 +594,48 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getTrafficBreakdown", null);
+__decorate([
+    (0, common_1.Get)('traffic/locations'),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get traffic breakdown by location',
+        description: 'Returns traffic breakdown by country, region, or city',
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String }),
+    (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String }),
+    (0, swagger_1.ApiQuery)({ name: 'groupBy', required: false, enum: ['country', 'region', 'city'] }),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, common_1.Query)('groupBy')),
+    __param(3, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getTrafficLocationBreakdown", null);
+__decorate([
+    (0, common_1.Get)('traffic/pages'),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.BUSINESS_OWNER, user_schema_1.UserRole.BUSINESS_ADMIN, user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.STAFF),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get traffic stats by page',
+        description: 'Returns views, unique visitors, and interactions per page',
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'startDate', required: true, type: String }),
+    (0, swagger_1.ApiQuery)({ name: 'endDate', required: true, type: String }),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, auth_1.BusinessId)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getTrafficPageStats", null);
 AnalyticsController = __decorate([
     (0, swagger_1.ApiTags)('Analytics'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('analytics'),
     (0, common_1.UseGuards)(auth_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.UseInterceptors)(audit_interceptor_1.AuditInterceptor),
-    __metadata("design:paramtypes", [analytics_service_1.AnalyticsService])
+    __metadata("design:paramtypes", [analytics_service_1.AnalyticsService,
+        business_service_1.BusinessService])
 ], AnalyticsController);
 exports.AnalyticsController = AnalyticsController;
 //# sourceMappingURL=analytics.controller.js.map

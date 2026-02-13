@@ -36,8 +36,18 @@ export declare class AnalyticsService {
             device: string;
             source: string;
         };
+        ip?: string;
+        location?: {
+            country: string;
+            region: string;
+            city: string;
+            latitude?: number;
+            longitude?: number;
+        };
         metadata?: Record<string, any>;
     }): Promise<void>;
     getTrafficOverview(businessId: string, startDate: Date, endDate: Date): Promise<any>;
     getTrafficBreakdown(businessId: string, startDate: Date, endDate: Date, groupBy?: 'device' | 'os' | 'browser' | 'page'): Promise<any[]>;
+    getTrafficLocationBreakdown(businessId: string, startDate: Date, endDate: Date, groupBy?: 'country' | 'region' | 'city'): Promise<any[]>;
+    getPageAnalytics(businessId: string, startDate: Date, endDate: Date): Promise<any[]>;
 }

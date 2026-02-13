@@ -51,6 +51,14 @@ __decorate([
     __metadata("design:type", Object)
 ], TrafficAnalytics.prototype, "userAgent", void 0);
 __decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], TrafficAnalytics.prototype, "ip", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Object }),
+    __metadata("design:type", Object)
+], TrafficAnalytics.prototype, "location", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: Object }),
     __metadata("design:type", Object)
 ], TrafficAnalytics.prototype, "metadata", void 0);
