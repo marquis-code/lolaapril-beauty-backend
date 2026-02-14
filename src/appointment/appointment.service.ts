@@ -774,21 +774,29 @@ export class AppointmentService {
 
     // 5. ★ SEND THANK-YOU EMAIL with review link
     try {
-      const frontendUrl = this.configService.get('FRONTEND_URL', 'https://lolaapril.com');
-      const { subject: thankYouSubject, html: thankYouHtml } = this.emailTemplatesService.thankYouAndReview({
-        clientName: 'Valued Customer',
-        businessName: appointment.businessInfo?.businessName || 'Our Salon',
-        serviceName: appointment.serviceDetails?.serviceName || 'your service',
-        appointmentId: appointmentId,
-        businessId: appointment.businessInfo?.businessId || '',
-      });
+      // Ensure clientId is populated to get email
+      await appointment.populate('clientId');
+      const client = appointment.clientId as any;
+      const clientEmail = client?.profile?.email;
+      const clientName = client?.profile?.firstName || 'Valued Customer';
 
-      await this.emailService.sendEmail(
-        appointment.clientId?.toString(),
-        thankYouSubject,
-        thankYouHtml,
-      );
-      console.log(`📧 Thank-you email sent for appointment ${appointmentId}`);
+      if (clientEmail) {
+        const frontendUrl = this.configService.get('FRONTEND_URL', 'https://lolaapril.com');
+        const { subject: thankYouSubject, html: thankYouHtml } = this.emailTemplatesService.thankYouAndReview({
+          clientName: clientName,
+          businessName: appointment.businessInfo?.businessName || 'Our Salon',
+          serviceName: appointment.serviceDetails?.serviceName || 'your service',
+          appointmentId: appointmentId,
+          businessId: appointment.businessInfo?.businessId || '',
+        });
+
+        await this.emailService.sendEmail(
+          clientEmail,
+          thankYouSubject,
+          thankYouHtml,
+        );
+        console.log(`📧 Thank-you email sent for appointment ${appointmentId}`);
+      }
     } catch (error) {
       console.error('Thank-you email error (non-blocking):', error.message);
     }

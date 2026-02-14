@@ -15,6 +15,7 @@ import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto"
 import { BusinessRegisterDto, BusinessLoginDto, GoogleAuthDto } from "./dto/business-register.dto"
 import { OAuth2Client } from "google-auth-library"
 import { EmailService } from '../notification/email.service'
+import { EmailTemplatesService } from "../notification/templates/email-templates.service"
 import { AddBusinessDto } from "./dto/add-business.dto"
 import { FirebaseService } from "./services/firebase.service"
 import { FirebaseAuthDto } from "./dto/firebase-auth.dto"
@@ -31,6 +32,7 @@ export class AuthService {
     private configService: ConfigService,
     private firebaseService: FirebaseService,
     @Inject(forwardRef(() => EmailService)) private emailService: EmailService,
+    private emailTemplatesService: EmailTemplatesService,
   ) {
     this.googleClient = new OAuth2Client(this.configService.get<string>("GOOGLE_CLIENT_ID"))
   }
@@ -234,10 +236,15 @@ export class AuthService {
 
     // Send welcome email to business owner
     try {
+      const template = this.emailTemplatesService.welcomeEmail({
+        clientName: savedUser.firstName,
+        businessName: savedBusiness.businessName
+      });
+
       await this.emailService.sendEmail(
         savedUser.email,
-        'Welcome to LolaApril! Your business is live',
-        `<p>Hi ${savedUser.firstName},</p><p>Your business <b>${savedBusiness.businessName}</b> has been registered successfully. Start managing your appointments and clients today!</p>`,
+        template.subject,
+        template.html,
         this.emailService.getNoReplyAddress()
       )
     } catch (e) {
@@ -1896,10 +1903,16 @@ export class AuthService {
 
     // Send OTP via email
     try {
+      const template = this.emailTemplatesService.otpEmail({
+        clientName: user.firstName || user.email,
+        otp: otp,
+        expiresMinutes: 15
+      });
+
       await this.emailService.sendEmail(
         user.email,
-        'LolaApril Password Reset OTP',
-        `<p>Hi ${user.firstName || user.email},</p><p>Your password reset OTP is: <b>${otp}</b></p><p>This code will expire in 15 minutes.</p>`,
+        template.subject,
+        template.html,
         this.emailService.getNoReplyAddress()
       )
     } catch (e) {

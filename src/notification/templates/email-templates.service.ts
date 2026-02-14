@@ -16,7 +16,7 @@ export class EmailTemplatesService {
   // ================================================================
   // SHARED LAYOUT
   // ================================================================
-  private wrapInLayout(title: string, bodyContent: string, logoUrl?: string): string {
+  public wrapInLayout(title: string, bodyContent: string, logoUrl?: string): string {
     const logo = logoUrl || this.defaultLogoUrl;
     const headerContent = logo
       ? `<img src="${logo}" alt="Lola April" style="max-width:180px;max-height:60px;height:auto;" />`
@@ -802,6 +802,57 @@ export class EmailTemplatesService {
     return {
       subject: `✨ Checking in: How is your wellness journey, ${data.clientName}?`,
       html: this.wrapInLayout('Marketing Follow-up', body, data.logoUrl),
+    };
+  }
+
+  /**
+   * Welcome email for new business owners
+   */
+  welcomeEmail(data: { clientName: string; businessName: string }): { subject: string; html: string } {
+    const subject = 'Welcome to LolaApril! Your business is live';
+    const bodyContent = `
+      <h2 style="margin:0 0 16px;font-size:24px;color:${this.brandDark};">Welcome to LolaApril!</h2>
+      <p style="font-size:16px;line-height:1.6;color:#4a6266;margin:0 0 24px;">
+        Hi ${data.clientName},
+      </p>
+      <p style="font-size:16px;line-height:1.6;color:#4a6266;margin:0 0 24px;">
+        Your business <strong>${data.businessName}</strong> has been registered successfully. Start managing your appointments and clients today!
+      </p>
+      <div style="text-align:center;margin-bottom:32px;">
+        ${this.ctaButton('Go to Dashboard', `${this.frontendUrl}/dashboard`)}
+      </div>
+    `;
+
+    return {
+      subject,
+      html: this.wrapInLayout(subject, bodyContent)
+    };
+  }
+
+  /**
+   * OTP Email for password reset
+   */
+  otpEmail(data: { clientName: string; otp: string; expiresMinutes: number }): { subject: string; html: string } {
+    const subject = 'LolaApril Password Reset OTP';
+    const bodyContent = `
+      <h2 style="margin:0 0 16px;font-size:24px;color:${this.brandDark};">Password Reset Request</h2>
+      <p style="font-size:16px;line-height:1.6;color:#4a6266;margin:0 0 24px;">
+        Hi ${data.clientName},
+      </p>
+      <p style="font-size:16px;line-height:1.6;color:#4a6266;margin:0 0 24px;">
+        We received a request to reset your password. Use the following code to proceed:
+      </p>
+      <div style="background-color:#f0f5f6;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+        <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:${this.brandColor};">${data.otp}</span>
+      </div>
+      <p style="font-size:14px;color:#7a9a9f;text-align:center;">
+        This code will expire in ${data.expiresMinutes} minutes. If you didn't request this, you can safely ignore this email.
+      </p>
+    `;
+
+    return {
+      subject,
+      html: this.wrapInLayout(subject, bodyContent)
     };
   }
 }

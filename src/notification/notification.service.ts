@@ -629,10 +629,16 @@ export class NotificationService {
 
     // Send email if enabled
     if ((channel === 'email' || channel === 'both') && preferences.email) {
+      // Wrap content in professional layout
+      const professionalContent = this.emailTemplatesService.wrapInLayout(
+        notificationData.subject,
+        notificationData.content
+      );
+
       const emailResult = await this.emailService.sendEmail(
         notificationData.recipient,
         notificationData.subject,
-        notificationData.content
+        professionalContent
       )
 
       await this.logNotification({
