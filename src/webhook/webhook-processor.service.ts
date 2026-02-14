@@ -11,12 +11,12 @@ export class WebhookProcessorService {
   constructor(
     @InjectModel(Webhook.name) private webhookModel: Model<WebhookDocument>,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async processWebhook(source: string, businessId: string, payload: any, signature: string) {
     // Verify signature
     const isValid = this.verifySignature(source, payload, signature);
-    
+
     if (!isValid) {
       throw new BadRequestException('Invalid webhook signature');
     }
@@ -75,8 +75,9 @@ export class WebhookProcessorService {
 
     switch (source.toLowerCase()) {
       case 'paystack':
-        secret = this.configService.get('PAYSTACK_SECRET_KEY');
+        secret = this.configService.get('PAYSTACK_WEBHOOK_SECRET') || this.configService.get('PAYSTACK_SECRET_KEY');
         break;
+
       case 'stripe':
         secret = this.configService.get('STRIPE_WEBHOOK_SECRET');
         break;

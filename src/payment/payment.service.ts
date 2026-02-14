@@ -23,6 +23,8 @@ import { BusinessService } from '../business/business.service';
 @Injectable()
 export class PaymentService {
   private readonly paystackSecretKey: string;
+  private readonly paystackWebhookSecret: string;
+
   private readonly paystackBaseUrl = 'https://api.paystack.co';
 
   constructor(
@@ -43,6 +45,7 @@ export class PaymentService {
     private eventEmitter: EventEmitter2,
   ) {
     this.paystackSecretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+    this.paystackWebhookSecret = this.configService.get<string>('PAYSTACK_WEBHOOK_SECRET') || this.paystackSecretKey;
   }
 
   // ========================================
@@ -480,11 +483,14 @@ export class PaymentService {
       // Verify webhook signature
       const crypto = require('crypto');
       const hash = crypto
-        .createHmac('sha512', this.paystackSecretKey)
+        .createHmac('sha512', this.paystackWebhookSecret)
         .update(JSON.stringify(payload))
         .digest('hex');
 
       if (hash !== signature) {
+        console.error('❌ Invalid Paystack webhook signature');
+        console.error('Expected:', hash);
+        console.error('Received:', signature);
         throw new BadRequestException('Invalid webhook signature');
       }
 
